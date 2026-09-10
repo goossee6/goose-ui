@@ -1,0 +1,59 @@
+{
+  "name": "goose-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/lib/index.ts",
+    "./styles/theme.css": "./src/lib/styles/theme.css",
+    "./button": "./src/lib/components/ui/Button.svelte",
+    "./card": "./src/lib/components/ui/Card.svelte",
+    "./checkbox": "./src/lib/components/ui/Checkbox.svelte",
+    "./input": "./src/lib/components/ui/Input.svelte",
+    "./label": "./src/lib/components/ui/Label.svelte",
+    "./modal": "./src/lib/components/ui/Modal.svelte",
+    "./select": "./src/lib/components/ui/Select.svelte",
+    "./multi-select": "./src/lib/components/ui/MultiSelect.svelte",
+    "./segmented-tabs": "./src/lib/components/ui/SegmentedTabs.svelte",
+    "./progress-bar": "./src/lib/components/ui/ProgressBar.svelte",
+    "./progress-bytes": "./src/lib/components/ui/ProgressBytes.svelte",
+    "./progress-slot-bar": "./src/lib/components/ui/ProgressSlotBar.svelte",
+    "./drop-zone": "./src/lib/components/ui/DropZone.svelte",
+    "./preset-input": "./src/lib/components/ui/PresetInput.svelte",
+    "./status-badge": "./src/lib/components/ui/StatusBadge.svelte",
+    "./toggle": "./src/lib/components/ui/Toggle.svelte",
+    "./icon": "./src/lib/components/ui/Icon.svelte",
+    "./toast": "./src/lib/components/ui/Toast.svelte",
+    "./data-list": "./src/lib/components/ui/DataList.svelte",
+    "./data-table": "./src/lib/components/ui/DataTable.svelte",
+    "./page-header": "./src/lib/components/ui/PageHeader.svelte",
+    "./title-bar": "./src/lib/components/ui/TitleBar.svelte",
+    "./layout": "./src/lib/components/ui/Layout.svelte",
+    "./usage-bar": "./src/lib/components/ui/UsageBar.svelte",
+    "./loading-gif": "./src/lib/components/ui/LoadingGif.svelte",
+    "./typewriter": "./src/lib/components/ui/Typewriter.svelte",
+    "./confirm-dialog": "./src/lib/components/providers/ConfirmDialog.svelte",
+    "./error-dialog": "./src/lib/components/providers/ErrorDialog.svelte",
+    "./context-menu": "./src/lib/components/menus/ContextMenu.svelte",
+    "./icons": "./src/lib/components/icons.ts",
+    "./toast-store": "./src/lib/components/toast.ts",
+    "./confirm-store": "./src/lib/components/confirm.ts",
+    "./error-store": "./src/lib/components/errors.ts",
+    "./context-menu-store": "./src/lib/components/contextMenu.ts",
+    "./utils": "./src/lib/utils/cn.ts"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0",
+    "@wailsio/runtime": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@wailsio/runtime": { "optional": true }
+  },
+  "dependencies": {
+    "clsx": "^2.1.0"
+  },
+  "devDependencies": {
+    "svelte": "^5.0.0",
+    "typescript": "^5.0.0"
+  }
+}
