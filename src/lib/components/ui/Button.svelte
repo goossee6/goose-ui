@@ -2,7 +2,7 @@
   import type { Snippet } from "svelte";
 
   let {
-    variant = "primary",
+    variant = "default",
     size = "md",
     disabled = false,
     type = "button",
@@ -11,7 +11,7 @@
     onclick,
     ...rest
   }: {
-    variant?: "primary" | "secondary" | "danger" | "cancel" | "ghost" | "outline" | "destructive" | "link";
+    variant?: "primary" | "default" | "ghost" | "danger" | "link";
     size?: "sm" | "md" | "lg" | "xs" | "icon" | "icon-sm" | "icon-xs" | "icon-lg";
     disabled?: boolean;
     type?: "button" | "submit";
@@ -57,18 +57,12 @@
   /* variants */
   .btn-primary { background-color: var(--primary); color: #ffffff; }
   .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
-  .btn-secondary { background-color: var(--secondary); color: var(--secondary-text); border: 1px solid var(--border-strong); }
-  .btn-secondary:hover:not(:disabled) { background-color: #ffffff; color: var(--secondary-text); border: 1px solid var(--primary); }
-  .btn-danger { background-color: var(--danger-soft); color: var(--danger-text); border: 1px solid var(--danger-border); }
-  .btn-danger:hover:not(:disabled) { background-color: var(--danger-border); border-color: var(--danger-text); }
-  .btn-cancel { background-color: transparent; border: 1px solid var(--border-strong); color: var(--text-muted); }
-  .btn-cancel:hover:not(:disabled) { background-color: var(--surface-2); color: var(--text-strong); }
+  .btn-default { background-color: var(--secondary); color: var(--secondary-text); border: 1px solid var(--border-strong); }
+  .btn-default:hover:not(:disabled) { background-color: var(--hover); border-color: var(--primary); }
   .btn-ghost { background-color: transparent; color: var(--text-muted); }
   .btn-ghost:hover:not(:disabled) { background-color: var(--surface-2); color: var(--text-strong); }
-  .btn-outline { background-color: transparent; border: 1px solid var(--border-strong); color: var(--text-muted); }
-  .btn-outline:hover:not(:disabled) { background-color: var(--surface-2); color: var(--text-strong); border-color: var(--primary); }
-  .btn-destructive { background-color: transparent; color: var(--danger-text); }
-  .btn-destructive:hover:not(:disabled) { background-color: var(--danger-soft); }
+  .btn-danger { background-color: var(--danger-soft); color: var(--danger-text); border: 1px solid var(--danger-border); }
+  .btn-danger:hover:not(:disabled) { background-color: var(--danger-border); border-color: var(--danger-text); }
   .btn-link { background-color: transparent; color: var(--primary); text-decoration: underline; text-underline-offset: 4px; }
   .btn-link:hover:not(:disabled) { text-decoration: none; }
 </style>

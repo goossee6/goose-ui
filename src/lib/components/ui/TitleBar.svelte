@@ -110,8 +110,17 @@
 	}
 
 	.win-btn:hover {
-		background-color: rgba(255, 255, 255, 0.15);
+		background-color: var(--hover);
 		color: var(--text-strong);
+	}
+
+	.win-btn:disabled {
+		color: var(--border-strong);
+		cursor: default;
+	}
+
+	.win-btn:disabled:hover {
+		background-color: transparent;
 	}
 
 	.win-btn-close:hover {

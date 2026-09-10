@@ -80,7 +80,7 @@ import "goose-ui/styles/theme.css";
 
 | 组件        | 路径                    | 说明                                                |
 | ----------- | ----------------------- | --------------------------------------------------- |
-| Button      | `goose-ui/button`       | 按钮，支持 primary/secondary/danger/cancel 四种变体 |
+| Button      | `goose-ui/button`       | 按钮，支持 primary/default/ghost/danger/link 五种变体 |
 | Card        | `goose-ui/card`         | 卡片容器，支持 title + right header                 |
 | Checkbox    | `goose-ui/checkbox`     | 复选框                                              |
 | Input       | `goose-ui/input`        | 输入框，支持 clearable/Enter 回调/digitsOnly        |

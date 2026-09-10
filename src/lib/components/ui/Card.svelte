@@ -14,7 +14,7 @@
 	} = $props();
 </script>
 
-<div class="card {cls}">
+<div class="card" {cls}>
 	{#if title}
 		<div class="card-header">
 			<span class="card-title">{title}</span>
@@ -57,6 +57,9 @@
 		gap: var(--gap-md);
 	}
 	.card-body {
-		padding: var(--sp-3xl) var(--sp-4xl);
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-md);
+		padding: var(--sp-xl);
 	}
 </style>

@@ -14,7 +14,7 @@
 {#if $confirmStore.open}
   <Modal title={$confirmStore.title} size="sm" onClose={confirmStore.cancel}>
     {#snippet footer()}
-      <Button variant="cancel" size="md" onclick={confirmStore.cancel}>
+      <Button variant="default" size="md" onclick={confirmStore.cancel}>
         {$confirmStore.cancelText}
       </Button>
       <Button variant={$confirmStore.danger ? "danger" : "primary"} size="md" onclick={confirmStore.confirm}>

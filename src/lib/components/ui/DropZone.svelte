@@ -60,7 +60,7 @@
 		bind:this={fileInput}
 		onchange={handleFileChange}
 	/>
-	<Button variant="cancel" size="sm" onclick={handleClick}>选择文件</Button>
+	<Button variant="default" size="sm" onclick={handleClick}>选择文件</Button>
 </div>
 
 <style>

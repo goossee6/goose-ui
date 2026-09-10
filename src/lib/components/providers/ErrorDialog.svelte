@@ -35,7 +35,7 @@
       {/each}
     </div>
     {#snippet footer()}
-      <Button variant="cancel" size="md" onclick={errorStore.clear}>全部关闭</Button>
+      <Button variant="default" size="md" onclick={errorStore.clear}>全部关闭</Button>
       <Button variant="danger" size="md" onclick={copyAll}>复制全部</Button>
     {/snippet}
   </Modal>
