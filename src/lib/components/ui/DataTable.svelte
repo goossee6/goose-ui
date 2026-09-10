@@ -1,5 +1,6 @@
 <script lang="ts" generics="T">
   import type { Snippet } from "svelte";
+  import Triangle from "@lucide/svelte/icons/triangle";
   import { cellMenuAttrs } from "../contextMenu";
   import type { Column } from "../tableTypes";
   import Icon from "./Icon.svelte";
@@ -107,7 +108,7 @@
               {#if colSortable(col)}
                 <button class="sort-btn" class:active={sortState?.key === col.id} onclick={() => (sortState = toggleSort(sortState, col.id))}>
                   {col.header}
-                  <Icon name={sortState?.key === col.id ? "triangle" : "triangle"} size={13} class={sortState?.key === col.id && sortState.dir === "desc" ? "sort-flip" : ""} />
+                  <Icon icon={Triangle} size={14} class={sortState?.key === col.id && sortState.dir === "desc" ? "sort-flip" : ""} />
                 </button>
               {:else}
                 {col.header}

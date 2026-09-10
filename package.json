@@ -35,7 +35,6 @@
     "./confirm-dialog": "./src/lib/components/providers/ConfirmDialog.svelte",
     "./error-dialog": "./src/lib/components/providers/ErrorDialog.svelte",
     "./context-menu": "./src/lib/components/menus/ContextMenu.svelte",
-    "./icons": "./src/lib/components/icons.ts",
     "./toast-store": "./src/lib/components/toast.ts",
     "./confirm-store": "./src/lib/components/confirm.ts",
     "./error-store": "./src/lib/components/errors.ts",
@@ -43,13 +42,16 @@
     "./utils": "./src/lib/utils/cn.ts"
   },
   "peerDependencies": {
-    "svelte": "^5.0.0",
-    "@wailsio/runtime": ">=3.0.0"
+    "@wailsio/runtime": ">=3.0.0",
+    "svelte": "^5.0.0"
   },
   "peerDependenciesMeta": {
-    "@wailsio/runtime": { "optional": true }
+    "@wailsio/runtime": {
+      "optional": true
+    }
   },
   "dependencies": {
+    "@lucide/svelte": "^1.43.0",
     "clsx": "^2.1.0"
   },
   "devDependencies": {

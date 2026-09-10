@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
+  import CircleCheck from "@lucide/svelte/icons/circle-check";
+  import CircleX from "@lucide/svelte/icons/circle-x";
   import { toastStore, type ToastItem as ToastItemType } from "../toast";
   import Icon from "./Icon.svelte";
 
@@ -18,9 +20,9 @@
 
 <div class="toast toast-{toast.type}" role="status" aria-live="polite">
   {#if toast.type === "success"}
-    <Icon class="toast-icon" name="check-circle" size={18} />
+    <Icon class="toast-icon" icon={CircleCheck} size={18} />
   {:else}
-    <Icon class="toast-icon" name="x-circle" size={18} />
+    <Icon class="toast-icon" icon={CircleX} size={18} />
   {/if}
   <span>{toast.message}</span>
 </div>

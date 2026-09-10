@@ -66,7 +66,7 @@
   <div class="ctxmenu" style="left: {pos.left}px; top: {pos.top}px" transition:fade={{ duration: 90 }} bind:this={menuEl} role="menu">
     {#each items as item (item.id)}
       <button type="button" class="ctxmenu-item" role="menuitem" onclick={() => pick(item)}>
-        {#if item.icon}<Icon name={item.icon} size={14} class="ctxmenu-item-icon" />{/if}
+        {#if item.icon}<Icon icon={item.icon} size={14} class="ctxmenu-item-icon" />{/if}
         {item.label}
       </button>
     {/each}

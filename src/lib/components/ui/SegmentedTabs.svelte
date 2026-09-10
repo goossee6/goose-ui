@@ -5,6 +5,7 @@
 		value: string;
 		label: string;
 		icon?: Component<{ size?: number }>;
+		iconHtml?: string;
 	}
 
 	let {
@@ -68,6 +69,12 @@
 				style="transform: translateY({pillStyle.top}px); height: {pillStyle.height}px; width: calc(100% - 8px); opacity: {pillStyle.opacity}"
 			></div>
 		{/if}
+		{#if mode === 'underline'}
+			<div
+				class="tabs-indicator"
+				style="transform: translateX({pillStyle.left}px); width: {pillStyle.width}px; opacity: {pillStyle.opacity}"
+			></div>
+		{/if}
 		{#each items as item}
 			{@const isActive = value === item.value}
 			<button
@@ -80,6 +87,8 @@
 			>
 				{#if item.icon}
 					<svelte:component this={item.icon} size={16} />
+				{:else if item.iconHtml}
+					<svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">{@html item.iconHtml}</svg>
 				{/if}
 				{item.label}
 			</button>
@@ -104,6 +113,7 @@
 	.tabs-group--underline {
 		gap: 0;
 		width: 100%;
+		border-bottom: 1px solid var(--border);
 	}
 	.tabs-group--vertical {
 		flex-direction: column;
@@ -125,6 +135,16 @@
 		right: 4px;
 		top: auto;
 		bottom: auto;
+	}
+	.tabs-indicator {
+		position: absolute;
+		bottom: -1px;
+		height: 2px;
+		background: var(--primary);
+		border-radius: 1px;
+		transition: transform 0.22s ease-out, width 0.22s ease-out;
+		z-index: 0;
+		pointer-events: none;
 	}
 	.tab {
 		position: relative;
@@ -150,9 +170,8 @@
 		text-align: center;
 		padding: 12px 16px;
 		font-size: 14px;
-		border-bottom: 2px solid transparent;
 	}
-	.tabs-mode--underline.tab-active { color: var(--primary); border-bottom-color: var(--primary); }
+	.tabs-mode--underline.tab-active { color: var(--primary); }
 	.tabs-mode--underline:not(.tab-active) { color: var(--text-muted); }
 	.tabs-mode--underline:not(.tab-active):hover { color: var(--text-strong); }
 	.tabs-mode--vertical {

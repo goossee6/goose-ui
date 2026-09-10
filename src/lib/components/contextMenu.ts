@@ -1,9 +1,10 @@
+import type { Component } from 'svelte';
 import { menuStore } from "./contextMenuStore.svelte.ts";
 
 export interface MenuItemDef {
   id: string;
   label: string;
-  icon?: string;
+  icon?: Component<{ size?: number; class?: string }>;
   builtin?: 'copy';
 }
 

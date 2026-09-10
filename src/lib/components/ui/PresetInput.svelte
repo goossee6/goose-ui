@@ -1,4 +1,6 @@
 <script lang="ts">
+    import X from '@lucide/svelte/icons/x';
+    import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import Icon from './Icon.svelte';
 
     interface PresetOption {
@@ -139,12 +141,12 @@
     {/if}
     {#if showClear}
         <button class="preset-clear" onclick={clear} tabindex="-1" type="button" aria-label="清除输入">
-            <Icon name="x" size={14} />
+            <Icon icon={X} size={14} />
         </button>
     {/if}
     {#if hasPresets}
         <button class="preset-toggle" onclick={toggle} {disabled} tabindex="-1" aria-label="预设选项" aria-haspopup="listbox" aria-expanded={open}>
-            <Icon name="chevron-down" size={16} />
+            <Icon icon={ChevronDown} size={16} />
         </button>
     {/if}
     {#if open}

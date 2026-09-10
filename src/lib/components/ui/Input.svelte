@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Component } from 'svelte';
+	import X from '@lucide/svelte/icons/x';
 	import Icon from './Icon.svelte';
 
 	let {
@@ -8,8 +10,8 @@
 		disabled = false,
 		readonly = false,
 		clearable = false,
-		prefix = '',
-		suffix = '',
+		prefix = undefined,
+		suffix = undefined,
 		status,
 		class: cls = '',
 		type = 'text',
@@ -25,8 +27,8 @@
 		disabled?: boolean;
 		readonly?: boolean;
 		clearable?: boolean;
-		prefix?: string;
-		suffix?: string;
+		prefix?: Component<{ size?: number }>;
+		suffix?: Component<{ size?: number }>;
 		status?: 'error' | 'warning';
 		class?: string;
 		type?: string;
@@ -56,7 +58,7 @@
 <div class="input-wrapper {cls}">
 	{#if prefix}
 		<span class="input-affix input-prefix">
-			<Icon name={prefix} size={16} />
+			<Icon icon={prefix} size={16} />
 		</span>
 	{/if}
 	<input
@@ -77,12 +79,12 @@
 	/>
 	{#if clearable && value}
 		<button class="input-clear" onclick={() => { value = ''; onClear?.(); }} aria-label="清除">
-			<Icon name="x" size={14} />
+			<Icon icon={X} size={14} />
 		</button>
 	{/if}
 	{#if suffix}
 		<span class="input-affix input-suffix">
-			<Icon name={suffix} size={16} />
+			<Icon icon={suffix} size={16} />
 		</span>
 	{/if}
 </div>

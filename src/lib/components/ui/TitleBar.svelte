@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Window } from '@wailsio/runtime';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
+	import Minus from '@lucide/svelte/icons/minus';
+	import Square from '@lucide/svelte/icons/square';
+	import Undo2 from '@lucide/svelte/icons/undo-2';
+	import X from '@lucide/svelte/icons/x';
 	import Icon from './Icon.svelte';
 
 	let {
@@ -46,17 +52,17 @@
 	<div class="titlebar-controls">
 		{#if onThemeToggle}
 			<button type="button" class="win-btn" onclick={onThemeToggle} title={theme === 'dark' ? '浅色模式' : '深色模式'}>
-				<Icon name={theme === 'dark' ? 'sun' : 'moon'} size={14} />
+				<Icon icon={theme === 'dark' ? Sun : Moon} size={14} />
 			</button>
 		{/if}
 		<button type="button" class="win-btn" onclick={handleMinimise} aria-label="最小化">
-			<Icon name="minimize" size={11} />
+			<Icon icon={Minus} size={14} />
 		</button>
-		<button type="button" class="win-btn" onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
-			<Icon name={isMaximised ? 'restore' : 'maximize'} size={11} />
+		<button type="button" class="win-btn" disabled onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
+			<Icon icon={isMaximised ? Undo2 : Square} size={12} />
 		</button>
 		<button type="button" class="win-btn win-btn-close" onclick={handleClose} aria-label="关闭">
-			<Icon name="close-window" size={11} />
+			<Icon icon={X} size={16} />
 		</button>
 	</div>
 </div>

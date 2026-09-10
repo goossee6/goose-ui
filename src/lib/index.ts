@@ -11,7 +11,6 @@ export type { ErrorEntry } from './components/errors';
 
 // Icons
 export { Icon } from './components/ui/Icon.svelte';
-export { iconPaths } from './components/icons';
 
 // Stores
 export { toastStore, showToast, showErrorToast, errorToString } from './components/toast';
