@@ -9,6 +9,7 @@
     "./button": "./src/lib/components/ui/Button.svelte",
     "./card": "./src/lib/components/ui/Card.svelte",
     "./checkbox": "./src/lib/components/ui/Checkbox.svelte",
+    "./creatable-select": "./src/lib/components/ui/CreatableSelect.svelte",
     "./input": "./src/lib/components/ui/Input.svelte",
     "./label": "./src/lib/components/ui/Label.svelte",
     "./modal": "./src/lib/components/ui/Modal.svelte",

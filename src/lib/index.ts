@@ -22,6 +22,7 @@ export { menuStore, registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuA
 export { default as Button } from './components/ui/Button.svelte';
 export { default as Card } from './components/ui/Card.svelte';
 export { default as Checkbox } from './components/ui/Checkbox.svelte';
+export { default as CreatableSelect } from './components/ui/CreatableSelect.svelte';
 export { default as DataList } from './components/ui/DataList.svelte';
 export { default as DataTable } from './components/ui/DataTable.svelte';
 export { default as DropZone } from './components/ui/DropZone.svelte';

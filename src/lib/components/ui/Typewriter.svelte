@@ -1,53 +1,110 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Snippet } from 'svelte';
 
 	let {
+		text = '',
 		children,
-		speed = 20,
+		speed = 60,
 		trigger,
 		autoPlay = true,
+		cursor = true,
 		onDone,
+		class: cls = '',
 	}: {
-		children: import('svelte').Snippet;
+		text?: string;
+		children?: Snippet;
 		speed?: number;
 		trigger?: unknown;
 		autoPlay?: boolean;
+		cursor?: boolean;
 		onDone?: () => void;
+		class?: string;
 	} = $props();
 
-	let visible = $state(false);
+	let chars: { char: string; visible: boolean }[] = $state([]);
+	let mounted = $state(false);
 	let prevTrigger = trigger;
+	let timer: ReturnType<typeof setInterval> | null = null;
+	let charIndex = $state(0);
+	let totalChars = $state(0);
+
+	const isTyping = $derived(totalChars > 0 && charIndex < totalChars);
+
+	function startTyping() {
+		if (timer) { clearInterval(timer); timer = null; }
+		const currentText = text;
+		const len = currentText.length;
+		totalChars = len;
+		charIndex = 0;
+		chars = currentText.split('').map(char => ({ char, visible: false }));
+		if (len === 0) {
+			onDone?.();
+			return;
+		}
+		timer = setInterval(() => {
+			charIndex++;
+			if (charIndex <= len) {
+				chars[charIndex - 1].visible = true;
+				chars = chars;
+			}
+			if (charIndex >= len) {
+				clearInterval(timer!);
+				timer = null;
+				onDone?.();
+			}
+		}, speed);
+	}
 
 	onMount(() => {
-		if (autoPlay) {
-			visible = true;
-			onDone?.();
-		}
+		mounted = true;
+		if (autoPlay && text.length > 0) startTyping();
+		return () => { if (timer) clearInterval(timer); };
 	});
 
 	$effect(() => {
 		if (trigger !== prevTrigger) {
 			prevTrigger = trigger;
-			visible = false;
-			requestAnimationFrame(() => {
-				visible = true;
-				onDone?.();
-			});
+			startTyping();
 		}
 	});
 </script>
 
-<div class="typewriter-wrapper" class:visible>
-	{@render children()}
-</div>
+{#if totalChars > 0}
+	<span class="tw-text {cls}" class:tw-cursor={cursor && isTyping}>
+		{#each chars as c}{#if c.visible}<span>{c.char}</span>{/if}{/each}{#if cursor && isTyping}<span class="tw-cursor-char">|</span>{/if}
+	</span>
+{:else if children}
+	<div class="tw-fade {cls}" class:tw-fade--visible={mounted}>
+		{@render children()}
+	</div>
+{/if}
 
 <style>
-	.typewriter-wrapper {
+	.tw-text {
+		white-space: pre-wrap;
+		word-break: break-word;
+		display: inline;
+	}
+	.tw-cursor {
+		cursor: default;
+	}
+	.tw-cursor-char {
+		color: var(--primary, #6366f1);
+		font-weight: 300;
+		animation: tw-blink 0.8s step-end infinite;
+		margin-left: 1px;
+	}
+	@keyframes tw-blink {
+		50% { opacity: 0; }
+	}
+
+	.tw-fade {
 		opacity: 0;
 		transform: translateY(4px);
 		transition: opacity 0.3s ease, transform 0.3s ease;
 	}
-	.typewriter-wrapper.visible {
+	.tw-fade--visible {
 		opacity: 1;
 		transform: translateY(0);
 	}

@@ -15,6 +15,7 @@
 		placeholder = '请选择',
 		class: cls = '',
 		disabled = false,
+		width = '100%',
 	}: {
 		value?: string;
 		onchange?: (v: string) => void;
@@ -22,6 +23,7 @@
 		placeholder?: string;
 		class?: string;
 		disabled?: boolean;
+		width?: string;
 	} = $props();
 
 	let open = $state(false);
@@ -94,7 +96,7 @@
 	});
 </script>
 
-<div bind:this={wrapperEl} class="select-wrapper {cls}">
+<div bind:this={wrapperEl} class="select-wrapper {cls}" style={width !== '100%' ? `width: ${width};` : ''}>
 	<button
 		type="button"
 		{disabled}
@@ -155,6 +157,7 @@
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: var(--bg);
+		color: var(--text);
 		font-size: 14px;
 		cursor: pointer;
 		transition: border-color 0.15s;
@@ -164,7 +167,7 @@
 	.select-trigger:disabled { opacity: 0.5; cursor: not-allowed; }
 	.select-trigger--open { border-color: var(--primary); }
 	.select-trigger--placeholder { color: var(--text-muted); }
-	.select-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.select-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 	.select-chevron { color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s; }
 	.select-chevron--open { transform: rotate(180deg); }
 	.select-dropdown {
@@ -174,6 +177,7 @@
 		border: 1px solid var(--border);
 		background-color: var(--surface);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+		color: var(--text);
 	}
 	.select-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); }
 	.select-option {
@@ -191,8 +195,9 @@
 		cursor: pointer;
 		transition: background-color 0.1s;
 	}
-	.select-option--active { background-color: var(--hover); }
-	.select-option--selected { background-color: var(--primary-soft); font-weight: 500; }
+	.select-option:hover { color: var(--text-strong); }
+	.select-option--active { background-color: var(--hover); color: var(--text-strong); }
+	.select-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
 	.select-option-left { display: flex; align-items: center; gap: var(--gap-md); min-width: 0; }
 	.select-option-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary); flex-shrink: 0; }
 	.select-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -207,4 +212,9 @@
 	.select-meta--good { background-color: var(--success-soft); color: var(--success-text); }
 	.select-meta--medium { background-color: #fef3c7; color: #d97706; }
 	.select-meta--bad { background-color: var(--danger-soft); color: var(--danger-text); }
+	:global(.dark) .select-dropdown { background-color: var(--surface); color: var(--text); }
+	:global(.dark) .select-option { color: var(--text); }
+	:global(.dark) .select-option:hover,
+	:global(.dark) .select-option--active,
+	:global(.dark) .select-option--selected { color: var(--text-strong); }
 </style>

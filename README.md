@@ -80,9 +80,10 @@ import "goose-ui/styles/theme.css";
 
 | 组件        | 路径                    | 说明                                                |
 | ----------- | ----------------------- | --------------------------------------------------- |
-| Button      | `goose-ui/button`       | 按钮，支持 primary/default/ghost/danger/link 五种变体 |
+| Button      | `goose-ui/button`       | 按钮，支持 primary/default/ghost/danger/link 五种变体，icon/iconRight 图标 prop |
 | Card        | `goose-ui/card`         | 卡片容器，支持 title + right header                 |
 | Checkbox    | `goose-ui/checkbox`     | 复选框                                              |
+| CreatableSelect | `goose-ui/creatable-select` | 可新建搜索选择器，支持静态/异步数据源、键盘导航、内联创建 |
 | Input       | `goose-ui/input`        | 输入框，支持 clearable/Enter 回调/digitsOnly        |
 | Label       | `goose-ui/label`        | 表单标签                                            |
 | Select      | `goose-ui/select`       | 下拉选择，支持键盘导航和 meta 标签                  |
@@ -131,7 +132,7 @@ import "goose-ui/styles/theme.css";
 | ----------- | ----------------------- | ------------------------------------------------ |
 | Icon        | `goose-ui/icon`         | SVG 图标（40+ 图标）                             |
 | TitleBar    | `goose-ui/title-bar`    | Wails3 自绘标题栏（最小化/最大化/关闭/主题切换） |
-| Typewriter  | `goose-ui/typewriter`   | 淡入动画包装                                     |
+| Typewriter  | `goose-ui/typewriter`   | 打字机效果，支持逐字文本或淡入 Snippet |
 | ContextMenu | `goose-ui/context-menu` | 右键菜单（全局注册机制）                         |
 
 ## Store
@@ -208,6 +209,82 @@ formatBytes(1048576); // "1 MB"
 | `default-class` | `string` | `lucide-icon` | 默认 CSS 类名 |
 
 图标同时支持所有 SVG 标准属性（如 `class`、`style`、`data-*` 等），详见 [MDN SVG Presentation Attributes](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute#presentation_attributes)。
+
+### Button Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `variant` | `'primary' \| 'default' \| 'ghost' \| 'danger' \| 'link'` | `'default'` | 按钮变体 |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'icon' \| 'icon-sm' \| 'icon-xs' \| 'icon-lg'` | `'md'` | 尺寸 |
+| `icon` | `Component` | — | 左侧图标组件 |
+| `iconRight` | `Component` | — | 右侧图标组件 |
+| `iconSize` | `number` | `16` | 图标尺寸（px） |
+| `disabled` | `boolean` | `false` | 禁用 |
+| `loading` | `boolean` | `false` | 加载状态，显示旋转图标并禁用 |
+| `class` | `string` | `""` | 额外 CSS 类名 |
+
+```svelte
+<Button icon={Trash2} size="icon-sm" variant="ghost" />
+<Button icon={Plus} size="sm">新建</Button>
+<Button icon={Star} iconRight={ChevronDown}>选项</Button>
+```
+
+### CreatableSelect Props
+
+可新建搜索选择器。支持静态数据源（`items`）和异步数据源（`loadItems`），内置搜索、键盘导航、内联创建。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `value` | `string` (bindable) | `''` | 当前选中值 |
+| `items` | `string[]` | `[]` | 静态数据源 |
+| `loadItems` | `() => Promise<string[]>` | — | 异步数据源（首次打开时加载，优先于 `items`） |
+| `onCreateItem` | `(name: string) => Promise<void>` | — | 新建回调（不传则隐藏新建按钮） |
+| `placeholder` | `string` | `'请选择'` | 触发器占位文字 |
+| `title` | `string` | `'请选择'` | 下拉标题 |
+| `createText` | `string` | `'新建'` | 新建按钮文案前缀 |
+| `disabled` | `boolean` | `false` | 禁用 |
+| `class` | `string` | `""` | 额外 CSS 类名 |
+| `loadingIndicator` | `Snippet` | — | 加载态指示器（可选） |
+
+```svelte
+<!-- 静态数据源 -->
+<CreatableSelect items={['tag-a', 'tag-b']} bind:value={selected} />
+
+<!-- 异步数据源 + 新建 -->
+<CreatableSelect
+  loadItems={async () => await fetchTags()}
+  onCreateItem={async (name) => await createTag(name)}
+  bind:value={selected}
+  loadingIndicator={<LoadingGif />}
+/>
+```
+
+### Typewriter Props
+
+打字机效果组件。双模式：传 `text` 走逐字打出，传 `children` 走淡入动画。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `text` | `string` | `''` | 逐字打出的文本 |
+| `children` | `Snippet` | — | 备选内容（淡入模式，无 text 时使用） |
+| `speed` | `number` | `30` | 每字符间隔（ms） |
+| `trigger` | `unknown` | — | 变化时重新播放 |
+| `autoPlay` | `boolean` | `true` | 自动开始 |
+| `cursor` | `boolean` | `true` | 显示闪烁光标（仅 text 模式） |
+| `class` | `string` | `''` | 额外 CSS 类名 |
+
+```svelte
+<!-- 逐字打出 -->
+<Typewriter text="Hello, World!" speed={50} />
+
+<!-- 触发重播 -->
+<Typewriter text={message} trigger={message} speed={30} />
+
+<!-- 淡入模式（兼容现有用法） -->
+<Typewriter>
+  <p>这段文字会淡入出现</p>
+</Typewriter>
+```
 
 ## Peer Dependencies
 

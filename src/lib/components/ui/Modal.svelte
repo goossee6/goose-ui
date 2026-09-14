@@ -1,12 +1,14 @@
 <script lang="ts">
   import { fade, scale } from "svelte/transition";
   import type { Snippet } from "svelte";
+  import X from '@lucide/svelte/icons/x';
+  import Icon from './Icon.svelte';
 
   let {
     open = $bindable(false),
     title,
     width = 520,
-    maskClosable = true,
+    maskClosable = false,
     disableClose = false,
     typewriter = true,
     onClose,
@@ -74,7 +76,14 @@
     >
       {#if title}
         <div class="modal-header">
-          {#if typeof title === "string"}{title}{:else}{@render title()}{/if}
+          <span class="modal-title">
+            {#if typeof title === "string"}{title}{:else}{@render title()}{/if}
+          </span>
+          {#if !disableClose}
+            <button class="modal-close" onclick={doClose} aria-label="关闭">
+              <Icon icon={X} size={14} />
+            </button>
+          {/if}
         </div>
       {/if}
       <div class="modal-body">
@@ -111,27 +120,62 @@
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-2xl);
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     overscroll-behavior: contain;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
   .modal-header {
-    padding: var(--sp-3xl) var(--sp-4xl);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-xl) var(--sp-4xl);
     font-size: 18px;
     font-weight: 600;
     color: var(--text-strong);
     border-bottom: 1px solid var(--border-strong);
+    flex-shrink: 0;
+  }
+  .modal-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .modal-close:hover {
+    background-color: var(--surface-2);
+    color: var(--text-strong);
   }
   .modal-body {
     padding: var(--sp-3xl) var(--sp-4xl);
     min-width: 0;
-    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
   .modal-footer {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: var(--gap-xl);
-    padding: 0 var(--sp-4xl) var(--sp-3xl);
+    padding: var(--sp-xl) var(--sp-4xl);
+    flex-shrink: 0;
   }
   .modal-btn {
     padding: var(--sp-md) var(--sp-2xl);
