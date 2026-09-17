@@ -5,7 +5,8 @@
 	let {
 		text = '',
 		children,
-		speed = 60,
+		duration = 2000,
+		speed,
 		trigger,
 		autoPlay = true,
 		cursor = true,
@@ -14,6 +15,7 @@
 	}: {
 		text?: string;
 		children?: Snippet;
+		duration?: number;
 		speed?: number;
 		trigger?: unknown;
 		autoPlay?: boolean;
@@ -42,6 +44,7 @@
 			onDone?.();
 			return;
 		}
+		const interval = speed ?? Math.max(5, duration / len);
 		timer = setInterval(() => {
 			charIndex++;
 			if (charIndex <= len) {
@@ -67,6 +70,10 @@
 			prevTrigger = trigger;
 			startTyping();
 		}
+	});
+
+	$effect(() => {
+		if (mounted && text) startTyping();
 	});
 </script>
 

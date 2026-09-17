@@ -2,15 +2,17 @@
   import type { Snippet } from "svelte";
 
   let {
-    rows,
+    rows = [],
     emptyText = "暂无数据",
     children,
     bindContainer,
+    rowKey,
   }: {
-    rows: T[];
+    rows?: T[];
     emptyText?: string;
     children: Snippet<[T]>;
     bindContainer?: (el: HTMLElement | null) => void;
+    rowKey?: (row: T, index: number) => string | number;
   } = $props();
 
   let listEl: HTMLElement | null = $state(null);
@@ -24,7 +26,7 @@
   {#if rows.length === 0}
     <div class="placeholder">{emptyText}</div>
   {:else}
-    {#each rows as row, i (i)}
+    {#each rows as row, i (rowKey ? rowKey(row, i) : i)}
       <div class="list-row">
         {@render children(row)}
       </div>

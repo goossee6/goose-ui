@@ -1,9 +1,10 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
   import Icon from "../ui/Icon.svelte";
-  import { menuStore } from "../contextMenuStore.svelte.ts";
-  import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu.ts";
-  import { showToast } from "../toast.ts";
+  import { menuStore } from "../contextMenuStore.svelte";
+  import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu";
+  import { Notification } from "../notification";
+  import { copyToClipboard } from "../../utils/clipboard";
 
   let menuEl = $state<HTMLElement | null>(null);
   let pos = $state({ left: 0, top: 0 });
@@ -19,24 +20,23 @@
   function onContextMenu(e: MouseEvent) {
     const target = e.target as HTMLElement;
     const el = target.closest?.("[data-menu-name]") as HTMLElement | null;
-    if (!el) { closeMenu(); return; }
+    if (!el) return;
     e.preventDefault();
+    e.stopPropagation();
     const name = el.getAttribute("data-menu-name") || "";
     const data = decodeData(el.getAttribute("data-menu-data"));
     if (menuStore.visible && menuStore.name === name && pos.left === e.clientX && pos.top === e.clientY) return;
     openMenuAt(e.clientX, e.clientY, name, data);
   }
 
-  function pick(item: MenuItemDef) {
+  async function pick(item: MenuItemDef) {
     const { name, data } = menuStore;
     closeMenu();
     if (item.builtin === "copy") {
       const text = data.copy ?? "";
-      if (!text) { showToast("复制失败", "error"); return; }
-      navigator.clipboard.writeText(text).then(
-        () => showToast("已复制", "success"),
-        () => showToast("复制失败", "error")
-      );
+      if (!text) { Notification.error("复制失败"); return; }
+      const ok = await copyToClipboard(text);
+      Notification[ok ? "success" : "error"](ok ? "已复制" : "复制失败");
       return;
     }
     dispatchMenuAction({ menu: name, action: item.id, data });

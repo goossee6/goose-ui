@@ -33,26 +33,28 @@
     "./usage-bar": "./src/lib/components/ui/UsageBar.svelte",
     "./loading-gif": "./src/lib/components/ui/LoadingGif.svelte",
     "./typewriter": "./src/lib/components/ui/Typewriter.svelte",
-    "./confirm-dialog": "./src/lib/components/providers/ConfirmDialog.svelte",
     "./error-dialog": "./src/lib/components/providers/ErrorDialog.svelte",
     "./context-menu": "./src/lib/components/menus/ContextMenu.svelte",
-    "./toast-store": "./src/lib/components/toast.ts",
-    "./confirm-store": "./src/lib/components/confirm.ts",
     "./error-store": "./src/lib/components/errors.ts",
     "./context-menu-store": "./src/lib/components/contextMenu.ts",
-    "./utils": "./src/lib/utils/cn.ts"
+    "./utils": "./src/lib/utils/cn.ts",
+    "./clipboard": "./src/lib/utils/clipboard.ts",
+    "./format": "./src/lib/utils/format.ts"
   },
   "peerDependencies": {
+    "@lucide/svelte": ">=1.43.0",
     "@wailsio/runtime": ">=3.0.0",
     "svelte": "^5.0.0"
   },
   "peerDependenciesMeta": {
+    "@lucide/svelte": {
+      "optional": true
+    },
     "@wailsio/runtime": {
       "optional": true
     }
   },
   "dependencies": {
-    "@lucide/svelte": "^1.43.0",
     "clsx": "^2.1.0"
   },
   "devDependencies": {

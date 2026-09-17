@@ -267,17 +267,17 @@
 	.cs-wrapper { position: relative; }
 	.cs-trigger {
 		display: flex;
-		height: 36px;
+		height: var(--ui-md-height);
 		width: 100%;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--gap-md);
-		padding: 0 var(--sp-md);
+		padding: var(--ui-md-padding);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: var(--bg);
 		color: var(--text);
-		font-size: 14px;
+		font-size: var(--ui-md-font);
 		cursor: pointer;
 		transition: border-color 0.15s;
 	}
@@ -312,7 +312,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		padding: 6px var(--sp-md);
+		padding: var(--sp-md) var(--sp-xl);
 		border-bottom: 1px solid var(--border);
 	}
 	:global(.cs-search-icon) { color: var(--text-muted); flex-shrink: 0; }
@@ -349,7 +349,7 @@
 	.cs-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	:global(.cs-option-check) { color: var(--primary); flex-shrink: 0; }
 	.cs-footer {
-		padding: 6px var(--sp-md);
+		padding: var(--sp-md) var(--sp-xl);
 		border-top: 1px solid var(--border);
 		background-color: var(--surface);
 	}
@@ -358,7 +358,7 @@
 		align-items: center;
 		gap: 6px;
 		width: 100%;
-		padding: 6px var(--sp-md);
+		padding: var(--sp-md) var(--sp-xl);
 		border: none;
 		background: none;
 		color: var(--primary);

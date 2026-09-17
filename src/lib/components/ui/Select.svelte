@@ -5,11 +5,11 @@
 		value: string;
 		label: string;
 		meta?: string;
-		metaClass?: 'good' | 'medium' | 'bad';
+		metaClass?: 'good' | 'medium' | 'bad' | 'default';
 	}
 
 	let {
-		value = '',
+		value = $bindable(''),
 		onchange,
 		options = [],
 		placeholder = '请选择',
@@ -148,17 +148,17 @@
 	.select-wrapper { position: relative; }
 	.select-trigger {
 		display: flex;
-		height: 36px;
+		height: var(--ui-md-height);
 		width: 100%;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--gap-md);
-		padding: 0 var(--sp-md);
+		padding: var(--ui-md-padding);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: var(--bg);
 		color: var(--text);
-		font-size: 14px;
+		font-size: var(--ui-md-font);
 		cursor: pointer;
 		transition: border-color 0.15s;
 	}

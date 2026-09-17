@@ -9,8 +9,10 @@
     title,
     width = 520,
     maskClosable = false,
+    mask: maskProp = 'dark',
     disableClose = false,
     typewriter = true,
+    typewriterDuration = 1500,
     onClose,
     onOk,
     class: cls = "",
@@ -21,14 +23,50 @@
     title?: string | Snippet;
     width?: number | string;
     maskClosable?: boolean;
+    mask?: 'dark' | 'light';
     disableClose?: boolean;
     typewriter?: boolean;
+    typewriterDuration?: number;
     onClose?: () => void;
     onOk?: () => void;
     class?: string;
     children?: Snippet;
     footer?: Snippet;
   } = $props();
+
+  let bodyEl: HTMLDivElement | null = $state(null);
+  let twHtml = $state('');
+  let fullHtml = '';
+  let twIndex = 0;
+  let twTimer: ReturnType<typeof setTimeout> | null = null;
+
+  $effect(() => {
+    if (open && typewriter && bodyEl) {
+      const el = bodyEl.querySelector('.tw-source');
+      if (el) {
+        fullHtml = el.innerHTML;
+        twHtml = '';
+        twIndex = 0;
+        typeNext();
+      }
+    }
+    return () => { if (twTimer) clearTimeout(twTimer); };
+  });
+
+  function typeNext() {
+    if (twIndex < fullHtml.length) {
+      const ch = fullHtml[twIndex];
+      if (ch === '<') {
+        const end = fullHtml.indexOf('>', twIndex);
+        twIndex = end + 1;
+      } else {
+        twIndex++;
+      }
+      twHtml = fullHtml.slice(0, twIndex);
+      const delay = Math.max(5, typewriterDuration / fullHtml.length);
+      twTimer = setTimeout(typeNext, delay);
+    }
+  }
 
   function doClose() {
     onClose?.();
@@ -51,7 +89,7 @@
   }
 
   function handleModalKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" || e.key === " ") e.preventDefault();
+    if (e.key === "Escape" && !disableClose) doClose();
   }
 </script>
 
@@ -59,7 +97,7 @@
 
 {#if open}
   <div
-    class="modal-overlay"
+    class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}"
     role="presentation"
     onclick={handleMaskClick}
     onkeydown={(e) => { if (e.key === "Escape") doClose(); }}
@@ -72,12 +110,12 @@
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}
       onkeydown={handleModalKeydown}
-      transition:scale={{ duration: 180, start: 0.95 }}
+      transition:scale={{ duration: 180, start: 0.92 }}
     >
       {#if title}
         <div class="modal-header">
           <span class="modal-title">
-            {#if typeof title === "string"}{title}{:else}{@render title()}{/if}
+            {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
           </span>
           {#if !disableClose}
             <button class="modal-close" onclick={doClose} aria-label="关闭">
@@ -86,8 +124,13 @@
           {/if}
         </div>
       {/if}
-      <div class="modal-body">
-        {@render children?.()}
+      <div class="modal-body" bind:this={bodyEl}>
+        {#if typewriter}
+          <div class="tw-source" style="display:none">{@render children?.()}</div>
+          <div class="tw-output">{@html twHtml}</div>
+        {:else}
+          {@render children?.()}
+        {/if}
       </div>
       {#if footer}
         <div class="modal-footer">{@render footer()}</div>
@@ -115,7 +158,26 @@
     justify-content: center;
     z-index: 1000;
   }
+  .modal-overlay-light {
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(2px);
+  }
   .modal {
+    background-color: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-2xl);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overscroll-behavior: contain;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  .modal-no-mask {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
     background-color: var(--surface);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-2xl);
@@ -169,6 +231,10 @@
     min-height: 0;
     overflow-y: auto;
   }
+  .tw-output {
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
   .modal-footer {
     display: flex;
     align-items: center;
@@ -193,7 +259,7 @@
   .modal-btn-cancel:hover { background-color: var(--surface-2); color: var(--text-strong); }
   .modal-btn-ok {
     background-color: var(--primary);
-    color: #ffffff;
+    color: var(--primary-text, #ffffff);
     border-color: var(--primary);
   }
   .modal-btn-ok:hover { background-color: var(--primary-hover); }

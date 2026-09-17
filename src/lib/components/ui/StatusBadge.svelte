@@ -1,15 +1,16 @@
 <script lang="ts">
 	let {
-		status = 'normal',
-		variant,
+		variant = 'normal',
+		status,
 		children,
 	}: {
-		status?: 'normal' | 'warning';
 		variant?: 'normal' | 'warning';
+		/** @deprecated Use variant instead */
+		status?: 'normal' | 'warning';
 		children?: import('svelte').Snippet;
 	} = $props();
 
-	const resolved = $derived(variant || status);
+	const resolved = $derived(variant || status || 'normal');
 </script>
 
 <span class="badge badge-{resolved}">

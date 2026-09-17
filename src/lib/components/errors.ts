@@ -10,7 +10,9 @@ const MAX_ERRORS = 10;
 
 function formatError(e: unknown): string {
   if (e instanceof Error) {
-    return e.stack ?? `${e.name}: ${e.message}`;
+    const msg = `${e.name}: ${e.message}`;
+    if (import.meta.env?.DEV) return e.stack ?? msg;
+    return msg;
   }
   if (typeof e === 'string') return e;
   try {

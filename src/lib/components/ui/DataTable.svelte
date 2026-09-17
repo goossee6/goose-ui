@@ -35,29 +35,31 @@
     }
   }
 
-  let {
-    rows,
-    columns,
-    menu,
-    highlight = "",
-    contextMenu = true,
-    loading = false,
-    emptyText = "暂无数据",
-    disabled,
-    actions,
-    cell,
-  }: {
-    rows: T[];
-    columns: Column<T>[];
-    menu?: string;
-    highlight?: string;
-    contextMenu?: boolean;
-    loading?: boolean;
-    emptyText?: string;
-    disabled?: (row: T) => boolean;
-    actions?: Snippet<[T]>;
-    cell?: Snippet<[string, T]>;
-  } = $props();
+	let {
+		rows = [],
+		columns = [],
+		highlight = '',
+		contextMenu = true,
+		menu = '',
+		loading = false,
+		emptyText = '暂无数据',
+		disabled,
+		actions,
+		cell,
+		rowKey,
+	}: {
+		rows?: T[];
+		columns?: Column<T>[];
+		highlight?: string;
+		contextMenu?: boolean;
+		menu?: string;
+		loading?: boolean;
+		emptyText?: string;
+		disabled?: (row: T) => boolean;
+		actions?: Snippet<[T]>;
+		cell?: Snippet<[string, T]>;
+		rowKey?: (row: T, index: number) => string | number;
+	} = $props();
 
   let sortState = $state<SortState | null>(null);
   const displayRows = $derived.by(() => {
@@ -121,7 +123,7 @@
         </tr>
       </thead>
       <tbody>
-        {#each displayRows as row, i (i)}
+        {#each displayRows as row, i (rowKey ? rowKey(row, i) : i)}
           <tr class:disabled={disabled?.(row)}>
             {#each columns as col (col.id)}
               <td class:mono={col.mono} class:right={col.align === "right"} class:center={col.align === "center"} {...cellAttrs(col, row)}>

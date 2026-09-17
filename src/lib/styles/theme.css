@@ -43,12 +43,26 @@
 	--danger-text: #dc2626;
 	--danger-border: #fecaca;
 
+	/* 警告色 */
+	--warning: #f59e0b;
+	--warning-hover: #d97706;
+	--warning-soft: #fef3c7;
+	--warning-text: #92400e;
+	--warning-border: #fde68a;
+
 	/* 成功色 */
 	--success: #22c55e;
 	--success-hover: #16a34a;
 	--success-soft: #f0fdf4;
 	--success-text: #16a34a;
 	--success-border: #bbf7d0;
+
+	/* 信息色 */
+	--info: #3b82f6;
+	--info-hover: #2563eb;
+	--info-soft: #eff6ff;
+	--info-text: #2563eb;
+	--info-border: #bfdbfe;
 
 	/* 间距 */
 	--sp-2xs: 2px;
@@ -72,6 +86,17 @@
 	--radius-lg: 8px;
 	--radius-xl: 10px;
 	--radius-2xl: 12px;
+
+	/* 控件尺寸 */
+	--ui-sm-height: 28px;
+	--ui-sm-font: 12px;
+	--ui-sm-padding: 0 8px;
+	--ui-md-height: 36px;
+	--ui-md-font: 14px;
+	--ui-md-padding: 0 12px;
+	--ui-lg-height: 44px;
+	--ui-lg-font: 16px;
+	--ui-lg-padding: 0 16px;
 
 	/* 字体 */
 	--font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
@@ -130,11 +155,23 @@
 	--danger-text: #f87171;
 	--danger-border: #ef44444d;
 
+	--warning: #fbbf24;
+	--warning-hover: #f59e0b;
+	--warning-soft: #fbbf2426;
+	--warning-text: #fbbf24;
+	--warning-border: #fbbf244d;
+
 	--success: #4ade80;
 	--success-hover: #22c55e;
 	--success-soft: #22c55e26;
 	--success-text: #4ade80;
 	--success-border: #22c55e4d;
+
+	--info: #60a5fa;
+	--info-hover: #3b82f6;
+	--info-soft: #3b82f626;
+	--info-text: #60a5fa;
+	--info-border: #3b82f64d;
 
 	--scrollbar: rgba(255, 255, 255, 0.1);
 	--scrollbar-hover: rgba(255, 255, 255, 0.2);
@@ -178,7 +215,7 @@
 }
 
 /* ── Base Reset ────────────────────────────────────────────────────────────── */
-*, *::before, *::after {
+.goose-ui *, .goose-ui *::before, .goose-ui *::after {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
@@ -191,10 +228,6 @@ body {
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}
-
-html {
-	overflow-y: hidden;
 }
 
 /* 窄滚动条 */

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Window } from '@wailsio/runtime';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Minus from '@lucide/svelte/icons/minus';
@@ -20,19 +19,25 @@
 	} = $props();
 
 	let isMaximised = $state(false);
+	let Window: any = null;
 	const isWails = typeof window !== 'undefined' && '__wailsInvoke__' in window;
 
-	onMount(() => {
+	onMount(async () => {
 		if (isWails) {
-			Window.IsMaximised().then((v: boolean) => { isMaximised = v; });
+			try {
+				const mod = await import('@wailsio/runtime');
+				Window = mod.Window;
+				Window.IsMaximised().then((v: boolean) => { isMaximised = v; });
+			} catch {}
 		}
 	});
 
 	function handleMinimise() {
-		Window.Minimise();
+		Window?.Minimise();
 	}
 
 	async function handleMaximise() {
+		if (!Window) return;
 		if (isMaximised) {
 			await Window.Restore();
 		} else {
@@ -42,7 +47,7 @@
 	}
 
 	function handleClose() {
-		Window.Close();
+		Window?.Close();
 	}
 </script>
 

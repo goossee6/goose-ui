@@ -2,19 +2,25 @@
 	let {
 		checked = $bindable(false),
 		disabled = false,
+		ariaLabel = '',
 		onchange,
+		size = 'middle',
 	}: {
 		checked?: boolean;
 		disabled?: boolean;
+		ariaLabel?: string;
 		onchange?: (e: Event) => void;
+		size?: 'small' | 'middle' | 'large' | number;
 	} = $props();
+
+	const sizeClass = $derived(typeof size === 'string' ? `checkbox-box--${size}` : '');
 </script>
 
 <label class="checkbox-label" class:disabled>
-	<input type="checkbox" bind:checked {disabled} class="checkbox-input" onchange={(e) => onchange?.(e)} />
-	<span class="checkbox-box" class:checked>
+	<input type="checkbox" bind:checked {disabled} aria-label={ariaLabel} class="checkbox-input" onchange={(e) => onchange?.(e)} />
+	<span class="checkbox-box {sizeClass}" class:checked>
 		{#if checked}
-			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+			<svg class="checkbox-check {sizeClass}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
 				<polyline points="20 6 9 17 4 12" />
 			</svg>
 		{/if}
@@ -42,6 +48,8 @@
 		color: var(--primary-text);
 		transition: background-color 0.15s, border-color 0.15s;
 	}
+	.checkbox-box--small { width: 14px; height: 14px; }
+	.checkbox-box--large { width: 22px; height: 22px; }
 	.checkbox-box.checked {
 		background-color: var(--primary);
 		border-color: var(--primary);
@@ -50,4 +58,6 @@
 		outline: 2px solid var(--primary);
 		outline-offset: 2px;
 	}
+	.checkbox-check--small { width: 10px; height: 10px; }
+	.checkbox-check--large { width: 14px; height: 14px; }
 </style>

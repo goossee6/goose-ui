@@ -42,7 +42,7 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--gap-xl);
-		padding: var(--sp-3xl) var(--sp-4xl);
+		padding: var(--sp-md) var(--sp-lg);
 		border-bottom: 1px solid var(--border);
 		background-color: var(--surface-2);
 	}

@@ -9,20 +9,24 @@
 	}
 
 	let {
-		items,
+		items = [],
 		value = $bindable(''),
 		disabled = false,
 		mode = 'segmented',
 		class: cls = '',
 		onchange,
+		size = 'middle',
 	}: {
-		items: readonly TabItem[];
+		items?: readonly TabItem[];
 		value?: string;
 		disabled?: boolean;
 		mode?: 'segmented' | 'underline' | 'vertical';
 		class?: string;
 		onchange?: (value: string) => void;
+		size?: 'small' | 'middle' | 'large' | number;
 	} = $props();
+
+	const sizeClass = $derived(typeof size === 'string' ? `tabs-root--${size}` : '');
 
 	let groupEl: HTMLElement;
 	let pillStyle = $state({ left: 0, top: 0, width: 0, height: 0, opacity: 0 });
@@ -51,7 +55,7 @@
 	});
 </script>
 
-<div class="tabs-root {cls}">
+<div class="tabs-root {sizeClass} {cls}">
 	<div
 		bind:this={groupEl}
 		class="tabs-group tabs-group--{mode}"
@@ -98,6 +102,12 @@
 
 <style>
 	.tabs-root { display: inline-flex; align-items: center; }
+	.tabs-root--small .tabs-mode--segmented { padding: 4px 12px; font-size: var(--ui-sm-font); }
+	.tabs-root--small .tabs-mode--underline { padding: 8px 12px; font-size: var(--ui-sm-font); }
+	.tabs-root--small .tabs-mode--vertical { padding: 6px 10px; font-size: var(--ui-sm-font); }
+	.tabs-root--large .tabs-mode--segmented { padding: 8px 20px; font-size: var(--ui-lg-font); }
+	.tabs-root--large .tabs-mode--underline { padding: 16px 20px; font-size: var(--ui-lg-font); }
+	.tabs-root--large .tabs-mode--vertical { padding: 12px 16px; font-size: var(--ui-lg-font); }
 	.tabs-group {
 		display: flex;
 		position: relative;

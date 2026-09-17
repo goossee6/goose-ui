@@ -35,17 +35,17 @@ import "goose-ui/styles/theme.css";
 
 ```svelte
 <script>
-  import Button from 'goose-ui/button';
-  import Card from 'goose-ui/card';
-  import Modal from 'goose-ui/modal';
-  import { showToast, showConfirm } from 'goose-ui';
+  import { Button, Card, Modal, Notification, NotificationProvider } from 'goose-ui';
 </script>
+
+<!-- 全局挂载通知容器（App.svelte 顶层） -->
+<NotificationProvider />
 
 <Card title="用户信息">
   <p>内容</p>
 </Card>
 
-<Button variant="primary" onclick={() => showToast('成功')}>保存</Button>
+<Button variant="primary" onclick={() => Notification.success('成功')}>保存</Button>
 ```
 
 ## 导入方式
@@ -53,7 +53,7 @@ import "goose-ui/styles/theme.css";
 ### Barrel import（推荐）
 
 ```ts
-import { Button, Card, Modal, Select, showToast } from "goose-ui";
+import { Button, Card, Modal, Select, Notification } from "goose-ui";
 ```
 
 Vite/Rollup 会自动 tree-shake 未使用的组件。
@@ -63,7 +63,6 @@ Vite/Rollup 会自动 tree-shake 未使用的组件。
 ```ts
 import Button from "goose-ui/button";
 import Modal from "goose-ui/modal";
-import { showToast } from "goose-ui/toast-store";
 ```
 
 ### 样式
@@ -82,9 +81,9 @@ import "goose-ui/styles/theme.css";
 | ----------- | ----------------------- | --------------------------------------------------- |
 | Button      | `goose-ui/button`       | 按钮，支持 primary/default/ghost/danger/link 五种变体，icon/iconRight 图标 prop |
 | Card        | `goose-ui/card`         | 卡片容器，支持 title + right header                 |
-| Checkbox    | `goose-ui/checkbox`     | 复选框                                              |
+| Checkbox    | `goose-ui/checkbox`     | 复选框，支持 children 文字点击切换                  |
 | CreatableSelect | `goose-ui/creatable-select` | 可新建搜索选择器，支持静态/异步数据源、键盘导航、内联创建 |
-| Input       | `goose-ui/input`        | 输入框，支持 clearable/Enter 回调/digitsOnly        |
+| Input       | `goose-ui/input`        | 输入框，支持 clearable/Enter 回调/digitsOnly/status/error/warning 状态 |
 | Label       | `goose-ui/label`        | 表单标签                                            |
 | Select      | `goose-ui/select`       | 下拉选择，支持键盘导航和 meta 标签                  |
 | MultiSelect | `goose-ui/multi-select` | 多选下拉，支持 badge 标签                           |
@@ -112,12 +111,12 @@ import "goose-ui/styles/theme.css";
 
 ### 反馈
 
-| 组件          | 路径                      | 说明                                       |
-| ------------- | ------------------------- | ------------------------------------------ |
-| Modal         | `goose-ui/modal`          | 模态弹窗（fade+scale 转场、backdrop blur） |
-| Toast         | `goose-ui/toast`          | 通知容器（配合 toast-store 使用）          |
-| ConfirmDialog | `goose-ui/confirm-dialog` | 确认弹窗（配合 confirm-store 使用）        |
-| ErrorDialog   | `goose-ui/error-dialog`   | 错误弹窗（配合 error-store 使用）          |
+| 组件              | 路径                              | 说明                                       |
+| ----------------- | --------------------------------- | ------------------------------------------ |
+| Modal             | `goose-ui/modal`                  | 模态弹窗（fade+scale 转场、backdrop blur） |
+| Notification      | `goose-ui/notification`           | 通知容器（配合 Notification API 使用）     |
+| NotificationItem  | `goose-ui/notification-item`      | 单条通知（icon + 关闭按钮 + 进度条）       |
+| ErrorDialog       | `goose-ui/error-dialog`           | 错误弹窗（配合 pushError 使用）            |
 
 ### 输入增强
 
@@ -135,12 +134,147 @@ import "goose-ui/styles/theme.css";
 | Typewriter  | `goose-ui/typewriter`   | 打字机效果，支持逐字文本或淡入 Snippet |
 | ContextMenu | `goose-ui/context-menu` | 右键菜单（全局注册机制）                         |
 
+## Notification 通知
+
+命令式 API，4 种类型 × 6 个位置，标题+描述双行布局，自动挂载到 body。
+
+### Modal Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `open` | `boolean` (bindable) | `false` | 是否显示 |
+| `title` | `string \| Snippet` | — | 标题（支持 HTML 富文本或 Snippet） |
+| `width` | `number \| string` | `520` | 宽度（数字按 px，也可传 CSS 字符串如 `"80vw"`） |
+| `maskClosable` | `boolean` | `false` | 点击遮罩关闭 |
+| `disableClose` | `boolean` | `false` | 禁用关闭（隐藏 X、Esc 无效） |
+| `typewriter` | `boolean` | `true` | 打字机效果（内容逐字显示） |
+| `typewriterDuration` | `number` | `2000` | 打字机总时长（ms） |
+| `onClose` | `() => void` | — | 关闭回调 |
+| `onOk` | `() => void` | — | 确定按钮回调 |
+| `footer` | `Snippet` | — | 自定义底部（替换默认「取消 / 确定」） |
+| `children` | `Snippet` | — | 内容 |
+
+```svelte
+<script>
+  import { Modal } from 'goose-ui';
+  let open = $state(false);
+</script>
+
+<Modal bind:open={open} title="提示" width={400}>
+  <p>内容</p>
+</Modal>
+
+<!-- 关闭打字机效果 -->
+<Modal bind:open={open} title="无打字机" typewriter={false}>
+  <p>内容直接显示</p>
+</Modal>
+
+<!-- 自定义打字机时长 -->
+<Modal bind:open={open} title="慢速打字机" typewriterDuration={4000}>
+  <p>4 秒播放完毕</p>
+</Modal>
+```
+
+### Notification API
+
+```ts
+import { Notification } from 'goose-ui';
+
+// 快捷方法（传字符串 = title）
+Notification.success('操作成功');
+Notification.info('提示信息');
+
+// 完整配置
+Notification.success({
+  title: '操作成功',
+  description: '你的数据已保存到服务器',
+  position: 'top-left',
+  duration: 3000,
+  icon: Star,
+  showProgress: true,
+});
+
+// 不自动关闭（duration: 0）
+Notification.warning({ title: '重要警告', duration: 0 });
+
+// 按 key 更新（同 key 二次调用更新现有通知）
+Notification.success({ key: 'upload', title: '上传中...', description: '50%' });
+Notification.success({ key: 'upload', title: '上传完成', description: '100%' });
+
+// 按 key 关闭
+Notification.destroy('upload');
+
+// 清除全部
+Notification.destroyAll();
+```
+
+### 类型
+
+| 类型 | 说明 |
+| --- | --- |
+| `success` | 成功（绿色左边框 + CheckCircle 图标） |
+| `info` | 信息（蓝色左边框 + Info 图标） |
+| `warning` | 警告（橙色左边框 + AlertTriangle 图标） |
+| `error` | 错误（红色左边框 + CircleX 图标） |
+
+### 位置
+
+| Position | 说明 |
+| --- | --- |
+| `top-left` | 左上 |
+| `top` | 顶部居中（默认） |
+| `top-right` | 右上 |
+| `bottom-left` | 左下 |
+| `bottom` | 底部居中 |
+| `bottom-right` | 右下 |
+
+### NotificationOptions
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `title` | `string` | — | 通知标题（必填） |
+| `description` | `string` | — | 通知描述/正文 |
+| `key` | `string` | — | 唯一 key，同 key 二次调用更新现有通知 |
+| `type` | `'success' \| 'info' \| 'warning' \| 'error'` | `'info'` | 类型 |
+| `position` | `NotificationPosition` | `'top'` | 显示位置 |
+| `closable` | `boolean` | `true` | 是否显示关闭按钮 |
+| `closeIcon` | `Component` | — | 自定义关闭图标（替换默认 X） |
+| `duration` | `number` | `4500` | 自动关闭时间（ms），0 = 不自动关闭 |
+| `icon` | `Component` | — | 自定义图标（覆盖 type 默认图标） |
+| `btn` | `Snippet` | — | 自定义操作按钮（渲染在关闭按钮左侧） |
+| `onClick` | `() => void` | — | 点击通知本体回调 |
+| `onClose` | `() => void` | — | 关闭回调（动画结束触发） |
+| `pauseOnHover` | `boolean` | `true` | 悬停暂停自动关闭计时器 |
+| `showProgress` | `boolean` | `false` | 显示自动关闭进度条 |
+
+### 全局挂载
+
+在 App.svelte 顶层挂载 `NotificationProvider`：
+
+```svelte
+<script>
+  import { NotificationProvider } from 'goose-ui';
+</script>
+
+<NotificationProvider />
+
+<!-- 其他内容 -->
+```
+
+### 旧 API 迁移
+
+| 旧用法 | 新用法 |
+| --- | --- |
+| `showToast('成功')` | `Notification.success('成功')` |
+| `showToast('失败', 'error')` | `Notification.error('失败')` |
+| `{ message: '...' }` | `{ title: '...' }` |
+| `{ placement: 'top-left' }` | `{ position: 'top-left' }` |
+
 ## Store
 
 | Store        | 路径                          | 说明                                                     |
 | ------------ | ----------------------------- | -------------------------------------------------------- |
-| toastStore   | `goose-ui/toast-store`        | `showToast(msg, type?)` / `showErrorToast(err, prefix?)` |
-| confirmStore | `goose-ui/confirm-store`      | `showConfirm(msg, options?)` 返回 Promise<boolean>       |
+| notificationStore | `goose-ui/notification`  | `Notification.success()` / `.info()` / `.warning()` / `.error()` / `.destroy(key?)` / `.destroyAll()` |
 | errorStore   | `goose-ui/error-store`        | `pushError(kind, err)` 错误累积展示                      |
 | contextMenu  | `goose-ui/context-menu-store` | `registerMenu()` / `openMenuAt()` / `onMenuAction()`     |
 
@@ -164,6 +298,9 @@ formatBytes(1048576); // "1 MB"
   --primary-hover: #4f46e5; /* 主色 hover */
   --primary-soft: #eef2ff; /* 主色浅色背景 */
   --danger: #ef4444;
+  --info: #3b82f6; /* 信息色 */
+  --warning: #f59e0b; /* 警告色 */
+  --success: #22c55e; /* 成功色 */
   --border-strong: #d1d5db;
   --radius-lg: 8px;
   /* 完整变量列表见 src/lib/styles/theme.css */
@@ -229,6 +366,21 @@ formatBytes(1048576); // "1 MB"
 <Button icon={Star} iconRight={ChevronDown}>选项</Button>
 ```
 
+### Checkbox Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `checked` | `boolean` (bindable) | `false` | 是否选中 |
+| `disabled` | `boolean` | `false` | 禁用 |
+| `ariaLabel` | `string` | `''` | 无障碍标签 |
+| `onchange` | `(e: Event) => void` | — | 变更回调 |
+| `size` | `'small' \| 'middle' \| 'large'` | `'middle'` | 尺寸 |
+| `children` | `Snippet` | — | 文字内容（点击文字也可切换） |
+
+```svelte
+<Checkbox bind:checked={agree}>同意条款</Checkbox>
+```
+
 ### CreatableSelect Props
 
 可新建搜索选择器。支持静态数据源（`items`）和异步数据源（`loadItems`），内置搜索、键盘导航、内联创建。
@@ -267,20 +419,28 @@ formatBytes(1048576); // "1 MB"
 | --- | --- | --- | --- |
 | `text` | `string` | `''` | 逐字打出的文本 |
 | `children` | `Snippet` | — | 备选内容（淡入模式，无 text 时使用） |
-| `speed` | `number` | `30` | 每字符间隔（ms） |
+| `duration` | `number` | `2000` | 总动画时长（ms），自动计算每字符间隔 |
+| `speed` | `number` | — | 每字符间隔（ms），优先于 `duration` |
 | `trigger` | `unknown` | — | 变化时重新播放 |
 | `autoPlay` | `boolean` | `true` | 自动开始 |
 | `cursor` | `boolean` | `true` | 显示闪烁光标（仅 text 模式） |
+| `onDone` | `() => void` | — | 播放完成回调 |
 | `class` | `string` | `''` | 额外 CSS 类名 |
 
 ```svelte
-<!-- 逐字打出 -->
-<Typewriter text="Hello, World!" speed={50} />
+<!-- 逐字打出（默认 2 秒播放完毕） -->
+<Typewriter text="Hello, World!" />
 
-<!-- 触发重播 -->
-<Typewriter text={message} trigger={message} speed={30} />
+<!-- 自定义总时长 -->
+<Typewriter text="4 秒播放" duration={4000} />
 
-<!-- 淡入模式（兼容现有用法） -->
+<!-- speed 覆盖 duration -->
+<Typewriter text="每字符 80ms" speed={80} />
+
+<!-- 触发重播 + 完成回调 -->
+<Typewriter text={message} trigger={message} onDone={() => console.log('done')} />
+
+<!-- 淡入模式 -->
 <Typewriter>
   <p>这段文字会淡入出现</p>
 </Typewriter>

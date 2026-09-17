@@ -1,16 +1,18 @@
 <script lang="ts">
+  import { tick } from 'svelte';
+
   interface Option {
     value: string;
     label: string;
   }
 
   let {
-    items,
+    items = [],
     values = $bindable([]),
     placeholder = "请选择",
     disabled = false,
   }: {
-    items: Option[];
+    items?: Option[];
     values?: string[];
     placeholder?: string;
     disabled?: boolean;
@@ -18,10 +20,32 @@
 
   let open = $state(false);
   let rootEl: HTMLElement;
+  let dropdownStyle = $state('');
 
   function toggle() {
     if (disabled) return;
     open = !open;
+    if (open) tick().then(positionDropdown);
+  }
+
+  function positionDropdown() {
+    if (!rootEl) return;
+    const rect = rootEl.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const ddh = Math.min(items.length * 36 + 8, 260);
+    const parts = ['position: fixed', 'z-index: 9999'];
+    if (rect.left + rect.width > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
+    else parts.push(`left: ${rect.left}px`, 'right: auto');
+    const spaceBelow = vh - rect.bottom - 4;
+    const spaceAbove = rect.top - 4;
+    if (spaceBelow < ddh && spaceAbove > spaceBelow) {
+      parts.push(`bottom: ${vh - rect.top + 4}px`, 'top: auto', `max-height: ${spaceAbove}px`);
+    } else {
+      parts.push(`top: ${rect.bottom + 4}px`, 'bottom: auto', `max-height: ${spaceBelow}px`);
+    }
+    parts.push(`width: ${Math.max(120, rect.width)}px`);
+    dropdownStyle = parts.join('; ');
   }
 
   function toggleItem(val: string) {
@@ -93,7 +117,7 @@
     <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
   </div>
   {#if open}
-    <div class="menu" role="listbox" aria-multiselectable="true">
+    <div class="menu" style={dropdownStyle} role="listbox" aria-multiselectable="true">
       {#each items as item (item.value)}
         <button type="button" class="option" class:selected={values.includes(item.value)} role="option" aria-selected={values.includes(item.value)} onclick={() => toggleItem(item.value)}>
           <input type="checkbox" class="option-check" checked={values.includes(item.value)} tabindex="-1" />
@@ -106,7 +130,7 @@
 
 <style>
   .multi-select { position: relative; display: inline-block; min-width: 200px; }
-  .trigger { display: flex; align-items: center; gap: 8px; padding: var(--sp-lg) var(--sp-xl); min-height: 42px; min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: 13px; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+  .trigger { display: flex; align-items: center; gap: 8px; padding: var(--ui-md-padding); height: var(--ui-md-height); min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: var(--ui-md-font); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
   .trigger:hover:not(:disabled) { background-color: var(--surface-3); }
   .trigger:focus-visible { border-color: var(--primary); outline: none; }
   .trigger.open { border-color: var(--primary); }
@@ -118,7 +142,7 @@
   .badge-x:hover { background-color: rgba(0, 0, 0, 0.15); }
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
-  .menu { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; max-height: 260px; overflow-y: auto; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); padding: var(--sp-xs); z-index: 100; }
+  .menu { position: fixed; overflow-y: auto; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); padding: var(--sp-xs); z-index: 9999; }
   .option { display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .option:hover { background-color: var(--hover); color: var(--text-strong); }
   .option.selected { background-color: var(--primary-soft); color: var(--primary); }

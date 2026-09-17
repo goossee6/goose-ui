@@ -30,34 +30,39 @@
 </script>
 
 <div class="progress-bytes">
-	<div class="progress-top">
+	<div class="progress-row1">
 		<span class="progress-filename">{fileName || '上传中...'}</span>
-		{#if onCancel && !disabled}
-			<button class="progress-cancel" onclick={onCancel}>取消</button>
-		{/if}
+		<span class="progress-right">
+			{#if eta}<span class="progress-eta">预计: {eta}</span>{/if}
+			{#if onCancel && !disabled}
+				<button class="progress-cancel" onclick={onCancel}>取消</button>
+			{/if}
+		</span>
+	</div>
+	<div class="progress-row2">
+		<span class="progress-bytes-info">{formatBytes(loadedBytes)} / {formatBytes(totalBytes)}</span>
+		<span class="progress-stats">
+			{clamped}%
+			{#if speed}&middot; {speed}{/if}
+			{#if isMultipart}&middot; {partIndex}/{totalParts} 分片{/if}
+		</span>
 	</div>
 	<div class="progress-track">
 		<div class="progress-bar" style="width: {clamped}%"></div>
 	</div>
-	<div class="progress-bottom">
-		<span>
-			{formatBytes(loadedBytes)} / {formatBytes(totalBytes)} ({clamped}%)
-			{#if speed}&middot; {speed}{/if}
-			{#if isMultipart}&middot; {partIndex}/{totalParts} 分片{/if}
-		</span>
-		{#if eta}
-			<span>预计: {eta}</span>
-		{/if}
-	</div>
 </div>
 
 <style>
-	.progress-bytes { margin-top: var(--sp-lg); display: flex; flex-direction: column; gap: var(--sp-xl); }
-	.progress-top { display: flex; align-items: center; justify-content: space-between; }
-	.progress-filename { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
-	.progress-cancel { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 0; flex-shrink: 0; transition: color 0.15s; }
+	.progress-bytes { margin-top: var(--sp-lg); display: flex; flex-direction: column; gap: 6px; }
+	.progress-row1 { display: flex; align-items: center; justify-content: space-between; }
+	.progress-filename { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+	.progress-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+	.progress-eta { font-size: 12px; color: var(--text-muted); }
+	.progress-cancel { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.15s; }
 	.progress-cancel:hover { color: var(--text-strong); }
+	.progress-row2 { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+	.progress-bytes-info { font-variant-numeric: tabular-nums; }
+	.progress-stats { font-variant-numeric: tabular-nums; }
 	.progress-track { width: 100%; background-color: var(--surface-2); border-radius: 9999px; height: 12px; overflow: hidden; }
 	.progress-bar { height: 100%; border-radius: 9999px; background-color: var(--primary); transition: width 0.3s; }
-	.progress-bottom { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
 </style>

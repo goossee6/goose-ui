@@ -17,7 +17,7 @@
 		hint?: string;
 		class?: string;
 		style?: string;
-		ondrop?: (paths: string[]) => void;
+		ondrop?: (files: File[]) => void;
 	} = $props();
 
 	let fileInput: HTMLInputElement;
@@ -27,11 +27,14 @@
 		fileInput.click();
 	}
 
+	function handleFiles(files: FileList | null) {
+		if (!files || files.length === 0) return;
+		ondrop?.(Array.from(files));
+	}
+
 	function handleFileChange(e: Event) {
 		const target = e.target as HTMLInputElement;
-		const files = target?.files;
-		if (!files || files.length === 0) return;
-		ondrop?.(Array.from(files).map((f) => f.name));
+		handleFiles(target?.files);
 		target.value = '';
 	}
 </script>
@@ -42,7 +45,7 @@
 	role="presentation"
 	ondragover={(e) => { e.preventDefault(); isDragging = true; }}
 	ondragleave={() => { isDragging = false; }}
-	ondrop={(e) => { e.preventDefault(); isDragging = false; }}
+	ondrop={(e) => { e.preventDefault(); isDragging = false; handleFiles(e.dataTransfer?.files); }}
 >
 	{#if isDragging}
 		<p class="drop-zone-text">松开以添加文件</p>

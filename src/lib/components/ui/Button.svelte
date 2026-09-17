@@ -8,7 +8,7 @@
 
   let {
     variant = "default",
-    size = "md",
+    size = "middle",
     disabled = false,
     loading = false,
     type = "button",
@@ -21,7 +21,7 @@
     ...rest
   }: {
     variant?: "primary" | "default" | "ghost" | "danger" | "link";
-    size?: "sm" | "md" | "lg" | "xs" | "icon" | "icon-sm" | "icon-xs" | "icon-lg";
+    size?: "small" | "middle" | "large" | "icon" | "icon-sm" | "icon-xs" | "icon-lg" | number;
     disabled?: boolean;
     loading?: boolean;
     type?: "button" | "submit";
@@ -33,6 +33,9 @@
     onclick?: (event: MouseEvent) => void;
     [key: string]: unknown;
   } = $props();
+
+  const sizeClass = $derived(typeof size === 'string' ? `btn-${size}` : '');
+  const sizeStyle = $derived(typeof size === 'number' ? `height:${size}px;font-size:${Math.round(size * 0.375)}px;padding:0 ${Math.round(size * 0.35)}px;` : '');
 
   let displayLoading = $state(false);
   let loadingStart = 0;
@@ -60,7 +63,7 @@
   onDestroy(clearPending);
 </script>
 
-<button {type} disabled={disabled || loading} class="btn btn-{variant} btn-{size} {cls}" {onclick} {...rest}>
+<button {type} disabled={disabled || loading} class="btn btn-{variant} {sizeClass} {cls}" style={sizeStyle} {onclick} {...rest}>
   {#if displayLoading}
     <span class="btn-spinner" style="width:{iconSize}px;height:{iconSize}px">
       <Loader2 size={iconSize} />
@@ -96,6 +99,9 @@
     gap: var(--gap-sm);
     outline: none;
     user-select: none;
+    height: var(--ui-md-height, 36px);
+    padding: var(--ui-md-padding, 0 12px);
+    font-size: var(--ui-md-font, 14px);
   }
   .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
@@ -104,14 +110,13 @@
   .btn-spinner { display: inline-flex; flex-shrink: 0; animation: btn-spin 0.8s linear infinite; }
   @keyframes btn-spin { to { transform: rotate(360deg); } }
   /* sizes */
-  .btn-xs { height: 24px; padding: 0 8px; font-size: 12px; border-radius: min(var(--radius-md), 10px); }
-  .btn-sm { height: 32px; padding: 0 10px; font-size: 13px; }
-  .btn-md { height: 32px; padding: 0 12px; font-size: 13px; }
-  .btn-lg { height: 36px; padding: 0 12px; font-size: 14px; }
-  .btn-icon { width: 32px; height: 32px; padding: 0; }
-  .btn-icon-sm { width: 28px; height: 28px; padding: 0; border-radius: min(var(--radius-md), 12px); }
+  .btn-small { height: var(--ui-sm-height); padding: var(--ui-sm-padding); font-size: var(--ui-sm-font); }
+  .btn-middle { height: var(--ui-md-height); padding: var(--ui-md-padding); font-size: var(--ui-md-font); }
+  .btn-large { height: var(--ui-lg-height); padding: var(--ui-lg-padding); font-size: var(--ui-lg-font); }
+  .btn-icon { width: var(--ui-md-height); height: var(--ui-md-height); padding: 0; }
+  .btn-icon-sm { width: var(--ui-sm-height); height: var(--ui-sm-height); padding: 0; border-radius: min(var(--radius-md), 12px); }
   .btn-icon-xs { width: 24px; height: 24px; padding: 0; border-radius: min(var(--radius-md), 10px); }
-  .btn-icon-lg { width: 36px; height: 36px; padding: 0; }
+  .btn-icon-lg { width: var(--ui-lg-height); height: var(--ui-lg-height); padding: 0; }
   /* variants */
   .btn-primary { background-color: var(--primary); color: #ffffff; }
   .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
