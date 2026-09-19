@@ -50,11 +50,12 @@ import Toggle from './components/ui/Toggle.svelte';
 import Tooltip from './components/ui/Tooltip.svelte';
 import Typewriter from './components/ui/Typewriter.svelte';
 import UsageBar from './components/ui/UsageBar.svelte';
+import Sidebar from './components/ui/Sidebar.svelte';
 export {
   Button, Card, Checkbox, CreatableSelect, DataList, DataTable, DropZone,
   MultiSelect, PresetInput, Input, Label, LoadingGif, Modal, PageHeader,
   ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
-  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar,
+  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar,
 };
 
 // Providers

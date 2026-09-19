@@ -107,7 +107,7 @@ import "goose-ui/styles/theme.css";
 | ------------- | ------------------------- | ---------------------------------------- |
 | PageHeader    | `goose-ui/page-header`    | 页面标题栏（标题 + 操作区）              |
 | SegmentedTabs | `goose-ui/segmented-tabs` | 分段标签（pill 动画 + underline 双模式） |
-| Sidebar       | —                         | 应用侧边栏（按需从项目复制）             |
+| Sidebar       | `goose-ui/sidebar`        | 悬浮岛式侧边栏（导航分组 + 主题切换）    |
 
 ### 反馈
 

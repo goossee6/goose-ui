@@ -1,11 +1,6 @@
 /* goose-ui theme.css — 统一主题变量 + 全局样式 */
 
 /* ── CSS Property Registration ─────────────────────────────────────────────── */
-@property --theme-mask-r {
-	syntax: '<length>';
-	initial-value: 0px;
-	inherits: false;
-}
 
 /* ── Light Theme ───────────────────────────────────────────────────────────── */
 :root {
@@ -123,7 +118,11 @@
 	--ring: var(--primary);
 	--radius: var(--radius-lg);
 
-	--modal-duration: 280ms;
+	/* notification icon backgrounds */
+	--success-bg: var(--success-soft);
+	--info-bg: var(--info-soft);
+	--warning-bg: var(--warning-soft);
+	--danger-bg: var(--danger-soft);
 }
 
 /* ── Dark Theme ────────────────────────────────────────────────────────────── */
@@ -212,6 +211,22 @@
 @keyframes float-doro {
 	0%, 100% { transform: translateY(0); }
 	50%      { transform: translateY(-4px); }
+}
+
+/* ── View Transition: 圆形揭露主题切换 ───────────────────────────────────── */
+::view-transition-old(root) {
+	animation: none;
+}
+::view-transition-new(root) {
+	animation: tv-circle-reveal 0.5s ease-in-out;
+}
+@keyframes tv-circle-reveal {
+	from {
+		clip-path: circle(0 at var(--tv-x, 50%) var(--tv-y, 50%));
+	}
+	to {
+		clip-path: circle(var(--tv-r, 100vmax) at var(--tv-x, 50%) var(--tv-y, 50%));
+	}
 }
 
 /* ── Base Reset ────────────────────────────────────────────────────────────── */

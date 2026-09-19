@@ -14,7 +14,7 @@
 	} = $props();
 </script>
 
-<div class="card" {cls}>
+<div class="card {cls}">
 	{#if title}
 		<div class="card-header">
 			<span class="card-title">{title}</span>

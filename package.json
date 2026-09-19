@@ -33,6 +33,7 @@
     "./usage-bar": "./src/lib/components/ui/UsageBar.svelte",
     "./loading-gif": "./src/lib/components/ui/LoadingGif.svelte",
     "./typewriter": "./src/lib/components/ui/Typewriter.svelte",
+    "./sidebar": "./src/lib/components/ui/Sidebar.svelte",
     "./error-dialog": "./src/lib/components/providers/ErrorDialog.svelte",
     "./context-menu": "./src/lib/components/menus/ContextMenu.svelte",
     "./error-store": "./src/lib/components/errors.ts",

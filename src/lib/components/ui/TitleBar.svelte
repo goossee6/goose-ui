@@ -63,7 +63,7 @@
 		<button type="button" class="win-btn" onclick={handleMinimise} aria-label="最小化">
 			<Icon icon={Minus} size={14} />
 		</button>
-		<button type="button" class="win-btn" disabled onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
+		<button type="button" class="win-btn" disabled={!isWails} onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
 			<Icon icon={isMaximised ? Undo2 : Square} size={12} />
 		</button>
 		<button type="button" class="win-btn win-btn-close" onclick={handleClose} aria-label="关闭">
