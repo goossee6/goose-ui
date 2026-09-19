@@ -47,13 +47,14 @@ import NotificationItem from './components/ui/NotificationItem.svelte';
 import TitleBar from './components/ui/TitleBar.svelte';
 import Layout from './components/ui/Layout.svelte';
 import Toggle from './components/ui/Toggle.svelte';
+import Tooltip from './components/ui/Tooltip.svelte';
 import Typewriter from './components/ui/Typewriter.svelte';
 import UsageBar from './components/ui/UsageBar.svelte';
 export {
   Button, Card, Checkbox, CreatableSelect, DataList, DataTable, DropZone,
   MultiSelect, PresetInput, Input, Label, LoadingGif, Modal, PageHeader,
   ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
-  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Typewriter, UsageBar,
+  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar,
 };
 
 // Providers

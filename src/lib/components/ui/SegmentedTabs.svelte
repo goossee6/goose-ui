@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
+	import { onMount } from 'svelte';
 
 	interface TabItem {
 		value: string;
@@ -29,7 +30,12 @@
 	const sizeClass = $derived(typeof size === 'string' ? `tabs-root--${size}` : '');
 
 	let groupEl: HTMLElement;
-	let pillStyle = $state({ left: 0, top: 0, width: 0, height: 0, opacity: 0 });
+
+	let pillLeft = $state(0);
+	let pillTop = $state(0);
+	let pillWidth = $state(0);
+	let pillHeight = $state(0);
+	let pillOpacity = $state(0);
 
 	function select(v: string) {
 		if (disabled) return;
@@ -37,21 +43,41 @@
 		else value = v;
 	}
 
+	function measure() {
+		if (!groupEl) return;
+		const btn = groupEl.querySelector<HTMLElement>('.tab-active');
+		if (!btn) { pillOpacity = 0; return; }
+		const br = btn.getBoundingClientRect();
+		const gr = groupEl.getBoundingClientRect();
+		const cs = getComputedStyle(groupEl);
+		const bl = parseInt(cs.borderLeftWidth) || 0;
+		const bt = parseInt(cs.borderTopWidth) || 0;
+		if (mode === 'vertical') {
+			pillLeft = 4;
+			pillTop = br.top - gr.top - bt;
+			pillWidth = gr.width - 8;
+			pillHeight = br.height;
+		} else {
+			pillLeft = br.left - gr.left - bl;
+			pillTop = 0;
+			pillWidth = br.width;
+			pillHeight = 0;
+		}
+		pillOpacity = 1;
+	}
+
+	onMount(() => {
+		measure();
+	});
+
 	$effect(() => {
 		value;
+		measure();
+	});
+
+	$effect(() => {
 		items;
-		requestAnimationFrame(() => {
-			if (!groupEl) return;
-			const btn = groupEl.querySelector<HTMLElement>('.tab-active');
-			if (!btn) { pillStyle = { ...pillStyle, opacity: 0 }; return; }
-			const br = btn.getBoundingClientRect();
-			const gr = groupEl.getBoundingClientRect();
-			if (mode === 'vertical') {
-				pillStyle = { left: 4, top: br.top - gr.top, width: gr.width - 8, height: br.height, opacity: 1 };
-			} else {
-				pillStyle = { left: br.left - gr.left, top: 0, width: br.width, height: 0, opacity: 1 };
-			}
-		});
+		measure();
 	});
 </script>
 
@@ -64,19 +90,19 @@
 		{#if mode === 'segmented'}
 			<div
 				class="tabs-pill"
-				style="transform: translateX({pillStyle.left}px); width: {pillStyle.width}px; opacity: {pillStyle.opacity}"
+				style="left: {pillLeft}px; width: {pillWidth}px; opacity: {pillOpacity}"
 			></div>
 		{/if}
 		{#if mode === 'vertical'}
 			<div
 				class="tabs-pill tabs-pill--vertical"
-				style="transform: translateY({pillStyle.top}px); height: {pillStyle.height}px; width: calc(100% - 8px); opacity: {pillStyle.opacity}"
+				style="top: {pillTop}px; height: {pillHeight}px; width: calc(100% - 8px); opacity: {pillOpacity}"
 			></div>
 		{/if}
 		{#if mode === 'underline'}
 			<div
 				class="tabs-indicator"
-				style="transform: translateX({pillStyle.left}px); width: {pillStyle.width}px; opacity: {pillStyle.opacity}"
+				style="left: {pillLeft}px; width: {pillWidth}px; opacity: {pillOpacity}"
 			></div>
 		{/if}
 		{#each items as item}
@@ -132,13 +158,14 @@
 	}
 	.tabs-pill {
 		position: absolute;
+		left: 0;
 		top: 4px;
 		bottom: 4px;
 		border-radius: var(--radius-md);
 		background-color: var(--primary);
 		z-index: 0;
 		pointer-events: none;
-		transition: all 0.22s ease-out;
+		transition: left 0.22s ease-out, top 0.22s ease-out, width 0.22s ease-out, height 0.22s ease-out, opacity 0.15s;
 	}
 	.tabs-pill--vertical {
 		left: 4px;
@@ -152,7 +179,7 @@
 		height: 2px;
 		background: var(--primary);
 		border-radius: 1px;
-		transition: transform 0.22s ease-out, width 0.22s ease-out;
+		transition: left 0.22s ease-out, width 0.22s ease-out;
 		z-index: 0;
 		pointer-events: none;
 	}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fade, scale } from "svelte/transition";
+  import { untrack } from "svelte";
   import type { Snippet } from "svelte";
   import X from '@lucide/svelte/icons/x';
   import Icon from './Icon.svelte';
@@ -41,31 +42,46 @@
   let twTimer: ReturnType<typeof setTimeout> | null = null;
 
   $effect(() => {
-    if (open && typewriter && bodyEl) {
-      const el = bodyEl.querySelector('.tw-source');
-      if (el) {
-        fullHtml = el.innerHTML;
-        twHtml = '';
-        twIndex = 0;
-        typeNext();
+    const shouldType = open && typewriter;
+    untrack(() => {
+      if (shouldType) {
+        setTimeout(() => startTypewriter(), 0);
       }
-    }
-    return () => { if (twTimer) clearTimeout(twTimer); };
+    });
+    return () => {
+      if (twTimer) { clearTimeout(twTimer); twTimer = null; }
+    };
   });
 
-  function typeNext() {
-    if (twIndex < fullHtml.length) {
-      const ch = fullHtml[twIndex];
-      if (ch === '<') {
-        const end = fullHtml.indexOf('>', twIndex);
-        twIndex = end + 1;
-      } else {
-        twIndex++;
+  function startTypewriter() {
+    if (!bodyEl) return;
+    const el = bodyEl.querySelector('.tw-source');
+    if (!el) return;
+    fullHtml = el.innerHTML;
+    twHtml = '';
+    twIndex = 0;
+    const dur = typewriterDuration;
+    const html = fullHtml;
+
+    let totalSteps = 0;
+    { let i = 0; while (i < html.length) { totalSteps++; if (html[i] === '<') { const end = html.indexOf('>', i); i = end === -1 ? html.length : end + 1; } else { i++; } } }
+    if (totalSteps === 0) totalSteps = 1;
+
+    const delay = Math.max(5, dur / totalSteps);
+    function tick() {
+      if (twIndex < html.length) {
+        const ch = html[twIndex];
+        if (ch === '<') {
+          const end = html.indexOf('>', twIndex);
+          twIndex = end === -1 ? html.length : end + 1;
+        } else {
+          twIndex++;
+        }
+        twHtml = html.slice(0, twIndex);
+        twTimer = setTimeout(tick, delay);
       }
-      twHtml = fullHtml.slice(0, twIndex);
-      const delay = Math.max(5, typewriterDuration / fullHtml.length);
-      twTimer = setTimeout(typeNext, delay);
     }
+    tick();
   }
 
   function doClose() {

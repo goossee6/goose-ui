@@ -56,7 +56,7 @@
 				timer = null;
 				onDone?.();
 			}
-		}, speed);
+		}, interval);
 	}
 
 	onMount(() => {
