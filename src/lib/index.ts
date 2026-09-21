@@ -11,7 +11,7 @@ export { Icon };
 // Stores
 export { notificationStore, Notification, errorToString } from './components/notification';
 export { errorStore, pushError } from './components/errors';
-export { menuStore } from './components/contextMenuStore.svelte';
+export { menuStore } from './components/contextMenuStore';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
 
 // Types
@@ -20,6 +20,7 @@ export type { MenuItemDef, MenuActionData } from './components/contextMenu';
 export type { Column } from './components/tableTypes';
 export type { SortState, SortDir } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
+export type { SidebarTabGroup, SidebarTabItem } from './components/ui/Sidebar.svelte';
 
 // UI Components
 import Button from './components/ui/Button.svelte';
@@ -51,11 +52,13 @@ import Tooltip from './components/ui/Tooltip.svelte';
 import Typewriter from './components/ui/Typewriter.svelte';
 import UsageBar from './components/ui/UsageBar.svelte';
 import Sidebar from './components/ui/Sidebar.svelte';
+import Drawer from './components/ui/Drawer.svelte';
+import Header from './components/ui/Header.svelte';
 export {
   Button, Card, Checkbox, CreatableSelect, DataList, DataTable, DropZone,
   MultiSelect, PresetInput, Input, Label, LoadingGif, Modal, PageHeader,
   ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
-  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar,
+  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header,
 };
 
 // Providers

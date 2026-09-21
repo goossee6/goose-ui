@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
   import Icon from "../ui/Icon.svelte";
-  import { menuStore } from "../contextMenuStore.svelte";
+  import { menuStore } from "../contextMenuStore";
   import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu";
   import { Notification } from "../notification";
   import { copyToClipboard } from "../../utils/clipboard";

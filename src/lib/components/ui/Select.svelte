@@ -16,6 +16,7 @@
 		class: cls = '',
 		disabled = false,
 		width = '100%',
+		placement = 'bottom',
 	}: {
 		value?: string;
 		onchange?: (v: string) => void;
@@ -24,6 +25,7 @@
 		class?: string;
 		disabled?: boolean;
 		width?: string;
+		placement?: 'top' | 'bottom' | 'left' | 'right';
 	} = $props();
 
 	let open = $state(false);
@@ -31,6 +33,7 @@
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
 	let wrapperEl: HTMLElement;
+	let indicatorStyle = $state('');
 
 	const selected = $derived(options.find((o) => o.value === value));
 
@@ -42,6 +45,7 @@
 	}
 
 	function choose(opt: Option) {
+		value = opt.value;
 		onchange?.(opt.value);
 		open = false;
 		mounted = false;
@@ -62,6 +66,18 @@
 		else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0) choose(options[activeIdx]); }
 	}
 
+	function updateIndicator(idx: number) {
+		const dropdown = wrapperEl?.querySelector('.select-dropdown');
+		if (!dropdown) return;
+		const options = dropdown.querySelectorAll<HTMLElement>('.select-option');
+		const btn = options[idx] as HTMLElement | null;
+		if (!btn) { indicatorStyle = 'opacity: 0'; return; }
+		const ddRect = dropdown.getBoundingClientRect();
+		const btnRect = btn.getBoundingClientRect();
+		const top = btnRect.top - ddRect.top;
+		indicatorStyle = `opacity: 1; top: ${top}px; height: ${btnRect.height}px;`;
+	}
+
 	$effect(() => {
 		if (!open) return;
 		tick().then(() => {
@@ -70,20 +86,43 @@
 			const vw = window.innerWidth;
 			const vh = window.innerHeight;
 			const ddh = Math.min(options.length * 36 + 8, 240);
+			const ddw = Math.max(120, rect.width);
+			const gap = 4;
 			const parts = ['position: fixed', 'z-index: 9999'];
-			if (rect.left + 240 > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
-			else parts.push(`left: ${rect.left}px`, 'right: auto');
-			const spaceBelow = vh - rect.bottom - 4;
-			const spaceAbove = rect.top - 4;
-			if (spaceBelow < ddh && spaceAbove > spaceBelow) {
-				parts.push(`bottom: ${vh - rect.top + 4}px`, 'top: auto', `max-height: ${spaceAbove}px`);
+
+			if (placement === 'left') {
+				parts.push(`right: ${vw - rect.left + gap}px`, 'left: auto');
+				const triggerCenter = rect.top + rect.height / 2;
+				const ddHalf = ddh / 2;
+				if (triggerCenter - ddHalf < 4) parts.push(`top: ${4}px`, 'bottom: auto');
+				else if (triggerCenter + ddHalf > vh - 4) parts.push(`bottom: ${4}px`, 'top: auto');
+				else parts.push(`top: ${triggerCenter - ddHalf}px`, 'bottom: auto');
+			} else if (placement === 'right') {
+				parts.push(`left: ${rect.right + gap}px`, 'right: auto');
+				const triggerCenter = rect.top + rect.height / 2;
+				const ddHalf = ddh / 2;
+				if (triggerCenter - ddHalf < 4) parts.push(`top: ${4}px`, 'bottom: auto');
+				else if (triggerCenter + ddHalf > vh - 4) parts.push(`bottom: ${4}px`, 'top: auto');
+				else parts.push(`top: ${triggerCenter - ddHalf}px`, 'bottom: auto');
+			} else if (placement === 'top') {
+				parts.push(`bottom: ${vh - rect.top + gap}px`, 'top: auto');
+				if (rect.left + ddw > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
+				else parts.push(`left: ${rect.left}px`, 'right: auto');
 			} else {
-				parts.push(`top: ${rect.bottom + 4}px`, 'bottom: auto', `max-height: ${spaceBelow}px`);
+				parts.push(`top: ${rect.bottom + gap}px`, 'bottom: auto');
+				if (rect.left + ddw > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
+				else parts.push(`left: ${rect.left}px`, 'right: auto');
 			}
-			parts.push(`width: ${Math.max(120, rect.width)}px`);
+
+			parts.push(`width: ${ddw}px`);
 			dropdownStyle = parts.join('; ');
 			mounted = true;
 		});
+	});
+
+	$effect(() => {
+		activeIdx;
+		if (mounted) requestAnimationFrame(() => updateIndicator(activeIdx));
 	});
 
 	function handleOutsideClick(e: MouseEvent) {
@@ -114,6 +153,7 @@
 
 	{#if open && mounted}
 		<div class="select-dropdown" style={dropdownStyle} role="listbox">
+			<div class="select-indicator" style={indicatorStyle}></div>
 			{#if options.length === 0}
 				<div class="select-empty">暂无选项</div>
 			{:else}
@@ -179,8 +219,20 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 		color: var(--text);
 	}
-	.select-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); }
+	.select-indicator {
+		position: absolute;
+		left: 6px;
+		right: 6px;
+		border-radius: var(--radius-md);
+		background-color: var(--hover);
+		pointer-events: none;
+		transition: top 0.12s cubic-bezier(0.4, 0, 0.2, 1), height 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s;
+		z-index: 0;
+	}
+	.select-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
 	.select-option {
+		position: relative;
+		z-index: 1;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -193,11 +245,11 @@
 		font-size: 14px;
 		text-align: left;
 		cursor: pointer;
-		transition: background-color 0.1s;
+		transition: color 0.1s;
 	}
 	.select-option:hover { color: var(--text-strong); }
-	.select-option--active { background-color: var(--hover); color: var(--text-strong); }
-	.select-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
+	.select-option--active { color: var(--text-strong); }
+	.select-option--selected { color: var(--text-strong); font-weight: 500; }
 	.select-option-left { display: flex; align-items: center; gap: var(--gap-md); min-width: 0; }
 	.select-option-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary); flex-shrink: 0; }
 	.select-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

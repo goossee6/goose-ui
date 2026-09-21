@@ -107,13 +107,15 @@ import "goose-ui/styles/theme.css";
 | ------------- | ------------------------- | ---------------------------------------- |
 | PageHeader    | `goose-ui/page-header`    | 页面标题栏（标题 + 操作区）              |
 | SegmentedTabs | `goose-ui/segmented-tabs` | 分段标签（pill 动画 + underline 双模式） |
-| Sidebar       | `goose-ui/sidebar`        | 悬浮岛式侧边栏（导航分组 + 主题切换）    |
+| Sidebar       | `goose-ui/sidebar`        | 悬浮岛式侧边栏（导航分组 + 折叠 + popover） |
+| Header        | `goose-ui/header`         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽） |
 
 ### 反馈
 
 | 组件              | 路径                              | 说明                                       |
 | ----------------- | --------------------------------- | ------------------------------------------ |
 | Modal             | `goose-ui/modal`                  | 模态弹窗（fade+scale 转场、backdrop blur） |
+| Drawer            | `goose-ui/drawer`                 | 抽屉弹窗（4 方向 + 景深效果 + portal）     |
 | Notification      | `goose-ui/notification`           | 通知容器（配合 Notification API 使用）     |
 | NotificationItem  | `goose-ui/notification-item`      | 单条通知（icon + 关闭按钮 + 进度条）       |
 | ErrorDialog       | `goose-ui/error-dialog`           | 错误弹窗（配合 pushError 使用）            |
@@ -352,7 +354,7 @@ formatBytes(1048576); // "1 MB"
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `variant` | `'primary' \| 'default' \| 'ghost' \| 'danger' \| 'link'` | `'default'` | 按钮变体 |
-| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'icon' \| 'icon-sm' \| 'icon-xs' \| 'icon-lg'` | `'md'` | 尺寸 |
+| `size` | `'small' \| 'middle' \| 'large' \| 'icon' \| 'icon-sm' \| 'icon-xs' \| 'icon-lg'` | `'middle'` | 尺寸 |
 | `icon` | `Component` | — | 左侧图标组件 |
 | `iconRight` | `Component` | — | 右侧图标组件 |
 | `iconSize` | `number` | `16` | 图标尺寸（px） |
@@ -453,3 +455,137 @@ formatBytes(1048576); // "1 MB"
 | `svelte` ^5.0.0            | ✅   | 框架                 |
 | `@lucide/svelte`           | ✅   | 图标库               |
 | `@wailsio/runtime` >=3.0.0 | 可选 | 仅 TitleBar 组件需要 |
+
+## 组件 Props 详细文档
+
+### Header Props
+
+固定在顶部的导航栏，支持标题、操作区和自定义插槽。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `title` | `string` | `''` | 左侧标题文字 |
+| `collapsed` | `boolean` | `false` | 侧边栏折叠时左移 |
+| `sidebarWidth` | `string` | `'252px'` | 展开时左侧偏移量 |
+| `sidebarCollapsedWidth` | `string` | `'88px'` | 折叠时左侧偏移量 |
+| `height` | `string` | `'52px'` | Header 高度 |
+| `class` | `string` | `''` | 额外 CSS 类名 |
+| `left` | `Snippet` | — | 左侧区域（覆盖 title） |
+| `center` | `Snippet` | — | 中间区域 |
+| `right` | `Snippet` | — | 右侧操作区 |
+| `children` | `Snippet` | — | 任意内容 |
+
+```svelte
+<Header title="管理后台" collapsed={sidebarCollapsed}>
+  {#snippet right()}
+    <button onclick={toggleTheme}>切换主题</button>
+  {/snippet}
+</Header>
+```
+
+### Sidebar Props
+
+悬浮岛式侧边栏，支持分组导航、折叠和 hover popover。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `groups` | `SidebarTabGroup[]` | `[]` | 导航分组数据 |
+| `activeTab` | `string` (bindable) | `''` | 当前选中项 |
+| `mode` | `'float' \| 'flat'` | `'float'` | 浮动式（阴影圆角）/ 平铺式 |
+| `collapsed` | `boolean` (bindable) | `false` | 折叠状态 |
+| `footer` | `Snippet` | — | 底部内容 |
+| `header` | `Snippet` | — | 头部内容（替换默认 logo） |
+| `class` | `string` | `''` | 额外 CSS 类名 |
+
+```svelte
+<script>
+  const groups = [
+    { title: '导航', icon: Home, items: [
+      { value: 'home', label: '首页' },
+    ]},
+  ];
+</script>
+
+<Sidebar {groups} bind:activeTab mode="float" bind:collapsed>
+  {#snippet footer()}
+    <span>v0.1.0</span>
+  {/snippet}
+</Sidebar>
+```
+
+### Drawer Props
+
+抽屉弹窗，支持 4 方向弹出和景深效果。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `open` | `boolean` (bindable) | `false` | 是否显示 |
+| `title` | `string` | `''` | 标题 |
+| `placement` | `'left' \| 'right' \| 'top' \| 'bottom'` | `'right'` | 弹出方向 |
+| `width` | `number \| string` | `'50%'` | 宽度 |
+| `height` | `number \| string` | — | 高度 |
+| `maskClosable` | `boolean` | `true` | 点击遮罩关闭 |
+| `pushBackground` | `boolean` | `true` | 景深效果（内容区缩放+模糊） |
+| `contentSelector` | `string` | `'.app'` | 景深效果目标选择器 |
+| `onClose` | `() => void` | — | 关闭回调 |
+| `footer` | `Snippet` | — | 底部操作区 |
+| `children` | `Snippet` | — | 内容 |
+
+```svelte
+<Drawer bind:open={showDrawer} title="详情" placement="right">
+  <p>抽屉内容</p>
+  {#snippet footer()}
+    <button onclick={() => showDrawer = false}>关闭</button>
+  {/snippet}
+</Drawer>
+```
+
+### DropZone Props
+
+文件拖拽上传区域。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `accept` | `string` | `''` | 文件类型过滤（如 `.png,.jpg`） |
+| `multiple` | `boolean` | `false` | 允许多文件选择 |
+| `placeholder` | `string` | `'拖拽文件到此处'` | 主提示文字 |
+| `hint` | `string` | `''` | 辅助提示文字 |
+| `class` | `string` | `''` | 额外 CSS 类名 |
+| `style` | `string` | `''` | 内联样式 |
+| `ondrop` | `(files: File[]) => void` | — | 文件放下回调 |
+
+```svelte
+<DropZone
+  accept=".png,.jpg"
+  multiple
+  placeholder="拖拽图片"
+  hint="支持 PNG, JPG"
+  ondrop={(files) => console.log(files)}
+/>
+```
+
+### Select Props
+
+下拉选择器，支持键盘导航和 hover 指示器。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `value` | `string` (bindable) | `''` | 当前选中值 |
+| `options` | `Option[]` | `[]` | 选项列表 `{ value, label, meta?, metaClass? }` |
+| `placeholder` | `string` | `'请选择'` | 占位文字 |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'bottom'` | 弹出位置 |
+| `disabled` | `boolean` | `false` | 禁用 |
+| `onchange` | `(value: string) => void` | — | 选中回调 |
+| `class` | `string` | `''` | 额外 CSS 类名 |
+
+```svelte
+<Select
+  options={[
+    { value: 'a', label: '选项A' },
+    { value: 'b', label: '选项B', meta: 'B', metaClass: 'good' },
+  ]}
+  bind:value={selected}
+  placement="bottom"
+  onchange={(v) => console.log(v)}
+/>
+```
