@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import { menuStore } from "./contextMenuStore";
+import { menuStore } from "./contextMenuStore.svelte.ts";
 
 export interface MenuItemDef {
   id: string;

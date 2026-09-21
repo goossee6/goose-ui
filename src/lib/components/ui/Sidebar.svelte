@@ -314,7 +314,7 @@
     letter-spacing: 0.05em;
     cursor: pointer;
     text-align: left;
-    transition: color 0.15s;
+    transition: color 0.2s ease;
   }
   .group-header:hover {
     color: var(--text-strong);
@@ -371,7 +371,7 @@
     font-size: 14px;
     text-align: left;
     cursor: pointer;
-    transition: background 0.1s, color 0.1s;
+    transition: background 0.2s ease, color 0.2s ease;
     border-radius: var(--radius-md);
   }
   .nav-item:hover {

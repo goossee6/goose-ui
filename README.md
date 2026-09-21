@@ -109,6 +109,7 @@ import "goose-ui/styles/theme.css";
 | SegmentedTabs | `goose-ui/segmented-tabs` | 分段标签（pill 动画 + underline 双模式） |
 | Sidebar       | `goose-ui/sidebar`        | 悬浮岛式侧边栏（导航分组 + 折叠 + popover） |
 | Header        | `goose-ui/header`         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽） |
+| ThemeToggle   | `goose-ui/theme-toggle`   | 主题切换按钮（圆形扩散动画 + 回调） |
 
 ### 反馈
 
@@ -481,6 +482,29 @@ formatBytes(1048576); // "1 MB"
     <button onclick={toggleTheme}>切换主题</button>
   {/snippet}
 </Header>
+```
+
+### ThemeToggle Props
+
+主题切换按钮，点击后从按钮位置圆形扩散切换亮色/暗色主题，使用 `document.startViewTransition()` API。
+
+| 属性 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `lightIcon` | `Component` | `Sun` | 亮色模式图标 |
+| `darkIcon` | `Component` | `Moon` | 暗色模式图标 |
+| `onclick` | `(theme: 'light' \| 'dark') => void` | — | 切换后回调（返回切换后的主题） |
+| `class` | `string` | `''` | 额外 CSS 类名 |
+
+```svelte
+<!-- 基础用法 -->
+<ThemeToggle />
+
+<!-- 自定义图标 + 回调 -->
+<ThemeToggle
+  lightIcon={Sun}
+  darkIcon={Moon}
+  onclick={(theme) => console.log('当前主题:', theme)}
+/>
 ```
 
 ### Sidebar Props

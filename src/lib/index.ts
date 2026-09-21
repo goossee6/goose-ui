@@ -11,7 +11,7 @@ export { Icon };
 // Stores
 export { notificationStore, Notification, errorToString } from './components/notification';
 export { errorStore, pushError } from './components/errors';
-export { menuStore } from './components/contextMenuStore';
+export { menuStore } from './components/contextMenuStore.svelte.ts';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
 
 // Types
@@ -54,11 +54,12 @@ import UsageBar from './components/ui/UsageBar.svelte';
 import Sidebar from './components/ui/Sidebar.svelte';
 import Drawer from './components/ui/Drawer.svelte';
 import Header from './components/ui/Header.svelte';
+import ThemeToggle from './components/ui/ThemeToggle.svelte';
 export {
   Button, Card, Checkbox, CreatableSelect, DataList, DataTable, DropZone,
   MultiSelect, PresetInput, Input, Label, LoadingGif, Modal, PageHeader,
   ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
-  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header,
+  StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header, ThemeToggle,
 };
 
 // Providers
