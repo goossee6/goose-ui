@@ -1,0 +1,19 @@
+# Demo
+demo/
+
+# Config files
+.git
+.gitignore
+.npmignore
+.pnpm-workspace.yaml
+node_modules
+pnpm-lock.yaml
+*.tgz
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db

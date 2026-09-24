@@ -11,7 +11,7 @@ const MAX_ERRORS = 10;
 function formatError(e: unknown): string {
   if (e instanceof Error) {
     const msg = `${e.name}: ${e.message}`;
-    if (import.meta.env?.DEV) return e.stack ?? msg;
+    if ((import.meta as { env?: { DEV?: boolean } }).env?.DEV) return e.stack ?? msg;
     return msg;
   }
   if (typeof e === 'string') return e;

@@ -1,8 +1,32 @@
 {
   "name": "goose-ui",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "description": "零第三方依赖的 Svelte 5 纯 CSS 组件库，支持 Wails3 桌面应用开发",
+  "license": "MIT",
+  "author": "goossee6",
+  "scripts": {
+    "dev": "pnpm --filter demo dev",
+    "build": "pnpm --filter demo build",
+    "check": "pnpm --filter demo check",
+    "preview": "pnpm --filter demo preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goossee6/goose-ui.git"
+  },
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "ui",
+    "component-library",
+    "css",
+    "wails",
+    "desktop"
+  ],
+  "files": [
+    "src/lib"
+  ],
   "exports": {
     ".": "./src/lib/index.ts",
     "./styles/theme.css": "./src/lib/styles/theme.css",
@@ -30,7 +54,7 @@
     "./title-bar": "./src/lib/components/ui/TitleBar.svelte",
     "./layout": "./src/lib/components/ui/Layout.svelte",
     "./usage-bar": "./src/lib/components/ui/UsageBar.svelte",
-    "./loading-gif": "./src/lib/components/ui/LoadingGif.svelte",
+    "./loading": "./src/lib/components/ui/Loading.svelte",
     "./typewriter": "./src/lib/components/ui/Typewriter.svelte",
     "./sidebar": "./src/lib/components/ui/Sidebar.svelte",
     "./header": "./src/lib/components/ui/Header.svelte",

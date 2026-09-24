@@ -1,1 +1,6 @@
 node_modules/
+demo/dist/
+demo/node_modules/
+*.tgz
+.DS_Store
+Thumbs.db

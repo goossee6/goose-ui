@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { Component } from 'svelte';
+  import { onMount } from 'svelte';
   import Button from './Button.svelte';
+
+  const STORAGE_KEY = 'goose-ui-theme';
 
   let {
     lightIcon,
@@ -14,13 +17,21 @@
     class?: string;
   } = $props();
 
-  let theme = $state<'light' | 'dark'>(
-    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-  );
+  let theme = $state<'light' | 'dark'>('light');
+
+  onMount(() => {
+    const saved = localStorage.getItem(STORAGE_KEY) as 'light' | 'dark' | null;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initial = saved ?? (prefersDark ? 'dark' : 'light');
+
+    theme = initial;
+    document.documentElement.classList.toggle('dark', initial === 'dark');
+  });
 
   function applyTheme() {
     theme = theme === 'light' ? 'dark' : 'light';
     document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem(STORAGE_KEY, theme);
     onclick?.(theme);
   }
 

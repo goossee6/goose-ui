@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import type { Component } from 'svelte';
 import type { Snippet } from 'svelte';
 
@@ -50,7 +50,7 @@ export interface NotificationOptions {
 const MAX_PER_POSITION = 5;
 
 function createNotificationStore() {
-  const containers: Record<NotificationPosition, writable<NotificationItem[]>> = {
+  const containers: Record<NotificationPosition, Writable<NotificationItem[]>> = {
     'top-left': writable([]),
     'top': writable([]),
     'top-right': writable([]),

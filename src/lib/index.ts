@@ -11,7 +11,7 @@ export { Icon };
 // Stores
 export { notificationStore, Notification, errorToString } from './components/notification';
 export { errorStore, pushError } from './components/errors';
-export { menuStore } from './components/contextMenuStore.svelte.ts';
+export { menuStore } from './components/contextMenuStore.svelte.js';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
 
 // Types
@@ -34,7 +34,7 @@ import MultiSelect from './components/ui/MultiSelect.svelte';
 import PresetInput from './components/ui/PresetInput.svelte';
 import Input from './components/ui/Input.svelte';
 import Label from './components/ui/Label.svelte';
-import LoadingGif from './components/ui/LoadingGif.svelte';
+import Loading from './components/ui/Loading.svelte';
 import Modal from './components/ui/Modal.svelte';
 import PageHeader from './components/ui/PageHeader.svelte';
 import ProgressBar from './components/ui/ProgressBar.svelte';
@@ -57,7 +57,7 @@ import Header from './components/ui/Header.svelte';
 import ThemeToggle from './components/ui/ThemeToggle.svelte';
 export {
   Button, Card, Checkbox, CreatableSelect, DataList, DataTable, DropZone,
-  MultiSelect, PresetInput, Input, Label, LoadingGif, Modal, PageHeader,
+  MultiSelect, PresetInput, Input, Label, Loading, Modal, PageHeader,
   ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
   StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header, ThemeToggle,
 };
