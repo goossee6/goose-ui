@@ -100,10 +100,22 @@
 		cursor: pointer;
 		overflow: hidden;
 	}
-	.notification-success { border-left: 3px solid var(--success); }
-	.notification-info { border-left: 3px solid var(--info); }
-	.notification-warning { border-left: 3px solid var(--warning); }
-	.notification-error { border-left: 3px solid var(--danger); }
+	.notification-success {
+		background-color: var(--success-soft);
+		border-color: var(--success-border);
+	}
+	.notification-info {
+		background-color: var(--info-soft);
+		border-color: var(--info-border);
+	}
+	.notification-warning {
+		background-color: var(--warning-soft);
+		border-color: var(--warning-border);
+	}
+	.notification-error {
+		background-color: var(--danger-soft);
+		border-color: var(--danger-border);
+	}
 
 	.notification-icon {
 		flex-shrink: 0;
@@ -114,10 +126,10 @@
 		height: 32px;
 		border-radius: 50%;
 	}
-	.notification-icon-success { background-color: var(--success-bg); color: var(--success-text); }
-	.notification-icon-info { background-color: var(--info-bg); color: var(--info-text); }
-	.notification-icon-warning { background-color: var(--warning-bg); color: var(--warning-text); }
-	.notification-icon-error { background-color: var(--danger-bg); color: var(--danger-text); }
+	.notification-icon-success { background-color: var(--surface); color: var(--success-text); }
+	.notification-icon-info { background-color: var(--surface); color: var(--info-text); }
+	.notification-icon-warning { background-color: var(--surface); color: var(--warning-text); }
+	.notification-icon-error { background-color: var(--surface); color: var(--danger-text); }
 
 	.notification-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 	.notification-title { font-weight: 500; word-break: break-word; }

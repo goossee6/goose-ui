@@ -27,7 +27,7 @@
 		fileInput.click();
 	}
 
-	function handleFiles(files: FileList | null) {
+	function handleFiles(files: FileList | null | undefined) {
 		if (!files || files.length === 0) return;
 		ondrop?.(Array.from(files));
 	}
@@ -63,7 +63,7 @@
 		bind:this={fileInput}
 		onchange={handleFileChange}
 	/>
-	<Button variant="default" size="sm" onclick={handleClick}>选择文件</Button>
+	<Button variant="default" size="small" onclick={handleClick}>选择文件</Button>
 </div>
 
 <style>
