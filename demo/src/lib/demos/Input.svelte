@@ -11,6 +11,48 @@
 
   let prevPreset = $state(preset);
   $effect(() => { if (preset !== prevPreset) { prevPreset = preset; if (preset) Notification.success(`已选择「${preset}」`); } });
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const inputProps: PropsTableItem[] = [
+    { name: "value", desc: "输入值（可双向绑定）", type: "string", default: "''" },
+    { name: "placeholder", desc: "占位文案", type: "string", default: "''" },
+    { name: "type", desc: "原生输入类型", type: "string", default: "'text'" },
+    { name: "clearable", desc: "显示清空按钮", type: "boolean", default: "true" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "readonly", desc: "只读", type: "boolean", default: "false" },
+    { name: "digitsOnly", desc: "仅允许数字输入", type: "boolean", default: "false" },
+    { name: "status", desc: "状态样式", type: "'error' | 'warning'" },
+    { name: "prefix", desc: "前缀图标组件", type: "Component<{ size?: number }> | null", default: "null" },
+    { name: "suffix", desc: "后缀图标组件", type: "Component<{ size?: number }> | null", default: "null" },
+    { name: "id", desc: "原生 id", type: "string", default: "''" },
+    { name: "name", desc: "原生 name", type: "string", default: "''" },
+    { name: "onkeydown", desc: "按键回调", type: "(e: KeyboardEvent) => void" },
+    { name: "onenter", desc: "回车键回调", type: "() => void" },
+    { name: "onClear", desc: "清空回调", type: "() => void" },
+    { name: "onclick", desc: "点击回调", type: "(e: MouseEvent) => void" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
+
+  const presetInputProps: PropsTableItem[] = [
+    { name: "value", desc: "输入值（可双向绑定）", type: "string", default: "''" },
+    { name: "presets", desc: "预设值列表，元素为 string 或 { label, value }", type: "Array<string | PresetOption>", default: "[]" },
+    { name: "placeholder", desc: "占位文案", type: "string", default: "''" },
+    { name: "clearable", desc: "显示清空按钮", type: "boolean", default: "true" },
+    { name: "error", desc: "错误状态", type: "boolean", default: "false" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "digitsOnly", desc: "仅允许数字输入", type: "boolean", default: "false" },
+    { name: "rows", desc: "多行行数（>1 时为多行输入）", type: "number", default: "1" },
+    { name: "inputmode", desc: "原生 inputmode", type: "'text' | 'numeric' | 'decimal' | 'email' | 'search' | 'tel' | 'url' | 'none'", default: "'text'" },
+    { name: "autocomplete", desc: "原生 autocomplete", type: "string", default: "''" },
+    { name: "spellcheck", desc: "原生 spellcheck", type: "'true' | 'false'", default: "'false'" },
+    { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
+    { name: "ariaDescribedby", desc: "无障碍描述关联", type: "string", default: "''" },
+    { name: "onenter", desc: "回车键回调", type: "(() => void) | null", default: "null" },
+    { name: "id", desc: "原生 id", type: "string", default: "''" },
+    { name: "name", desc: "原生 name", type: "string", default: "''" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、预设输入" />
@@ -110,6 +152,13 @@
       />
       <span class="demo-val">值: "{multiline}"</span>
     </div>
+  </Card>
+  <Card title="Input Props">
+    <PropsTable items={inputProps} />
+  </Card>
+
+  <Card title="PresetInput Props">
+    <PropsTable items={presetInputProps} />
   </Card>
 </div>
 

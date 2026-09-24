@@ -1,5 +1,14 @@
 <script lang="ts">
   import { Button, Card, PageHeader, Tooltip } from "goose-ui";
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const tooltipProps: PropsTableItem[] = [
+    { name: "title", desc: "提示内容（必填）", type: "string | Snippet" },
+    { name: "children", desc: "触发元素（必填）", type: "Snippet" },
+    { name: "placement", desc: "出现方向", type: "'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end'", default: "'top'" },
+    { name: "trigger", desc: "触发方式", type: "'hover' | 'focus' | 'click'", default: "'hover'" },
+    { name: "maxWidth", desc: "最大宽度", type: "number | string" },
+  ];
 </script>
 
 <PageHeader title="Tooltip 气泡提示" description="悬浮提示信息，支持 12 方向、三种触发方式、自动翻转" />
@@ -74,6 +83,9 @@
         <Button>窄文本 (160px)</Button>
       </Tooltip>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={tooltipProps} />
   </Card>
 </div>
 

@@ -27,6 +27,17 @@
     { value: 'y', label: '通知设置', icon: Bell as Component<{size?:number}> },
     { value: 'z', label: '安全中心', icon: Shield as Component<{size?:number}> },
   ];
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const tabsProps: PropsTableItem[] = [
+    { name: "items", desc: "标签项数组，元素 { value, label, icon?, iconHtml? }", type: "readonly TabItem[]", default: "[]" },
+    { name: "value", desc: "当前选中值（可双向绑定）", type: "string", default: "''" },
+    { name: "disabled", desc: "禁用切换", type: "boolean", default: "false" },
+    { name: "mode", desc: "展示模式", type: "'segmented' | 'underline' | 'vertical'", default: "'segmented'" },
+    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | number", default: "'middle'" },
+    { name: "onchange", desc: "切换回调", type: "(value: string) => void" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="标签页 SegmentedTabs" description="分段式、下划线式、垂直式三种模式的切换标签" />
@@ -95,6 +106,9 @@
       />
       <p class="demo-val">使用 onchange 而非 bind:value 也能正常切换</p>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={tabsProps} />
   </Card>
 </div>
 

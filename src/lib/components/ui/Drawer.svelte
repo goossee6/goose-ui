@@ -141,6 +141,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 1000;
     pointer-events: none;
   }
   .drawer-overlay {
@@ -150,7 +151,6 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.2);
-    z-index: 1000;
     pointer-events: auto;
   }
   .drawer {
@@ -161,7 +161,6 @@
     overscroll-behavior: contain;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     position: fixed;
-    z-index: 1001;
     pointer-events: auto;
   }
   .drawer--left {

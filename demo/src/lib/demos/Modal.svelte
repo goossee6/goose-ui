@@ -8,9 +8,37 @@
   let wideModalOpen = $state(false);
   let snippetTitleModalOpen = $state(false);
   let noMaskModalOpen = $state(false);
+  let confirmLikeOpen = $state(false);
+  let preventCloseOpen = $state(false);
+  let asyncOkOpen = $state(false);
+  let noFooterOpen = $state(false);
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const modalProps: PropsTableItem[] = [
+    { name: "open", desc: "是否打开（可双向绑定）", type: "boolean", default: "false" },
+    { name: "title", desc: "标题，为空时不渲染标题栏", type: "string | Snippet" },
+    { name: "width", desc: "宽度", type: "number | string", default: "520" },
+    { name: "mask", desc: "遮罩风格", type: "'dark' | 'light'", default: "'dark'" },
+    { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "false" },
+    { name: "disableClose", desc: "禁用标题栏关闭按钮", type: "boolean", default: "false" },
+    { name: "typewriter", desc: "正文打字机效果", type: "boolean", default: "true" },
+    { name: "typewriterDuration", desc: "打字总时长(ms)", type: "number", default: "1500" },
+    { name: "okText", desc: "确认按钮文案", type: "string", default: "'确定'" },
+    { name: "cancelText", desc: "取消按钮文案", type: "string", default: "'取消'" },
+    { name: "showOk", desc: "显示确认按钮", type: "boolean", default: "true" },
+    { name: "showCancel", desc: "显示取消按钮", type: "boolean", default: "true" },
+    { name: "showFooter", desc: "显示默认底部栏（自定义 footer 插槽时忽略）", type: "boolean", default: "true" },
+    { name: "okDisabled", desc: "禁用确认按钮", type: "boolean", default: "false" },
+    { name: "onOk", desc: "确认回调，返回 false 或抛错保持打开；async 期间显示“处理中…”", type: "() => void | boolean | Promise<void | boolean>" },
+    { name: "onCancel", desc: "取消回调（取消按钮/X/Esc/遮罩）", type: "() => void" },
+    { name: "onClose", desc: "任何关闭方式都会触发", type: "() => void" },
+    { name: "footer", desc: "自定义底部插槽（优先于默认按钮）", type: "Snippet" },
+    { name: "children", desc: "正文内容", type: "Snippet" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
 </script>
 
-<PageHeader title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、宽度可配" />
+<PageHeader title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配" />
 
 <div class="demo-grid">
   <Card title="基础模态框">
@@ -82,6 +110,77 @@
     </div>
   </Card>
 
+  <Card title="文案定制 okText / cancelText">
+    <div class="demo-row">
+      <Button variant="primary" onclick={() => { confirmLikeOpen = true; }}>打开</Button>
+      <Modal
+        bind:open={confirmLikeOpen}
+        title="删除确认"
+        width={420}
+        typewriter={false}
+        okText="删除"
+        cancelText="再想想"
+        onOk={() => { Notification.success('已删除（模拟）'); }}
+        onCancel={() => Notification.info('已取消删除')}
+      >
+        <p>确定要删除该资源吗？此操作不可撤销。</p>
+        <p class="muted">onOk 关闭前触发，onCancel 在取消 / X / Esc / 遮罩关闭时触发。</p>
+      </Modal>
+    </div>
+  </Card>
+
+  <Card title="onOk 返回 false 阻止关闭">
+    <div class="demo-row">
+      <Button variant="primary" onclick={() => { preventCloseOpen = true; }}>打开</Button>
+      <Modal
+        bind:open={preventCloseOpen}
+        title="表单校验"
+        width={420}
+        typewriter={false}
+        okText="提交"
+        onOk={() => {
+          if (Math.random() < 0.5) {
+            Notification.error('校验失败：返回 false 保持打开');
+            return false;
+          }
+          Notification.success('校验通过，已关闭');
+        }}
+      >
+        <p>点「提交」有一半概率返回 <code>false</code>，弹窗保持打开。</p>
+        <p class="muted">抛异常同样保持打开，适合校验与请求失败场景。</p>
+      </Modal>
+    </div>
+  </Card>
+
+  <Card title="异步 onOk（处理中态）">
+    <div class="demo-row">
+      <Button variant="primary" onclick={() => { asyncOkOpen = true; }}>打开</Button>
+      <Modal
+        bind:open={asyncOkOpen}
+        title="异步提交"
+        width={420}
+        typewriter={false}
+        okText="保存"
+        onOk={async () => {
+          await new Promise((r) => setTimeout(r, 1500));
+          Notification.success('保存成功');
+        }}
+      >
+        <p>onOk 返回 Promise 时，确定按钮显示「处理中…」并禁用，await 完成后才关闭。</p>
+      </Modal>
+    </div>
+  </Card>
+
+  <Card title="隐藏 footer showFooter={false}">
+    <div class="demo-row">
+      <Button variant="primary" onclick={() => { noFooterOpen = true; }}>打开</Button>
+      <Modal bind:open={noFooterOpen} title="纯展示弹窗" width={420} typewriter={false} showFooter={false}>
+        <p>通过 <code>showFooter={false}</code> 隐藏底部按钮区，仅保留右上角 X 关闭。</p>
+        <p class="muted">也可用 showOk / showCancel 单独隐藏某一个按钮。</p>
+      </Modal>
+    </div>
+  </Card>
+
   <Card title="ErrorDialog 错误收集弹窗">
     <p class="muted" style="margin-bottom:12px">自动收集运行时错误，支持列表堆叠、单项复制、复制全部。</p>
     <div class="demo-row">
@@ -108,6 +207,9 @@
         模拟多个错误
       </Button>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={modalProps} />
   </Card>
 </div>
 

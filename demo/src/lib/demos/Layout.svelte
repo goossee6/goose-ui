@@ -1,5 +1,14 @@
 <script lang="ts">
   import { Card, PageHeader } from 'goose-ui';
+  import PropsTable, { type PropsTableItem } from '../PropsTable.svelte';
+
+  const layoutProps: PropsTableItem[] = [
+    { name: "title", desc: "传递给 TitleBar 的标题", type: "string", default: "''" },
+    { name: "theme", desc: "传递给 TitleBar 的主题", type: "'light' | 'dark'", default: "'light'" },
+    { name: "onThemeToggle", desc: "传递给 TitleBar 的主题切换回调", type: "(e: MouseEvent) => void" },
+    { name: "tabs", desc: "左侧侧边栏内容", type: "Snippet" },
+    { name: "children", desc: "主内容区", type: "Snippet" },
+  ];
 </script>
 
 <PageHeader title="Layout 布局" description="Wails3 桌面应用完整外壳布局，包含标题栏、侧边栏和主内容区" />
@@ -20,33 +29,7 @@
   </Card>
 
   <Card title="Props">
-    <div class="props-table">
-      <div class="prop-row">
-        <span class="prop-name">title</span>
-        <span class="prop-type">string</span>
-        <span class="prop-desc">传递给 TitleBar 的标题</span>
-      </div>
-      <div class="prop-row">
-        <span class="prop-name">theme</span>
-        <span class="prop-type">'light' | 'dark'</span>
-        <span class="prop-desc">传递给 TitleBar 的主题</span>
-      </div>
-      <div class="prop-row">
-        <span class="prop-name">onThemeToggle</span>
-        <span class="prop-type">(e: MouseEvent) =&gt; void</span>
-        <span class="prop-desc">传递给 TitleBar 的主题切换回调</span>
-      </div>
-      <div class="prop-row">
-        <span class="prop-name">tabs</span>
-        <span class="prop-type">Snippet</span>
-        <span class="prop-desc">左侧侧边栏内容</span>
-      </div>
-      <div class="prop-row">
-        <span class="prop-name">children</span>
-        <span class="prop-type">Snippet</span>
-        <span class="prop-desc">主内容区</span>
-      </div>
-    </div>
+    <PropsTable items={layoutProps} />
   </Card>
 
   <Card title="说明">
@@ -90,17 +73,6 @@
     justify-content: center;
     background: var(--bg);
   }
-  .props-table { font-size: 13px; }
-  .prop-row {
-    display: flex;
-    gap: 16px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .prop-row:last-child { border-bottom: none; }
-  .prop-name { font-weight: 600; color: var(--text-strong); min-width: 120px; }
-  .prop-type { color: var(--primary); min-width: 160px; font-family: var(--font-mono); font-size: 12px; }
-  .prop-desc { color: var(--text-muted); }
   .demo-note { font-size: 13px; color: var(--text-muted); line-height: 1.8; }
   .demo-note p { margin: 0; }
 </style>

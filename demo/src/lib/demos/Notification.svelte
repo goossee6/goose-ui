@@ -6,6 +6,24 @@
   import Zap from '@lucide/svelte/icons/zap';
 
   let keyDemoCount = $state(0);
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const notificationProps: PropsTableItem[] = [
+    { name: "title", desc: "标题（必填；传字符串时为快捷用法）", type: "string" },
+    { name: "description", desc: "描述文本", type: "string" },
+    { name: "type", desc: "类型（由 success/info/warning/error 自动设置）", type: "'success' | 'info' | 'warning' | 'error'", default: "'info'" },
+    { name: "position", desc: "弹出位置", type: "'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right'", default: "'top'" },
+    { name: "duration", desc: "自动关闭时间(ms)，0 表示不自动关闭", type: "number", default: "4500" },
+    { name: "closable", desc: "显示关闭按钮", type: "boolean", default: "true" },
+    { name: "pauseOnHover", desc: "悬停时暂停倒计时", type: "boolean", default: "true" },
+    { name: "showProgress", desc: "显示进度条", type: "boolean", default: "false" },
+    { name: "key", desc: "唯一键：同 key 通知原地更新而非新增", type: "string" },
+    { name: "icon", desc: "自定义图标组件", type: "Component" },
+    { name: "closeIcon", desc: "自定义关闭图标组件", type: "Component" },
+    { name: "btn", desc: "操作按钮插槽", type: "Snippet" },
+    { name: "onClick", desc: "点击通知回调", type: "() => void" },
+    { name: "onClose", desc: "关闭时回调", type: "() => void" },
+  ];
 </script>
 
 <PageHeader title="通知 Notification" description="4 种类型、6 个位置、标题+描述、操作按钮、进度条、悬停暂停" />
@@ -46,7 +64,8 @@
     <div class="demo-row">
       <Button onclick={() => Notification.info({ title: '3 秒后关闭',showProgress: true, duration: 3000 })}>3 秒</Button>
       <Button onclick={() => Notification.info({ title: '10 秒后关闭',showProgress: true, duration: 10000 })}>10 秒</Button>
-      <Button onclick={() => Notification.warning({ title: '不会自动关闭', description: '点击 X 关闭', duration: 0 })}>不自动关闭</Button>
+      <Button onclick={() => Notification.warning({ title: '不会自动关闭', description: '点击 X 关闭', duration: 0 })}>不自动关闭1</Button>
+      <Button onclick={() => Notification.warning({ title: '不会自动关闭', description: '点击 X 关闭', duration: 0 })}>不自动关闭2</Button>
     </div>
   </Card>
 
@@ -129,6 +148,13 @@
     </div>
   </Card>
 
+  <Card title="NotificationOptions 参数">
+    <p class="api-note">
+      快捷用法：<code>Notification.success('消息')</code> 或 <code>Notification.open(options)</code>；
+      另有 <code>destroy(keyOrId)</code> / <code>destroyAll()</code>，第一个参数可传字符串或完整 options。
+    </p>
+    <PropsTable items={notificationProps} />
+  </Card>
 </div>
 
 <style>
@@ -140,4 +166,6 @@
     gap: var(--gap-md);
   }
   .hint { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
+  .api-note { font-size: 13px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.8; }
+  .api-note code { font-family: var(--font-mono); font-size: 12px; }
 </style>

@@ -1,5 +1,11 @@
 <script lang="ts">
   import { Card, PageHeader, Loading } from 'goose-ui';
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const loadingProps: PropsTableItem[] = [
+    { name: "size", desc: "尺寸(px)", type: "number", default: "30" },
+    { name: "src", desc: "自定义图片地址，为空时使用默认图", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="加载 Loading" description="加载动画指示器" />
@@ -12,6 +18,9 @@
         <span style="font-size:13px;color:var(--text-muted)">加载中…</span>
       </div>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={loadingProps} />
   </Card>
 </div>
 

@@ -4,7 +4,6 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import Minus from '@lucide/svelte/icons/minus';
 	import Square from '@lucide/svelte/icons/square';
-	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import X from '@lucide/svelte/icons/x';
 	import Icon from './Icon.svelte';
 
@@ -19,16 +18,20 @@
 	} = $props();
 
 	let isMaximised = $state(false);
+	let isWails = $state(false);
 	let Window: any = null;
-	const isWails = typeof window !== 'undefined' && '__wailsInvoke__' in window;
 
 	onMount(async () => {
-		if (isWails) {
-			try {
-				const mod = await import('@wailsio/runtime');
-				Window = mod.Window;
-				Window.IsMaximised().then((v: boolean) => { isMaximised = v; });
-			} catch {}
+		try {
+			const mod = await import('@wailsio/runtime');
+			const w = mod.Window;
+			const maximised = await w.IsMaximised();
+			Window = w;
+			isMaximised = maximised;
+			isWails = true;
+		} catch {
+			Window = null;
+			isWails = false;
 		}
 	});
 
@@ -60,13 +63,13 @@
 				<Icon icon={theme === 'dark' ? Sun : Moon} size={14} />
 			</button>
 		{/if}
-		<button type="button" class="win-btn" onclick={handleMinimise} aria-label="最小化">
+		<button type="button" class="win-btn" disabled={!isWails} onclick={handleMinimise} aria-label="最小化">
 			<Icon icon={Minus} size={14} />
 		</button>
 		<button type="button" class="win-btn" disabled={!isWails} onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
-			<Icon icon={isMaximised ? Undo2 : Square} size={12} />
+			<Icon icon={Square} size={12} />
 		</button>
-		<button type="button" class="win-btn win-btn-close" onclick={handleClose} aria-label="关闭">
+		<button type="button" class="win-btn win-btn-close" disabled={!isWails} onclick={handleClose} aria-label="关闭">
 			<Icon icon={X} size={16} />
 		</button>
 	</div>

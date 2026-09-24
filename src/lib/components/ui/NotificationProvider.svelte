@@ -68,7 +68,7 @@
 		gap: var(--gap-md);
 		pointer-events: none;
 		max-height: 100vh;
-		overflow: hidden;
+		/* overflow: hidden; */
 	}
 	.nc > :global(*) { pointer-events: auto; }
 	.ns { will-change: transform, opacity; }

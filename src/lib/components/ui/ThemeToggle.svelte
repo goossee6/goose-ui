@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { Component } from 'svelte';
   import { onMount } from 'svelte';
+  import Sun from '@lucide/svelte/icons/sun';
+  import Moon from '@lucide/svelte/icons/moon';
   import Button from './Button.svelte';
-
-  const STORAGE_KEY = 'goose-ui-theme';
+  import { themeStore, initTheme, toggleTheme } from '../themeStore.svelte.js';
 
   let {
-    lightIcon,
-    darkIcon,
+    lightIcon = Sun,
+    darkIcon = Moon,
     onclick,
     class: cls = '',
   }: {
@@ -17,51 +18,19 @@
     class?: string;
   } = $props();
 
-  let theme = $state<'light' | 'dark'>('light');
-
-  onMount(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as 'light' | 'dark' | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial = saved ?? (prefersDark ? 'dark' : 'light');
-
-    theme = initial;
-    document.documentElement.classList.toggle('dark', initial === 'dark');
-  });
-
-  function applyTheme() {
-    theme = theme === 'light' ? 'dark' : 'light';
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem(STORAGE_KEY, theme);
-    onclick?.(theme);
-  }
+  onMount(initTheme);
 
   function toggle(e: MouseEvent) {
     const btn = e.currentTarget as HTMLElement;
     const rect = btn.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    const radius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-
-    const root = document.documentElement;
-    root.style.setProperty('--tv-x', `${x}px`);
-    root.style.setProperty('--tv-y', `${y}px`);
-    root.style.setProperty('--tv-r', `${radius}px`);
-
-    if (!document.startViewTransition) {
-      applyTheme();
-      return;
-    }
-
-    document.startViewTransition(() => applyTheme());
+    const next = toggleTheme({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    onclick?.(next);
   }
 </script>
 
 <Button
   variant="ghost"
-  icon={theme === 'light' ? (lightIcon ?? darkIcon) : (darkIcon ?? lightIcon)}
+  icon={themeStore.theme === 'light' ? lightIcon : darkIcon}
   class={cls}
   ariaLabel="切换主题"
   onclick={toggle}

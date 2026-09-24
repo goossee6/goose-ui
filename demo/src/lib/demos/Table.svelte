@@ -41,6 +41,35 @@
     { id: 'email', header: '邮箱', render: (r) => r.email, sortable: false },
     { id: 'role', header: '角色', render: (r) => r.role, sortable: false },
   ];
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const dataTableProps: PropsTableItem[] = [
+    { name: "rows", desc: "行数据数组", type: "T[]", default: "[]" },
+    { name: "columns", desc: "列配置数组，元素 { id, header, render, align?, mono?, sortable?, sortAccessor?, custom?, menu? }", type: "Column<T>[]", default: "[]" },
+    { name: "highlight", desc: "高亮搜索关键字", type: "string", default: "''" },
+    { name: "contextMenu", desc: "启用行右键菜单", type: "boolean", default: "true" },
+    { name: "menu", desc: "默认列右键菜单标识（列未单独配置时生效）", type: "string", default: "''" },
+    { name: "loading", desc: "加载中状态", type: "boolean", default: "false" },
+    { name: "emptyText", desc: "空数据文案", type: "string", default: "'暂无数据'" },
+    { name: "disabled", desc: "行禁用判断", type: "(row: T) => boolean" },
+    { name: "actions", desc: "行操作列插槽", type: "Snippet<[T]>" },
+    { name: "cell", desc: "自定义单元格插槽", type: "Snippet<[string, T]>" },
+    { name: "rowKey", desc: "行唯一键生成", type: "(row: T, index: number) => string | number" },
+  ];
+
+  const dataListProps: PropsTableItem[] = [
+    { name: "children", desc: "行渲染插槽（必填）", type: "Snippet<[T]>" },
+    { name: "rows", desc: "行数据数组", type: "T[]", default: "[]" },
+    { name: "emptyText", desc: "空数据文案", type: "string", default: "'暂无数据'" },
+    { name: "bindContainer", desc: "容器元素引用回调", type: "(el: HTMLElement | null) => void" },
+    { name: "rowKey", desc: "行唯一键生成", type: "(row: T, index: number) => string | number" },
+  ];
+
+  const statusBadgeProps: PropsTableItem[] = [
+    { name: "variant", desc: "状态变体", type: "'normal' | 'warning'", default: "'normal'" },
+    { name: "children", desc: "徽章文本", type: "Snippet" },
+    { name: "status", desc: "已废弃，请改用 variant", type: "'normal' | 'warning'" },
+  ];
 </script>
 
 <PageHeader title="表格 Table" description="可排序表格、高亮搜索、列表、状态徽章" />
@@ -105,6 +134,17 @@
       <Label for="demo-input">表单标签</Label>
       <Input id="demo-input" name="label-demo" placeholder="与 Label 关联的输入框" />
     </div>
+  </Card>
+  <Card title="DataTable Props">
+    <PropsTable items={dataTableProps} />
+  </Card>
+
+  <Card title="DataList Props">
+    <PropsTable items={dataListProps} />
+  </Card>
+
+  <Card title="StatusBadge Props">
+    <PropsTable items={statusBadgeProps} />
   </Card>
 </div>
 

@@ -11,6 +11,22 @@
       Notification.success("加载完成");
     }, 1500);
   }
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const buttonProps: PropsTableItem[] = [
+    { name: "variant", desc: "按钮风格变体", type: "'primary' | 'default' | 'ghost' | 'danger' | 'link'", default: "'default'" },
+    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | 'icon' | 'icon-sm' | 'icon-xs' | 'icon-lg' | number", default: "'middle'" },
+    { name: "disabled", desc: "禁用状态", type: "boolean", default: "false" },
+    { name: "loading", desc: "加载中：显示 spinner 并阻止点击", type: "boolean", default: "false" },
+    { name: "type", desc: "原生 button 类型", type: "'button' | 'submit'", default: "'button'" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "icon", desc: "左侧图标组件", type: "Component" },
+    { name: "iconRight", desc: "右侧图标组件", type: "Component" },
+    { name: "iconSize", desc: "图标尺寸(px)", type: "number", default: "16" },
+    { name: "children", desc: "按钮内容", type: "Snippet" },
+    { name: "onclick", desc: "点击回调", type: "(event: MouseEvent) => void" },
+    { name: "...rest", desc: "透传原生属性（如 ariaLabel、style）", type: "[key: string]: unknown" },
+  ];
 </script>
 
 <PageHeader title="按钮 Button" description="五种变体、多种尺寸、loading 状态、左右图标" />
@@ -75,6 +91,9 @@
     <div class="demo-row">
       <ThemeToggle />
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={buttonProps} />
   </Card>
 </div>
 

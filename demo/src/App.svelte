@@ -144,20 +144,6 @@
 <ContextMenu />
 
 <div class="app">
-  <Sidebar
-    {groups}
-    bind:activeTab
-    bind:collapsed={sidebarCollapsed}
-    mode={sidebarMode}
-  >
-    {#snippet footer()}
-      <div class="sidebar-footer-inner">
-        <span class="footer-version">v0.1.0 · Svelte 5</span>
-        <ThemeToggle />
-      </div>
-    {/snippet}
-  </Sidebar>
-
   <main class="content" class:content--collapsed={sidebarCollapsed}>
     {#if activeTab === 'skill'}
       <Skill />
@@ -241,16 +227,30 @@
       <LayoutDemo />
     {/if}
   </main>
+
+  <Sidebar
+    {groups}
+    bind:activeTab
+    bind:collapsed={sidebarCollapsed}
+    mode={sidebarMode}
+  >
+    {#snippet footer()}
+      <div class="sidebar-footer-inner">
+        <span class="footer-version">v0.1.0 · Svelte 5</span>
+        <ThemeToggle />
+      </div>
+    {/snippet}
+  </Sidebar>
 </div>
 
 <style>
   .app {
-    position: fixed;
+    position: absolute;
     inset: 0;
     background: var(--bg);
   }
   .content {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 252px;
     right: 0;

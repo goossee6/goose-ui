@@ -20,6 +20,31 @@
   $effect(() => { if (c1 !== prevC1) { prevC1 = c1; Notification.success(c1 ? '已选中' : '已取消'); } });
   $effect(() => { if (c2 !== prevC2) { prevC2 = c2; Notification.success(c2 ? '已选中' : '已取消'); } });
   $effect(() => { if (c3 !== prevC3) { prevC3 = c3; Notification.success(c3 ? '已同意' : '已取消同意'); } });
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const toggleProps: PropsTableItem[] = [
+    { name: "checked", desc: "是否选中（可双向绑定）", type: "boolean", default: "false" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | number", default: "'middle'" },
+    { name: "onclick", desc: "点击回调", type: "(e: MouseEvent) => void" },
+    { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
+    { name: "title", desc: "提示标题", type: "string", default: "''" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
+
+  const checkboxProps: PropsTableItem[] = [
+    { name: "checked", desc: "是否选中（可双向绑定）", type: "boolean", default: "false" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | number", default: "'middle'" },
+    { name: "onchange", desc: "变更回调", type: "(e: Event) => void" },
+    { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
+  ];
+
+  const labelProps: PropsTableItem[] = [
+    { name: "for", desc: "关联控件 id", type: "string", default: "''" },
+    { name: "children", desc: "标签文本", type: "Snippet" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="开关 Toggle & Checkbox" description="带弹性动画的切换开关，以及复选框" />
@@ -144,6 +169,17 @@
         <Checkbox bind:checked={c3} />
       </div>
     </div>
+  </Card>
+  <Card title="Toggle Props">
+    <PropsTable items={toggleProps} />
+  </Card>
+
+  <Card title="Checkbox Props">
+    <PropsTable items={checkboxProps} />
+  </Card>
+
+  <Card title="Label Props">
+    <PropsTable items={labelProps} />
   </Card>
 </div>
 

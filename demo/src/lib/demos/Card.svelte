@@ -1,5 +1,13 @@
 <script lang="ts">
   import { Card, Button, PageHeader, Notification } from 'goose-ui';
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const cardProps: PropsTableItem[] = [
+    { name: "title", desc: "卡片标题，为空时不渲染标题栏", type: "string" },
+    { name: "right", desc: "标题右侧操作区插槽", type: "Snippet" },
+    { name: "children", desc: "卡片内容", type: "Snippet" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="卡片 Card" description="带标题、右侧操作区、内容主体的容器组件" />
@@ -41,6 +49,9 @@
       <Card title="卡片 B"><p>内容 B</p></Card>
       <Card title="卡片 C"><p>内容 C</p></Card>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={cardProps} />
   </Card>
 </div>
 

@@ -14,7 +14,14 @@
     disableClose = false,
     typewriter = true,
     typewriterDuration = 1500,
+    okText = '确定',
+    cancelText = '取消',
+    showOk = true,
+    showCancel = true,
+    showFooter = true,
+    okDisabled = false,
     onClose,
+    onCancel,
     onOk,
     class: cls = "",
     children,
@@ -28,12 +35,21 @@
     disableClose?: boolean;
     typewriter?: boolean;
     typewriterDuration?: number;
+    okText?: string;
+    cancelText?: string;
+    showOk?: boolean;
+    showCancel?: boolean;
+    showFooter?: boolean;
+    okDisabled?: boolean;
     onClose?: () => void;
-    onOk?: () => void;
+    onCancel?: () => void;
+    onOk?: () => void | boolean | Promise<void | boolean>;
     class?: string;
     children?: Snippet;
     footer?: Snippet;
   } = $props();
+
+  let okBusy = $state(false);
 
   let bodyEl: HTMLDivElement | null = $state(null);
   let twHtml = $state('');
@@ -89,23 +105,37 @@
     open = false;
   }
 
-  function handleOk() {
-    onOk?.();
+  function doCancel() {
+    onCancel?.();
     doClose();
+  }
+
+  async function handleOk() {
+    if (okBusy || okDisabled) return;
+    okBusy = true;
+    try {
+      const result = await onOk?.();
+      if (result === false) return;
+      doClose();
+    } catch {
+      // 校验/请求失败：保持打开
+    } finally {
+      okBusy = false;
+    }
   }
 
   function handleMaskClick() {
     if (disableClose) return;
-    if (maskClosable) doClose();
+    if (maskClosable) doCancel();
   }
 
   function handleKeydown(e: KeyboardEvent) {
     if (!open || disableClose) return;
-    if (e.key === "Escape") doClose();
+    if (e.key === "Escape") doCancel();
   }
 
   function handleModalKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape" && !disableClose) doClose();
+    if (e.key === "Escape" && !disableClose) doCancel();
   }
 </script>
 
@@ -134,7 +164,7 @@
             {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
           </span>
           {#if !disableClose}
-            <button class="modal-close" onclick={doClose} aria-label="关闭">
+            <button class="modal-close" onclick={doCancel} aria-label="关闭">
               <Icon icon={X} size={14} />
             </button>
           {/if}
@@ -150,10 +180,16 @@
       </div>
       {#if footer}
         <div class="modal-footer">{@render footer()}</div>
-      {:else}
+      {:else if showFooter && (showCancel || showOk)}
         <div class="modal-footer">
-          <button class="modal-btn modal-btn-cancel" onclick={doClose}>取消</button>
-          <button class="modal-btn modal-btn-ok" onclick={handleOk}>确定</button>
+          {#if showCancel}
+            <button class="modal-btn modal-btn-cancel" onclick={doCancel}>{cancelText}</button>
+          {/if}
+          {#if showOk}
+            <button class="modal-btn modal-btn-ok" onclick={handleOk} disabled={okBusy || okDisabled} aria-busy={okBusy}>
+              {okBusy ? '处理中…' : okText}
+            </button>
+          {/if}
         </div>
       {/if}
     </div>
@@ -207,7 +243,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--sp-xl) var(--sp-4xl);
+    padding: var(--sp-md) var(--sp-3xl);
     font-size: 18px;
     font-weight: 600;
     color: var(--text-strong);
@@ -256,11 +292,11 @@
     align-items: center;
     justify-content: flex-end;
     gap: var(--gap-xl);
-    padding: var(--sp-xl) var(--sp-4xl);
+    padding: var(--sp-md) var(--sp-3xl);
     flex-shrink: 0;
   }
   .modal-btn {
-    padding: var(--sp-md) var(--sp-2xl);
+    padding: var(--sp-sm) var(--sp-xl);
     border-radius: var(--radius-lg);
     font-size: 13px;
     font-weight: 500;
@@ -279,4 +315,10 @@
     border-color: var(--primary);
   }
   .modal-btn-ok:hover { background-color: var(--primary-hover); }
+  .modal-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .modal-btn-cancel:disabled:hover { background-color: transparent; color: var(--text-muted); }
+  .modal-btn-ok:disabled:hover { background-color: var(--primary); }
 </style>

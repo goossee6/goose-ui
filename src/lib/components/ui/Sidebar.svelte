@@ -222,7 +222,6 @@
     flex-direction: column;
     padding: 14px 0;
     gap: 0;
-    z-index: 100;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
   }
@@ -417,7 +416,6 @@
   /* ── Popover ─────────────────────────────────────────────────────────────── */
   .sidebar-popover {
     position: fixed;
-    z-index: 9999;
     min-width: 140px;
     max-width: 220px;
     background: var(--surface);

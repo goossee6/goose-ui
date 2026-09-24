@@ -29,6 +29,44 @@
       if (slotLoaded >= 1024 * 1024 * 2) { slotLoaded = 1024 * 1024 * 2; clearInterval(id); Notification.success('分片上传完成'); }
     }, 200);
   }
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const progressBarProps: PropsTableItem[] = [
+    { name: "percent", desc: "进度百分比 0-100", type: "number", default: "0" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
+
+  const progressBytesProps: PropsTableItem[] = [
+    { name: "fileName", desc: "文件名", type: "string", default: "''" },
+    { name: "progress", desc: "进度百分比 0-100", type: "number", default: "0" },
+    { name: "speed", desc: "速度文案", type: "string", default: "''" },
+    { name: "eta", desc: "预计剩余时间文案", type: "string", default: "''" },
+    { name: "loadedBytes", desc: "已传输字节数", type: "number", default: "0" },
+    { name: "totalBytes", desc: "总字节数", type: "number", default: "0" },
+    { name: "totalParts", desc: "分片总数", type: "number", default: "0" },
+    { name: "partIndex", desc: "当前完成分片序号", type: "number", default: "0" },
+    { name: "onCancel", desc: "取消回调（提供时显示取消按钮）", type: "() => void" },
+    { name: "disabled", desc: "禁用取消按钮", type: "boolean", default: "false" },
+  ];
+
+  const progressSlotBarProps: PropsTableItem[] = [
+    { name: "number", desc: "任务编号", type: "number", default: "0" },
+    { name: "part", desc: "当前分片序号", type: "number" },
+    { name: "total", desc: "总分片数", type: "number", default: "0" },
+    { name: "loaded", desc: "已完成数量", type: "number", default: "0" },
+    { name: "totalSize", desc: "总大小(bytes)", type: "number", default: "0" },
+  ];
+
+  const usageBarProps: PropsTableItem[] = [
+    { name: "label", desc: "左侧标签", type: "string", default: "''" },
+    { name: "value", desc: "当前用量", type: "number", default: "0" },
+    { name: "limit", desc: "配额上限（0 时不计算百分比）", type: "number", default: "0" },
+    { name: "used", desc: "别名：优先于 value", type: "number" },
+    { name: "total", desc: "别名：优先于 limit", type: "number" },
+    { name: "formatValue", desc: "数值格式化函数", type: "(n: number) => string", default: "formatNum" },
+    { name: "barHeight", desc: "进度条高度", type: "string", default: "'6px'" },
+    { name: "labelRight", desc: "右侧自定义内容插槽，参数 { value, limit, percent, overQuota, formatValue }", type: "Snippet<[...]>" },
+  ];
 </script>
 
 <PageHeader title="进度条 Progress" description="通用进度条、字节级上传进度、分片进度、用量配额条" />
@@ -106,6 +144,21 @@
       {/snippet}
       <UsageBar label="自定义右侧" value={7} limit={10} labelRight={customLabelRight} />
     </div>
+  </Card>
+  <Card title="ProgressBar Props">
+    <PropsTable items={progressBarProps} />
+  </Card>
+
+  <Card title="ProgressBytes Props">
+    <PropsTable items={progressBytesProps} />
+  </Card>
+
+  <Card title="ProgressSlotBar Props">
+    <PropsTable items={progressSlotBarProps} />
+  </Card>
+
+  <Card title="UsageBar Props">
+    <PropsTable items={usageBarProps} />
   </Card>
 </div>
 

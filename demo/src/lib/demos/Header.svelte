@@ -1,6 +1,20 @@
 <script lang="ts">
   import { Header, Card, Icon, PageHeader, ThemeToggle } from 'goose-ui';
   import { Search, Bell, Settings, User } from '@lucide/svelte';
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const headerProps: PropsTableItem[] = [
+    { name: "title", desc: "左侧标题", type: "string", default: "''" },
+    { name: "collapsed", desc: "侧边栏折叠态（联动左边距）", type: "boolean", default: "false" },
+    { name: "sidebarWidth", desc: "侧边栏展开时的左边距", type: "string", default: "'252px'" },
+    { name: "sidebarCollapsedWidth", desc: "侧边栏折叠时的左边距", type: "string", default: "'88px'" },
+    { name: "height", desc: "头部高度", type: "string", default: "'52px'" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "left", desc: "左侧插槽", type: "Snippet" },
+    { name: "center", desc: "中部插槽", type: "Snippet" },
+    { name: "right", desc: "右侧插槽", type: "Snippet" },
+    { name: "children", desc: "默认插槽", type: "Snippet" },
+  ];
 </script>
 
 <PageHeader title="Header 头部导航" description="固定在顶部的导航栏，支持标题、操作区、自定义插槽" />
@@ -75,6 +89,9 @@
         <div class="preview-content preview-content--full">内容区域（全宽）</div>
       </div>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={headerProps} />
   </Card>
 </div>
 

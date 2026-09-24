@@ -12,6 +12,7 @@ export { Icon };
 export { notificationStore, Notification, errorToString } from './components/notification';
 export { errorStore, pushError } from './components/errors';
 export { menuStore } from './components/contextMenuStore.svelte.js';
+export { themeStore, initTheme, setTheme, toggleTheme } from './components/themeStore.svelte.js';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
 
 // Types
@@ -20,6 +21,7 @@ export type { MenuItemDef, MenuActionData } from './components/contextMenu';
 export type { Column } from './components/tableTypes';
 export type { SortState, SortDir } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
+export type { Theme } from './components/themeStore.svelte.js';
 export type { SidebarTabGroup, SidebarTabItem } from './components/ui/Sidebar.svelte';
 
 // UI Components

@@ -9,6 +9,22 @@
   let noMaskOpen = $state(false);
   let customFooterOpen = $state(false);
   let noPushOpen = $state(false);
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const drawerProps: PropsTableItem[] = [
+    { name: "open", desc: "是否打开（可双向绑定）", type: "boolean", default: "false" },
+    { name: "title", desc: "标题", type: "string | Snippet" },
+    { name: "placement", desc: "弹出方向", type: "'left' | 'right' | 'top' | 'bottom'", default: "'right'" },
+    { name: "width", desc: "宽度（左右方向生效）", type: "number | string", default: "378" },
+    { name: "height", desc: "高度（上下方向生效）", type: "number | string", default: "300" },
+    { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "true" },
+    { name: "pushBackground", desc: "打开时下沉背景内容", type: "boolean", default: "true" },
+    { name: "contentSelector", desc: "被下沉的背景选择器", type: "string", default: "'.app'" },
+    { name: "footer", desc: "底部区域插槽", type: "Snippet | null" },
+    { name: "onClose", desc: "关闭回调", type: "() => void" },
+    { name: "children", desc: "抽屉内容", type: "Snippet" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="抽屉 Drawer" description="侧边/上下抽屉组件，支持四种方向、遮罩关闭、背景下沉" />
@@ -75,6 +91,9 @@
         <p>点击遮罩仍然可以关闭。</p>
       </Drawer>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={drawerProps} />
   </Card>
 </div>
 

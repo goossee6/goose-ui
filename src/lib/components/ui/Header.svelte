@@ -70,7 +70,6 @@
     display: flex;
     align-items: center;
     padding: 0 24px;
-    z-index: 100;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 

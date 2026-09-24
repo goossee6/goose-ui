@@ -1,23 +1,12 @@
 <script lang="ts">
-  import { Card, TitleBar, PageHeader, ThemeToggle } from 'goose-ui';
-  import { onMount } from 'svelte';
+  import { Card, TitleBar, PageHeader, ThemeToggle, themeStore, toggleTheme } from 'goose-ui';
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
-  const STORAGE_KEY = 'goose-ui-theme';
-
-  let theme = $state<'light' | 'dark'>('light');
-
-  onMount(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as 'light' | 'dark' | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    theme = saved ?? (prefersDark ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  });
-
-  function toggleTheme() {
-    theme = theme === 'light' ? 'dark' : 'light';
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem(STORAGE_KEY, theme);
-  }
+  const titleBarProps: PropsTableItem[] = [
+    { name: "title", desc: "标题文本", type: "string", default: "''" },
+    { name: "theme", desc: "当前主题", type: "'light' | 'dark'", default: "'light'" },
+    { name: "onThemeToggle", desc: "主题切换回调", type: "(e: MouseEvent) => void" },
+  ];
 </script>
 
 <PageHeader title="TitleBar 标题栏" description="Wails3 桌面应用自定义窗口标题栏，支持拖拽、主题切换、窗口控制" />
@@ -31,13 +20,13 @@
 
   <Card title="带主题切换">
     <div class="demo-preview">
-      <TitleBar title="设置" {theme} onThemeToggle={toggleTheme} />
+      <TitleBar title="设置" theme={themeStore.theme} onThemeToggle={() => toggleTheme()} />
     </div>
   </Card>
 
   <Card title="深色主题">
     <div class="demo-preview demo-preview--dark">
-      <TitleBar title="深色模式" theme="dark" onThemeToggle={toggleTheme} />
+      <TitleBar title="深色模式" theme="dark" onThemeToggle={() => toggleTheme()} />
     </div>
   </Card>
 
@@ -51,6 +40,9 @@
       <p>完整的窗口控制按钮（最小化、最大化、关闭）需要在 Wails3 桌面环境中运行。</p>
       <p>在浏览器中仅展示标题栏外观和主题切换功能。</p>
     </div>
+  </Card>
+  <Card title="Props">
+    <PropsTable items={titleBarProps} />
   </Card>
 </div>
 

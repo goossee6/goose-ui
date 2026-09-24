@@ -37,6 +37,38 @@
     items = [name, ...items];
     Notification.success(`已新建「${name}」`);
   }
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const selectProps: PropsTableItem[] = [
+    { name: "value", desc: "选中值（可双向绑定）", type: "string", default: "''" },
+    { name: "options", desc: "选项数组，元素 { value, label, meta?, metaClass? }", type: "Option[]", default: "[]" },
+    { name: "onchange", desc: "变更回调", type: "(v: string) => void" },
+    { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
+    { name: "width", desc: "宽度", type: "string", default: "'100%'" },
+    { name: "placement", desc: "菜单弹出方向", type: "'top' | 'bottom' | 'left' | 'right'", default: "'bottom'" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
+
+  const multiSelectProps: PropsTableItem[] = [
+    { name: "values", desc: "选中值数组（可双向绑定）", type: "string[]", default: "[]" },
+    { name: "items", desc: "选项数组，元素 { value, label, meta?, metaClass? }", type: "Option[]", default: "[]" },
+    { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+  ];
+
+  const creatableSelectProps: PropsTableItem[] = [
+    { name: "value", desc: "选中值（可双向绑定）", type: "string", default: "''" },
+    { name: "items", desc: "初始选项列表", type: "string[]", default: "[]" },
+    { name: "loadItems", desc: "懒加载选项（挂载时调用）", type: "() => Promise<string[]>" },
+    { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
+    { name: "title", desc: "下拉面板标题", type: "string", default: "'请选择'" },
+    { name: "createText", desc: "新建项前缀文案", type: "string", default: "'新建'" },
+    { name: "onCreateItem", desc: "创建新选项回调", type: "(name: string) => Promise<void>" },
+    { name: "loadingIndicator", desc: "加载中插槽", type: "Snippet" },
+    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+  ];
 </script>
 
 <PageHeader title="选择器 Select" description="单选、多选标签、可搜索可新建的创建型选择器" />
@@ -129,6 +161,17 @@
         />
       </div>
     </div>
+  </Card>
+  <Card title="Select Props">
+    <PropsTable items={selectProps} />
+  </Card>
+
+  <Card title="MultiSelect Props">
+    <PropsTable items={multiSelectProps} />
+  </Card>
+
+  <Card title="CreatableSelect Props">
+    <PropsTable items={creatableSelectProps} />
   </Card>
 </div>
 
