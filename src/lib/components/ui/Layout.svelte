@@ -1,15 +1,19 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 	import TitleBar from './TitleBar.svelte';
 
 	let {
 		title = '',
+		logo,
+		subtitle,
 		theme = 'light',
 		onThemeToggle,
 		tabs,
 		children,
 	}: {
 		title?: string;
+		logo?: string | Component<{ size?: number; class?: string }>;
+		subtitle?: string;
 		theme?: 'light' | 'dark';
 		onThemeToggle?: (e: MouseEvent) => void;
 		tabs?: Snippet;
@@ -19,7 +23,7 @@
 
 <div class="layout">
 	<div class="layout-titlebar">
-		<TitleBar {title} {theme} {onThemeToggle} />
+		<TitleBar {title} {logo} {subtitle} {theme} {onThemeToggle} />
 	</div>
 	<div class="layout-body">
 		{#if tabs}
@@ -54,13 +58,11 @@
 		flex-shrink: 0;
 		display: flex;
 		flex-direction: column;
-		width: 180px;
-		min-width: 180px;
+		width: max-content;
 		background: transparent;
-		padding: 8px;
+		padding: 0 8px 8px;
 		overflow-y: auto;
 		overflow-x: hidden;
-		--wails-draggable: drag;
 	}
 	.layout-content {
 		flex: 1;
@@ -68,7 +70,7 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		padding: 20px 24px;
-		margin: 8px;
+		margin: 0 8px 8px;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-xl);
 		background: var(--surface, var(--bg));

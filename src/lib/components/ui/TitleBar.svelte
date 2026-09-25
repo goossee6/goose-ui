@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Component } from 'svelte';
 	import { onMount } from 'svelte';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
@@ -9,13 +10,19 @@
 
 	let {
 		title = '',
+		logo,
+		subtitle,
 		theme = 'light',
 		onThemeToggle,
 	}: {
 		title?: string;
+		logo?: string | Component<{ size?: number; class?: string }>;
+		subtitle?: string;
 		theme?: 'light' | 'dark';
 		onThemeToggle?: (e: MouseEvent) => void;
 	} = $props();
+
+	const logoText = $derived(typeof logo === 'string' ? logo : logo === undefined ? title : '');
 
 	let isMaximised = $state(false);
 	let isWails = $state(false);
@@ -56,7 +63,21 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="titlebar" ondblclick={handleMaximise}>
-	<div class="titlebar-title">{title}</div>
+	<div class="titlebar-left">
+		{#if logo !== undefined && typeof logo !== 'string'}
+			<span class="titlebar-logo-icon">
+				<Icon icon={logo} size={18} />
+			</span>
+			<div class="titlebar-subtitle">{subtitle ?? title}</div>
+		{:else}
+			{#if logoText}
+				<div class="titlebar-title titlebar-logo">{logoText}</div>
+			{/if}
+			{#if subtitle}
+				<div class="titlebar-subtitle">{subtitle}</div>
+			{/if}
+		{/if}
+	</div>
 	<div class="titlebar-controls">
 		{#if onThemeToggle}
 			<button type="button" class="win-btn" onclick={onThemeToggle} title={theme === 'dark' ? '浅色模式' : '深色模式'}>
@@ -83,9 +104,16 @@
 		justify-content: space-between;
 		height: 42px;
 		min-height: 42px;
-		padding: 0 0 0 8px;
+		padding: 0 0 0 16px;
 		background: transparent;
 		user-select: none;
+	}
+
+	.titlebar-left {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		min-width: 0;
 	}
 
 	.titlebar-title {
@@ -94,6 +122,33 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		pointer-events: none;
+	}
+
+	.titlebar-logo {
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--text-strong);
+		background: var(--titlebar-logo-gradient, linear-gradient(135deg, #3b82f6, #8b5cf6));
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	.titlebar-logo-icon {
+		display: flex;
+		align-items: center;
+		align-self: center;
+		color: var(--titlebar-logo-color, var(--primary, #3b82f6));
+		pointer-events: none;
+	}
+
+	.titlebar-subtitle {
+		font-size: 12px;
+		color: var(--text-muted);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 		pointer-events: none;
 	}
 

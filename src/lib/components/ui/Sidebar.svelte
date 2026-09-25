@@ -7,6 +7,7 @@
   export interface SidebarTabItem {
     value: string;
     label: string;
+    icon?: Component<{ size?: number; class?: string }>;
   }
 
   export interface SidebarTabGroup {
@@ -19,7 +20,11 @@
     groups = [],
     activeTab = $bindable(''),
     mode = 'float',
+    shadow = mode === 'float',
+    radius = mode === 'float',
     collapsed = $bindable(false),
+    embedded = false,
+    onchange,
     footer,
     header,
     class: cls = '',
@@ -27,7 +32,11 @@
     groups?: SidebarTabGroup[];
     activeTab?: string;
     mode?: 'float' | 'flat';
+    shadow?: boolean;
+    radius?: boolean;
     collapsed?: boolean;
+    embedded?: boolean;
+    onchange?: (value: string) => void;
     footer?: Snippet;
     header?: Snippet;
     class?: string;
@@ -59,6 +68,7 @@
 
   function selectTab(value: string) {
     activeTab = value;
+    onchange?.(value);
     popoverGroup = -1;
     const idx = groups.findIndex(g => g.items.some(i => i.value === value));
     if (idx >= 0 && !expandedGroups.has(idx)) {
@@ -66,6 +76,14 @@
       next.add(idx);
       expandedGroups = next;
     }
+  }
+
+  function groupIcon(group: SidebarTabGroup) {
+    return group.icon ?? group.items[0]?.icon;
+  }
+
+  function groupTitle(group: SidebarTabGroup) {
+    return group.title || group.items[0]?.label || '';
   }
 
   function hoverShow(gi: number, e: MouseEvent) {
@@ -106,18 +124,53 @@
   function hasActiveItem(group: SidebarTabGroup) {
     return group.items.some(i => i.value === activeTab);
   }
+
+  let navEl = $state<HTMLElement | null>(null);
+
+  let pillTop = $state(0);
+  let pillLeft = $state(0);
+  let pillWidth = $state(0);
+  let pillHeight = $state(0);
+  let pillOpacity = $state(0);
+
+  function measurePill() {
+    if (!navEl) return;
+    const item = navEl.querySelector<HTMLElement>('.nav-item--active');
+    if (!item) { pillOpacity = 0; return; }
+    const ir = item.getBoundingClientRect();
+    const nr = navEl.getBoundingClientRect();
+    pillLeft = ir.left - nr.left;
+    pillTop = ir.top - nr.top;
+    pillWidth = ir.width;
+    pillHeight = ir.height;
+    pillOpacity = 1;
+  }
+
+  $effect(() => {
+    activeTab;
+    collapsed;
+    expandedGroups;
+    measurePill();
+    const t = setTimeout(measurePill, 240);
+    return () => clearTimeout(t);
+  });
 </script>
 
 <aside
   class="sidebar sidebar--{mode} {cls}"
   class:sidebar--collapsed={collapsed}
+  class:sidebar--embedded={embedded}
+  class:sidebar--shadow={shadow}
+  class:sidebar--radius={radius}
   role="navigation"
 >
   <div class="sidebar-header">
-    {#if header}
-      <span class="header-content">{@render header()}</span>
-    {:else if !collapsed}
-      <span class="logo">goose-ui</span>
+    {#if !collapsed}
+      {#if header}
+        <span class="header-content">{@render header()}</span>
+      {:else}
+        <span class="logo">goose-ui</span>
+      {/if}
     {/if}
     <button
       type="button"
@@ -129,7 +182,12 @@
     </button>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" bind:this={navEl}>
+    <div
+      class="nav-pill"
+      aria-hidden="true"
+      style="top: {pillTop}px; left: {pillLeft}px; width: {pillWidth}px; height: {pillHeight}px; opacity: {pillOpacity}"
+    ></div>
     {#each groups as group, gi}
       {#if collapsed}
         <button
@@ -138,26 +196,28 @@
           class:group-icon-btn--active={hasActiveItem(group)}
           onmouseenter={(e) => hoverShow(gi, e)}
           onmouseleave={hoverHide}
-          title={group.title}
+          title={groupTitle(group)}
         >
-          {#if group.icon}
-            <Icon icon={group.icon} size={18} />
+          {#if groupIcon(group)}
+            <Icon icon={groupIcon(group)!} size={18} />
           {/if}
         </button>
       {:else}
-        <button
-          type="button"
-          class="group-header"
-          onclick={() => toggleGroup(gi)}
-        >
-          {#if group.icon}
-            <span class="group-icon"><Icon icon={group.icon} size={16} /></span>
-          {/if}
-          <span class="group-title">{group.title}</span>
-          <span class="group-chevron" class:group-chevron--up={!expandedGroups.has(gi)}>
-            <Icon icon={ChevronDown} size={14} />
-          </span>
-        </button>
+        {#if group.title}
+          <button
+            type="button"
+            class="group-header"
+            onclick={() => toggleGroup(gi)}
+          >
+            {#if group.icon}
+              <span class="group-icon"><Icon icon={group.icon} size={16} /></span>
+            {/if}
+            <span class="group-title">{group.title}</span>
+            <span class="group-chevron" class:group-chevron--up={!expandedGroups.has(gi)}>
+              <Icon icon={ChevronDown} size={14} />
+            </span>
+          </button>
+        {/if}
         {#if expandedGroups.has(gi)}
           <div class="group-items" transition:slide={{ duration: 200 }}>
             {#each group.items as item}
@@ -167,6 +227,9 @@
                 class:nav-item--active={activeTab === item.value}
                 onclick={() => selectTab(item.value)}
               >
+                {#if item.icon}
+                  <Icon icon={item.icon} size={16} class="nav-item-icon" />
+                {/if}
                 <span class="nav-item-label">{item.label}</span>
               </button>
             {/each}
@@ -189,10 +252,10 @@
     onmouseenter={hoverCancelHide}
     onmouseleave={hoverHide}
   >
-    {#if groups[popoverGroup]?.icon}
+    {#if groups[popoverGroup] && groupIcon(groups[popoverGroup])}
       <div class="popover-header">
-        <Icon icon={groups[popoverGroup].icon!} size={14} />
-        <span>{groups[popoverGroup].title}</span>
+        <Icon icon={groupIcon(groups[popoverGroup])!} size={14} />
+        <span>{groupTitle(groups[popoverGroup])}</span>
       </div>
     {/if}
     {#each groups[popoverGroup]?.items ?? [] as item}
@@ -202,6 +265,9 @@
         class:popover-item--active={activeTab === item.value}
         onclick={() => selectTab(item.value)}
       >
+        {#if item.icon}
+          <Icon icon={item.icon} size={14} class="popover-item-icon" />
+        {/if}
         {item.label}
       </button>
     {/each}
@@ -226,25 +292,41 @@
     overflow: hidden;
   }
 
-  /* ── Float mode ──────────────────────────────────────────────────────────── */
+  /* ── Float mode（结构：四周卡片边框 + 玻璃模糊）─────────────────────────── */
   .sidebar--float {
-    border-radius: var(--radius-xl);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border);
   }
 
-  /* ── Flat mode ───────────────────────────────────────────────────────────── */
+  /* ── Flat mode（结构：贴边 + 右侧分隔线）────────────────────────────────── */
   .sidebar--flat {
-    border-radius: 0;
-    box-shadow: none;
     border: none;
     border-right: 1px solid var(--border);
+  }
+
+  /* ── 装饰（与 mode 正交，由 shadow/radius props 控制）────────────────────── */
+  .sidebar--radius {
+    border-radius: var(--radius-xl);
+  }
+
+  .sidebar--shadow {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   }
 
   /* ── Collapsed ───────────────────────────────────────────────────────────── */
   .sidebar--collapsed {
     --sidebar-w: 56px;
+  }
+
+  /* ── Embedded (in-flow) mode：无定位知识，仅跟随父级文档流 ────────────────── */
+  .sidebar--embedded {
+    position: static;
+    top: auto;
+    left: auto;
+    bottom: auto;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
   }
 
   /* ── Header ──────────────────────────────────────────────────────────────── */
@@ -289,12 +371,22 @@
 
   /* ── Nav ─────────────────────────────────────────────────────────────────── */
   .sidebar-nav {
+    position: relative;
     flex: 1;
     min-height: 0;
     overflow-y: scroll;
     overflow-x: hidden;
     padding: 8px;
     scrollbar-gutter: stable;
+  }
+
+  .nav-pill {
+    position: absolute;
+    z-index: 0;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    pointer-events: none;
+    transition: top 0.22s ease-out, left 0.22s ease-out, width 0.22s ease-out, height 0.22s ease-out, opacity 0.15s;
   }
 
   /* ── Group header (expanded) ─────────────────────────────────────────────── */
@@ -360,8 +452,10 @@
 
   /* ── Nav items (expanded) ────────────────────────────────────────────────── */
   .nav-item {
+    position: relative;
     display: flex;
     align-items: center;
+    gap: 10px;
     width: 100%;
     padding: 9px 14px 9px 20px;
     border: none;
@@ -370,15 +464,16 @@
     font-size: 14px;
     text-align: left;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: background 0.8s ease, color 0.8s ease;
     border-radius: var(--radius-md);
   }
   .nav-item:hover {
     background: color-mix(in srgb, var(--primary) 15%, transparent);
     color: var(--primary);
   }
-  .nav-item--active {
-    background: var(--primary);
+  .nav-item--active,
+  .nav-item--active:hover {
+    background: transparent;
     color: #fff;
     font-weight: 500;
   }
@@ -386,6 +481,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .nav-item-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
   }
 
   /* ── Dark mode ───────────────────────────────────────────────────────────── */
@@ -396,8 +496,9 @@
     background: color-mix(in srgb, var(--primary) 15%, transparent);
     color: var(--primary);
   }
-  :global(.dark) .nav-item--active {
-    background: var(--primary);
+  :global(.dark) .nav-item--active,
+  :global(.dark) .nav-item--active:hover {
+    background: transparent;
     color: #fff;
   }
 
@@ -416,6 +517,7 @@
   /* ── Popover ─────────────────────────────────────────────────────────────── */
   .sidebar-popover {
     position: fixed;
+    z-index: 100;
     min-width: 140px;
     max-width: 220px;
     background: var(--surface);
@@ -444,7 +546,9 @@
     margin-bottom: 4px;
   }
   .popover-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     width: 100%;
     padding: 6px 10px;
     border: none;
@@ -459,6 +563,9 @@
   .popover-item:hover {
     background: color-mix(in srgb, var(--primary) 15%, transparent);
     color: var(--primary);
+  }
+  .popover-item-icon {
+    flex-shrink: 0;
   }
   .popover-item--active {
     background: var(--primary);

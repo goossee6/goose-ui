@@ -4,6 +4,8 @@
 
   const layoutProps: PropsTableItem[] = [
     { name: "title", desc: "传递给 TitleBar 的标题", type: "string", default: "''" },
+    { name: "logo", desc: "传递给 TitleBar 的 logo（渐变文字或图标）", type: "string | Component" },
+    { name: "subtitle", desc: "传递给 TitleBar 的副标题（纯文字）", type: "string" },
     { name: "theme", desc: "传递给 TitleBar 的主题", type: "'light' | 'dark'", default: "'light'" },
     { name: "onThemeToggle", desc: "传递给 TitleBar 的主题切换回调", type: "(e: MouseEvent) => void" },
     { name: "tabs", desc: "左侧侧边栏内容", type: "Snippet" },

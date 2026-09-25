@@ -296,7 +296,11 @@
     flex-shrink: 0;
   }
   .modal-btn {
-    padding: var(--sp-sm) var(--sp-xl);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0 var(--sp-xl);
     border-radius: var(--radius-lg);
     font-size: 13px;
     font-weight: 500;

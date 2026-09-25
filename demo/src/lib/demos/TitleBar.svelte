@@ -1,9 +1,12 @@
 <script lang="ts">
   import { Card, TitleBar, PageHeader, ThemeToggle, themeStore, toggleTheme } from 'goose-ui';
+  import { Box } from '@lucide/svelte';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const titleBarProps: PropsTableItem[] = [
-    { name: "title", desc: "标题文本", type: "string", default: "''" },
+    { name: "title", desc: "标题文本（无 logo 时作为渐变文字 logo）", type: "string", default: "''" },
+    { name: "logo", desc: "logo：字符串=渐变文字，组件=图标；缺省时以 title 文字作渐变 logo", type: "string | Component", default: "undefined" },
+    { name: "subtitle", desc: "副标题（纯文字）；图标 logo 未传副标题时回退显示 title", type: "string", default: "''" },
     { name: "theme", desc: "当前主题", type: "'light' | 'dark'", default: "'light'" },
     { name: "onThemeToggle", desc: "主题切换回调", type: "(e: MouseEvent) => void" },
   ];
@@ -22,6 +25,22 @@
     <div class="demo-preview">
       <TitleBar title="设置" theme={themeStore.theme} onThemeToggle={() => toggleTheme()} />
     </div>
+  </Card>
+
+  <Card title="文字 logo + 副标题">
+    <div class="demo-preview">
+      <TitleBar title="ToolKit" subtitle="Windows 工具箱" theme={themeStore.theme} />
+    </div>
+  </Card>
+
+  <Card title="图标 logo + 副标题回退">
+    <div class="demo-preview">
+      <TitleBar logo={Box} title="我的应用" subtitle="Windows 工具箱" theme={themeStore.theme} />
+    </div>
+    <div class="demo-preview" style="margin-top: 8px;">
+      <TitleBar logo={Box} title="我的应用" theme={themeStore.theme} />
+    </div>
+    <p class="demo-note" style="margin-top: 8px;">图标 logo 未传 subtitle 时，纯文字回退显示 title。</p>
   </Card>
 
   <Card title="深色主题">
