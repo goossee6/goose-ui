@@ -7,6 +7,7 @@
 		class: cls = '',
 		onclick,
 		size = 'middle',
+		style = '',
 	}: {
 		checked?: boolean;
 		disabled?: boolean;
@@ -14,15 +15,17 @@
 		title?: string;
 		class?: string;
 		onclick?: (e: MouseEvent) => void;
-		size?: 'small' | 'middle' | 'large' | number;
+		size?: 'small' | 'middle' | 'large';
+		style?: string;
 	} = $props();
 
-	const sizeClass = $derived(typeof size === 'string' ? `toggle--${size}` : '');
+	const sizeClass = $derived(`toggle--${size}`);
 </script>
 
 <button
 	type="button"
 	class="toggle {sizeClass} {cls}"
+	style={style}
 	class:toggle--disabled={disabled}
 	{disabled}
 	{title}
@@ -52,6 +55,7 @@
 	.toggle--disabled { opacity: 0.5; cursor: not-allowed; }
 	.toggle-track {
 		display: block;
+		box-sizing: border-box;
 		width: 44px;
 		height: 24px;
 		border-radius: 12px;
@@ -68,7 +72,7 @@
 	}
 	.toggle-thumb {
 		position: absolute;
-		top: 3px;
+		top: 2px;
 		left: 2px;
 		width: 18px;
 		height: 18px;
@@ -76,8 +80,8 @@
 		background-color: #ffffff;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 	}
-	.toggle--small .toggle-thumb { width: 14px; top: 3px; height: 14px; border-radius: 7px; }
-	.toggle--large .toggle-thumb { width: 22px; top: 3px;height: 22px; border-radius: 11px; }
+	.toggle--small .toggle-thumb { width: 14px; top: 2px; height: 14px; border-radius: 7px; }
+	.toggle--large .toggle-thumb { width: 22px; top: 2px;height: 22px; border-radius: 11px; }
 	.toggle-track--on .toggle-thumb {
 		animation: toggle-on 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 	}
@@ -94,9 +98,9 @@
 		0%   { left: 2px;  width: 18px; }
 		45%  { left: 1px;  width: 40px; }
 		55%  { left: 1px;  width: 40px; }
-		70%  { left: 23px; width: 18px; }
-		90%  { left: 23px; width: 20px; }
-		100% { left: 24px; width: 18px; }
+		70%  { left: 21px; width: 18px; }
+		90%  { left: 21px; width: 20px; }
+		100% { left: 22px; width: 18px; }
 	}
 	@keyframes toggle-off {
 		0%   { left: 22px; width: 18px; }
@@ -110,9 +114,9 @@
 		0%   { left: 2px;  width: 14px; }
 		45%  { left: 1px;  width: 32px; }
 		55%  { left: 1px;  width: 32px; }
-		70%  { left: 19px; width: 14px; }
-		90%  { left: 19px; width: 16px; }
-		100% { left: 20px; width: 14px; }
+		70%  { left: 17px; width: 14px; }
+		90%  { left: 17px; width: 16px; }
+		100% { left: 18px; width: 14px; }
 	}
 	@keyframes toggle-off-sm {
 		0%   { left: 18px; width: 14px; }
@@ -126,9 +130,9 @@
 		0%   { left: 2px;  width: 22px; }
 		45%  { left: 1px;  width: 48px; }
 		55%  { left: 1px;  width: 48px; }
-		70%  { left: 26px; width: 22px; }
-		90%  { left: 26px; width: 24px; }
-		100% { left: 28px; width: 22px; }
+		70%  { left: 25px; width: 22px; }
+		90%  { left: 25px; width: 24px; }
+		100% { left: 26px; width: 22px; }
 	}
 	@keyframes toggle-off-lg {
 		0%   { left: 26px; width: 22px; }

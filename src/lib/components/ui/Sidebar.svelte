@@ -3,6 +3,7 @@
   import Icon from './Icon.svelte';
   import { ChevronDown, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
   import { slide } from 'svelte/transition';
+  import { pageDirStore } from '../pageDirStore.svelte.js';
 
   export interface SidebarTabItem {
     value: string;
@@ -26,8 +27,11 @@
     embedded = false,
     onchange,
     footer,
+    endItems,
     header,
     class: cls = '',
+    width,
+    style = '',
   }: {
     groups?: SidebarTabGroup[];
     activeTab?: string;
@@ -38,9 +42,18 @@
     embedded?: boolean;
     onchange?: (value: string) => void;
     footer?: Snippet;
+    /** 列表结尾固定项：渲染在导航列表末尾（有余量时贴底），参与 activeTab、共享 pill 动画 */
+    endItems?: SidebarTabItem[];
     header?: Snippet;
     class?: string;
+    /** 侧栏宽度：number 按 px；直接改写内部布局变量 --sidebar-w */
+    width?: number | string;
+    style?: string;
   } = $props();
+
+  const widthStyle = $derived(
+    width !== undefined ? `--sidebar-w:${typeof width === 'number' ? `${width}px` : width};` : ''
+  );
 
   let expandedGroups = $state<Set<number>>(new Set(groups.map((_, i) => i)));
   let prevExpanded = $state<Set<number>>(new Set(groups.map((_, i) => i)));
@@ -135,23 +148,38 @@
 
   function measurePill() {
     if (!navEl) return;
+    const idx = groups.findIndex((g) => g.items.some((i) => i.value === activeTab));
+    if (collapsed || (idx >= 0 && !expandedGroups.has(idx))) { pillOpacity = 0; return; }
     const item = navEl.querySelector<HTMLElement>('.nav-item--active');
     if (!item) { pillOpacity = 0; return; }
-    const ir = item.getBoundingClientRect();
-    const nr = navEl.getBoundingClientRect();
-    pillLeft = ir.left - nr.left;
-    pillTop = ir.top - nr.top;
-    pillWidth = ir.width;
-    pillHeight = ir.height;
+    item.scrollIntoView({ block: 'nearest' });
+    pillLeft = item.offsetLeft;
+    pillTop = item.offsetTop;
+    pillWidth = item.offsetWidth;
+    pillHeight = item.offsetHeight;
     pillOpacity = 1;
   }
+
+  let prevDirTab = activeTab;
+
+  $effect.pre(() => {
+    const cur = activeTab;
+    if (cur === prevDirTab) return;
+    const prev = prevDirTab;
+    prevDirTab = cur;
+    const flat = [...groups.flatMap((g) => g.items), ...(endItems ?? [])];
+    const pi = flat.findIndex((i) => i.value === prev);
+    const ci = flat.findIndex((i) => i.value === cur);
+    if (pi < 0 || ci < 0 || pi === ci) return;
+    pageDirStore.dir = ci < pi ? 'up' : 'down';
+  });
 
   $effect(() => {
     activeTab;
     collapsed;
     expandedGroups;
     measurePill();
-    const t = setTimeout(measurePill, 240);
+    const t = setTimeout(measurePill, 340);
     return () => clearTimeout(t);
   });
 </script>
@@ -162,6 +190,7 @@
   class:sidebar--embedded={embedded}
   class:sidebar--shadow={shadow}
   class:sidebar--radius={radius}
+  style="{widthStyle}{style}"
   role="navigation"
 >
   <div class="sidebar-header">
@@ -237,6 +266,22 @@
         {/if}
       {/if}
     {/each}
+    {#if !collapsed && endItems?.length}
+      {#each endItems as item, i}
+        <button
+          type="button"
+          class="nav-item nav-item--end"
+          class:end-first={i === 0}
+          class:nav-item--active={activeTab === item.value}
+          onclick={() => selectTab(item.value)}
+        >
+          {#if item.icon}
+            <Icon icon={item.icon} size={16} class="nav-item-icon" />
+          {/if}
+          <span class="nav-item-label">{item.label}</span>
+        </button>
+      {/each}
+    {/if}
   </nav>
 
   {#if footer && !collapsed}
@@ -378,6 +423,14 @@
     overflow-x: hidden;
     padding: 8px;
     scrollbar-gutter: stable;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-nav > * {
+    flex-shrink: 0;
+  }
+  .nav-item--end.end-first {
+    margin-top: auto;
   }
 
   .nav-pill {

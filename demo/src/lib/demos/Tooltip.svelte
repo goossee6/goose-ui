@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Card, PageHeader, Tooltip } from "goose-ui";
+  import {Button, Card, Page, Tooltip, Row} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const tooltipProps: PropsTableItem[] = [
@@ -11,15 +11,13 @@
   ];
 </script>
 
-<PageHeader title="Tooltip 气泡提示" description="悬浮提示信息，支持 12 方向、三种触发方式、自动翻转" />
-
-<div class="demo-grid">
+<Page title="Tooltip 气泡提示" description="悬浮提示信息，支持 12 方向、三种触发方式、自动翻转" >
   <Card title="基础用法">
-    <div class="demo-row">
+    <Row>
       <Tooltip title="这是一条提示信息">
         <Button>Hover 我</Button>
       </Tooltip>
-    </div>
+    </Row>
   </Card>
 
   <Card title="12 个方向 Placement">
@@ -53,7 +51,7 @@
   </Card>
 
   <Card title="触发方式 Trigger">
-    <div class="demo-row">
+    <Row>
       <Tooltip title="Hover 悬浮触发（默认）" trigger="hover">
         <Button>Hover</Button>
       </Tooltip>
@@ -63,44 +61,33 @@
       <Tooltip title="Focus 聚焦触发" trigger="focus">
         <input class="focus-input" placeholder="点击聚焦" />
       </Tooltip>
-    </div>
+    </Row>
   </Card>
 
   <Card title="多行内容">
-    <div class="demo-row">
+    <Row>
       <Tooltip title={"第一行\n第二行\n第三行"}>
         <Button>多行文本</Button>
       </Tooltip>
-    </div>
+    </Row>
   </Card>
 
   <Card title="长文本自动换行">
-    <div class="demo-row">
+    <Row>
       <Tooltip title="这是一段很长的提示文本，当内容超过最大宽度时会自动换行显示，适合用于需要详细说明的场景。" maxWidth={240}>
         <Button>长文本 (240px)</Button>
       </Tooltip>
       <Tooltip title="限制更窄的最大宽度，文本会更早触发换行，用于空间紧凑的场景。" maxWidth={160}>
         <Button>窄文本 (160px)</Button>
       </Tooltip>
-    </div>
+    </Row>
   </Card>
   <Card title="Props">
     <PropsTable items={tooltipProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-2xl);
-  }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--gap-md);
-  }
   .placement-ring {
     display: flex;
     flex-direction: column;

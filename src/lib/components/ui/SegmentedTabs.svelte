@@ -17,6 +17,7 @@
 		class: cls = '',
 		onchange,
 		size = 'middle',
+		style = '',
 	}: {
 		items?: readonly TabItem[];
 		value?: string;
@@ -24,10 +25,11 @@
 		mode?: 'segmented' | 'underline' | 'vertical';
 		class?: string;
 		onchange?: (value: string) => void;
-		size?: 'small' | 'middle' | 'large' | number;
+		size?: 'small' | 'middle' | 'large';
+		style?: string;
 	} = $props();
 
-	const sizeClass = $derived(typeof size === 'string' ? `tabs-root--${size}` : '');
+	const sizeClass = $derived(`tabs-root--${size}`);
 
 	let groupEl: HTMLElement;
 
@@ -81,7 +83,7 @@
 	});
 </script>
 
-<div class="tabs-root {sizeClass} {cls}">
+<div class="tabs-root {sizeClass} {cls}" style={style}>
 	<div
 		bind:this={groupEl}
 		class="tabs-group tabs-group--{mode}"

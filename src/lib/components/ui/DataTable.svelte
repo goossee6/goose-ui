@@ -47,6 +47,8 @@
 		actions,
 		cell,
 		rowKey,
+		class: cls = '',
+		style = '',
 	}: {
 		rows?: T[];
 		columns?: Column<T>[];
@@ -59,6 +61,8 @@
 		actions?: Snippet<[T]>;
 		cell?: Snippet<[string, T]>;
 		rowKey?: (row: T, index: number) => string | number;
+		class?: string;
+		style?: string;
 	} = $props();
 
   let sortState = $state<SortState | null>(null);
@@ -92,11 +96,12 @@
     const m = col.menu ?? menu;
     if (!m) return {};
     const data: Record<string, string> = { copy: renderText(col, row) };
+    Object.assign(data, col.menuData?.(row));
     return cellMenuAttrs(m, data);
   }
 </script>
 
-<div class="table-container">
+<div class="table-container {cls}" style={style}>
   {#if loading}
     <div class="placeholder">加载中…</div>
   {:else if rows.length === 0}

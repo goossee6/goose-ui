@@ -5,18 +5,20 @@
 		title = '',
 		description = '',
 		class: cls = '',
+		style = '',
 		children,
 		right,
 	}: {
 		title?: string;
 		description?: string;
 		class?: string;
+		style?: string;
 		children?: Snippet;
 		right?: Snippet;
 	} = $props();
 </script>
 
-<div class="page-header {cls}">
+<div class="page-header {cls}" style={style}>
 	<div class="page-header-left">
 		{#if title}
 			<h1 class="page-header-title">{title}</h1>
@@ -42,42 +44,52 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		flex-wrap: wrap;
 		gap: var(--gap-xl);
-		margin-bottom: var(--sp-3xl);
+		margin-bottom: var(--ph-gap, var(--sp-3xl));
 	}
 	.page-header-left {
 		display: flex;
-		align-items: center;
-		gap: var(--gap-xl);
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
 		min-width: 0;
+		flex: 1 1 auto;
 	}
 	.page-header-title {
-		font-size: 1.25rem;
+		font-size: 1.375rem;
 		font-weight: 700;
-		letter-spacing: -0.025em;
+		line-height: 1.35;
+		letter-spacing: -0.02em;
 		color: var(--text-strong);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		margin: 0;
+		max-width: 100%;
 	}
 	.page-header-desc {
-		font-size: 0.875rem;
+		font-size: 0.8125rem;
+		line-height: 1.6;
 		color: var(--text-muted);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		margin: 0;
+		max-width: 100%;
 	}
 	.page-header-children {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: var(--gap-md);
+		margin-top: 4px;
 	}
 	.page-header-right {
 		display: flex;
 		align-items: center;
 		gap: var(--gap-md);
 		flex-shrink: 0;
+		margin-left: auto;
 	}
 </style>

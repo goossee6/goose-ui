@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Button, PageHeader, Notification } from 'goose-ui';
+  import {Card, Button, Page, Notification} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const cardProps: PropsTableItem[] = [
@@ -10,9 +10,7 @@
   ];
 </script>
 
-<PageHeader title="卡片 Card" description="带标题、右侧操作区、内容主体的容器组件" />
-
-<div class="demo-grid">
+<Page title="卡片 Card" description="带标题、右侧操作区、内容主体的容器组件" >
   <Card title="基础卡片 Basic">
     <p>这是一个基础卡片，包含标题和一段正文内容。卡片自带边框、圆角和表面背景色。</p>
   </Card>
@@ -53,10 +51,9 @@
   <Card title="Props">
     <PropsTable items={cardProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   p { margin: 0; line-height: 1.6; color: var(--text); }
   code {
     background: var(--surface-2);

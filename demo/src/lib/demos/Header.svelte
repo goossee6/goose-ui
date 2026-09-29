@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { Header, Card, Icon, PageHeader, ThemeToggle } from 'goose-ui';
+  import {Header, Card, Icon, Page, ThemeToggle} from "goose-ui";
   import { Search, Bell, Settings, User } from '@lucide/svelte';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const headerProps: PropsTableItem[] = [
     { name: "title", desc: "左侧标题", type: "string", default: "''" },
-    { name: "collapsed", desc: "侧边栏折叠态（联动左边距）", type: "boolean", default: "false" },
-    { name: "sidebarWidth", desc: "侧边栏展开时的左边距", type: "string", default: "'252px'" },
-    { name: "sidebarCollapsedWidth", desc: "侧边栏折叠时的左边距", type: "string", default: "'88px'" },
     { name: "height", desc: "头部高度", type: "string", default: "'52px'" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "left", desc: "左侧插槽", type: "Snippet" },
@@ -17,9 +14,7 @@
   ];
 </script>
 
-<PageHeader title="Header 头部导航" description="固定在顶部的导航栏，支持标题、操作区、自定义插槽" />
-
-<div class="demo-grid">
+<Page title="Header 头部导航" description="滚动容器顶部的吸顶导航条，支持标题、操作区、自定义插槽" >
   <Card title="基础用法">
     <div class="demo-preview">
       <div class="preview-frame">
@@ -80,7 +75,7 @@
   <Card title="全宽布局">
     <div class="demo-preview">
       <div class="preview-frame preview-frame--full">
-        <Header title="全宽 Header" collapsed={true}>
+        <Header title="全宽 Header">
           {#snippet right()}
             <ThemeToggle />
             <button class="demo-icon-btn"><Icon icon={User} size={14} /></button>
@@ -93,10 +88,9 @@
   <Card title="Props">
     <PropsTable items={headerProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .demo-preview { width: 100%; }
   .preview-frame {
     position: relative;
@@ -108,7 +102,7 @@
   }
   .preview-frame--full { margin: 0 -20px; border-radius: 0; border-left: none; border-right: none; }
   .preview-content {
-    padding: 60px 20px 20px;
+    padding: 16px 20px 20px;
     font-size: 13px;
     color: var(--text-muted);
   }

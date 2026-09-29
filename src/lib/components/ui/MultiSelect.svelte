@@ -11,11 +11,15 @@
     values = $bindable([]),
     placeholder = "请选择",
     disabled = false,
+    class: cls = '',
+    style = '',
   }: {
     items?: Option[];
     values?: string[];
     placeholder?: string;
     disabled?: boolean;
+    class?: string;
+    style?: string;
   } = $props();
 
   let open = $state(false);
@@ -77,7 +81,7 @@
   });
 </script>
 
-<div class="multi-select" bind:this={rootEl}>
+<div class="multi-select {cls}" style={style} bind:this={rootEl}>
   <div
     class="trigger"
     class:open

@@ -7,12 +7,16 @@
     children,
     bindContainer,
     rowKey,
+    class: cls = '',
+    style = '',
   }: {
     rows?: T[];
     emptyText?: string;
     children: Snippet<[T]>;
     bindContainer?: (el: HTMLElement | null) => void;
     rowKey?: (row: T, index: number) => string | number;
+    class?: string;
+    style?: string;
   } = $props();
 
   let listEl: HTMLElement | null = $state(null);
@@ -22,7 +26,7 @@
   });
 </script>
 
-<div class="list-container" bind:this={listEl}>
+<div class="list-container {cls}" style={style} bind:this={listEl}>
   {#if rows.length === 0}
     <div class="placeholder">{emptyText}</div>
   {:else}

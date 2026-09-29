@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Button, PageHeader, Typewriter, Notification } from "goose-ui";
+  import {Card, Button, Page, Typewriter, Notification} from "goose-ui";
 
   let replayTrigger = $state(0);
   let speedReplay = $state(0);
@@ -21,9 +21,7 @@
   ];
 </script>
 
-<PageHeader title="打字机 Typewriter" description="逐字显示的打字机效果，支持总时长/每字符速度、光标、手动播放、完成回调" />
-
-<div class="demo-grid">
+<Page title="打字机 Typewriter" description="逐字显示的打字机效果，支持总时长/每字符速度、光标、手动播放、完成回调" >
   <Card title="默认 duration=2000ms">
     <div class="tw-box">
       <Typewriter text="goose-ui 是一个基于 Svelte 5 的现代 UI 组件库，专注于构建桌面应用界面。" trigger={replayTrigger} />
@@ -85,14 +83,9 @@
   <Card title="Props">
     <PropsTable items={typewriterProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-2xl);
-  }
   .tw-box {
     padding: 16px;
     background: var(--surface-2);

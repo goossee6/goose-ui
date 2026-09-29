@@ -261,6 +261,6 @@ export const Notification = {
 
 export function errorToString(e: unknown): string {
   if (typeof e === 'string') return e;
-  if (e instanceof Error) return e.message;
-  return String(e);
+  const msg = (e as { message?: unknown } | null)?.message;
+  return typeof msg === 'string' && msg ? msg : String(e);
 }

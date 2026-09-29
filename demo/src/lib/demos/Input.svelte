@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Input, PresetInput, PageHeader, Notification } from 'goose-ui';
+  import {Card, Input, Icon, PresetInput, Page, Notification, Row} from "goose-ui";
   import { Search, User, Mail, Lock } from '@lucide/svelte';
 
   let text = $state('');
@@ -55,79 +55,86 @@
   ];
 </script>
 
-<PageHeader title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、预设输入" />
-
-<div class="demo-grid">
+<Page title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、预设输入" >
   <Card title="状态 Status">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Input name="error" placeholder="错误状态" status="error" />
       </div>
       <div class="demo-col">
         <Input name="warning" placeholder="警告状态" status="warning" />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="图标 Icons">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
-        <Input name="prefix-icon" placeholder="前缀图标" prefix={Search} />
+        <Input name="prefix-icon" placeholder="前缀图标">
+          {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
+        </Input>
       </div>
       <div class="demo-col">
-        <Input name="suffix-icon" placeholder="后缀图标" suffix={Mail} />
+        <Input name="suffix-icon" placeholder="后缀图标">
+          {#snippet suffix()}<Icon icon={Mail} size={16} />{/snippet}
+        </Input>
       </div>
       <div class="demo-col">
-        <Input name="both-icon" placeholder="前缀 + 后缀" prefix={User} suffix={Lock} />
+        <Input name="both-icon" placeholder="前缀 + 后缀">
+          {#snippet prefix()}<Icon icon={User} size={16} />{/snippet}
+          {#snippet suffix()}<Icon icon={Lock} size={16} />{/snippet}
+        </Input>
       </div>
       <div class="demo-col">
-        <Input name="icon-clear" placeholder="图标 + 清空" prefix={Search} />
+        <Input name="icon-clear" placeholder="图标 + 清空">
+          {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
+        </Input>
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="清空 Clearable">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Input name="search" placeholder="可清空（默认）" bind:value={search} />
       </div>
       <div class="demo-col">
         <Input name="no-clear" placeholder="禁用清空" clearable={false} />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="禁用 Disabled">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Input name="disabled" placeholder="禁用状态" disabled value="不能编辑" />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="只读 Readonly">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Input name="readonly" placeholder="只读状态" readonly value="只读值" />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="纯数字 digitsOnly">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Input name="digits" placeholder="只能输入数字" digitsOnly bind:value={amount} />
       </div>
       <span class="demo-val">值: "{amount}"</span>
-    </div>
+    </Row>
   </Card>
 
   <Card title="回车事件 onenter">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Input name="enter-submit" placeholder="输入后按回车" onenter={() => Notification.success(`回车提交: ${text}`)} bind:value={text} />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="预设输入 PresetInput">
@@ -160,16 +167,9 @@
   <Card title="PresetInput Props">
     <PropsTable items={presetInputProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: var(--gap-xl);
-  }
   .demo-col { width: 260px; display: flex; flex-direction: column; gap: 8px; }
   .demo-val { font-size: 13px; color: var(--text-muted); padding-top: 10px; }
 </style>

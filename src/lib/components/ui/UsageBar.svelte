@@ -11,6 +11,8 @@
 		formatValue = formatNum,
 		barHeight = '6px',
 		labelRight,
+		class: cls = '',
+		style = '',
 	}: {
 		label?: string;
 		value?: number;
@@ -19,6 +21,8 @@
 		total?: number;
 		formatValue?: (n: number) => string;
 		barHeight?: string;
+		class?: string;
+		style?: string;
 		labelRight?: Snippet<[{ value: number; limit: number; percent: number; overQuota: boolean; formatValue: (n: number) => string }]>;
 	} = $props();
 
@@ -29,7 +33,7 @@
 	const high = $derived(v / t > 0.8);
 </script>
 
-<div class="usage-bar">
+<div class="usage-bar {cls}" style={style}>
 	<div class="usage-label">
 		<span class="usage-label-text">{label}</span>
 		{#if labelRight}

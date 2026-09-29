@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, SegmentedTabs, PageHeader, Notification } from 'goose-ui';
+  import {Card, SegmentedTabs, Page, Notification} from "goose-ui";
   import { LayoutGrid, List, Settings, User, Bell, Shield } from '@lucide/svelte';
   import type { Component } from 'svelte';
 
@@ -40,9 +40,7 @@
   ];
 </script>
 
-<PageHeader title="标签页 SegmentedTabs" description="分段式、下划线式、垂直式三种模式的切换标签" />
-
-<div class="demo-grid">
+<Page title="标签页 SegmentedTabs" description="分段式、下划线式、垂直式三种模式的切换标签" >
   <Card title="尺寸 Sizes">
     <div style="display:flex;flex-direction:column;gap:16px">
       <div>
@@ -110,10 +108,9 @@
   <Card title="Props">
     <PropsTable items={tabsProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .demo-label { font-size: 12px; color: var(--text-muted); margin: 0 0 6px; }
   .demo-val { font-size: 13px; color: var(--text-muted); margin: 0; }
   .panel {

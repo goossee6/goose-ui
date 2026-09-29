@@ -18,6 +18,7 @@
     onClose,
     children,
     class: cls = '',
+    style = '',
   }: {
     open?: boolean;
     title?: string | Snippet;
@@ -31,6 +32,7 @@
     onClose?: () => void;
     children?: Snippet;
     class?: string;
+    style?: string;
   } = $props();
 
   function portal(node: HTMLElement) {
@@ -110,7 +112,7 @@
     ></div>
     <div
       class="drawer drawer--{placement} {cls}"
-      style={drawerStyle}
+      style="{drawerStyle} {style}"
       role="dialog"
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}

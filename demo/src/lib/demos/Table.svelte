@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    Card, DataTable, DataList, StatusBadge, Label, Button,
-    PageHeader, Input, Notification,
-    type Column,
-  } from 'goose-ui';
+  import {Card, DataTable, DataList, StatusBadge, Label, Button, Page, Input, Icon, Notification, type Column, Row} from "goose-ui";
   import { Search, Pencil, Trash2, Eye } from '@lucide/svelte';
 
   interface User {
@@ -45,7 +41,7 @@
 
   const dataTableProps: PropsTableItem[] = [
     { name: "rows", desc: "行数据数组", type: "T[]", default: "[]" },
-    { name: "columns", desc: "列配置数组，元素 { id, header, render, align?, mono?, sortable?, sortAccessor?, custom?, menu? }", type: "Column<T>[]", default: "[]" },
+    { name: "columns", desc: "列配置数组，元素 { id, header, render, align?, mono?, sortable?, sortAccessor?, custom?, menu?, menuData? }", type: "Column<T>[]", default: "[]" },
     { name: "highlight", desc: "高亮搜索关键字", type: "string", default: "''" },
     { name: "contextMenu", desc: "启用行右键菜单", type: "boolean", default: "true" },
     { name: "menu", desc: "默认列右键菜单标识（列未单独配置时生效）", type: "string", default: "''" },
@@ -68,17 +64,16 @@
   const statusBadgeProps: PropsTableItem[] = [
     { name: "variant", desc: "状态变体", type: "'normal' | 'warning'", default: "'normal'" },
     { name: "children", desc: "徽章文本", type: "Snippet" },
-    { name: "status", desc: "已废弃，请改用 variant", type: "'normal' | 'warning'" },
   ];
 </script>
 
-<PageHeader title="表格 Table" description="可排序表格、高亮搜索、列表、状态徽章" />
-
-<div class="demo-grid">
+<Page title="表格 Table" description="可排序表格、高亮搜索、列表、状态徽章" >
   <Card title="数据表格 DataTable（可排序 + 关键字高亮）">
     {#snippet right()}
       <div style="width:220px">
-        <Input name="highlight" placeholder="高亮关键字…" prefix={Search} bind:value={highlight} onClear={() => Notification.success('已清除搜索')} />
+        <Input name="highlight" placeholder="高亮关键字…" bind:value={highlight} onClear={() => Notification.success('已清除搜索')}>
+          {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
+        </Input>
       </div>
     {/snippet}
     <div style="max-height:360px;overflow:auto">
@@ -112,7 +107,7 @@
             </div>
             <div class="list-right">
               <span class="list-role">{row.role}</span>
-              <StatusBadge status={row.status === '超额' ? 'warning' : 'normal'} />
+              <StatusBadge variant={row.status === '超额' ? 'warning' : 'normal'} />
             </div>
           </div>
         {/snippet}
@@ -121,12 +116,12 @@
   </Card>
 
   <Card title="状态徽章 StatusBadge">
-    <div class="demo-row">
-      <StatusBadge status="normal" />
-      <StatusBadge status="warning" />
+    <Row>
+      <StatusBadge variant="normal" />
+      <StatusBadge variant="warning" />
       <StatusBadge variant="normal">自定义文本</StatusBadge>
       <StatusBadge variant="warning">已超额</StatusBadge>
-    </div>
+    </Row>
   </Card>
 
   <Card title="标签 Label">
@@ -146,11 +141,11 @@
   <Card title="StatusBadge Props">
     <PropsTable items={statusBadgeProps} />
   </Card>
-</div>
+</Page>
 
 {#snippet statusCell(colId: string, row: User)}
   {#if colId === 'status'}
-    <StatusBadge status={row.status === '超额' ? 'warning' : 'normal'} />
+    <StatusBadge variant={row.status === '超额' ? 'warning' : 'normal'} />
   {:else}
     {row[colId as keyof User]}
   {/if}
@@ -163,19 +158,12 @@
 {/snippet}
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--gap-xl);
-  }
   .label-demo {
     display: flex;
     align-items: center;
     gap: 12px;
   }
-  .label-demo :global(div) { flex: 1; }
+  .label-demo :global(.input-wrapper) { flex: 1; }
   .list-row-inner {
     display: flex;
     align-items: center;

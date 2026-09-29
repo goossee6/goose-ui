@@ -16,7 +16,7 @@ function readSaved(): Theme | null {
 	}
 }
 
-/** 幂等：读取持久化偏好/系统偏好并应用到 <html>，SSR 下安全空操作 */
+/** 幂等：读取持久化偏好/系统偏好并应用到 <html>，SSR 下安全空操作；启动后继续跟随系统（仅用户未手动设置时） */
 export function initTheme(): void {
 	if (initialized || typeof window === 'undefined') return;
 	initialized = true;
@@ -25,6 +25,14 @@ export function initTheme(): void {
 		(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 	themeStore.theme = initial;
 	document.documentElement.classList.toggle('dark', initial === 'dark');
+	// 跟随系统主题变化：用户手动设置过（存储非空）则不再覆盖
+	const mq = window.matchMedia('(prefers-color-scheme: dark)');
+	mq.addEventListener('change', () => {
+		if (readSaved()) return;
+		const t = mq.matches ? 'dark' : 'light';
+		themeStore.theme = t;
+		document.documentElement.classList.toggle('dark', t === 'dark');
+	});
 }
 
 /** 显式设置主题：同步所有实例 + 持久化 */
@@ -65,4 +73,16 @@ export function toggleTheme(pos?: { x: number; y: number }): Theme {
 	root.style.setProperty('--tv-r', `${radius}px`);
 	document.startViewTransition(run);
 	return next;
+}
+
+/**
+ * 主题切换按钮的 onThemeToggle 回调：以按钮中心为圆心做圆形扩散。
+ * 直接作 TitleBar/ThemeToggle 的 onThemeToggle 传入即可。
+ */
+export function toggleThemeFromEvent(e: MouseEvent): Theme {
+	const btn = e.currentTarget as HTMLElement | null;
+	const rect = btn?.getBoundingClientRect();
+	return toggleTheme(
+		rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : undefined
+	);
 }

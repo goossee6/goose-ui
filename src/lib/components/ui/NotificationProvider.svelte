@@ -3,6 +3,14 @@
 	import { notificationStore, type NotificationItem as NotificationItemType, type NotificationPosition } from '../notification';
 	import NotificationItem from './NotificationItem.svelte';
 
+	let {
+		class: cls = '',
+		style = '',
+	}: {
+		class?: string;
+		style?: string;
+	} = $props();
+
 	const positions: NotificationPosition[] = [
 		'top-left', 'top', 'top-right',
 		'bottom-left', 'bottom', 'bottom-right',
@@ -42,7 +50,7 @@
 	}
 </script>
 
-<div class="notification-root">
+<div class="notification-root {cls}" style={style}>
 	{#each positions as pos}
 		<div class="nc" style={positionMap[pos]}>
 			{#each state[pos] as item (item.id)}

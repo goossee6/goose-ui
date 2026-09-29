@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, PageHeader } from 'goose-ui';
+  import {Card, Page} from "goose-ui";
   import PropsTable, { type PropsTableItem } from '../PropsTable.svelte';
 
   const layoutProps: PropsTableItem[] = [
@@ -8,14 +8,16 @@
     { name: "subtitle", desc: "传递给 TitleBar 的副标题（纯文字）", type: "string" },
     { name: "theme", desc: "传递给 TitleBar 的主题", type: "'light' | 'dark'", default: "'light'" },
     { name: "onThemeToggle", desc: "传递给 TitleBar 的主题切换回调", type: "(e: MouseEvent) => void" },
+    { name: "controls", desc: "透传给 TitleBar 的窗口按钮区 snippet", type: "Snippet" },
+    { name: "windowControls", desc: "透传给 TitleBar：false 隐藏默认窗口三键", type: "boolean", default: "true" },
     { name: "tabs", desc: "左侧侧边栏内容", type: "Snippet" },
     { name: "children", desc: "主内容区", type: "Snippet" },
+    { name: "scroll", desc: "内容卡片整页滚动；false = 框架不滚、页内滚动区自理", type: "boolean", default: "true" },
+    { name: "resize", desc: "Wails 窗口支持：全域拖拽调整 + 四角手柄", type: "boolean", default: "false" },
   ];
 </script>
 
-<PageHeader title="Layout 布局" description="Wails3 桌面应用完整外壳布局，包含标题栏、侧边栏和主内容区" />
-
-<div class="demo-grid">
+<Page title="Layout 布局" description="Wails3 桌面应用完整外壳布局，包含标题栏、侧边栏和主内容区" >
   <Card title="布局结构">
     <div class="layout-diagram">
       <div class="diagram-titlebar">TitleBar 标题栏</div>
@@ -40,10 +42,9 @@
       <p>在浏览器中可预览结构，但窗口控制功能需在 Wails3 环境中使用。</p>
     </div>
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .layout-diagram {
     border: 1px solid var(--border);
     border-radius: var(--radius-md);

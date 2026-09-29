@@ -12,6 +12,7 @@
 		cursor = true,
 		onDone,
 		class: cls = '',
+		style = '',
 	}: {
 		text?: string;
 		children?: Snippet;
@@ -22,6 +23,7 @@
 		cursor?: boolean;
 		onDone?: () => void;
 		class?: string;
+		style?: string;
 	} = $props();
 
 	let chars: { char: string; visible: boolean }[] = $state([]);
@@ -78,11 +80,11 @@
 </script>
 
 {#if totalChars > 0}
-	<span class="tw-text {cls}" class:tw-cursor={cursor && isTyping}>
+	<span class="tw-text {cls}" style={style} class:tw-cursor={cursor && isTyping}>
 		{#each chars as c}{#if c.visible}<span>{c.char}</span>{/if}{/each}{#if cursor && isTyping}<span class="tw-cursor-char">|</span>{/if}
 	</span>
 {:else if children}
-	<div class="tw-fade {cls}" class:tw-fade--visible={mounted}>
+	<div class="tw-fade {cls}" style={style} class:tw-fade--visible={mounted}>
 		{@render children()}
 	</div>
 {/if}

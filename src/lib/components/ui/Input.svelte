@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import type { Snippet } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -13,10 +13,11 @@
 		disabled = false,
 		readonly = false,
 		clearable = true,
-		prefix = null,
-		suffix = null,
+		prefix,
+		suffix,
 		status,
 		class: cls = '',
+		style = '',
 		type = 'text',
 		onkeydown,
 		onenter,
@@ -31,10 +32,13 @@
 		disabled?: boolean;
 		readonly?: boolean;
 		clearable?: boolean;
-		prefix?: Component<{ size?: number }> | null;
-		suffix?: Component<{ size?: number }> | null;
+		/** 输入框前缀区（snippet，可放图标/文本/按钮） */
+		prefix?: Snippet;
+		/** 输入框后缀区（snippet，可放图标/文本/可点击按钮） */
+		suffix?: Snippet;
 		status?: 'error' | 'warning';
 		class?: string;
+		style?: string;
 		type?: string;
 		onkeydown?: (e: KeyboardEvent) => void;
 		onenter?: () => void;
@@ -47,11 +51,12 @@
 	const statusColor = $derived(status === 'error' ? 'var(--danger-text)' : status === 'warning' ? 'var(--warning-text)' : '');
 	const statusStyle = $derived(
 		status === 'error'
-			? 'border-color:var(--danger-text);box-shadow:0 0 0 2px var(--danger-soft)'
+			? 'border-color:var(--danger-text);box-shadow:0 0 0 2px var(--danger-soft);'
 			: status === 'warning'
-				? 'border-color:var(--warning-text);box-shadow:0 0 0 2px var(--warning-soft)'
+				? 'border-color:var(--warning-text);box-shadow:0 0 0 2px var(--warning-soft);'
 				: ''
 	);
+	const mergedStyle = $derived(statusStyle ? `${statusStyle}${style}` : style);
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') onenter?.();
@@ -72,11 +77,11 @@
 <div
 	class="input-wrapper {cls}"
 	class:input--disabled={disabled}
-	style={statusStyle}
+	style={mergedStyle}
 >
 	{#if prefix}
 		<span class="input-affix input-prefix">
-			<Icon icon={prefix} size={16} />
+			{@render prefix()}
 		</span>
 	{/if}
 	<input
@@ -94,7 +99,7 @@
 	/>
 	{#if suffix}
 		<span class="input-affix input-suffix">
-			<Icon icon={suffix} size={16} />
+			{@render suffix()}
 		</span>
 	{/if}
 	{#if statusIcon}

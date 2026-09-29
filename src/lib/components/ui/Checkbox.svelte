@@ -5,18 +5,22 @@
 		ariaLabel = '',
 		onchange,
 		size = 'middle',
+		class: cls = '',
+		style = '',
 	}: {
 		checked?: boolean;
 		disabled?: boolean;
 		ariaLabel?: string;
 		onchange?: (e: Event) => void;
-		size?: 'small' | 'middle' | 'large' | number;
+		size?: 'small' | 'middle' | 'large';
+		class?: string;
+		style?: string;
 	} = $props();
 
-	const sizeClass = $derived(typeof size === 'string' ? `checkbox-box--${size}` : '');
+	const sizeClass = $derived(`checkbox-box--${size}`);
 </script>
 
-<label class="checkbox-label" class:disabled>
+<label class="checkbox-label {cls}" style={style} class:disabled>
 	<input type="checkbox" bind:checked {disabled} aria-label={ariaLabel} class="checkbox-input" onchange={(e) => onchange?.(e)} />
 	<span class="checkbox-box {sizeClass}" class:checked>
 		{#if checked}

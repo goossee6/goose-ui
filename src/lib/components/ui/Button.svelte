@@ -21,6 +21,7 @@
     ...rest
   }: {
     variant?: "primary" | "default" | "ghost" | "danger" | "link";
+    /** 枚举档位；number 时为任意高度（紧凑按钮） */
     size?: "small" | "middle" | "large" | "icon" | "icon-sm" | "icon-xs" | "icon-lg" | number;
     disabled?: boolean;
     loading?: boolean;
@@ -34,8 +35,8 @@
     [key: string]: unknown;
   } = $props();
 
-  const sizeClass = $derived(typeof size === 'string' ? `btn-${size}` : '');
-  const sizeStyle = $derived(typeof size === 'number' ? `height:${size}px;font-size:${Math.round(size * 0.375)}px;padding:0 ${Math.round(size * 0.35)}px;` : '');
+  const sizeClass = $derived(typeof size === "string" ? `btn-${size}` : "");
+  const sizeStyle = $derived(typeof size === "number" ? `height:${size}px;font-size:${Math.round(size * 0.375)}px;padding:0 ${Math.round(size * 0.35)}px;` : "");
 
   let displayLoading = $state(false);
   let loadingStart = 0;

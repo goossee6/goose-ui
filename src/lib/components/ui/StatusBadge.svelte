@@ -1,19 +1,20 @@
 <script lang="ts">
 	let {
 		variant = 'normal',
-		status,
+		class: cls = '',
+		style = '',
 		children,
 	}: {
 		variant?: 'normal' | 'warning';
-		/** @deprecated Use variant instead */
-		status?: 'normal' | 'warning';
+		class?: string;
+		style?: string;
 		children?: import('svelte').Snippet;
 	} = $props();
 
-	const resolved = $derived(variant || status || 'normal');
+	const resolved = $derived(variant);
 </script>
 
-<span class="badge badge-{resolved}">
+<span class="badge badge-{resolved} {cls}" style={style}>
 	{#if children}
 		{@render children()}
 	{:else}

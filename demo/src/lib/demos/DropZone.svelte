@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, DropZone, PageHeader, Notification } from 'goose-ui';
+  import {Card, DropZone, Page, Notification} from "goose-ui";
 
   let files1 = $state<File[]>([]);
   let files2 = $state<File[]>([]);
@@ -26,9 +26,7 @@
   ];
 </script>
 
-<PageHeader title="DropZone 拖拽上传" description="文件拖拽上传区域，支持文件类型过滤和多文件选择" />
-
-<div class="demo-grid">
+<Page title="DropZone 拖拽上传" description="文件拖拽上传区域，支持文件类型过滤和多文件选择" >
   <Card title="基础用法">
     <div class="demo-col">
       <DropZone placeholder="拖拽文件到此处" hint="支持任意文件格式" ondrop={handleDrop1} />
@@ -55,10 +53,9 @@
   <Card title="Props">
     <PropsTable items={dropZoneProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .demo-col { display: flex; flex-direction: column; gap: 12px; max-width: 400px; }
   .demo-files { font-size: 12px; color: var(--text-muted); margin: 0; }
 </style>

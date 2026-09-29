@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Toggle, Checkbox, Label, PageHeader, Notification } from 'goose-ui';
+  import {Card, Toggle, Checkbox, Label, Page, Notification, Row} from "goose-ui";
 
   let t1 = $state(false);
   let t2 = $state(true);
@@ -47,11 +47,9 @@
   ];
 </script>
 
-<PageHeader title="开关 Toggle & Checkbox" description="带弹性动画的切换开关，以及复选框" />
-
-<div class="demo-grid">
+<Page title="开关 Toggle & Checkbox" description="带弹性动画的切换开关，以及复选框" >
   <Card title="Toggle 尺寸 Sizes">
-    <div class="demo-row">
+    <Row>
       <div class="demo-item">
         <Label>small</Label>
         <Toggle size="small" checked={true} ariaLabel="small" />
@@ -64,11 +62,11 @@
         <Label>large</Label>
         <Toggle size="large" checked={true} ariaLabel="large" />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="Toggle 状态 States">
-    <div class="demo-row">
+    <Row>
       <div class="demo-item">
         <Label>关闭</Label>
         <Toggle bind:checked={t1} ariaLabel="关闭" />
@@ -77,12 +75,12 @@
         <Label>开启</Label>
         <Toggle bind:checked={t2} ariaLabel="开启" />
       </div>
-    </div>
+    </Row>
     <p class="demo-val">t1 = {t1}, t2 = {t2}</p>
   </Card>
 
   <Card title="Toggle 禁用 Disabled">
-    <div class="demo-row">
+    <Row>
       <div class="demo-item">
         <Label>禁用关闭</Label>
         <Toggle checked={false} disabled ariaLabel="禁用关闭" />
@@ -91,11 +89,11 @@
         <Label>禁用开启</Label>
         <Toggle checked={true} disabled ariaLabel="禁用开启" />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="Checkbox 尺寸 Sizes">
-    <div class="demo-row">
+    <Row>
       <div class="demo-item">
         <Checkbox size="small" checked={true} />
         <Label>small</Label>
@@ -108,11 +106,11 @@
         <Checkbox size="large" checked={true} />
         <Label>large</Label>
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="Checkbox 状态 States">
-    <div class="demo-row">
+    <Row>
       <div class="demo-item">
         <Checkbox bind:checked={c1} />
         <Label>未选中</Label>
@@ -121,12 +119,12 @@
         <Checkbox bind:checked={c2} />
         <Label>已选中</Label>
       </div>
-    </div>
+    </Row>
     <p class="demo-val">c1 = {c1}, c2 = {c2}</p>
   </Card>
 
   <Card title="Checkbox 禁用 Disabled">
-    <div class="demo-row">
+    <Row>
       <div class="demo-item">
         <Checkbox checked={false} disabled />
         <Label>禁用未选中</Label>
@@ -135,7 +133,7 @@
         <Checkbox checked={true} disabled />
         <Label>禁用已选中</Label>
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="实际场景：设置项">
@@ -181,16 +179,9 @@
   <Card title="Label Props">
     <PropsTable items={labelProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--gap-2xl);
-  }
   .demo-item { display: flex; align-items: center; gap: 8px; }
   .demo-val { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
   .setting-row {

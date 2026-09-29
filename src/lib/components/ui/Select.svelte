@@ -1,28 +1,34 @@
-<script lang="ts">
+<script lang="ts" generics="T extends string | number">
 	import { onMount, tick } from 'svelte';
 
 	interface Option {
-		value: string;
+		value: string | number;
 		label: string;
 		meta?: string;
 		metaClass?: 'good' | 'medium' | 'bad' | 'default';
 	}
 
 	let {
-		value = $bindable(''),
+		value = $bindable<T>(),
 		onchange,
 		options = [],
 		placeholder = '请选择',
 		class: cls = '',
+		style = '',
+		ariaLabel = '',
+		id = '',
 		disabled = false,
 		width = '100%',
 		placement = 'bottom',
 	}: {
-		value?: string;
-		onchange?: (v: string) => void;
+		value?: T;
+		onchange?: (v: T) => void;
 		options?: Option[];
 		placeholder?: string;
 		class?: string;
+		style?: string;
+		ariaLabel?: string;
+		id?: string;
 		disabled?: boolean;
 		width?: string;
 		placement?: 'top' | 'bottom' | 'left' | 'right';
@@ -45,8 +51,8 @@
 	}
 
 	function choose(opt: Option) {
-		value = opt.value;
-		onchange?.(opt.value);
+		value = opt.value as T;
+		onchange?.(opt.value as T);
 		open = false;
 		mounted = false;
 	}
@@ -135,10 +141,12 @@
 	});
 </script>
 
-<div bind:this={wrapperEl} class="select-wrapper {cls}" style={width !== '100%' ? `width: ${width};` : ''}>
+<div bind:this={wrapperEl} class="select-wrapper {cls}" style="{width !== '100%' ? `width: ${width};` : ''}{style ? ` ${style}` : ''}">
 	<button
 		type="button"
 		{disabled}
+		{id}
+		aria-label={ariaLabel || undefined}
 		onclick={toggle}
 		onkeydown={onKeydown}
 		aria-haspopup="listbox"

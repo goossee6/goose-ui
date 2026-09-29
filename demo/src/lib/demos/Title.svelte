@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, PageHeader } from 'goose-ui';
+  import {Card, PageHeader, Page} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const pageHeaderProps: PropsTableItem[] = [
@@ -11,9 +11,7 @@
   ];
 </script>
 
-<PageHeader title="PageHeader 页面标题" description="页面顶部标题区域，支持标题、描述和右侧操作区" />
-
-<div class="demo-grid">
+<Page title="PageHeader 页面标题" description="页面顶部标题区域，支持标题、描述和右侧操作区" >
   <Card title="基础用法">
     <PageHeader title="基础标题" description="这是一个基础的页面标题" />
   </Card>
@@ -39,10 +37,9 @@
   <Card title="Props">
     <PropsTable items={pageHeaderProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .custom-title { font-size: 16px; font-weight: 600; color: var(--text-strong); }
   .demo-btn {
     padding: 6px 14px;

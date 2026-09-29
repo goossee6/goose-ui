@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, ProgressBar, ProgressBytes, ProgressSlotBar, UsageBar, Button, PageHeader, Notification } from 'goose-ui';
+  import {Card, ProgressBar, ProgressBytes, ProgressSlotBar, UsageBar, Button, Page, Notification} from "goose-ui";
 
   let percent = $state(35);
   let bytesProgress = $state(42);
@@ -69,9 +69,7 @@
   ];
 </script>
 
-<PageHeader title="进度条 Progress" description="通用进度条、字节级上传进度、分片进度、用量配额条" />
-
-<div class="demo-grid">
+<Page title="进度条 Progress" description="通用进度条、字节级上传进度、分片进度、用量配额条" >
   <Card title="基础进度条 ProgressBar">
     <div style="display:flex;flex-direction:column;gap:16px">
       <ProgressBar percent={percent} />
@@ -160,9 +158,8 @@
   <Card title="UsageBar Props">
     <PropsTable items={usageBarProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .demo-val { font-size: 13px; color: var(--text-muted); }
 </style>

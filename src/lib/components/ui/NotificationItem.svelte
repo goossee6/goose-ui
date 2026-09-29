@@ -8,7 +8,15 @@
 	import type { NotificationItem as NotificationItemType } from '../notification';
 	import { notificationStore } from '../notification';
 
-	let { toast }: { toast: NotificationItemType } = $props();
+	let {
+		toast,
+		class: cls = '',
+		style = '',
+	}: {
+		toast: NotificationItemType;
+		class?: string;
+		style?: string;
+	} = $props();
 
 	function close() {
 		notificationStore.remove(toast.position, toast.id);
@@ -33,7 +41,8 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 <div
-	class="notification notification-{toast.type}"
+	class="notification notification-{toast.type} {cls}"
+	style={style}
 	role="alert"
 	aria-live="polite"
 	onclick={handleClick}

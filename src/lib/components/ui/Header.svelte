@@ -3,22 +3,18 @@
 
   let {
     title = '',
-    collapsed = false,
-    sidebarWidth = '252px',
-    sidebarCollapsedWidth = '88px',
     height = '52px',
     class: cls = '',
+    style = '',
     left,
     center,
     right,
     children,
   }: {
     title?: string;
-    collapsed?: boolean;
-    sidebarWidth?: string;
-    sidebarCollapsedWidth?: string;
     height?: string;
     class?: string;
+    style?: string;
     left?: Snippet;
     center?: Snippet;
     right?: Snippet;
@@ -28,10 +24,8 @@
 
 <header
   class="header {cls}"
-  class:header--collapsed={collapsed}
   style:--header-h={height}
-  style:--sidebar-w={sidebarWidth}
-  style:--sidebar-collapsed-w={sidebarCollapsedWidth}
+  {style}
 >
   <div class="header-left">
     {#if left}
@@ -59,22 +53,18 @@
 
 <style>
   .header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: var(--sidebar-w);
-    right: 0;
+    z-index: 5;
+    /* 抵消滚动容器（Layout 内容卡片）的 padding，吸顶时贴满卡片内缘 */
+    margin: calc(-1 * var(--layout-pad-y, 0px)) calc(-1 * var(--layout-pad-x, 0px)) 0;
     height: var(--header-h);
     background: color-mix(in srgb, var(--surface) 80%, transparent);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 0 24px;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .header--collapsed {
-    left: var(--sidebar-collapsed-w);
+    padding: 0 var(--layout-pad-x, 24px);
   }
 
   .header-left {

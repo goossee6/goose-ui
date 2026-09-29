@@ -2,17 +2,22 @@
 	let {
 		size = 30,
 		src = '',
+		class: cls = '',
+		style = '',
 	}: {
 		size?: number;
 		src?: string;
+		class?: string;
+		style?: string;
 	} = $props();
 </script>
 
 {#if src}
-	<img {src} alt="加载中" width={size} height={size} class="loading" />
+	<img {src} alt="加载中" width={size} height={size} class="loading {cls}" style={style} />
 {:else}
 	<svg
-		class="loading loading-spinner"
+		class="loading loading-spinner {cls}"
+		style={style}
 		width={size}
 		height={size}
 		viewBox="0 0 24 24"

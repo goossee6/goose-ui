@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, PageHeader, Icon } from 'goose-ui';
+  import {Card, Page, Icon, Row} from "goose-ui";
   import { Zap, Heart, Settings, FileText } from '@lucide/svelte';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
@@ -10,28 +10,19 @@
   ];
 </script>
 
-<PageHeader title="图标 Icon" description="基于 lucide-svelte 的图标组件" />
-
-<div class="demo-grid">
+<Page title="图标 Icon" description="基于 lucide-svelte 的图标组件" >
   <Card title="不同尺寸">
-    <div class="demo-row">
+    <Row>
       <Icon icon={Zap} size={16} />
       <Icon icon={Heart} size={20} />
       <Icon icon={Settings} size={24} />
       <Icon icon={FileText} size={28} />
-    </div>
+    </Row>
   </Card>
   <Card title="Props">
     <PropsTable items={iconProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--gap-xl);
-  }
 </style>

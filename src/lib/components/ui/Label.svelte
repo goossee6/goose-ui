@@ -4,15 +4,17 @@
 	let {
 		for: htmlFor = '',
 		class: cls = '',
+		style = '',
 		children,
 	}: {
 		for?: string;
 		class?: string;
+		style?: string;
 		children?: Snippet;
 	} = $props();
 </script>
 
-<label for={htmlFor || undefined} class="label {cls}">
+<label for={htmlFor || undefined} class="label {cls}" style={style}>
 	{@render children?.()}
 </label>
 

@@ -13,6 +13,7 @@
 		title?: string;
 		disabled?: boolean;
 		class?: string;
+		style?: string;
 		createText?: string;
 		onCreateItem?: (name: string) => Promise<void>;
 		loadingIndicator?: Snippet;
@@ -26,6 +27,7 @@
 		title = '请选择',
 		disabled = false,
 		class: cls = '',
+		style = '',
 		createText = '新建',
 		onCreateItem,
 		loadingIndicator,
@@ -178,7 +180,7 @@
 	});
 </script>
 
-<div bind:this={wrapperEl} class="cs-wrapper {cls}">
+<div bind:this={wrapperEl} class="cs-wrapper {cls}" style={style}>
 	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 	<button
 		type="button"

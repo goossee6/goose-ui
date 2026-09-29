@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Select, MultiSelect, CreatableSelect, PageHeader, Notification } from 'goose-ui';
+  import {Card, Select, MultiSelect, CreatableSelect, Page, Notification, Row} from "goose-ui";
 
   let basic = $state('');
   let meta = $state('');
@@ -71,11 +71,9 @@
   ];
 </script>
 
-<PageHeader title="选择器 Select" description="单选、多选标签、可搜索可新建的创建型选择器" />
-
-<div class="demo-grid">
+<Page title="选择器 Select" description="单选、多选标签、可搜索可新建的创建型选择器" >
   <Card title="基础单选 Select">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Select
           options={options}
@@ -85,28 +83,28 @@
         />
       </div>
       <span class="demo-val">选中: "{basic}"</span>
-    </div>
+    </Row>
   </Card>
 
   <Card title="带 Meta 标签">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Select options={metaOptions} bind:value={meta} onchange={(v) => { meta = v; Notification.success(`评级: ${metaOptions.find(o => o.value === v)?.label ?? v}`); }} placeholder="请选择评级" />
       </div>
       <span class="demo-val">选中: "{meta}"</span>
-    </div>
+    </Row>
   </Card>
 
   <Card title="禁用状态">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Select options={options} value="apple" disabled />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="弹出位置 placement">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <Select options={options} bind:value={placementBottom} onchange={(v) => Notification.success(`已选择「${options.find(o => o.value === v)?.label ?? v}」`)} placement="bottom" placeholder="bottom (默认)" />
       </div>
@@ -119,20 +117,20 @@
       <div class="demo-col">
         <Select options={options} bind:value={placementRight} onchange={(v) => Notification.success(`已选择「${options.find(o => o.value === v)?.label ?? v}」`)} placement="right" placeholder="right" />
       </div>
-    </div>
+    </Row>
   </Card>
 
   <Card title="多选 MultiSelect">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <MultiSelect items={options} bind:values={multi} placeholder="选择多种水果" />
       </div>
       <span class="demo-val">已选 {multi.length} 项: {multi.join(', ') || '无'}</span>
-    </div>
+    </Row>
   </Card>
 
   <Card title="创建型选择器 CreatableSelect">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <CreatableSelect
           items={items}
@@ -144,11 +142,11 @@
         />
       </div>
       <span class="demo-val">选中: "{created}"</span>
-    </div>
+    </Row>
   </Card>
 
   <Card title="异步加载 CreatableSelect">
-    <div class="demo-row">
+    <Row>
       <div class="demo-col">
         <CreatableSelect
           loadItems={async () => {
@@ -160,7 +158,7 @@
           title="异步数据源"
         />
       </div>
-    </div>
+    </Row>
   </Card>
   <Card title="Select Props">
     <PropsTable items={selectProps} />
@@ -173,16 +171,9 @@
   <Card title="CreatableSelect Props">
     <PropsTable items={creatableSelectProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--gap-xl);
-  }
   .demo-col { width: 260px; }
   .demo-val { font-size: 13px; color: var(--text-muted); }
 </style>

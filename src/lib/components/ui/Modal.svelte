@@ -8,6 +8,7 @@
   let {
     open = $bindable(false),
     title,
+    subtitle,
     width = 520,
     maskClosable = false,
     mask: maskProp = 'dark',
@@ -24,11 +25,13 @@
     onCancel,
     onOk,
     class: cls = "",
+    style = "",
     children,
     footer,
   }: {
     open?: boolean;
     title?: string | Snippet;
+    subtitle?: string | Snippet;
     width?: number | string;
     maskClosable?: boolean;
     mask?: 'dark' | 'light';
@@ -45,6 +48,7 @@
     onCancel?: () => void;
     onOk?: () => void | boolean | Promise<void | boolean>;
     class?: string;
+    style?: string;
     children?: Snippet;
     footer?: Snippet;
   } = $props();
@@ -151,7 +155,7 @@
   >
     <div
       class="modal {cls}"
-      style="width: {typeof width === 'number' ? `${width}px` : width}"
+      style="width: {typeof width === 'number' ? `${width}px` : width}; {style}"
       role="dialog"
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}
@@ -160,9 +164,16 @@
     >
       {#if title}
         <div class="modal-header">
-          <span class="modal-title">
-            {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
-          </span>
+          <div class="modal-heading">
+            <span class="modal-title">
+              {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
+            </span>
+            {#if subtitle}
+              <span class="modal-subtitle">
+                {#if typeof subtitle === "string"}{subtitle}{:else}{@render subtitle()}{/if}
+              </span>
+            {/if}
+          </div>
           {#if !disableClose}
             <button class="modal-close" onclick={doCancel} aria-label="关闭">
               <Icon icon={X} size={14} />
@@ -250,12 +261,25 @@
     border-bottom: 1px solid var(--border-strong);
     flex-shrink: 0;
   }
+  .modal-heading {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+  }
   .modal-title {
     flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .modal-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    min-width: 0;
   }
   .modal-close {
     display: flex;

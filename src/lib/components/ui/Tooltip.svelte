@@ -7,12 +7,16 @@
     trigger = "hover",
     maxWidth,
     children,
+    class: cls = '',
+    style = '',
   }: {
     title: string | Snippet;
     placement?: "top" | "top-start" | "top-end" | "bottom" | "bottom-start" | "bottom-end" | "left" | "left-start" | "left-end" | "right" | "right-start" | "right-end";
     trigger?: "hover" | "focus" | "click";
     maxWidth?: number | string;
     children: Snippet;
+    class?: string;
+    style?: string;
   } = $props();
 
   let triggerEl = $state<HTMLElement | null>(null);
@@ -179,7 +183,8 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="tooltip-trigger"
+  class="tooltip-trigger {cls}"
+  style={style}
   bind:this={triggerEl}
   onmouseenter={onTriggerMouseEnter}
   onmouseleave={onTriggerMouseLeave}

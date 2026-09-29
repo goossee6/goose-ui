@@ -3,18 +3,20 @@
 
 	let {
 		class: cls = '',
+		style = '',
 		title,
 		right,
 		children,
 	}: {
 		class?: string;
+		style?: string;
 		title?: string;
 		right?: Snippet;
 		children?: Snippet;
 	} = $props();
 </script>
 
-<div class="card {cls}">
+<div class="card {cls}" style={style}>
 	{#if title}
 		<div class="card-header">
 			<span class="card-title">{title}</span>

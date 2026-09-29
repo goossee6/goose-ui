@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, TitleBar, PageHeader, ThemeToggle, themeStore, toggleTheme } from 'goose-ui';
+  import {Card, TitleBar, Page, ThemeToggle, themeStore, toggleThemeFromEvent} from "goose-ui";
   import { Box } from '@lucide/svelte';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
@@ -9,12 +9,12 @@
     { name: "subtitle", desc: "副标题（纯文字）；图标 logo 未传副标题时回退显示 title", type: "string", default: "''" },
     { name: "theme", desc: "当前主题", type: "'light' | 'dark'", default: "'light'" },
     { name: "onThemeToggle", desc: "主题切换回调", type: "(e: MouseEvent) => void" },
+    { name: "controls", desc: "自定义窗口按钮区 snippet（替换默认最小化/最大化/关闭）", type: "Snippet" },
+    { name: "windowControls", desc: "false 不渲染默认窗口三键（如浏览器环境）", type: "boolean", default: "true" },
   ];
 </script>
 
-<PageHeader title="TitleBar 标题栏" description="Wails3 桌面应用自定义窗口标题栏，支持拖拽、主题切换、窗口控制" />
-
-<div class="demo-grid">
+<Page title="TitleBar 标题栏" description="Wails3 桌面应用自定义窗口标题栏，支持拖拽、主题切换、窗口控制" >
   <Card title="基础用法">
     <div class="demo-preview">
       <TitleBar title="我的应用" />
@@ -23,7 +23,7 @@
 
   <Card title="带主题切换">
     <div class="demo-preview">
-      <TitleBar title="设置" theme={themeStore.theme} onThemeToggle={() => toggleTheme()} />
+      <TitleBar title="设置" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent} />
     </div>
   </Card>
 
@@ -45,7 +45,7 @@
 
   <Card title="深色主题">
     <div class="demo-preview demo-preview--dark">
-      <TitleBar title="深色模式" theme="dark" onThemeToggle={() => toggleTheme()} />
+      <TitleBar title="深色模式" theme="dark" onThemeToggle={toggleThemeFromEvent} />
     </div>
   </Card>
 
@@ -63,10 +63,9 @@
   <Card title="Props">
     <PropsTable items={titleBarProps} />
   </Card>
-</div>
+</Page>
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
   .demo-preview { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
   .demo-preview--dark { background: #1a1a1a; }
   .demo-note { font-size: 13px; color: var(--text-muted); line-height: 1.8; margin: 0 0 12px; }

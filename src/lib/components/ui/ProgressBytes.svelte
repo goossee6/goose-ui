@@ -12,6 +12,8 @@
 		partIndex = 0,
 		onCancel,
 		disabled = false,
+		class: cls = '',
+		style = '',
 	}: {
 		fileName?: string;
 		progress?: number;
@@ -23,13 +25,15 @@
 		partIndex?: number;
 		onCancel?: () => void;
 		disabled?: boolean;
+		class?: string;
+		style?: string;
 	} = $props();
 
 	const clamped = $derived(Math.min(100, Math.max(0, progress)));
 	const isMultipart = $derived(totalParts > 0);
 </script>
 
-<div class="progress-bytes">
+<div class="progress-bytes {cls}" style={style}>
 	<div class="progress-row1">
 		<span class="progress-filename">{fileName || '上传中...'}</span>
 		<span class="progress-right">

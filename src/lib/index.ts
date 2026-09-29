@@ -12,8 +12,10 @@ export { Icon };
 export { notificationStore, Notification, errorToString } from './components/notification';
 export { errorStore, pushError } from './components/errors';
 export { menuStore } from './components/contextMenuStore.svelte.js';
-export { themeStore, initTheme, setTheme, toggleTheme } from './components/themeStore.svelte.js';
+export { themeStore, initTheme, setTheme, toggleTheme, toggleThemeFromEvent } from './components/themeStore.svelte.js';
+export { pageDirStore } from './components/pageDirStore.svelte.js';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
+export { confirmStore, showConfirm } from './components/confirm';
 
 // Types
 export type { NotificationType, NotificationPosition, NotificationOptions } from './components/notification';
@@ -22,6 +24,7 @@ export type { Column } from './components/tableTypes';
 export type { SortState, SortDir } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
 export type { Theme } from './components/themeStore.svelte.js';
+export type { PageDir } from './components/pageDirStore.svelte.js';
 export type { SidebarTabGroup, SidebarTabItem } from './components/ui/Sidebar.svelte';
 
 // UI Components
@@ -39,6 +42,9 @@ import Label from './components/ui/Label.svelte';
 import Loading from './components/ui/Loading.svelte';
 import Modal from './components/ui/Modal.svelte';
 import PageHeader from './components/ui/PageHeader.svelte';
+import Page from './components/ui/Page.svelte';
+import Empty from './components/ui/Empty.svelte';
+import Row from './components/ui/Row.svelte';
 import ProgressBar from './components/ui/ProgressBar.svelte';
 import ProgressBytes from './components/ui/ProgressBytes.svelte';
 import ProgressSlotBar from './components/ui/ProgressSlotBar.svelte';
@@ -59,14 +65,15 @@ import Header from './components/ui/Header.svelte';
 import ThemeToggle from './components/ui/ThemeToggle.svelte';
 export {
   Button, Card, Checkbox, CreatableSelect, DataList, DataTable, DropZone,
-  MultiSelect, PresetInput, Input, Label, Loading, Modal, PageHeader,
+  MultiSelect, PresetInput, Input, Label, Loading, Modal, PageHeader, Page, Empty, Row,
   ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
   StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header, ThemeToggle,
 };
 
 // Providers
 import ErrorDialog from './components/providers/ErrorDialog.svelte';
-export { ErrorDialog };
+import ConfirmDialog from './components/providers/ConfirmDialog.svelte';
+export { ErrorDialog, ConfirmDialog };
 
 // Menus
 import ContextMenu from './components/menus/ContextMenu.svelte';

@@ -1,16 +1,18 @@
 <script lang="ts">
   import {
-    NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ThemeToggle,
+    NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, Page,
+    themeStore, toggleThemeFromEvent,
     type SidebarTabGroup,
   } from 'goose-ui';
   import {
     BookOpen, LayoutGrid, RectangleEllipsis, MessageCircle, ChartColumnIncreasing, Wrench,
-    Monitor,
+    Monitor, Settings,
   } from '@lucide/svelte';
 
   import Skill from './lib/demos/Skill.svelte';
   import Title from './lib/demos/Title.svelte';
   import ButtonDemo from './lib/demos/Button.svelte';
+  import PageDemo from './lib/demos/PageDemo.svelte';
   import Divider from './lib/demos/Divider.svelte';
   import IconDemo from './lib/demos/Icon.svelte';
   import Tag from './lib/demos/Tag.svelte';
@@ -28,6 +30,7 @@
   import Form from './lib/demos/Form.svelte';
   import NotificationDemo from './lib/demos/Notification.svelte';
   import ModalDemo from './lib/demos/Modal.svelte';
+  import ConfirmDemo from './lib/demos/Confirm.svelte';
   import Drawer from './lib/demos/Drawer.svelte';
   import LoadingDemo from './lib/demos/Loading.svelte';
   import Tooltip from './lib/demos/Tooltip.svelte';
@@ -63,6 +66,7 @@
       items: [
         { value: 'title', label: 'Title 标题' },
         { value: 'button', label: 'Button 按钮' },
+        { value: 'page', label: 'Page 页面容器' },
         { value: 'divider', label: 'Divider 分割线' },
         { value: 'icon', label: 'Icon 图标' },
         { value: 'tag', label: 'Tag 标签' },
@@ -90,6 +94,7 @@
       items: [
         { value: 'notification', label: 'Notification 通知' },
         { value: 'modal', label: 'Modal 弹窗' },
+        { value: 'confirm', label: 'Confirm 确认框' },
         { value: 'drawer', label: 'Drawer 抽屉' },
         { value: 'tooltip', label: 'Tooltip 气泡提示' },
         { value: 'loading', label: 'Loading 加载' },
@@ -137,20 +142,48 @@
   let activeTab = $state('button');
   let sidebarMode = $state<'float' | 'flat'>('float');
   let sidebarCollapsed = $state(false);
+
+  const endItems = [{ value: 'settings', label: '设置', icon: Settings }];
 </script>
 
 <NotificationProvider />
 <ErrorDialog />
 <ContextMenu />
+<ConfirmDialog />
 
-<div class="app">
-  <main class="content" class:content--collapsed={sidebarCollapsed}>
-    {#if activeTab === 'skill'}
+<Layout
+  title="goose-ui"
+  subtitle="Svelte 5 组件库"
+  theme={themeStore.theme}
+  onThemeToggle={toggleThemeFromEvent}
+  windowControls={false}
+>
+  {#snippet tabs()}
+    <Sidebar
+      {groups}
+      bind:activeTab
+      bind:collapsed={sidebarCollapsed}
+      {endItems}
+      mode={sidebarMode}
+      embedded
+      shadow={false}
+    >
+      {#snippet footer()}
+        <div class="sidebar-footer-inner">
+          <span class="footer-version">v0.1.0 · Svelte 5</span>
+        </div>
+      {/snippet}
+    </Sidebar>
+  {/snippet}
+
+  {#if activeTab === 'skill'}
       <Skill />
     {:else if activeTab === 'title'}
       <Title />
     {:else if activeTab === 'button'}
       <ButtonDemo />
+    {:else if activeTab === 'page'}
+      <PageDemo />
     {:else if activeTab === 'divider'}
       <Divider />
     {:else if activeTab === 'icon'}
@@ -185,6 +218,8 @@
       <NotificationDemo />
     {:else if activeTab === 'modal'}
       <ModalDemo />
+    {:else if activeTab === 'confirm'}
+      <ConfirmDemo />
     {:else if activeTab === 'drawer'}
       <Drawer />
     {:else if activeTab === 'loading'}
@@ -225,43 +260,21 @@
       <TitleBarDemo />
     {:else if activeTab === 'layout'}
       <LayoutDemo />
+    {:else if activeTab === 'settings'}
+      <Page>
+        <div class="end-demo">
+          <h2>endItems 列表结尾项</h2>
+          <p>
+            此项由 Sidebar 的 <code>endItems</code> 渲染在导航列表结尾：空间充足时贴底、列表超高时顺次接在末尾，
+            与普通导航项共享同一 pill 动画。再点击上方任意项，观察 pill 连续滑回。
+          </p>
+          <p>侧栏底部 footer 则是 snippet 自定义区（版本文本）。</p>
+        </div>
+      </Page>
     {/if}
-  </main>
-
-  <Sidebar
-    {groups}
-    bind:activeTab
-    bind:collapsed={sidebarCollapsed}
-    mode={sidebarMode}
-  >
-    {#snippet footer()}
-      <div class="sidebar-footer-inner">
-        <span class="footer-version">v0.1.0 · Svelte 5</span>
-        <ThemeToggle />
-      </div>
-    {/snippet}
-  </Sidebar>
-</div>
+</Layout>
 
 <style>
-  .app {
-    position: absolute;
-    inset: 0;
-    background: var(--bg);
-  }
-  .content {
-    position: absolute;
-    top: 0;
-    left: 252px;
-    right: 0;
-    bottom: 0;
-    overflow-y: auto;
-    padding: 32px 40px 60px;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .content--collapsed {
-    left: 88px;
-  }
   .sidebar-footer-inner {
     display: flex;
     align-items: center;
@@ -270,5 +283,27 @@
   .footer-version {
     font-size: 11px;
     color: var(--text-muted);
+  }
+  .end-demo {
+    max-width: 560px;
+  }
+  .end-demo h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin: 0 0 12px;
+  }
+  .end-demo p {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+  }
+  .end-demo code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+    font-size: 12px;
   }
 </style>

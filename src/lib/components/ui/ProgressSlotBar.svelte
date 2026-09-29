@@ -7,12 +7,16 @@
 		total = 0,
 		loaded = 0,
 		totalSize = 0,
+		class: cls = '',
+		style = '',
 	}: {
 		number?: number;
 		part?: number;
 		total?: number;
 		loaded?: number;
 		totalSize?: number;
+		class?: string;
+		style?: string;
 	} = $props();
 
 	const slotNum = $derived(part ?? number);
@@ -20,7 +24,7 @@
 </script>
 
 {#if slotNum > 0}
-	<div class="slot-bar">
+	<div class="slot-bar {cls}" style={style}>
 		<div class="slot-label">
 			<span>分片 {slotNum}/{total} {formatBytes(loaded)}/{formatBytes(totalSize)}</span>
 			<span>{pct}%</span>

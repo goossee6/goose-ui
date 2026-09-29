@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
@@ -14,12 +14,22 @@
 		subtitle,
 		theme = 'light',
 		onThemeToggle,
+		controls,
+		windowControls = true,
+		class: cls = '',
+		style = '',
 	}: {
 		title?: string;
 		logo?: string | Component<{ size?: number; class?: string }>;
 		subtitle?: string;
 		theme?: 'light' | 'dark';
 		onThemeToggle?: (e: MouseEvent) => void;
+		/** 自定义按钮区 snippet（渲染在窗口控制键之前，与默认键共存） */
+		controls?: Snippet;
+		/** false 不渲染默认窗口三键（如浏览器环境） */
+		windowControls?: boolean;
+		class?: string;
+		style?: string;
 	} = $props();
 
 	const logoText = $derived(typeof logo === 'string' ? logo : logo === undefined ? title : '');
@@ -62,7 +72,7 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="titlebar" ondblclick={handleMaximise}>
+<div class="titlebar {cls}" style={style} ondblclick={handleMaximise}>
 	<div class="titlebar-left">
 		{#if logo !== undefined && typeof logo !== 'string'}
 			<span class="titlebar-logo-icon">
@@ -84,15 +94,20 @@
 				<Icon icon={theme === 'dark' ? Sun : Moon} size={14} />
 			</button>
 		{/if}
-		<button type="button" class="win-btn" disabled={!isWails} onclick={handleMinimise} aria-label="最小化">
-			<Icon icon={Minus} size={14} />
-		</button>
-		<button type="button" class="win-btn" disabled={!isWails} onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
-			<Icon icon={Square} size={12} />
-		</button>
-		<button type="button" class="win-btn win-btn-close" disabled={!isWails} onclick={handleClose} aria-label="关闭">
-			<Icon icon={X} size={16} />
-		</button>
+		{#if controls}
+			{@render controls()}
+		{/if}
+		{#if windowControls}
+			<button type="button" class="win-btn" disabled={!isWails} onclick={handleMinimise} aria-label="最小化">
+				<Icon icon={Minus} size={14} />
+			</button>
+			<button type="button" class="win-btn" disabled={!isWails} onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
+				<Icon icon={Square} size={12} />
+			</button>
+			<button type="button" class="win-btn win-btn-close" disabled={!isWails} onclick={handleClose} aria-label="关闭">
+				<Icon icon={X} size={16} />
+			</button>
+		{/if}
 	</div>
 </div>
 
@@ -102,8 +117,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		height: 42px;
-		min-height: 42px;
+		height: var(--titlebar-h, 42px);
+		min-height: var(--titlebar-h, 42px);
 		padding: 0 0 0 16px;
 		background: transparent;
 		user-select: none;
@@ -161,7 +176,7 @@
 	.win-btn {
 		--wails-draggable: no-drag;
 		width: 46px;
-		height: 42px;
+		height: var(--titlebar-h, 42px);
 		display: flex;
 		align-items: center;
 		justify-content: center;

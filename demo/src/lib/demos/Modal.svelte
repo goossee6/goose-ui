@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Button, Modal, PageHeader, Notification, pushError } from 'goose-ui';
+  import {Card, Button, Modal, Page, Notification, pushError, Row} from "goose-ui";
 
   let modalOpen = $state(false);
   let maskModalOpen = $state(false);
@@ -38,58 +38,56 @@
   ];
 </script>
 
-<PageHeader title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配" />
-
-<div class="demo-grid">
+<Page title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配" >
   <Card title="基础模态框">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { modalOpen = true; }}>打开模态框</Button>
       <Modal bind:open={modalOpen} title="基础模态框">
         <p>这是一个标准模态框。</p>
         <p class="muted">默认隐藏关闭按钮？不 —— 默认显示 X，且默认 footer 是「取消 / 确定」。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="点击遮罩关闭 maskClosable">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { maskModalOpen = true; }}>点击遮罩可关闭</Button>
       <Modal bind:open={maskModalOpen} title="遮罩可关闭" maskClosable={true}>
         <p>点击背景遮罩即可关闭此模态框（默认 maskClosable=false，只能通过按钮或 Esc 关闭）。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="无关闭按钮 disableClose">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { noCloseModalOpen = true; }}>无 X 按钮</Button>
       <Modal bind:open={noCloseModalOpen} title="无关闭按钮" disableClose={true}>
         <p>隐藏右上角 X 按钮，Esc 键也不会关闭，只能用 footer 的按钮关掉。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="自定义 Footer">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { customFooterModalOpen = true; }}>自定义底部</Button>
       <Modal bind:open={customFooterModalOpen} title="自定义 Footer" footer={customFooter}>
         <p>这个模态框替换了默认的「取消 / 确定」，改为三个自定义按钮。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="自定义宽度">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { wideModalOpen = true; }}>宽模态框 (800px)</Button>
       <Modal bind:open={wideModalOpen} title="宽模态框" width={800}>
         <p>通过 <code>width</code> 属性自定义宽度，默认为 520。</p>
         <p class="muted">传数字按 px 处理，也可以传 CSS 字符串，如 "80vw"。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="富文本标题 + 内容">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { snippetTitleModalOpen = true; }}>富文本演示</Button>
       <Modal bind:open={snippetTitleModalOpen} title={richTitle}>
         <p>title 支持 <b>Snippet</b> 或字符串直接写 HTML 渲染富文本。</p>
@@ -97,21 +95,21 @@
         <p>也可以嵌套，如 <b><i><span style="color:var(--danger)">粗斜体红色</span></i></b>。</p>
         <p class="muted">打字机模式下会保留 HTML 结构，逐字揭示时标签完整跳过。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="浅色遮罩 mask='light'">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { noMaskModalOpen = true; }}>浅色遮罩</Button>
       <Modal bind:open={noMaskModalOpen} title="浅色遮罩" mask="light" typewriter={false}>
         <p>使用半透明白色遮罩，视觉更轻量。</p>
         <p class="muted">适合不需要强遮挡的场景。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="文案定制 okText / cancelText">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { confirmLikeOpen = true; }}>打开</Button>
       <Modal
         bind:open={confirmLikeOpen}
@@ -126,11 +124,11 @@
         <p>确定要删除该资源吗？此操作不可撤销。</p>
         <p class="muted">onOk 关闭前触发，onCancel 在取消 / X / Esc / 遮罩关闭时触发。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="onOk 返回 false 阻止关闭">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { preventCloseOpen = true; }}>打开</Button>
       <Modal
         bind:open={preventCloseOpen}
@@ -149,11 +147,11 @@
         <p>点「提交」有一半概率返回 <code>false</code>，弹窗保持打开。</p>
         <p class="muted">抛异常同样保持打开，适合校验与请求失败场景。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="异步 onOk（处理中态）">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { asyncOkOpen = true; }}>打开</Button>
       <Modal
         bind:open={asyncOkOpen}
@@ -168,22 +166,22 @@
       >
         <p>onOk 返回 Promise 时，确定按钮显示「处理中…」并禁用，await 完成后才关闭。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="隐藏 footer showFooter={false}">
-    <div class="demo-row">
+    <Row>
       <Button variant="primary" onclick={() => { noFooterOpen = true; }}>打开</Button>
       <Modal bind:open={noFooterOpen} title="纯展示弹窗" width={420} typewriter={false} showFooter={false}>
         <p>通过 <code>showFooter={false}</code> 隐藏底部按钮区，仅保留右上角 X 关闭。</p>
         <p class="muted">也可用 showOk / showCancel 单独隐藏某一个按钮。</p>
       </Modal>
-    </div>
+    </Row>
   </Card>
 
   <Card title="ErrorDialog 错误收集弹窗">
     <p class="muted" style="margin-bottom:12px">自动收集运行时错误，支持列表堆叠、单项复制、复制全部。</p>
-    <div class="demo-row">
+    <Row>
       <Button
         variant="danger"
         onclick={() => pushError('网络请求失败', new Error('Failed to fetch: net::ERR_CONNECTION_REFUSED'))}
@@ -206,12 +204,12 @@
       >
         模拟多个错误
       </Button>
-    </div>
+    </Row>
   </Card>
   <Card title="Props">
     <PropsTable items={modalProps} />
   </Card>
-</div>
+</Page>
 
 {#snippet customFooter()}
   <Button variant="ghost" onclick={() => { customFooterModalOpen = false; Notification.success('已返回'); }}>返回</Button>
@@ -228,13 +226,6 @@
 {/snippet}
 
 <style>
-  .demo-grid { display: flex; flex-direction: column; gap: var(--gap-2xl); }
-  .demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--gap-md);
-  }
   p { margin: 0 0 10px; line-height: 1.6; color: var(--text); }
   p:last-child { margin-bottom: 0; }
   .muted { color: var(--text-muted); font-size: 13px; }
