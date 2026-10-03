@@ -98,8 +98,8 @@
 		align-items: center;
 		gap: var(--gap-md);
 		padding: var(--sp-lg) var(--sp-xl);
-		min-width: 280px;
-		max-width: 420px;
+		width: var(--notif-width, 360px);
+		max-width: calc(100vw - 48px);
 		border-radius: var(--radius-lg);
 		font-size: 14px;
 		color: var(--text-strong);

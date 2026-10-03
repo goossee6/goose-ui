@@ -8,6 +8,8 @@
     { name: "placement", desc: "出现方向", type: "'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end'", default: "'top'" },
     { name: "trigger", desc: "触发方式", type: "'hover' | 'focus' | 'click'", default: "'hover'" },
     { name: "maxWidth", desc: "最大宽度", type: "number | string" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

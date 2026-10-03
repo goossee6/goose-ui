@@ -1,6 +1,11 @@
 <script lang="ts">
   import {Card, SegmentedTabs, Page, Notification} from "goose-ui";
-  import { LayoutGrid, List, Settings, User, Bell, Shield } from '@lucide/svelte';
+  import LayoutGrid from '@lucide/svelte/icons/layout-grid';
+  import List from '@lucide/svelte/icons/list';
+  import Settings from '@lucide/svelte/icons/settings';
+  import User from '@lucide/svelte/icons/user';
+  import Bell from '@lucide/svelte/icons/bell';
+  import Shield from '@lucide/svelte/icons/shield';
   import type { Component } from 'svelte';
 
   let seg = $state('one');
@@ -34,9 +39,10 @@
     { name: "value", desc: "当前选中值（可双向绑定）", type: "string", default: "''" },
     { name: "disabled", desc: "禁用切换", type: "boolean", default: "false" },
     { name: "mode", desc: "展示模式", type: "'segmented' | 'underline' | 'vertical'", default: "'segmented'" },
-    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | number", default: "'middle'" },
+    { name: "size", desc: "尺寸档", type: "'small' | 'middle' | 'large'", default: "'middle'" },
     { name: "onchange", desc: "切换回调", type: "(value: string) => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

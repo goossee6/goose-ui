@@ -14,6 +14,8 @@
     { name: "children", desc: "主内容区", type: "Snippet" },
     { name: "scroll", desc: "内容卡片整页滚动；false = 框架不滚、页内滚动区自理", type: "boolean", default: "true" },
     { name: "resize", desc: "Wails 窗口支持：全域拖拽调整 + 四角手柄", type: "boolean", default: "false" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

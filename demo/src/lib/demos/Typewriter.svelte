@@ -18,6 +18,7 @@
     { name: "cursor", desc: "显示光标", type: "boolean", default: "true" },
     { name: "onDone", desc: "播放完成回调", type: "() => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

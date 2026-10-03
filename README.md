@@ -91,7 +91,7 @@ import "goose-ui/styles/theme.css";
 | --------------- | -------------------------------------------------------- |
 | Button          | 按钮，支持 primary/default/ghost/danger/link 五种变体    |
 | Card            | 卡片容器，支持 title + right header                      |
-| Checkbox        | 复选框，支持 children 文字点击切换                       |
+| Checkbox        | 复选框，尺寸档 small/middle/large + 双向绑定，文字标签自行并排/包裹 |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                    |
 | Input           | 输入框，支持 clearable/Enter 回调/digitsOnly/status 状态，prefix/suffix 为 snippet（可放图标/文本/按钮） |
 | Label           | 表单标签                                                 |
@@ -116,7 +116,7 @@ import "goose-ui/styles/theme.css";
 | 组件          | 说明                                                                                                                        |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | PageHeader    | 页面标题栏（标题 + 描述纵向堆叠 + children 附加行 + 右侧操作区，窄屏自动换行）                                              |
-| Page          | 页面容器（根布局 + 页头 + 内容区间距一次到位，                                                                              |
+| Page          | 页面容器（根布局 + 页头 + 内容区间距一次到位，无需手写样板）                                                              |
 | Row           | 水平排列行（`gap` sm/md/lg + `align` + 自动换行，替代零散 flex 样板）                                                       |
 | SegmentedTabs | 分段标签（pill 动画 + underline 双模式）                                                                                    |
 | Sidebar       | 悬浮岛式侧边栏（导航分组 + 折叠 + popover + endItems 列表结尾项/自定义 footer）                                             |
@@ -252,7 +252,7 @@ import "goose-ui/styles/theme.css";
 高频控制点：
 
 - **宽度**：`Select`/`Modal`/`Drawer` 有 `width` prop；`Page`/`Tooltip` 有 `maxWidth`；`Sidebar` 用 `width={180}`（number 按 px，改写内部 `--sidebar-w`）；其余控件用 `style`
-- **尺寸档**：`Button`/`Checkbox`/`Toggle`/`SegmentedTabs`/`Icon`/`Loading` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）
+- **尺寸档**：`Button`/`Checkbox`/`Toggle`/`SegmentedTabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
 - **旋转**：`Icon` 的 `spin` prop（加载态），无需自己写动画
 - **可调变量**：`--titlebar-h`（TitleBar 高度，默认 42px）、`--header-h`（Header 高度，由 `height` prop 写入）、`--ui-{sm,md,lg}-{height,padding,font}`（全局控件 token，见 theme.css）
 
@@ -352,6 +352,7 @@ Notification.error("连接失败");
 - 类型：`success` / `info` / `warning` / `error`
 - `position`：`top-left` / `top` / `top-right` / `bottom-left` / `bottom` / `bottom-right`
 - 需先在应用顶层挂载 `<NotificationProvider />`
+- 通知宽度固定为 360px，可通过 `--notif-width` 变量覆盖；`max-width: calc(100vw - 48px)` 视口护栏仍生效
 - 错误消息提取可用 `errorToString(e)`：字符串原样返回，取 `message` 字段（兼容 `Error` 与序列化对象），否则 `String(e)`
 
 ```ts
@@ -435,6 +436,20 @@ onMenuAction("row", "del", (data) => console.log(data));
 ```
 
 暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换。
+
+### 工具类（theme.css 全局提供）
+
+| 类                  | 作用                     | 动画                                                                     |
+| ------------------- | ------------------------ | ------------------------------------------------------------------------ |
+| `.animate-fade-slide`  | 淡入上滑一次（入场强调） | `fadeSlideUp` 0.3s ease-in-out（opacity 0→1 + translateY 10px→0）      |
+| `.animate-nav-slide`   | 下滑入场一次             | `navSlideDown` 0.5s ease-out（translateY -100%→0）                     |
+| `.animate-float-doro`  | 悬浮轻浮动循环           | `float-doro` 2.5s infinite（±4px，自带 `will-change: transform`）      |
+| `.skeleton-shine`      | 骨架屏横向光扫           | 渐变光带 `background-position` 200%→-200%，2s 线性循环                  |
+| `.status-dot-online`   | 在线状态圆点（绿 + 光晕） | `pulse` 2s 呼吸（opacity 1↔0.5）                                       |
+| `.status-dot-offline`  | 离线状态圆点（红）       | 无动画                                                                   |
+
+- 直接挂在任意元素上即可，无前置条件
+- `.animate-*` 为一次性动画：元素重新显示时（如 `display:none↔''` 切换）会从头重播；页面级入场请交给 `Page` 过渡统一处理，勿在卡片上叠加
 
 ## Peer Dependencies
 

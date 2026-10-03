@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "pnpm --filter demo dev",
     "build": "pnpm --filter demo build",
+    "build:dev": "pnpm --filter demo build:dev",
     "check": "pnpm --filter demo check",
     "preview": "pnpm --filter demo preview"
   },
@@ -73,8 +74,10 @@
     "./context-menu": "./src/lib/components/menus/ContextMenu.svelte",
     "./error-store": "./src/lib/components/errors.ts",
     "./theme-store": "./src/lib/components/themeStore.svelte.ts",
-    "./context-menu-store": "./src/lib/components/contextMenu.ts",
-    "./utils": "./src/lib/utils/cn.ts",
+    "./page-dir-store": "./src/lib/components/pageDirStore.svelte.ts",
+    "./context-menu-store": "./src/lib/components/contextMenuStore.svelte.ts",
+    "./context-menu-api": "./src/lib/components/contextMenu.ts",
+    "./utils": "./src/lib/index.ts",
     "./clipboard": "./src/lib/utils/clipboard.ts",
     "./format": "./src/lib/utils/format.ts"
   },
@@ -91,9 +94,7 @@
       "optional": true
     }
   },
-  "dependencies": {
-    "clsx": "^2.1.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "svelte": "^5.0.0",
     "typescript": "^5.0.0"

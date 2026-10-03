@@ -5,6 +5,8 @@
   const loadingProps: PropsTableItem[] = [
     { name: "size", desc: "尺寸(px)", type: "number", default: "30" },
     { name: "src", desc: "自定义图片地址，为空时使用默认图", type: "string", default: "''" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

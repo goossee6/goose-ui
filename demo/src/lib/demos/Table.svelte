@@ -1,41 +1,59 @@
 <script lang="ts">
-  import {Card, DataTable, DataList, StatusBadge, Label, Button, Page, Input, Icon, Notification, type Column, Row} from "goose-ui";
-  import { Search, Pencil, Trash2, Eye } from '@lucide/svelte';
+  import { Card, DataTable, DataList, StatusBadge, Label, Button, Page, Input, Icon, Notification, registerMenu, unregisterMenu, onMenuAction, type Column, Row } from "goose-ui";
+  import Search from "@lucide/svelte/icons/search";
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Eye from "@lucide/svelte/icons/eye";
+  import Copy from "@lucide/svelte/icons/copy";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
+  import { onMount, onDestroy } from "svelte";
 
   interface User {
     id: number;
     name: string;
     email: string;
     role: string;
-    status: '正常' | '超额';
+    status: "正常" | "超额";
     storage: number;
     createdAt: string;
   }
 
   const users: User[] = [
-    { id: 1, name: '张三', email: 'zhangsan@example.com', role: '管理员', status: '正常', storage: 45, createdAt: '2024-01-15' },
-    { id: 2, name: '李四', email: 'lisi@example.com', role: '编辑', status: '正常', storage: 78, createdAt: '2024-02-20' },
-    { id: 3, name: '王五', email: 'wangwu@example.com', role: '访客', status: '超额', storage: 105, createdAt: '2024-03-08' },
-    { id: 4, name: '赵六', email: 'zhaoliu@example.com', role: '编辑', status: '正常', storage: 22, createdAt: '2024-03-22' },
-    { id: 5, name: '钱七', email: 'qianqi@example.com', role: '管理员', status: '正常', storage: 91, createdAt: '2024-04-11' },
+    { id: 1, name: "张三", email: "zhangsan@example.com", role: "管理员", status: "正常", storage: 45, createdAt: "2024-01-15" },
+    { id: 2, name: "李四", email: "lisi@example.com", role: "编辑", status: "正常", storage: 78, createdAt: "2024-02-20" },
+    { id: 3, name: "王五", email: "wangwu@example.com", role: "访客", status: "超额", storage: 105, createdAt: "2024-03-08" },
+    { id: 4, name: "赵六", email: "zhaoliu@example.com", role: "编辑", status: "正常", storage: 22, createdAt: "2024-03-22" },
+    { id: 5, name: "钱七", email: "qianqi@example.com", role: "管理员", status: "正常", storage: 91, createdAt: "2024-04-11" },
   ];
 
-  let highlight = $state('');
+  let highlight = $state("");
+
+  let offMenuAction: (() => void) | null = null;
+  onMount(() => {
+    registerMenu("user-row", [
+      { id: "copy", label: "复制", builtin: "copy", icon: Copy },
+      { id: "detail", label: "查看详情", icon: Eye },
+    ]);
+    offMenuAction = onMenuAction("user-row", "detail", (d) => Notification.success(`查看：${d.copy}`));
+  });
+  onDestroy(() => {
+    offMenuAction?.();
+    unregisterMenu("user-row");
+  });
 
   const columns: Column<User>[] = [
-    { id: 'id', header: 'ID', render: (r) => String(r.id), align: 'center', mono: true },
-    { id: 'name', header: '姓名', render: (r) => r.name },
-    { id: 'email', header: '邮箱', render: (r) => r.email },
-    { id: 'role', header: '角色', render: (r) => r.role },
-    { id: 'status', header: '状态', render: (r) => r.status, custom: true, sortAccessor: (r) => r.status },
-    { id: 'storage', header: '存储用量', render: (r) => `${r.storage}%`, align: 'right', sortAccessor: (r) => r.storage },
-    { id: 'createdAt', header: '创建时间', render: (r) => r.createdAt, align: 'right' },
+    { id: "id", header: "ID", render: (r) => String(r.id), align: "center", mono: true },
+    { id: "name", header: "姓名", render: (r) => r.name },
+    { id: "email", header: "邮箱", render: (r) => r.email },
+    { id: "role", header: "角色", render: (r) => r.role },
+    { id: "status", header: "状态", render: (r) => r.status, custom: true, sortAccessor: (r) => r.status },
+    { id: "storage", header: "存储用量", render: (r) => `${r.storage}%`, align: "right", sortAccessor: (r) => r.storage },
+    { id: "createdAt", header: "创建时间", render: (r) => r.createdAt, align: "right" },
   ];
 
   const simpleColumns: Column<User>[] = [
-    { id: 'name', header: '姓名', render: (r) => r.name, sortable: false },
-    { id: 'email', header: '邮箱', render: (r) => r.email, sortable: false },
-    { id: 'role', header: '角色', render: (r) => r.role, sortable: false },
+    { id: "name", header: "姓名", render: (r) => r.name, sortable: false },
+    { id: "email", header: "邮箱", render: (r) => r.email, sortable: false },
+    { id: "role", header: "角色", render: (r) => r.role, sortable: false },
   ];
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
@@ -51,6 +69,8 @@
     { name: "actions", desc: "行操作列插槽", type: "Snippet<[T]>" },
     { name: "cell", desc: "自定义单元格插槽", type: "Snippet<[string, T]>" },
     { name: "rowKey", desc: "行唯一键生成", type: "(row: T, index: number) => string | number" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const dataListProps: PropsTableItem[] = [
@@ -59,31 +79,35 @@
     { name: "emptyText", desc: "空数据文案", type: "string", default: "'暂无数据'" },
     { name: "bindContainer", desc: "容器元素引用回调", type: "(el: HTMLElement | null) => void" },
     { name: "rowKey", desc: "行唯一键生成", type: "(row: T, index: number) => string | number" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const statusBadgeProps: PropsTableItem[] = [
     { name: "variant", desc: "状态变体", type: "'normal' | 'warning'", default: "'normal'" },
     { name: "children", desc: "徽章文本", type: "Snippet" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 
-<Page title="表格 Table" description="可排序表格、高亮搜索、列表、状态徽章" >
+<Page title="表格 Table" description="可排序表格、高亮搜索、列表、状态徽章">
   <Card title="数据表格 DataTable（可排序 + 关键字高亮）">
     {#snippet right()}
       <div style="width:220px">
-        <Input name="highlight" placeholder="高亮关键字…" bind:value={highlight} onClear={() => Notification.success('已清除搜索')}>
+        <Input name="highlight" placeholder="高亮关键字…" bind:value={highlight} onClear={() => Notification.success("已清除搜索")}>
           {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
         </Input>
       </div>
     {/snippet}
     <div style="max-height:360px;overflow:auto">
-      <DataTable rows={users} columns={columns} highlight={highlight} />
+      <DataTable rows={users} {columns} {highlight} menu="user-row" />
     </div>
   </Card>
 
   <Card title="自定义单元格渲染 cell snippet">
     <div style="max-height:320px;overflow:auto">
-      <DataTable rows={users} columns={columns} cell={statusCell} />
+      <DataTable rows={users} {columns} cell={statusCell} />
     </div>
   </Card>
 
@@ -107,7 +131,7 @@
             </div>
             <div class="list-right">
               <span class="list-role">{row.role}</span>
-              <StatusBadge variant={row.status === '超额' ? 'warning' : 'normal'} />
+              <StatusBadge variant={row.status === "超额" ? "warning" : "normal"} />
             </div>
           </div>
         {/snippet}
@@ -144,8 +168,8 @@
 </Page>
 
 {#snippet statusCell(colId: string, row: User)}
-  {#if colId === 'status'}
-    <StatusBadge variant={row.status === '超额' ? 'warning' : 'normal'} />
+  {#if colId === "status"}
+    <StatusBadge variant={row.status === "超额" ? "warning" : "normal"} />
   {:else}
     {row[colId as keyof User]}
   {/if}
@@ -163,15 +187,30 @@
     align-items: center;
     gap: 12px;
   }
-  .label-demo :global(.input-wrapper) { flex: 1; }
+  .label-demo :global(.input-wrapper) {
+    flex: 1;
+  }
   .list-row-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
-  .list-name { font-weight: 500; color: var(--text-strong); }
-  .list-sub { font-size: 12px; color: var(--text-muted); }
-  .list-right { display: flex; align-items: center; gap: 8px; }
-  .list-role { font-size: 12px; color: var(--text-muted); }
+  .list-name {
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+  .list-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .list-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .list-role {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {Card, TitleBar, Page, ThemeToggle, themeStore, toggleThemeFromEvent} from "goose-ui";
-  import { Box } from '@lucide/svelte';
+  import Box from '@lucide/svelte/icons/box';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const titleBarProps: PropsTableItem[] = [
@@ -11,6 +11,8 @@
     { name: "onThemeToggle", desc: "主题切换回调", type: "(e: MouseEvent) => void" },
     { name: "controls", desc: "自定义窗口按钮区 snippet（替换默认最小化/最大化/关闭）", type: "Snippet" },
     { name: "windowControls", desc: "false 不渲染默认窗口三键（如浏览器环境）", type: "boolean", default: "true" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

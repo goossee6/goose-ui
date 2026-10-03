@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { Component, Snippet } from 'svelte';
   import Icon from './Icon.svelte';
-  import { ChevronDown, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
+  import ChevronDown from '@lucide/svelte/icons/chevron-down';
+  import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
+  import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
   import { slide } from 'svelte/transition';
   import { pageDirStore } from '../pageDirStore.svelte.js';
 

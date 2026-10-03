@@ -8,6 +8,7 @@
     { name: "right", desc: "右侧操作区插槽", type: "Snippet" },
     { name: "children", desc: "标题下方内容", type: "Snippet" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

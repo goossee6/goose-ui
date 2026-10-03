@@ -40,14 +40,17 @@
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const selectProps: PropsTableItem[] = [
-    { name: "value", desc: "选中值（可双向绑定）", type: "string", default: "''" },
+    { name: "value", desc: "选中值（可双向绑定；组件为泛型，本页示例 string）", type: "T", default: "undefined" },
     { name: "options", desc: "选项数组，元素 { value, label, meta?, metaClass? }", type: "Option[]", default: "[]" },
-    { name: "onchange", desc: "变更回调", type: "(v: string) => void" },
+    { name: "onchange", desc: "变更回调", type: "(v: T) => void" },
     { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
     { name: "width", desc: "宽度", type: "string", default: "'100%'" },
     { name: "placement", desc: "菜单弹出方向", type: "'top' | 'bottom' | 'left' | 'right'", default: "'bottom'" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "id", desc: "原生 id", type: "string", default: "''" },
+    { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const multiSelectProps: PropsTableItem[] = [
@@ -55,6 +58,8 @@
     { name: "items", desc: "选项数组，元素 { value, label, meta?, metaClass? }", type: "Option[]", default: "[]" },
     { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const creatableSelectProps: PropsTableItem[] = [
@@ -68,6 +73,7 @@
     { name: "loadingIndicator", desc: "加载中插槽", type: "Snippet" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

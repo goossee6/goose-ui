@@ -1,6 +1,9 @@
 <script lang="ts">
   import {Card, Input, Icon, PresetInput, Page, Notification, Row} from "goose-ui";
-  import { Search, User, Mail, Lock } from '@lucide/svelte';
+  import Search from '@lucide/svelte/icons/search';
+  import User from '@lucide/svelte/icons/user';
+  import Mail from '@lucide/svelte/icons/mail';
+  import Lock from '@lucide/svelte/icons/lock';
 
   let text = $state('');
   let email = $state('');
@@ -22,8 +25,8 @@
     { name: "readonly", desc: "只读", type: "boolean", default: "false" },
     { name: "digitsOnly", desc: "仅允许数字输入", type: "boolean", default: "false" },
     { name: "status", desc: "状态样式", type: "'error' | 'warning'" },
-    { name: "prefix", desc: "前缀图标组件", type: "Component<{ size?: number }> | null", default: "null" },
-    { name: "suffix", desc: "后缀图标组件", type: "Component<{ size?: number }> | null", default: "null" },
+    { name: "prefix", desc: "前缀区 snippet（可放图标/文本/按钮）", type: "Snippet" },
+    { name: "suffix", desc: "后缀区 snippet（可放图标/文本/可点击按钮）", type: "Snippet" },
     { name: "id", desc: "原生 id", type: "string", default: "''" },
     { name: "name", desc: "原生 name", type: "string", default: "''" },
     { name: "onkeydown", desc: "按键回调", type: "(e: KeyboardEvent) => void" },
@@ -31,6 +34,7 @@
     { name: "onClear", desc: "清空回调", type: "() => void" },
     { name: "onclick", desc: "点击回调", type: "(e: MouseEvent) => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const presetInputProps: PropsTableItem[] = [

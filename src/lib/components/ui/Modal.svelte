@@ -13,7 +13,7 @@
     maskClosable = false,
     mask: maskProp = 'dark',
     disableClose = false,
-    typewriter = true,
+    typewriter = false,
     typewriterDuration = 1500,
     okText = '确定',
     cancelText = '取消',

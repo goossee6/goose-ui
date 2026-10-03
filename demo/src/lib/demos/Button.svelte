@@ -1,6 +1,8 @@
 <script lang="ts">
   import {Button, Card, Page, Notification, ThemeToggle, Row} from "goose-ui";
-  import { Zap, Heart, ExternalLink } from "@lucide/svelte";
+  import Zap from "@lucide/svelte/icons/zap";
+  import Heart from "@lucide/svelte/icons/heart";
+  import ExternalLink from "@lucide/svelte/icons/external-link";
 
   let loading = $state(false);
 

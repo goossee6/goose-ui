@@ -1,12 +1,16 @@
 <script lang="ts">
   import {Header, Card, Icon, Page, ThemeToggle} from "goose-ui";
-  import { Search, Bell, Settings, User } from '@lucide/svelte';
+  import Search from '@lucide/svelte/icons/search';
+  import Bell from '@lucide/svelte/icons/bell';
+  import Settings from '@lucide/svelte/icons/settings';
+  import User from '@lucide/svelte/icons/user';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const headerProps: PropsTableItem[] = [
     { name: "title", desc: "左侧标题", type: "string", default: "''" },
     { name: "height", desc: "头部高度", type: "string", default: "'52px'" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
     { name: "left", desc: "左侧插槽", type: "Snippet" },
     { name: "center", desc: "中部插槽", type: "Snippet" },
     { name: "right", desc: "右侧插槽", type: "Snippet" },

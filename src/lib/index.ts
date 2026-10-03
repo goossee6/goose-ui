@@ -1,6 +1,5 @@
 // goose-ui — barrel export
 // Utils
-export { cn } from './utils/cn';
 export { formatNum, formatBytes } from './utils/format';
 export { copyToClipboard } from './utils/clipboard';
 

@@ -34,6 +34,7 @@
   const progressBarProps: PropsTableItem[] = [
     { name: "percent", desc: "进度百分比 0-100", type: "number", default: "0" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const progressBytesProps: PropsTableItem[] = [
@@ -47,6 +48,8 @@
     { name: "partIndex", desc: "当前完成分片序号", type: "number", default: "0" },
     { name: "onCancel", desc: "取消回调（提供时显示取消按钮）", type: "() => void" },
     { name: "disabled", desc: "禁用取消按钮", type: "boolean", default: "false" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const progressSlotBarProps: PropsTableItem[] = [
@@ -55,6 +58,8 @@
     { name: "total", desc: "总分片数", type: "number", default: "0" },
     { name: "loaded", desc: "已完成数量", type: "number", default: "0" },
     { name: "totalSize", desc: "总大小(bytes)", type: "number", default: "0" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
   const usageBarProps: PropsTableItem[] = [
@@ -66,6 +71,8 @@
     { name: "formatValue", desc: "数值格式化函数", type: "(n: number) => string", default: "formatNum" },
     { name: "barHeight", desc: "进度条高度", type: "string", default: "'6px'" },
     { name: "labelRight", desc: "右侧自定义内容插槽，参数 { value, limit, percent, overQuota, formatValue }", type: "Snippet<[...]>" },
+    { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

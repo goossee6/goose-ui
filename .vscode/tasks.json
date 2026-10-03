@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "demo: dev",
+      "label": "Dev",
       "type": "shell",
       "command": "pnpm dev",
       "group": "build",
@@ -11,7 +11,7 @@
       "detail": "启动 demo 开发服务器"
     },
     {
-      "label": "demo: build",
+      "label": "Build",
       "type": "shell",
       "command": "pnpm build",
       "group": "build",
@@ -19,7 +19,15 @@
       "detail": "构建 demo"
     },
     {
-      "label": "demo: check",
+      "label": "Build dev",
+      "type": "shell",
+      "command": "pnpm build:dev",
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "构建 demo"
+    },
+    {
+      "label": "Check",
       "type": "shell",
       "command": "pnpm check",
       "group": "test",

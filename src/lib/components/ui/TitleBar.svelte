@@ -39,6 +39,8 @@
 	let Window: any = null;
 
 	onMount(async () => {
+		// 纯浏览器环境不加载 Wails runtime（其顶层副作用会吞掉原生右键菜单）
+		if (!(window as any)._wails) return;
 		try {
 			const mod = await import('@wailsio/runtime');
 			const w = mod.Window;

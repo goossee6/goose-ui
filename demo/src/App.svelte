@@ -4,10 +4,14 @@
     themeStore, toggleThemeFromEvent,
     type SidebarTabGroup,
   } from 'goose-ui';
-  import {
-    BookOpen, LayoutGrid, RectangleEllipsis, MessageCircle, ChartColumnIncreasing, Wrench,
-    Monitor, Settings,
-  } from '@lucide/svelte';
+  import BookOpen from '@lucide/svelte/icons/book-open';
+  import LayoutGrid from '@lucide/svelte/icons/layout-grid';
+  import RectangleEllipsis from '@lucide/svelte/icons/rectangle-ellipsis';
+  import MessageCircle from '@lucide/svelte/icons/message-circle';
+  import ChartColumnIncreasing from '@lucide/svelte/icons/chart-column-increasing';
+  import Wrench from '@lucide/svelte/icons/wrench';
+  import Monitor from '@lucide/svelte/icons/monitor';
+  import Settings from '@lucide/svelte/icons/settings';
 
   import Skill from './lib/demos/Skill.svelte';
   import Title from './lib/demos/Title.svelte';

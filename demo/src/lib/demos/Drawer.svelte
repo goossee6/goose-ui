@@ -24,6 +24,7 @@
     { name: "onClose", desc: "关闭回调", type: "() => void" },
     { name: "children", desc: "抽屉内容", type: "Snippet" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 

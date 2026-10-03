@@ -17,11 +17,12 @@
   const modalProps: PropsTableItem[] = [
     { name: "open", desc: "是否打开（可双向绑定）", type: "boolean", default: "false" },
     { name: "title", desc: "标题，为空时不渲染标题栏", type: "string | Snippet" },
+    { name: "subtitle", desc: "副标题", type: "string | Snippet" },
     { name: "width", desc: "宽度", type: "number | string", default: "520" },
     { name: "mask", desc: "遮罩风格", type: "'dark' | 'light'", default: "'dark'" },
     { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "false" },
     { name: "disableClose", desc: "禁用标题栏关闭按钮", type: "boolean", default: "false" },
-    { name: "typewriter", desc: "正文打字机效果", type: "boolean", default: "true" },
+    { name: "typewriter", desc: "正文打字机效果（默认关闭，显式设置才启用）", type: "boolean", default: "false" },
     { name: "typewriterDuration", desc: "打字总时长(ms)", type: "number", default: "1500" },
     { name: "okText", desc: "确认按钮文案", type: "string", default: "'确定'" },
     { name: "cancelText", desc: "取消按钮文案", type: "string", default: "'取消'" },
@@ -35,6 +36,7 @@
     { name: "footer", desc: "自定义底部插槽（优先于默认按钮）", type: "Snippet" },
     { name: "children", desc: "正文内容", type: "Snippet" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
+    { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 </script>
 
@@ -89,7 +91,7 @@
   <Card title="富文本标题 + 内容">
     <Row>
       <Button variant="primary" onclick={() => { snippetTitleModalOpen = true; }}>富文本演示</Button>
-      <Modal bind:open={snippetTitleModalOpen} title={richTitle}>
+      <Modal bind:open={snippetTitleModalOpen} title={richTitle} typewriter={true}>
         <p>title 支持 <b>Snippet</b> 或字符串直接写 HTML 渲染富文本。</p>
         <p>内容区域同样支持 <strong>HTML 标签</strong>，如 <em>斜体</em>、<u>下划线</u>、<s>删除线</s>、<span style="color:var(--primary)">自定义颜色</span>、<mark>高亮</mark> 等。</p>
         <p>也可以嵌套，如 <b><i><span style="color:var(--danger)">粗斜体红色</span></i></b>。</p>
@@ -101,7 +103,7 @@
   <Card title="浅色遮罩 mask='light'">
     <Row>
       <Button variant="primary" onclick={() => { noMaskModalOpen = true; }}>浅色遮罩</Button>
-      <Modal bind:open={noMaskModalOpen} title="浅色遮罩" mask="light" typewriter={false}>
+      <Modal bind:open={noMaskModalOpen} title="浅色遮罩" mask="light">
         <p>使用半透明白色遮罩，视觉更轻量。</p>
         <p class="muted">适合不需要强遮挡的场景。</p>
       </Modal>
@@ -115,7 +117,6 @@
         bind:open={confirmLikeOpen}
         title="删除确认"
         width={420}
-        typewriter={false}
         okText="删除"
         cancelText="再想想"
         onOk={() => { Notification.success('已删除（模拟）'); }}
@@ -134,7 +135,6 @@
         bind:open={preventCloseOpen}
         title="表单校验"
         width={420}
-        typewriter={false}
         okText="提交"
         onOk={() => {
           if (Math.random() < 0.5) {
@@ -157,7 +157,6 @@
         bind:open={asyncOkOpen}
         title="异步提交"
         width={420}
-        typewriter={false}
         okText="保存"
         onOk={async () => {
           await new Promise((r) => setTimeout(r, 1500));
@@ -172,7 +171,7 @@
   <Card title="隐藏 footer showFooter={false}">
     <Row>
       <Button variant="primary" onclick={() => { noFooterOpen = true; }}>打开</Button>
-      <Modal bind:open={noFooterOpen} title="纯展示弹窗" width={420} typewriter={false} showFooter={false}>
+      <Modal bind:open={noFooterOpen} title="纯展示弹窗" width={420} showFooter={false}>
         <p>通过 <code>showFooter={false}</code> 隐藏底部按钮区，仅保留右上角 X 关闭。</p>
         <p class="muted">也可用 showOk / showCancel 单独隐藏某一个按钮。</p>
       </Modal>

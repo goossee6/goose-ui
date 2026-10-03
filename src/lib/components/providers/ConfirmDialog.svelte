@@ -15,7 +15,7 @@
   open={$confirmStore.open}
   title={$confirmStore.title}
   width={400}
-  typewriter={false}
+  typewriter={true}
   showFooter={false}
   onClose={confirmStore.cancel}
 >

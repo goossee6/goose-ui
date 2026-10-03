@@ -12,6 +12,8 @@
     { name: 'children', desc: '页面内容', type: 'Snippet', default: '—' },
     { name: 'active', desc: 'keep-alive 模式：控制显隐与进入/离开过渡（不传则配合外层 {#if} 自动过渡）', type: 'boolean', default: 'undefined' },
     { name: 'transition', desc: '关闭过渡（嵌套 Page 场景）', type: 'boolean', default: 'true' },
+    { name: 'class', desc: '附加类名', type: 'string', default: "''" },
+    { name: 'style', desc: '内联样式', type: 'string', default: "''" },
   ];
 
   const emptyProps: PropsTableItem[] = [
@@ -19,16 +21,21 @@
     { name: 'title', desc: '主文案', type: 'string', default: "'暂无数据'" },
     { name: 'hint', desc: '副提示', type: 'string', default: "''" },
     { name: 'children', desc: '操作区（如按钮）', type: 'Snippet', default: '—' },
+    { name: 'class', desc: '附加类名', type: 'string', default: "''" },
+    { name: 'style', desc: '内联样式', type: 'string', default: "''" },
   ];
 
   const rowProps: PropsTableItem[] = [
     { name: 'gap', desc: '子项间距', type: "'sm' | 'md' | 'lg'", default: "'md'" },
     { name: 'align', desc: '交叉轴对齐', type: "'start' | 'center' | 'stretch'", default: "'center'" },
     { name: 'wrap', desc: '允许换行', type: 'boolean', default: 'true' },
+    { name: 'children', desc: '子内容', type: 'Snippet', default: '—' },
+    { name: 'class', desc: '附加类名', type: 'string', default: "''" },
+    { name: 'style', desc: '内联样式', type: 'string', default: "''" },
   ];
 
   const vars = [
-    { name: '--page-pad', desc: '页面内边距（Layout 内自动为 0）', type: 'length', default: '16px' },
+    { name: '--page-pad', desc: '页面内边距（Layout 内容区为 20px 24px）', type: 'length', default: '16px' },
     { name: '--page-gap', desc: '页头/内容/卡片垂直节奏', type: 'length', default: '16px' },
     { name: '--ph-gap', desc: '独立使用 PageHeader 时的下间距', type: 'length', default: '32px' },
   ];
