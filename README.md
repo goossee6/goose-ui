@@ -119,7 +119,7 @@ import "goose-ui/styles/theme.css";
 | Page          | 页面容器（根布局 + 页头 + 内容区间距一次到位，无需手写样板）                                                              |
 | Row           | 水平排列行（`gap` sm/md/lg + `align` + 自动换行，替代零散 flex 样板）                                                       |
 | SegmentedTabs | 分段标签（pill 动画 + underline 双模式）                                                                                    |
-| Sidebar       | 悬浮岛式侧边栏（导航分组 + 折叠 + popover + endItems 列表结尾项/自定义 footer）                                             |
+| Sidebar       | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems 列表结尾项/自定义 footer）                             |
 | Header        | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                                |
 | ThemeToggle   | 主题切换按钮，开箱即用：默认 Sun/Moon 图标、圆形扩散动画、localStorage 持久化、多实例状态同步；可用 lightIcon/darkIcon 覆盖 |
 | Layout        | Wails3 应用整体布局（TitleBar + 侧栏 tabs + 内容区）                                                                        |
@@ -279,10 +279,31 @@ import "goose-ui/styles/theme.css";
 
 - `mode`：`float`（悬浮岛，默认）/ `flat`（贴边）；`collapsed` 可 `bind:` 双向绑定
 - 组件自带 pill 指示器：切换/折叠/展开分组时自动测量并平滑移动
+- 分组标题滚动时**吸附顶部**（被下一个组头推走）；分组与顶层项字号（14px）、图标文字间距（10px）、左缘对齐一致
+
+### 顶层项 —— 与分组同级穿插
+
+`groups` 数组中可直接放入普通导航项（无 `items` 的条目），与分组任意穿插，渲染为无组头的顶层项：
+
+```svelte
+<script lang="ts">
+  import { Sidebar, type SidebarEntry } from "goose-ui";
+  import House from "@lucide/svelte/icons/house";
+
+  const groups: SidebarEntry[] = [
+    { value: "home", label: "首页", icon: House }, // 顶层项，排在分组之间任意位置
+    { title: "工具", items: [{ value: "port", label: "端口扫描" }] },
+  ];
+</script>
+
+<Sidebar {groups} bind:activeTab />
+```
+
+- 展开态：与**分组标题左缘对齐**（同为 1 级），共享同一 pill；折叠态：渲染为图标按钮，**点击直接切换**（区别于分组的 hover popover）
 
 ### endItems —— 列表结尾固定项
 
-渲染在导航列表**末尾**，不新增额外 footer 层级：空间充足时贴底，列表超高时顺次接在末尾；与普通导航项**共享同一 pill**（切换时 pill 连续滑入而非淡出淡入）；侧栏折叠时隐藏。
+渲染在导航列表**末尾**，不新增额外 footer 层级：空间充足时贴底，列表超高时顺次接在末尾；与普通导航项**共享同一 pill**（切换时 pill 连续滑入而非淡出淡入）；左缘与分组标题对齐（1 级）；侧栏折叠时隐藏。
 
 ```svelte
 <Sidebar

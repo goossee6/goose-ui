@@ -19,6 +19,20 @@
     items: SidebarTabItem[];
   }
 
+  /** 导航条目：分组，或与分组同级穿插的顶层项 */
+  export type SidebarEntry = SidebarTabGroup | SidebarTabItem;
+
+  function isGroup(e: SidebarEntry): e is SidebarTabGroup {
+    return !!e && 'items' in e;
+  }
+
+  function isItem(e: SidebarEntry): e is SidebarTabItem {
+    return !!e && !('items' in e);
+  }
+
+  const itemValue = (e: SidebarEntry): string => ('value' in e ? e.value : '');
+  const itemLabel = (e: SidebarEntry): string => ('label' in e ? e.label : '');
+
   let {
     groups = [],
     activeTab = $bindable(''),
@@ -35,7 +49,7 @@
     width,
     style = '',
   }: {
-    groups?: SidebarTabGroup[];
+    groups?: SidebarEntry[];
     activeTab?: string;
     mode?: 'float' | 'flat';
     shadow?: boolean;
@@ -63,6 +77,10 @@
   let popoverGroup = $state<number>(-1);
   let popoverStyle = $state('');
   let hoverTimer = $state<ReturnType<typeof setTimeout> | null>(null);
+  const popoverEntry = $derived.by(() => {
+    const g = groups[popoverGroup];
+    return popoverGroup >= 0 && isGroup(g) ? g : undefined;
+  });
 
   function toggleCollapse() {
     if (!collapsed) {
@@ -85,7 +103,7 @@
     activeTab = value;
     onchange?.(value);
     popoverGroup = -1;
-    const idx = groups.findIndex(g => g.items.some(i => i.value === value));
+    const idx = groups.findIndex(g => isGroup(g) && g.items.some(i => i.value === value));
     if (idx >= 0 && !expandedGroups.has(idx)) {
       const next = new Set(expandedGroups);
       next.add(idx);
@@ -112,7 +130,8 @@
       const btnRect = btnEl.getBoundingClientRect();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const popH = Math.min(groups[gi].items.length * 32 + 40, 280);
+      const popTarget = groups[gi];
+      const popH = Math.min((isGroup(popTarget) ? popTarget.items.length : 0) * 32 + 40, 280);
       const popW = 170;
       const gap = 6;
 
@@ -148,13 +167,13 @@
   let pillHeight = $state(0);
   let pillOpacity = $state(0);
 
-  function measurePill() {
+  function measurePill(scroll = false) {
     if (!navEl) return;
-    const idx = groups.findIndex((g) => g.items.some((i) => i.value === activeTab));
+    const idx = groups.findIndex((e) => isGroup(e) && e.items.some((i) => i.value === activeTab));
     if (collapsed || (idx >= 0 && !expandedGroups.has(idx))) { pillOpacity = 0; return; }
     const item = navEl.querySelector<HTMLElement>('.nav-item--active');
     if (!item) { pillOpacity = 0; return; }
-    item.scrollIntoView({ block: 'nearest' });
+    if (scroll) item.scrollIntoView({ block: 'nearest' });
     pillLeft = item.offsetLeft;
     pillTop = item.offsetTop;
     pillWidth = item.offsetWidth;
@@ -169,19 +188,23 @@
     if (cur === prevDirTab) return;
     const prev = prevDirTab;
     prevDirTab = cur;
-    const flat = [...groups.flatMap((g) => g.items), ...(endItems ?? [])];
+    const flat = [...groups.flatMap((e) => (isGroup(e) ? e.items : [e])), ...(endItems ?? [])];
     const pi = flat.findIndex((i) => i.value === prev);
     const ci = flat.findIndex((i) => i.value === cur);
     if (pi < 0 || ci < 0 || pi === ci) return;
     pageDirStore.dir = ci < pi ? 'up' : 'down';
   });
 
+  let prevScrollTab = activeTab;
+
   $effect(() => {
     activeTab;
     collapsed;
     expandedGroups;
-    measurePill();
-    const t = setTimeout(measurePill, 340);
+    const tabChanged = activeTab !== prevScrollTab;
+    prevScrollTab = activeTab;
+    measurePill(tabChanged);
+    const t = setTimeout(() => measurePill(tabChanged), 340);
     return () => clearTimeout(t);
   });
 </script>
@@ -219,51 +242,82 @@
       aria-hidden="true"
       style="top: {pillTop}px; left: {pillLeft}px; width: {pillWidth}px; height: {pillHeight}px; opacity: {pillOpacity}"
     ></div>
-    {#each groups as group, gi}
-      {#if collapsed}
-        <button
-          type="button"
-          class="group-icon-btn"
-          class:group-icon-btn--active={hasActiveItem(group)}
-          onmouseenter={(e) => hoverShow(gi, e)}
-          onmouseleave={hoverHide}
-          title={groupTitle(group)}
-        >
-          {#if groupIcon(group)}
-            <Icon icon={groupIcon(group)!} size={18} />
-          {/if}
-        </button>
-      {:else}
-        {#if group.title}
+    {#each groups as entry, gi}
+      {#if isItem(entry)}
+        {#if collapsed}
           <button
             type="button"
-            class="group-header"
-            onclick={() => toggleGroup(gi)}
+            class="group-icon-btn"
+            class:group-icon-btn--active={activeTab === itemValue(entry)}
+            onclick={() => selectTab(itemValue(entry))}
+            title={itemLabel(entry)}
           >
-            {#if group.icon}
-              <span class="group-icon"><Icon icon={group.icon} size={16} /></span>
+            {#if entry.icon}
+              <Icon icon={entry.icon} size={18} />
             {/if}
-            <span class="group-title">{group.title}</span>
-            <span class="group-chevron" class:group-chevron--up={!expandedGroups.has(gi)}>
-              <Icon icon={ChevronDown} size={14} />
-            </span>
+          </button>
+        {:else}
+          <button
+            type="button"
+            class="nav-item nav-item--top"
+            class:nav-item--active={activeTab === itemValue(entry)}
+            onclick={() => selectTab(itemValue(entry))}
+          >
+            {#if entry.icon}
+              <Icon icon={entry.icon} size={16} class="nav-item-icon" />
+            {/if}
+            <span class="nav-item-label">{itemLabel(entry)}</span>
           </button>
         {/if}
-        {#if expandedGroups.has(gi)}
-          <div class="group-items" transition:slide={{ duration: 200 }}>
-            {#each group.items as item}
+      {/if}
+      {#if isGroup(entry)}
+        {#if collapsed}
+          <button
+            type="button"
+            class="group-icon-btn"
+            class:group-icon-btn--active={hasActiveItem(entry)}
+            onmouseenter={(e) => hoverShow(gi, e)}
+            onmouseleave={hoverHide}
+            title={groupTitle(entry)}
+          >
+            {#if groupIcon(entry)}
+              <Icon icon={groupIcon(entry)!} size={18} />
+            {/if}
+          </button>
+        {:else}
+          <div class="group-block">
+            {#if entry.title}
               <button
                 type="button"
-                class="nav-item"
-                class:nav-item--active={activeTab === item.value}
-                onclick={() => selectTab(item.value)}
+                class="group-header"
+                onclick={() => toggleGroup(gi)}
               >
-                {#if item.icon}
-                  <Icon icon={item.icon} size={16} class="nav-item-icon" />
+                {#if entry.icon}
+                  <span class="group-icon"><Icon icon={entry.icon} size={16} /></span>
                 {/if}
-                <span class="nav-item-label">{item.label}</span>
+                <span class="group-title">{entry.title}</span>
+                <span class="group-chevron" class:group-chevron--up={!expandedGroups.has(gi)}>
+                  <Icon icon={ChevronDown} size={14} />
+                </span>
               </button>
-            {/each}
+            {/if}
+            {#if expandedGroups.has(gi)}
+              <div class="group-items" transition:slide={{ duration: 200 }}>
+                {#each entry.items as item}
+                  <button
+                    type="button"
+                    class="nav-item"
+                    class:nav-item--active={activeTab === item.value}
+                    onclick={() => selectTab(item.value)}
+                  >
+                    {#if item.icon}
+                      <Icon icon={item.icon} size={16} class="nav-item-icon" />
+                    {/if}
+                    <span class="nav-item-label">{item.label}</span>
+                  </button>
+                {/each}
+              </div>
+            {/if}
           </div>
         {/if}
       {/if}
@@ -272,7 +326,7 @@
       {#each endItems as item, i}
         <button
           type="button"
-          class="nav-item nav-item--end"
+          class="nav-item nav-item--end nav-item--top"
           class:end-first={i === 0}
           class:nav-item--active={activeTab === item.value}
           onclick={() => selectTab(item.value)}
@@ -299,13 +353,13 @@
     onmouseenter={hoverCancelHide}
     onmouseleave={hoverHide}
   >
-    {#if groups[popoverGroup] && groupIcon(groups[popoverGroup])}
+    {#if popoverEntry && groupIcon(popoverEntry)}
       <div class="popover-header">
-        <Icon icon={groupIcon(groups[popoverGroup])!} size={14} />
-        <span>{groupTitle(groups[popoverGroup])}</span>
+        <Icon icon={groupIcon(popoverEntry)!} size={14} />
+        <span>{groupTitle(popoverEntry)}</span>
       </div>
     {/if}
-    {#each groups[popoverGroup]?.items ?? [] as item}
+    {#each popoverEntry?.items ?? [] as item}
       <button
         type="button"
         class="popover-item"
@@ -423,13 +477,16 @@
     min-height: 0;
     overflow-y: scroll;
     overflow-x: hidden;
-    padding: 8px;
+    padding: 0 8px 8px;
     scrollbar-gutter: stable;
     display: flex;
     flex-direction: column;
   }
   .sidebar-nav > * {
     flex-shrink: 0;
+  }
+  .sidebar-nav > :not(.nav-pill):first-child {
+    margin-top: 8px;
   }
   .nav-item--end.end-first {
     margin-top: auto;
@@ -448,13 +505,17 @@
   .group-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: 8px 14px 6px;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    width: calc(100% + 16px);
+    margin: 0 -8px;
+    padding: 8px 22px 6px;
     border: none;
-    background: none;
+    background: var(--surface);
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -513,6 +574,7 @@
     gap: 10px;
     width: 100%;
     padding: 9px 14px 9px 20px;
+    scroll-margin-top: 44px;
     border: none;
     background: none;
     color: rgba(0, 0, 0, 0.45);
@@ -521,6 +583,10 @@
     cursor: pointer;
     transition: background 0.8s ease, color 0.8s ease;
     border-radius: var(--radius-md);
+  }
+  /* 顶层项与分组标题（1 级）左缘对齐；组内项保持 2 级缩进 */
+  .nav-item--top {
+    padding-left: 14px;
   }
   .nav-item:hover {
     background: color-mix(in srgb, var(--primary) 15%, transparent);

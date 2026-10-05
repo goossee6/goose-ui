@@ -24,7 +24,7 @@ export type { SortState, SortDir } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
 export type { Theme } from './components/themeStore.svelte.js';
 export type { PageDir } from './components/pageDirStore.svelte.js';
-export type { SidebarTabGroup, SidebarTabItem } from './components/ui/Sidebar.svelte';
+export type { SidebarTabGroup, SidebarTabItem, SidebarEntry } from './components/ui/Sidebar.svelte';
 
 // UI Components
 import Button from './components/ui/Button.svelte';

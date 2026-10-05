@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import {
     NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, Page,
     themeStore, toggleThemeFromEvent,
-    type SidebarTabGroup,
+    type SidebarEntry,
   } from 'goose-ui';
+  import House from '@lucide/svelte/icons/house';
   import BookOpen from '@lucide/svelte/icons/book-open';
   import LayoutGrid from '@lucide/svelte/icons/layout-grid';
   import RectangleEllipsis from '@lucide/svelte/icons/rectangle-ellipsis';
@@ -14,6 +16,7 @@
   import Settings from '@lucide/svelte/icons/settings';
 
   import Skill from './lib/demos/Skill.svelte';
+  import Home from './lib/demos/Home.svelte';
   import Title from './lib/demos/Title.svelte';
   import ButtonDemo from './lib/demos/Button.svelte';
   import PageDemo from './lib/demos/PageDemo.svelte';
@@ -56,7 +59,8 @@
   import TitleBarDemo from './lib/demos/TitleBar.svelte';
   import LayoutDemo from './lib/demos/Layout.svelte';
 
-  const groups: SidebarTabGroup[] = [
+  const groups: SidebarEntry[] = [
+    { value: 'home', label: '首页', icon: House },
     {
       title: '指南',
       icon: BookOpen,
@@ -143,11 +147,35 @@
     },
   ];
 
-  let activeTab = $state('button');
+  const endItems = [{ value: 'settings', label: '设置', icon: Settings }];
+
+  const DEFAULT_TAB = 'button';
+  const validTabs = new Set([
+    ...groups.flatMap((e) => ('items' in e ? e.items.map((i) => i.value) : [e.value])),
+    ...endItems.map((i) => i.value),
+  ]);
+
+  function tabFromHash(): string {
+    const v = location.hash.replace(/^#\/?/, '');
+    return validTabs.has(v) ? v : DEFAULT_TAB;
+  }
+
+  let activeTab = $state(tabFromHash());
   let sidebarMode = $state<'float' | 'flat'>('float');
   let sidebarCollapsed = $state(false);
 
-  const endItems = [{ value: 'settings', label: '设置', icon: Settings }];
+  $effect(() => {
+    const next = `#/${activeTab}`;
+    if (location.hash !== next) location.hash = next;
+  });
+
+  onMount(() => {
+    const onHashChange = () => {
+      activeTab = tabFromHash();
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  });
 </script>
 
 <NotificationProvider />
@@ -180,7 +208,9 @@
     </Sidebar>
   {/snippet}
 
-  {#if activeTab === 'skill'}
+  {#if activeTab === 'home'}
+      <Home />
+    {:else if activeTab === 'skill'}
       <Skill />
     {:else if activeTab === 'title'}
       <Title />
