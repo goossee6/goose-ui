@@ -77,7 +77,7 @@
 		width: 18px;
 		height: 18px;
 		border-radius: 9px;
-		background-color: #ffffff;
+		background-color: var(--primary-text);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 	}
 	.toggle--small .toggle-thumb { width: 14px; top: 2px; height: 14px; border-radius: 7px; }

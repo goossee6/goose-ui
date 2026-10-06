@@ -30,7 +30,7 @@
 	const t = $derived(total ?? limit);
 	const percent = $derived(t > 0 ? Math.min(100, (v / t) * 100) : 0);
 	const overQuota = $derived(v > t);
-	const high = $derived(v / t > 0.8);
+	const high = $derived(t > 0 && v / t > 0.8);
 </script>
 
 <div class="usage-bar {cls}" style={style}>

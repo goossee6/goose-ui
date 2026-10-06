@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
+  import { floatingPosition } from './floatingPosition';
 
   interface Option {
     value: string;
@@ -35,21 +36,9 @@
   function positionDropdown() {
     if (!rootEl) return;
     const rect = rootEl.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
     const ddh = Math.min(items.length * 36 + 8, 260);
-    const parts = ['position: fixed', 'z-index: 9999'];
-    if (rect.left + rect.width > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
-    else parts.push(`left: ${rect.left}px`, 'right: auto');
-    const spaceBelow = vh - rect.bottom - 4;
-    const spaceAbove = rect.top - 4;
-    if (spaceBelow < ddh && spaceAbove > spaceBelow) {
-      parts.push(`bottom: ${vh - rect.top + 4}px`, 'top: auto', `max-height: ${spaceAbove}px`);
-    } else {
-      parts.push(`top: ${rect.bottom + 4}px`, 'bottom: auto', `max-height: ${spaceBelow}px`);
-    }
-    parts.push(`width: ${Math.max(120, rect.width)}px`);
-    dropdownStyle = parts.join('; ');
+    const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH: ddh, gap: 4 });
+    dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
   }
 
   function toggleItem(val: string) {
@@ -85,6 +74,7 @@
   <div
     class="trigger"
     class:open
+    class:disabled
     class:empty={values.length === 0}
     onclick={toggle}
     onkeydown={(e) => {
@@ -97,6 +87,7 @@
     tabindex="0"
     aria-haspopup="listbox"
     aria-expanded={open}
+    aria-disabled={disabled}
   >
     <span class="trigger-content">
       {#if values.length === 0}
@@ -135,10 +126,10 @@
 <style>
   .multi-select { position: relative; display: inline-block; min-width: 200px; }
   .trigger { display: flex; align-items: center; gap: 8px; padding: var(--ui-md-padding); height: var(--ui-md-height); min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: var(--ui-md-font); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
-  .trigger:hover:not(:disabled) { background-color: var(--surface-3); }
+  .trigger:hover:not(.disabled) { background-color: var(--surface-3); }
   .trigger:focus-visible { border-color: var(--primary); outline: none; }
   .trigger.open { border-color: var(--primary); }
-  .trigger:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  .trigger.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
   .trigger-content { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
   .placeholder { color: var(--text-muted); white-space: nowrap; }
   .badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 4px; background: var(--primary-soft); color: var(--primary); font-size: 11px; font-weight: 500; white-space: nowrap; line-height: 18px; }
@@ -146,7 +137,7 @@
   .badge-x:hover { background-color: rgba(0, 0, 0, 0.15); }
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
-  .menu { position: fixed; overflow-y: auto; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); padding: var(--sp-xs); z-index: 9999; }
+  .menu { position: fixed; overflow-y: auto; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); padding: var(--sp-xs); z-index: var(--z-max); }
   .option { display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .option:hover { background-color: var(--hover); color: var(--text-strong); }
   .option.selected { background-color: var(--primary-soft); color: var(--primary); }

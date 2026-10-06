@@ -85,44 +85,105 @@ import "goose-ui/styles/theme.css";
 
 ## 组件清单
 
+> 与 Ark UI 等上游命名不一致时，以本表名为准：
+
+| 上游常见叫法 | goose-ui 名 | 说明                        |
+| ------------ | ----------- | --------------------------- |
+| Dialog       | Modal       | 模态弹窗                    |
+| Switch       | Toggle      | iOS 风格开关                |
+| Tabs         | SegmentedTabs | 分段标签（pill/underline）  |
+| Toggle Group | ToggleGroup | 单选/多选切换组             |
+
 ### 基础组件
 
-| 组件            | 说明                                                     |
-| --------------- | -------------------------------------------------------- |
-| Button          | 按钮，支持 primary/default/ghost/danger/link 五种变体    |
-| Card            | 卡片容器，支持 title + right header                      |
-| Checkbox        | 复选框，尺寸档 small/middle/large + 双向绑定，文字标签自行并排/包裹 |
-| CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                    |
-| Input           | 输入框，支持 clearable/Enter 回调/digitsOnly/status 状态，prefix/suffix 为 snippet（可放图标/文本/按钮） |
-| Label           | 表单标签                                                 |
-| Select          | 下拉选择，支持键盘导航和 meta 标签                       |
-| MultiSelect     | 多选下拉，支持 badge 标签                                |
-| Toggle          | iOS 风格开关，带弹性动画                                 |
-| StatusBadge     | 状态徽章                                                 |
+| 组件        | 说明                                                          |
+| ----------- | ------------------------------------------------------------- |
+| Button      | 按钮，支持 primary/default/ghost/danger/link 五种变体          |
+| Card        | 卡片容器，支持 title + right header                            |
+| Label       | 表单标签                                                       |
+| StatusBadge | 状态徽章                                                       |
+| Icon        | 图标包装器（传入 `@lucide/svelte` 图标组件，支持 size/class/spin 旋转动画） |
+| Separator   | 分割线，横/竖/虚线/文字分隔                                    |
+| AspectRatio | 等比容器，按比例裁剪内容                                       |
+| Avatar      | 头像（首字母回退 + 状态点 + size/shape）                        |
+| ScrollArea  | 滚动区（自定义滚动条、role=region）                            |
+| Row         | 水平排列行（`gap` sm/md/lg + `align` + 自动换行）              |
+| Tag         | 标签（6 变体 × 3 尺寸 + 圆点 + 可关闭）                        |
+| Skeleton    | 骨架屏（text/circle/rect + 多行 + shimmer 动画）               |
+| Image       | 图片（懒加载 + 失败兜底 + 点击放大预览）                        |
+| Footer      | 页脚（左右插槽 + 链接列表 + 版权行 + 吸底）                    |
+| CodeBlock   | 代码块（语言标签 + 一键复制 + 注释/字符串/关键字轻量高亮）      |
+
+### 表单输入
+
+| 组件           | 说明                                                                       |
+| -------------- | -------------------------------------------------------------------------- |
+| Input          | 输入框，clearable/Enter 回调/digitsOnly/status，prefix/suffix 为 snippet    |
+| Select         | 下拉选择，支持键盘导航和 meta 标签                                         |
+| MultiSelect    | 多选下拉，支持 badge 标签                                                   |
+| CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                                      |
+| Checkbox       | 复选框，尺寸档 small/middle/large + 双向绑定                                |
+| Radio / RadioGroup | 单选与单选组（context 注入，自动关联 label）                            |
+| Toggle         | iOS 风格开关，带弹性动画                                                    |
+| ToggleGroup    | 单选/多选切换组，default/outline 变体                                       |
+| Slider         | 滑块（pointer 捕获拖拽 + 键盘）                                             |
+| Combobox       | 组合框（输入过滤 + role=combobox/listbox/option 键盘导航）                   |
+| Rating         | 评分（半星/只读/键盘 slider 语义）                                          |
+| PINInput       | 验证码输入（跳格/粘贴/退格回跳，`group`+`separator` 分组）                  |
+| PresetInput    | 带预设的输入框，支持多行模式                                                 |
+| DropZone       | 拖拽上传区                                                                   |
+| Form / FormItem | 表单容器与表单项（context 传递 layout/labelWidth，必填星号 + 错误态）      |
+| TimePicker     | 时间选择器（时/分(/秒) 列 + 「现在」快捷 + 自动翻转）                        |
+
+### 日期与时间
+
+| 组件           | 说明                                                       |
+| -------------- | ---------------------------------------------------------- |
+| DateField      | 日期分段字段（`YYYY-MM-DD`，分段自动跳格/粘贴跨段）         |
+| TimeField      | 时间分段字段（`HH:mm[:ss]`，`seconds` 可选段）              |
+| DateRangeField | 日期范围分段字段（start/end 双向绑定）                      |
+| TimeRangeField | 时间范围分段字段                                            |
+| Calendar       | 日历网格（月导航、min/max、disabledDate、方向键/PgUp/PgDn） |
+| RangeCalendar  | 范围日历（先起点后终点，悬停预览，清除）                    |
+| DatePicker     | 日期选择器（触发器 + 浮层 Calendar，自动翻转、清除）         |
+| DateRangePicker | 范围选择器（触发器 + 浮层 RangeCalendar）                   |
 
 ### 数据展示
 
-| 组件            | 说明                               |
-| --------------- | ---------------------------------- |
-| DataTable       | 数据表格，支持排序、高亮、右键菜单 |
-| DataList        | 数据列表，带空状态                 |
-| ProgressBar     | 渐变进度条                         |
-| ProgressBytes   | 上传进度（字节/速度/ETA）          |
-| ProgressSlotBar | 分片上传进度                       |
-| UsageBar        | 用量/限额进度条                    |
+| 组件           | 说明                                     |
+| -------------- | ---------------------------------------- |
+| DataTable      | 数据表格，支持排序、高亮、右键菜单       |
+| DataList       | 数据列表，带空状态                       |
+| SegmentedTabs  | 分段标签（pill 动画 + underline 双模式） |
+| Pagination     | 分页（siblingCount 省略号折叠）          |
+| Collapsible    | 折叠面板（grid-rows 0fr→1fr 过渡）       |
+| Accordion      | 手风琴（单开/多开/collapsible，复用 Collapsible） |
+| ProgressBar    | 渐变进度条                               |
+| ProgressBytes  | 上传进度（字节/速度/ETA）                |
+| ProgressSlotBar | 分片上传进度                            |
+| UsageBar       | 用量/限额进度条                          |
+| Meter          | 度量条（threshold/critical 状态）        |
+| Typewriter     | 打字机效果，支持逐字文本或淡入 Snippet   |
+| Carousel       | 轮播图（手动/自动播放、悬停暂停、首尾循环） |
+| Time           | 实时时钟（time/date/datetime + 12h 制）  |
+| Countdown      | 倒计时（duration/target 双模式 + 暂停 + 归零回调） |
 
 ### 导航与布局
 
-| 组件          | 说明                                                                                                                        |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| PageHeader    | 页面标题栏（标题 + 描述纵向堆叠 + children 附加行 + 右侧操作区，窄屏自动换行）                                              |
-| Page          | 页面容器（根布局 + 页头 + 内容区间距一次到位，无需手写样板）                                                              |
-| Row           | 水平排列行（`gap` sm/md/lg + `align` + 自动换行，替代零散 flex 样板）                                                       |
-| SegmentedTabs | 分段标签（pill 动画 + underline 双模式）                                                                                    |
-| Sidebar       | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems 列表结尾项/自定义 footer）                             |
-| Header        | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                                |
-| ThemeToggle   | 主题切换按钮，开箱即用：默认 Sun/Moon 图标、圆形扩散动画、localStorage 持久化、多实例状态同步；可用 lightIcon/darkIcon 覆盖 |
-| Layout        | Wails3 应用整体布局（TitleBar + 侧栏 tabs + 内容区）                                                                        |
+| 组件            | 说明                                                                                                            |
+| --------------- | --------------------------------------------------------------------------------------------------------------- |
+| PageHeader      | 页面标题栏（标题 + 描述 + children 附加行 + 右侧操作区，窄屏自动换行）                                          |
+| Page            | 页面容器（根布局 + 页头 + 内容区间距一次到位）                                                                  |
+| Sidebar         | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）                                       |
+| Header          | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                    |
+| NavigationMenu  | 导航菜单（面板定位/翻转，链接 + 描述）                                                                           |
+| Menubar         | 菜单栏（横向方向键，复用 DropdownMenu）                                                                          |
+| DropdownMenu    | 下拉菜单（flip 测量、键盘导航）                                                                                  |
+| Toolbar         | 工具栏（role=toolbar + roving 方向键）                                                                           |
+| Layout          | Wails3 应用整体布局（TitleBar + 侧栏 tabs + 内容区）                                                             |
+| BackTop         | 返回顶部（超过阈值淡入 + easeOutCubic 平滑回顶）                                                                  |
+| Cursor          | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                                                          |
+| Background      | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）                                         |
 
 ### 反馈
 
@@ -130,29 +191,25 @@ import "goose-ui/styles/theme.css";
 | -------------------- | ---------------------------------------------------------------- |
 | Modal                | 模态弹窗（fade+scale 转场、backdrop blur）                       |
 | Drawer               | 抽屉弹窗（4 方向 + 景深效果 + portal）                           |
-| NotificationProvider | 通知容器（App 顶层挂载一次，配合 Notification API 使用）         |
-| NotificationItem     | 单条通知（由 NotificationProvider 内部渲染）                     |
-| ErrorDialog          | 错误弹窗（配合 pushError 使用）                                  |
-| ConfirmDialog        | 确认框容器（App 顶层挂载一次，配合 showConfirm 使用）            |
+| Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭）                         |
+| AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                  |
+| Command              | 命令面板（Ctrl/Cmd+K、分组、键盘导航）                            |
+| LinkPreview          | 链接预览（延迟悬停、翻转）                                        |
 | Tooltip              | 气泡提示（12 方向 + 自动翻转 + hover/focus/click 触发）          |
-| Loading              | 加载指示器（spinner 或自定义图片，size 可调）                    |
-| Empty                | 空状态（图标 + 主文案 + 副提示 + 可选操作区 children，居中排布） |
-
-### 输入增强
-
-| 组件        | 说明                         |
-| ----------- | ---------------------------- |
-| DropZone    | 拖拽上传区                   |
-| PresetInput | 带预设的输入框，支持多行模式 |
+| NotificationProvider | 通知容器（App 顶层挂载一次，配合 Notification API 使用）          |
+| NotificationItem     | 单条通知（由 NotificationProvider 内部渲染）                      |
+| ErrorDialog          | 错误弹窗（配合 pushError 使用）                                   |
+| ConfirmDialog        | 确认框容器（App 顶层挂载一次，配合 showConfirm 使用）             |
+| Loading              | 加载指示器（spinner 或自定义图片，size 可调）                     |
+| Empty                | 空状态（图标 + 主文案 + 副提示 + 可选操作区，居中排布）           |
 
 ### 其他
 
-| 组件        | 说明                                                          |
-| ----------- | ------------------------------------------------------------- |
-| Icon        | 图标包装器（传入 `@lucide/svelte` 图标组件，支持 size/class/spin 旋转动画） |
-| TitleBar    | Wails3 自绘标题栏                                             |
-| Typewriter  | 打字机效果，支持逐字文本或淡入 Snippet                        |
-| ContextMenu | 右键菜单（全局注册机制）                                      |
+| 组件       | 说明                                                          |
+| ---------- | ------------------------------------------------------------- |
+| TitleBar   | Wails3 自绘标题栏                                             |
+| ThemeToggle | 主题切换按钮（Sun/Moon 图标、圆形扩散动画、localStorage 持久化） |
+| ContextMenu | 右键菜单（全局注册机制）                                     |
 
 ## 新项目接入
 

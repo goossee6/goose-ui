@@ -19,7 +19,7 @@
     { name: "height", desc: "高度（上下方向生效）", type: "number | string", default: "300" },
     { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "true" },
     { name: "pushBackground", desc: "打开时下沉背景内容", type: "boolean", default: "true" },
-    { name: "contentSelector", desc: "被下沉的背景选择器", type: "string", default: "'.app'" },
+    { name: "contentSelector", desc: "被下沉的背景选择器", type: "string", default: "''（不下沉）" },
     { name: "footer", desc: "底部区域插槽", type: "Snippet | null" },
     { name: "onClose", desc: "关闭回调", type: "() => void" },
     { name: "children", desc: "抽屉内容", type: "Snippet" },

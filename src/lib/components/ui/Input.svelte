@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { getContext } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import Icon from './Icon.svelte';
+	import { FORM_ITEM_KEY, type FormItemContext } from './form.context';
 
 	let {
 		id = '',
@@ -47,12 +49,16 @@
 		onclick?: (e: MouseEvent) => void;
 	} = $props();
 
-	const statusIcon = $derived(status === 'error' ? AlertCircle : status === 'warning' ? AlertTriangle : null);
-	const statusColor = $derived(status === 'error' ? 'var(--danger-text)' : status === 'warning' ? 'var(--warning-text)' : '');
+	// FormItem 内且该项有 error 时自动进入 error 态（FormItem 之外为 null，行为不变）
+	const itemCtx = getContext<FormItemContext | null>(FORM_ITEM_KEY);
+	const effStatus = $derived(status ?? (itemCtx?.error ? 'error' : undefined));
+
+	const statusIcon = $derived(effStatus === 'error' ? AlertCircle : effStatus === 'warning' ? AlertTriangle : null);
+	const statusColor = $derived(effStatus === 'error' ? 'var(--danger-text)' : effStatus === 'warning' ? 'var(--warning-text)' : '');
 	const statusStyle = $derived(
-		status === 'error'
+		effStatus === 'error'
 			? 'border-color:var(--danger-text);box-shadow:0 0 0 2px var(--danger-soft);'
-			: status === 'warning'
+			: effStatus === 'warning'
 				? 'border-color:var(--warning-text);box-shadow:0 0 0 2px var(--warning-soft);'
 				: ''
 	);
@@ -129,7 +135,7 @@
 		border-color: var(--primary);
 		box-shadow: 0 0 0 2px var(--primary-soft);
 	}
-	.input-wrapper.input--disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--surface-2); }
+	.input-wrapper.input--disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--surface-2); pointer-events: none; }
 	.input {
 		flex: 1;
 		min-width: 0;

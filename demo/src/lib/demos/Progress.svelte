@@ -1,5 +1,6 @@
 <script lang="ts">
   import {Card, ProgressBar, ProgressBytes, ProgressSlotBar, UsageBar, Button, Page, Notification} from "goose-ui";
+  import { onDestroy } from "svelte";
 
   let percent = $state(35);
   let bytesProgress = $state(42);
@@ -8,6 +9,12 @@
   const fileSize = 1024 * 1024 * 8; // 8 MB
 
   let timer: ReturnType<typeof setInterval> | null = null;
+  let slotTimer: ReturnType<typeof setInterval> | null = null;
+
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+    if (slotTimer) clearInterval(slotTimer);
+  });
 
   function startBytesSim() {
     if (timer) clearInterval(timer);
@@ -23,10 +30,15 @@
   }
 
   function startSlotSim() {
+    if (slotTimer) clearInterval(slotTimer);
     slotLoaded = 0;
-    const id = setInterval(() => {
+    slotTimer = setInterval(() => {
       slotLoaded += 200 * 1024;
-      if (slotLoaded >= 1024 * 1024 * 2) { slotLoaded = 1024 * 1024 * 2; clearInterval(id); Notification.success('分片上传完成'); }
+      if (slotLoaded >= 1024 * 1024 * 2) {
+        slotLoaded = 1024 * 1024 * 2;
+        if (slotTimer) { clearInterval(slotTimer); slotTimer = null; }
+        Notification.success('分片上传完成');
+      }
     }, 200);
   }
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";

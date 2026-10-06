@@ -1,5 +1,6 @@
 <script lang="ts" generics="T extends string | number">
 	import { onMount, tick } from 'svelte';
+	import { floatingPosition } from './floatingPosition';
 
 	interface Option {
 		value: string | number;
@@ -66,10 +67,10 @@
 			}
 			return;
 		}
-		if (e.key === 'Escape') { open = false; mounted = false; }
-		else if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = (activeIdx + 1) % options.length; }
-		else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = (activeIdx - 1 + options.length) % options.length; }
-		else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0) choose(options[activeIdx]); }
+		if (e.key === 'Escape') { e.stopPropagation(); open = false; mounted = false; }
+		else if (e.key === 'ArrowDown') { e.preventDefault(); if (options.length) activeIdx = activeIdx < 0 ? 0 : (activeIdx + 1) % options.length; }
+		else if (e.key === 'ArrowUp') { e.preventDefault(); if (options.length) activeIdx = activeIdx < 0 ? options.length - 1 : (activeIdx - 1 + options.length) % options.length; }
+		else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0 && options[activeIdx]) choose(options[activeIdx]); }
 	}
 
 	function updateIndicator(idx: number) {
@@ -89,39 +90,16 @@
 		tick().then(() => {
 			if (!wrapperEl) return;
 			const rect = wrapperEl.getBoundingClientRect();
-			const vw = window.innerWidth;
-			const vh = window.innerHeight;
 			const ddh = Math.min(options.length * 36 + 8, 240);
 			const ddw = Math.max(120, rect.width);
-			const gap = 4;
-			const parts = ['position: fixed', 'z-index: 9999'];
-
-			if (placement === 'left') {
-				parts.push(`right: ${vw - rect.left + gap}px`, 'left: auto');
-				const triggerCenter = rect.top + rect.height / 2;
-				const ddHalf = ddh / 2;
-				if (triggerCenter - ddHalf < 4) parts.push(`top: ${4}px`, 'bottom: auto');
-				else if (triggerCenter + ddHalf > vh - 4) parts.push(`bottom: ${4}px`, 'top: auto');
-				else parts.push(`top: ${triggerCenter - ddHalf}px`, 'bottom: auto');
-			} else if (placement === 'right') {
-				parts.push(`left: ${rect.right + gap}px`, 'right: auto');
-				const triggerCenter = rect.top + rect.height / 2;
-				const ddHalf = ddh / 2;
-				if (triggerCenter - ddHalf < 4) parts.push(`top: ${4}px`, 'bottom: auto');
-				else if (triggerCenter + ddHalf > vh - 4) parts.push(`bottom: ${4}px`, 'top: auto');
-				else parts.push(`top: ${triggerCenter - ddHalf}px`, 'bottom: auto');
-			} else if (placement === 'top') {
-				parts.push(`bottom: ${vh - rect.top + gap}px`, 'top: auto');
-				if (rect.left + ddw > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
-				else parts.push(`left: ${rect.left}px`, 'right: auto');
-			} else {
-				parts.push(`top: ${rect.bottom + gap}px`, 'bottom: auto');
-				if (rect.left + ddw > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
-				else parts.push(`left: ${rect.left}px`, 'right: auto');
-			}
-
-			parts.push(`width: ${ddw}px`);
-			dropdownStyle = parts.join('; ');
+			const r = floatingPosition(rect, {
+				panelW: ddw,
+				panelH: ddh,
+				gap: 4,
+				prefer: placement === 'top' ? 'top' : 'bottom',
+				side: placement === 'left' || placement === 'right' ? placement : undefined,
+			});
+			dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
 			mounted = true;
 		});
 	});

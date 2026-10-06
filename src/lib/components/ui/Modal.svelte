@@ -65,7 +65,7 @@
     const shouldType = open && typewriter;
     untrack(() => {
       if (shouldType) {
-        setTimeout(() => startTypewriter(), 0);
+        twTimer = setTimeout(() => startTypewriter(), 0);
       }
     });
     return () => {
@@ -135,11 +135,10 @@
 
   function handleKeydown(e: KeyboardEvent) {
     if (!open || disableClose) return;
-    if (e.key === "Escape") doCancel();
-  }
-
-  function handleModalKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape" && !disableClose) doCancel();
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      doCancel();
+    }
   }
 </script>
 
@@ -150,7 +149,7 @@
     class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}"
     role="presentation"
     onclick={handleMaskClick}
-    onkeydown={(e) => { if (e.key === "Escape") doClose(); }}
+    onkeydown={handleKeydown}
     transition:fade={{ duration: 150 }}
   >
     <div
@@ -159,7 +158,7 @@
       role="dialog"
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}
-      onkeydown={handleModalKeydown}
+      onkeydown={handleKeydown}
       transition:scale={{ duration: 180, start: 0.92 }}
     >
       {#if title}
@@ -219,7 +218,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--z-overlay);
   }
   .modal-overlay-light {
     background-color: rgba(255, 255, 255, 0.4);
@@ -240,7 +239,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 1000;
+    z-index: var(--z-overlay);
     background-color: var(--surface);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-2xl);

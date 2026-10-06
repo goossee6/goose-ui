@@ -13,7 +13,7 @@
     height = 300,
     maskClosable = true,
     pushBackground = true,
-    contentSelector = '.app',
+    contentSelector = '',
     footer,
     onClose,
     children,
@@ -55,12 +55,21 @@
 
   function handleKeydown(e: KeyboardEvent) {
     if (!open) return;
-    if (e.key === 'Escape') doClose();
+    if (e.key === 'Escape') {
+      // 只关本层，不冒泡触发外层 Modal 的 Esc
+      e.stopPropagation();
+      doClose();
+    }
   }
 
   $effect(() => {
-    if (!pushBackground) return;
-    const el = document.querySelector(contentSelector) as HTMLElement | null;
+    if (!pushBackground || !contentSelector) return;
+    let el: HTMLElement | null = null;
+    try {
+      el = document.querySelector(contentSelector) as HTMLElement | null;
+    } catch {
+      return;
+    }
     if (!el) return;
     if (open) {
       el.style.transition = 'transform 0.36s cubic-bezier(0.2, 0, 0.2, 1), filter 0.36s, border-radius 0.36s';
@@ -77,6 +86,7 @@
       el.style.overflow = '';
     }
     return () => {
+      if (!el) return;
       el.style.transition = '';
       el.style.transform = '';
       el.style.filter = '';
@@ -143,7 +153,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 1000;
+    z-index: var(--z-overlay);
     pointer-events: none;
   }
   .drawer-overlay {

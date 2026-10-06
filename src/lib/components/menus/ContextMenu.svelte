@@ -3,8 +3,6 @@
   import Icon from "../ui/Icon.svelte";
   import { menuStore } from "../contextMenuStore.svelte.js";
   import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu";
-  import { Notification } from "../notification";
-  import { copyToClipboard } from "../../utils/clipboard";
 
   let menuEl = $state<HTMLElement | null>(null);
   let pos = $state({ left: 0, top: 0 });
@@ -32,23 +30,19 @@
   async function pick(item: MenuItemDef) {
     const { name, data } = menuStore;
     closeMenu();
-    if (item.builtin === "copy") {
-      const text = data.copy ?? "";
-      if (!text) { Notification.error("复制失败"); return; }
-      const ok = await copyToClipboard(text);
-      Notification[ok ? "success" : "error"](ok ? "已复制" : "复制失败");
-      return;
-    }
     dispatchMenuAction({ menu: name, action: item.id, data });
   }
 
   $effect(() => {
     if (!menuStore.visible) return;
     function onDocDown(e: MouseEvent) { if (menuEl && !menuEl.contains(e.target as Node)) closeMenu(); }
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") closeMenu(); }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") { e.stopPropagation(); closeMenu(); }
+    }
     document.addEventListener("mousedown", onDocDown);
-    window.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDocDown); window.removeEventListener("keydown", onKey); };
+    // capture 拦截 Esc，避免冒泡触发外层 Modal 关闭
+    document.addEventListener("keydown", onKey, true);
+    return () => { document.removeEventListener("mousedown", onDocDown); document.removeEventListener("keydown", onKey, true); };
   });
 
   $effect(() => {
@@ -74,7 +68,7 @@
 {/if}
 
 <style>
-  .ctxmenu { position: fixed; z-index: 2000; min-width: 180px; padding: var(--sp-xs); background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+  .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-xs); background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
   .ctxmenu-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .ctxmenu-item :global(.ctxmenu-item-icon) { color: var(--text-muted); flex-shrink: 0; }
   .ctxmenu-item:hover { background-color: var(--hover); color: var(--text-strong); }

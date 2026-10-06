@@ -66,6 +66,6 @@
   .rich { display: flex; flex-direction: column; gap: 8px; }
   .rich ul { padding-left: 20px; line-height: 1.8; margin: 0; }
   .rich-actions { display: flex; gap: 8px; margin-top: 8px; }
-  .cards-row { display: flex; gap: 12px; }
+  .cards-row { display: flex; flex-wrap: wrap; gap: 12px; }
   .cards-row :global(.card) { flex: 1; }
 </style>

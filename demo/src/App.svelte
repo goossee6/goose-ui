@@ -20,7 +20,24 @@
   import Title from './lib/demos/Title.svelte';
   import ButtonDemo from './lib/demos/Button.svelte';
   import PageDemo from './lib/demos/PageDemo.svelte';
-  import Divider from './lib/demos/Divider.svelte';
+  import SeparatorDemo from './lib/demos/Separator.svelte';
+  import AvatarDemo from './lib/demos/Avatar.svelte';
+  import RatingDemo from './lib/demos/Rating.svelte';
+  import PINInputDemo from './lib/demos/PINInput.svelte';
+  import MeterDemo from './lib/demos/Meter.svelte';
+  import ScrollAreaDemo from './lib/demos/ScrollArea.svelte';
+  import DropdownMenuDemo from './lib/demos/DropdownMenu.svelte';
+  import MenubarDemo from './lib/demos/Menubar.svelte';
+  import NavigationMenuDemo from './lib/demos/NavigationMenu.svelte';
+  import ToolbarDemo from './lib/demos/Toolbar.svelte';
+  import SliderDemo from './lib/demos/Slider.svelte';
+  import ToggleGroupDemo from './lib/demos/ToggleGroup.svelte';
+  import ComboboxDemo from './lib/demos/Combobox.svelte';
+  import PopoverDemo from './lib/demos/Popover.svelte';
+  import AlertDialogDemo from './lib/demos/AlertDialog.svelte';
+  import CommandDemo from './lib/demos/Command.svelte';
+  import LinkPreviewDemo from './lib/demos/LinkPreview.svelte';
+  import DateFieldDemo from './lib/demos/DateField.svelte';
   import IconDemo from './lib/demos/Icon.svelte';
   import Tag from './lib/demos/Tag.svelte';
   import Cursor from './lib/demos/Cursor.svelte';
@@ -75,10 +92,13 @@
         { value: 'title', label: 'Title 标题' },
         { value: 'button', label: 'Button 按钮' },
         { value: 'page', label: 'Page 页面容器' },
-        { value: 'divider', label: 'Divider 分割线' },
+        { value: 'separator', label: 'Separator 分割线' },
+        { value: 'avatar', label: 'Avatar 头像' },
+        { value: 'scrollarea', label: 'ScrollArea 滚动区' },
         { value: 'icon', label: 'Icon 图标' },
         { value: 'tag', label: 'Tag 标签' },
         { value: 'codeblock', label: 'CodeBlock 代码高亮' },
+        { value: 'toolbar', label: 'Toolbar 工具栏' },
       ],
     },
     {
@@ -93,6 +113,12 @@
         { value: 'checkbox', label: 'Checkbox 多选框' },
         { value: 'radio', label: 'Radio 单选框' },
         { value: 'dropzone', label: 'DropZone 拖拽上传' },
+        { value: 'rating', label: 'Rating 评分' },
+        { value: 'pininput', label: 'PINInput 验证码' },
+        { value: 'slider', label: 'Slider 滑块' },
+        { value: 'togglegroup', label: 'ToggleGroup 切换组' },
+        { value: 'combobox', label: 'Combobox 组合框' },
+        { value: 'datefield', label: 'Date/Time Field 字段' },
         { value: 'form', label: 'Form 表单' },
       ],
     },
@@ -105,6 +131,10 @@
         { value: 'confirm', label: 'Confirm 确认框' },
         { value: 'drawer', label: 'Drawer 抽屉' },
         { value: 'tooltip', label: 'Tooltip 气泡提示' },
+        { value: 'popover', label: 'Popover 气泡卡片' },
+        { value: 'alertdialog', label: 'AlertDialog 警惕对话框' },
+        { value: 'command', label: 'Command 命令面板' },
+        { value: 'linkpreview', label: 'LinkPreview 链接预览' },
         { value: 'loading', label: 'Loading 加载' },
       ],
     },
@@ -118,6 +148,7 @@
         { value: 'table', label: 'Table 表格' },
         { value: 'pagination', label: 'Pagination 分页' },
         { value: 'progress', label: 'Progress 进度条' },
+        { value: 'meter', label: 'Meter 度量条' },
         { value: 'skeleton', label: 'Skeleton 骨架屏' },
         { value: 'typewriter', label: 'Typewriter 打字机' },
         { value: 'image', label: 'Image 图片' },
@@ -129,6 +160,9 @@
       icon: Wrench,
       items: [
         { value: 'header', label: 'Header 头部导航' },
+        { value: 'navmenu', label: 'NavigationMenu 导航菜单' },
+        { value: 'menubar', label: 'Menubar 菜单栏' },
+        { value: 'dropdownmenu', label: 'DropdownMenu 下拉菜单' },
         { value: 'cursor', label: 'Cursor 光标' },
         { value: 'background', label: 'Background 背景' },
         { value: 'footer', label: 'Footer 页脚' },
@@ -218,8 +252,42 @@
       <ButtonDemo />
     {:else if activeTab === 'page'}
       <PageDemo />
-    {:else if activeTab === 'divider'}
-      <Divider />
+    {:else if activeTab === 'separator'}
+      <SeparatorDemo />
+    {:else if activeTab === 'avatar'}
+      <AvatarDemo />
+    {:else if activeTab === 'scrollarea'}
+      <ScrollAreaDemo />
+    {:else if activeTab === 'rating'}
+      <RatingDemo />
+    {:else if activeTab === 'pininput'}
+      <PINInputDemo />
+    {:else if activeTab === 'slider'}
+      <SliderDemo />
+    {:else if activeTab === 'togglegroup'}
+      <ToggleGroupDemo />
+    {:else if activeTab === 'combobox'}
+      <ComboboxDemo />
+    {:else if activeTab === 'popover'}
+      <PopoverDemo />
+    {:else if activeTab === 'alertdialog'}
+      <AlertDialogDemo />
+    {:else if activeTab === 'command'}
+      <CommandDemo />
+    {:else if activeTab === 'linkpreview'}
+      <LinkPreviewDemo />
+    {:else if activeTab === 'datefield'}
+      <DateFieldDemo />
+    {:else if activeTab === 'meter'}
+      <MeterDemo />
+    {:else if activeTab === 'toolbar'}
+      <ToolbarDemo />
+    {:else if activeTab === 'navmenu'}
+      <NavigationMenuDemo />
+    {:else if activeTab === 'menubar'}
+      <MenubarDemo />
+    {:else if activeTab === 'dropdownmenu'}
+      <DropdownMenuDemo />
     {:else if activeTab === 'icon'}
       <IconDemo />
     {:else if activeTab === 'tag'}

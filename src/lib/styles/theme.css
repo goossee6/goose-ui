@@ -229,7 +229,31 @@
 	}
 }
 
+/* ── Z-Index Scale（全序保真，替换散落的字面量） ────────────────────────────── */
+:root {
+	--z-sticky: 100;
+	--z-fixed: 900;
+	--z-overlay: 1000;
+	--z-dropdown: 1200;
+	--z-popover: 1300;
+	--z-dialog: 3000;
+	--z-max: 9999;
+	--z-notification: 10000;
+}
+
 /* ── Base Reset ────────────────────────────────────────────────────────────── */
+/* box-sizing 必须全局生效：否则带 border 的定高控件（.btn/.input-wrapper 等）
+   实际高度比 --ui-*-height 多 2px，max-width 类也会横向溢出 */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+	margin: 0;
+}
+
 .goose-ui *, .goose-ui *::before, .goose-ui *::after {
 	margin: 0;
 	padding: 0;

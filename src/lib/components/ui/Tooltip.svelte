@@ -59,7 +59,8 @@
     clearTimers();
     leaveTimer = setTimeout(() => {
       animState = "leaving";
-      setTimeout(() => {
+      // 存入 leaveTimer：可被 clearTimers 清除，避免卸载/重新 show 后旧 timer 误关
+      leaveTimer = setTimeout(() => {
         visible = false;
         animState = "hidden";
       }, 80);
@@ -143,7 +144,13 @@
   }
 
   function onDocClick() { if (trigger === "click" && visible) hide(); }
-  function onKeydown(e: KeyboardEvent) { if (e.key === "Escape" && visible) hide(); }
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape" && visible) {
+      // capture 拦截：只关 tooltip，不冒泡触发外层 Modal 的 Esc
+      e.stopPropagation();
+      hide();
+    }
+  }
 
   $effect(() => {
     if (!visible) return;
@@ -152,12 +159,12 @@
     window.addEventListener("scroll", onScroll, { capture: true, passive: true });
     window.addEventListener("resize", onResize, { passive: true });
     document.addEventListener("click", onDocClick);
-    window.addEventListener("keydown", onKeydown);
+    document.addEventListener("keydown", onKeydown, true);
     return () => {
       window.removeEventListener("scroll", onScroll, { capture: true } as any);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("click", onDocClick);
-      window.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("keydown", onKeydown, true);
     };
   });
 
@@ -214,7 +221,7 @@
 
   .tooltip {
     position: fixed;
-    z-index: 3000;
+    z-index: var(--z-dialog);
     pointer-events: none;
     transition: opacity 0.12s ease, transform 0.12s ease;
     max-width: 280px;

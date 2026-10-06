@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import type { Snippet } from 'svelte';
+	import { floatingPosition } from './floatingPosition';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
@@ -135,6 +136,7 @@
 			confirmSelection();
 		} else if (e.key === 'Escape') {
 			e.preventDefault();
+			e.stopPropagation();
 			close();
 		}
 	}
@@ -150,21 +152,8 @@
 	async function positionDropdown() {
 		if (!wrapperEl) return;
 		const rect = wrapperEl.getBoundingClientRect();
-		const vw = window.innerWidth;
-		const vh = window.innerHeight;
-		const ddh = 320;
-		const parts = ['position: fixed', 'z-index: 9999'];
-		if (rect.left + rect.width > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
-		else parts.push(`left: ${rect.left}px`, 'right: auto');
-		const spaceBelow = vh - rect.bottom - 4;
-		const spaceAbove = rect.top - 4;
-		if (spaceBelow < ddh && spaceAbove > spaceBelow) {
-			parts.push(`bottom: ${vh - rect.top + 4}px`, 'top: auto', `max-height: ${spaceAbove}px`);
-		} else {
-			parts.push(`top: ${rect.bottom + 4}px`, 'bottom: auto', `max-height: ${spaceBelow}px`);
-		}
-		parts.push(`width: ${Math.max(240, rect.width)}px`);
-		dropdownStyle = parts.join('; ');
+		const r = floatingPosition(rect, { panelW: Math.max(240, rect.width), panelH: 320, gap: 4 });
+		dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
 		mounted = true;
 		await tick();
 		searchEl?.focus();

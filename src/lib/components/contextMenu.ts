@@ -5,7 +5,6 @@ export interface MenuItemDef {
   id: string;
   label: string;
   icon?: Component<{ size?: number; class?: string }>;
-  builtin?: 'copy';
 }
 
 export interface MenuActionData {

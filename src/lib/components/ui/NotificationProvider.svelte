@@ -21,8 +21,13 @@
 		'bottom-left': [], 'bottom': [], 'bottom-right': [],
 	});
 
-	positions.forEach((p) => {
-		notificationStore.subscribe(p, (items) => { state[p] = items; });
+	$effect(() => {
+		const unsubs = positions.map((p) =>
+			notificationStore.subscribe(p, (items) => {
+				state[p] = items;
+			})
+		);
+		return () => unsubs.forEach((u) => u());
 	});
 
 	const positionMap: Record<NotificationPosition, string> = {
@@ -66,7 +71,7 @@
 	.notification-root {
 		position: fixed;
 		inset: 0;
-		z-index: 10000;
+		z-index: var(--z-notification);
 		pointer-events: none;
 	}
 	.nc {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tick } from 'svelte';
+    import { floatingPosition } from './floatingPosition';
     import X from '@lucide/svelte/icons/x';
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import Icon from './Icon.svelte';
@@ -80,21 +81,9 @@
     function positionDropdown() {
         if (!rootEl) return;
         const rect = rootEl.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
         const ddh = Math.min(options.length * 36 + 8, 240);
-        const parts = ['position: fixed', 'z-index: 9999'];
-        if (rect.left + 240 > vw) parts.push(`right: ${vw - rect.right}px`, 'left: auto');
-        else parts.push(`left: ${rect.left}px`, 'right: auto');
-        const spaceBelow = vh - rect.bottom - 4;
-        const spaceAbove = rect.top - 4;
-        if (spaceBelow < ddh && spaceAbove > spaceBelow) {
-            parts.push(`bottom: ${vh - rect.top + 4}px`, 'top: auto', `max-height: ${spaceAbove}px`);
-        } else {
-            parts.push(`top: ${rect.bottom + 4}px`, 'bottom: auto', `max-height: ${spaceBelow}px`);
-        }
-        parts.push(`width: ${Math.max(120, rect.width)}px`);
-        dropdownStyle = parts.join('; ');
+        const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH: ddh, gap: 4 });
+        dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
     }
 
     function pick(opt: PresetOption) {
@@ -196,7 +185,7 @@
     .preset-toggle { display: flex; align-items: center; justify-content: center; padding: 0 8px; align-self: stretch; background: none; border: none; border-left: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: color 0.15s; }
     .preset-toggle:hover:not(:disabled) { color: var(--text-strong); }
     .preset-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
-    .preset-menu { position: fixed; overflow: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); background-color: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: 9999; }
+    .preset-menu { position: fixed; overflow: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); background-color: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
     .preset-item { display: block; width: 100%; padding: var(--sp-md) var(--sp-xl); text-align: left; background: none; border: none; color: var(--text-strong); font-size: 13px; font-family: var(--font-mono); cursor: pointer; white-space: nowrap; }
     .preset-item:hover { background-color: var(--hover); }
 </style>

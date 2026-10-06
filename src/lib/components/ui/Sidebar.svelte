@@ -595,7 +595,7 @@
   .nav-item--active,
   .nav-item--active:hover {
     background: transparent;
-    color: #fff;
+    color: var(--primary-text);
     font-weight: 500;
   }
   .nav-item-label {
@@ -620,7 +620,7 @@
   :global(.dark) .nav-item--active,
   :global(.dark) .nav-item--active:hover {
     background: transparent;
-    color: #fff;
+    color: var(--primary-text);
   }
 
   /* ── Footer ──────────────────────────────────────────────────────────────── */
@@ -638,7 +638,7 @@
   /* ── Popover ─────────────────────────────────────────────────────────────── */
   .sidebar-popover {
     position: fixed;
-    z-index: 100;
+    z-index: var(--z-dropdown);
     min-width: 140px;
     max-width: 220px;
     background: var(--surface);
@@ -690,7 +690,7 @@
   }
   .popover-item--active {
     background: var(--primary);
-    color: #fff;
+    color: var(--primary-text);
     font-weight: 500;
   }
   :global(.dark) .popover-item {
@@ -702,6 +702,6 @@
   }
   :global(.dark) .popover-item--active {
     background: var(--primary);
-    color: #fff;
+    color: var(--primary-text);
   }
 </style>

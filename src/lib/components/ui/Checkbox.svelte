@@ -24,7 +24,7 @@
 	<input type="checkbox" bind:checked {disabled} aria-label={ariaLabel} class="checkbox-input" onchange={(e) => onchange?.(e)} />
 	<span class="checkbox-box {sizeClass}" class:checked>
 		{#if checked}
-			<svg class="checkbox-check {sizeClass}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+			<svg class="checkbox-check checkbox-check--{size}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
 				<polyline points="20 6 9 17 4 12" />
 			</svg>
 		{/if}

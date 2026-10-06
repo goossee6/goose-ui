@@ -114,7 +114,7 @@
 	/* ── Wails 四角 resize 手柄 ─────────────────────────────────────────── */
 	.layout-handle {
 		position: fixed;
-		z-index: 9999;
+		z-index: var(--z-max);
 		width: 6px;
 		height: 6px;
 	}

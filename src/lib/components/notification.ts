@@ -112,6 +112,7 @@ function createNotificationStore() {
   }
 
   function updateItem(position: NotificationPosition, id: number, opts: Partial<NotificationOptions>) {
+    let dur = 0;
     containers[position].update((list) =>
       list.map((n) => {
         if (n.id !== id) return n;
@@ -135,12 +136,12 @@ function createNotificationStore() {
           _remaining: undefined,
           _startedAt: undefined,
         };
-        if (updated.duration > 0) {
-          startTimer(position, id, updated.duration);
-        }
+        dur = updated.duration;
         return updated;
       })
     );
+    // 必须在本次 update 的 set 完成后再启动 timer：嵌套 update 会被外层 set 覆盖 _timer
+    if (dur > 0) startTimer(position, id, dur);
   }
 
   function startTimer(position: NotificationPosition, id: number, duration: number) {

@@ -119,7 +119,7 @@
   .btn-icon-xs { width: 24px; height: 24px; padding: 0; border-radius: min(var(--radius-md), 10px); }
   .btn-icon-lg { width: var(--ui-lg-height); height: var(--ui-lg-height); padding: 0; }
   /* variants */
-  .btn-primary { background-color: var(--primary); color: #ffffff; }
+  .btn-primary { background-color: var(--primary); color: var(--primary-text); }
   .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
   .btn-default { background-color: var(--secondary); color: var(--secondary-text); border: 1px solid var(--border-strong); }
   .btn-default:hover:not(:disabled) { background-color: var(--hover); border-color: var(--primary); }

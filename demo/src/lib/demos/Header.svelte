@@ -101,7 +101,8 @@
     height: 120px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    overflow: hidden;
+    /* 可滚动容器：Header 的 sticky 演示依赖滚动祖先 */
+    overflow-y: auto;
     background: var(--bg);
   }
   .preview-frame--full { margin: 0 -20px; border-radius: 0; border-left: none; border-right: none; }
@@ -109,6 +110,8 @@
     padding: 16px 20px 20px;
     font-size: 13px;
     color: var(--text-muted);
+    /* 内容高于视口，制造滚动使 sticky 可观察 */
+    min-height: 320px;
   }
   .preview-content--full { padding-left: 40px; }
   .demo-icon-btn {

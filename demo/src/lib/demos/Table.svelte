@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, DataTable, DataList, StatusBadge, Label, Button, Page, Input, Icon, Notification, registerMenu, unregisterMenu, onMenuAction, type Column, Row } from "goose-ui";
+  import { Card, DataTable, DataList, StatusBadge, Label, Button, Page, Input, Icon, Notification, registerMenu, unregisterMenu, onMenuAction, copyToClipboard, type Column, Row } from "goose-ui";
   import Search from "@lucide/svelte/icons/search";
   import Pencil from "@lucide/svelte/icons/pencil";
   import Eye from "@lucide/svelte/icons/eye";
@@ -27,16 +27,23 @@
 
   let highlight = $state("");
 
-  let offMenuAction: (() => void) | null = null;
+  let menuOffs: (() => void)[] = [];
   onMount(() => {
     registerMenu("user-row", [
-      { id: "copy", label: "复制", builtin: "copy", icon: Copy },
+      { id: "copy", label: "复制", icon: Copy },
       { id: "detail", label: "查看详情", icon: Eye },
     ]);
-    offMenuAction = onMenuAction("user-row", "detail", (d) => Notification.success(`查看：${d.copy}`));
+    menuOffs = [
+      onMenuAction("user-row", "copy", async (d) => {
+        const ok = await copyToClipboard(d.copy ?? "");
+        Notification[ok ? "success" : "error"](ok ? "已复制" : "复制失败");
+      }),
+      onMenuAction("user-row", "detail", (d) => Notification.success(`查看：${d.copy}`)),
+    ];
   });
   onDestroy(() => {
-    offMenuAction?.();
+    menuOffs.forEach((off) => off());
+    menuOffs = [];
     unregisterMenu("user-row");
   });
 

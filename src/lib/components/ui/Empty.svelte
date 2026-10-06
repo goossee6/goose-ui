@@ -22,7 +22,8 @@
 
 <div class="empty {cls}" style={style} role="status">
 	{#if icon}
-		<span class="empty-icon"><icon size={40}></icon></span>
+		{@const I = icon}
+		<span class="empty-icon"><I size={40} /></span>
 	{/if}
 	<p class="empty-title">{title}</p>
 	{#if hint}
