@@ -515,7 +515,7 @@ onMenuAction("row", "del", (data) => console.log(data));
 }
 ```
 
-暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换。
+暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换；子树内用 `.light` 类可局部恢复浅色 token（与 `.dark` 对称）。
 
 ### 工具类（theme.css 全局提供）
 

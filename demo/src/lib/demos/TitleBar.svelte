@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, TitleBar, Page, ThemeToggle, themeStore, toggleThemeFromEvent} from "goose-ui";
+  import {Card, TitleBar, Page, Row, ThemeToggle, themeStore, toggleThemeFromEvent} from "goose-ui";
   import Box from '@lucide/svelte/icons/box';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
@@ -46,14 +46,20 @@
   </Card>
 
   <Card title="深色主题">
-    <div class="demo-preview demo-preview--dark">
-      <TitleBar title="深色模式" theme="dark" onThemeToggle={toggleThemeFromEvent} />
+    <div class="demo-preview demo-preview--dark dark">
+      <TitleBar title="深色模式" theme="dark" />
+    </div>
+  </Card>
+
+  <Card title="浅色主题">
+    <div class="demo-preview demo-preview--light light">
+      <TitleBar title="浅色模式" theme="light" />
     </div>
   </Card>
 
   <Card title="ThemeToggle 组件">
     <p class="demo-note">独立的主题切换按钮，带圆形扩散动画：</p>
-    <ThemeToggle />
+    <Row><ThemeToggle /></Row>
   </Card>
 
   <Card title="说明">
@@ -69,7 +75,8 @@
 
 <style>
   .demo-preview { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
-  .demo-preview--dark { background: #1a1a1a; }
+  .demo-preview--dark { background: var(--surface); }
+  .demo-preview--light { background: var(--surface); }
   .demo-note { font-size: 13px; color: var(--text-muted); line-height: 1.8; margin: 0 0 12px; }
   .demo-note p { margin: 0; }
 </style>

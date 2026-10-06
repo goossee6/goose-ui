@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Page, Command, Notification, type CommandItem} from "goose-ui";
+  import {Card, Page, Command, Notification, toggleTheme, type CommandItem} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const props: PropsTableItem[] = [
@@ -22,6 +22,7 @@
   ];
 
   function handleSelect(item: CommandItem) {
+    if (item.value === 'toggle-theme') toggleTheme();
     Notification.info(`执行：${item.label}`);
   }
 </script>

@@ -30,7 +30,7 @@
 
 <Button
   variant="ghost"
-  icon={themeStore.theme === 'light' ? lightIcon : darkIcon}
+  icon={themeStore.theme === 'light' ? darkIcon : lightIcon}
   class={cls}
   style={style}
   ariaLabel="切换主题"

@@ -16,6 +16,7 @@
     icon,
     iconRight,
     iconSize = 16,
+    ariaLabel = '',
     children,
     onclick,
     ...rest
@@ -30,6 +31,7 @@
     icon?: Component;
     iconRight?: Component;
     iconSize?: number;
+    ariaLabel?: string;
     children?: Snippet;
     onclick?: (event: MouseEvent) => void;
     [key: string]: unknown;
@@ -64,7 +66,7 @@
   onDestroy(clearPending);
 </script>
 
-<button {type} disabled={disabled || loading} class="btn btn-{variant} {sizeClass} {cls}" style={sizeStyle} {onclick} {...rest}>
+<button {type} disabled={disabled || loading} class="btn btn-{variant} {sizeClass} {cls}" style={sizeStyle} {onclick} aria-label={ariaLabel} {...rest}>
   {#if displayLoading}
     <span class="btn-spinner" style="width:{iconSize}px;height:{iconSize}px">
       <Loader2 size={iconSize} />
