@@ -91,7 +91,7 @@ import "goose-ui/styles/theme.css";
 | ------------ | ----------- | --------------------------- |
 | Dialog       | Modal       | 模态弹窗                    |
 | Switch       | Toggle      | iOS 风格开关                |
-| Tabs         | SegmentedTabs | 分段标签（pill/underline）  |
+| Tabs         | Tabs         | 标签页（分段/下划线/垂直 + TabsPanel 面板）  |
 | Toggle Group | ToggleGroup | 单选/多选切换组             |
 
 ### 基础组件
@@ -122,7 +122,7 @@ import "goose-ui/styles/theme.css";
 | Select         | 下拉选择，支持键盘导航和 meta 标签                                         |
 | MultiSelect    | 多选下拉，支持 badge 标签                                                   |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                                      |
-| Checkbox       | 复选框，尺寸档 small/middle/large + 双向绑定                                |
+| Checkbox       | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）  |
 | Radio / RadioGroup | 单选与单选组（context 注入，自动关联 label）                            |
 | Toggle         | iOS 风格开关，带弹性动画                                                    |
 | ToggleGroup    | 单选/多选切换组，default/outline 变体                                       |
@@ -154,7 +154,9 @@ import "goose-ui/styles/theme.css";
 | -------------- | ---------------------------------------- |
 | DataTable      | 数据表格，支持排序、高亮、右键菜单       |
 | DataList       | 数据列表，带空状态                       |
-| SegmentedTabs  | 分段标签（pill 动画 + underline 双模式） |
+| Tabs           | 标签页（分段/下划线/垂直模式 + 键盘导航）      |
+| TabsPanel      | 标签页内容面板（value 匹配选中项时渲染）      |
+| PillTrack      | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中） |
 | Pagination     | 分页（siblingCount 省略号折叠）          |
 | Collapsible    | 折叠面板（grid-rows 0fr→1fr 过渡）       |
 | Accordion      | 手风琴（单开/多开/collapsible，复用 Collapsible） |
@@ -309,7 +311,7 @@ import "goose-ui/styles/theme.css";
 高频控制点：
 
 - **宽度**：`Select`/`Modal`/`Drawer` 有 `width` prop；`Page`/`Tooltip` 有 `maxWidth`；`Sidebar` 用 `width={180}`（number 按 px，改写内部 `--sidebar-w`）；其余控件用 `style`
-- **尺寸档**：`Button`/`Checkbox`/`Toggle`/`SegmentedTabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
+- **尺寸档**：`Button`/`Checkbox`/`Toggle`/`Tabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
 - **旋转**：`Icon` 的 `spin` prop（加载态），无需自己写动画
 - **可调变量**：`--titlebar-h`（TitleBar 高度，默认 42px）、`--header-h`（Header 高度，由 `height` prop 写入）、`--ui-{sm,md,lg}-{height,padding,font}`（全局控件 token，见 theme.css）
 

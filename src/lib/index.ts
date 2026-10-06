@@ -88,7 +88,9 @@ import Toolbar from './components/ui/Toolbar.svelte';
 import ProgressBar from './components/ui/ProgressBar.svelte';
 import ProgressBytes from './components/ui/ProgressBytes.svelte';
 import ProgressSlotBar from './components/ui/ProgressSlotBar.svelte';
-import SegmentedTabs from './components/ui/SegmentedTabs.svelte';
+import Tabs from './components/ui/Tabs.svelte';
+import TabsPanel from './components/ui/TabsPanel.svelte';
+import PillTrack from './components/ui/PillTrack.svelte';
 import Select from './components/ui/Select.svelte';
 import StatusBadge from './components/ui/StatusBadge.svelte';
 import NotificationProvider from './components/ui/NotificationProvider.svelte';
@@ -110,7 +112,7 @@ import ThemeToggle from './components/ui/ThemeToggle.svelte';
 export {
   Accordion, AlertDialog, AspectRatio, Avatar, Button, Calendar, Card, Checkbox, Collapsible, Combobox, Command, CreatableSelect, DataList, DataTable, DateField, DateRangeField, DatePicker, DateRangePicker, DropZone, DropdownMenu,
   MultiSelect, PresetInput, Input, Label, LinkPreview, Loading, Meter, Modal, PageHeader, Page, Empty, PINInput, Radio, RadioGroup, RangeCalendar, Rating, Row, ScrollArea, Separator, Slider, Menubar, NavigationMenu, Pagination, Popover, ToggleGroup, TimeField, TimeRangeField, Toolbar, Tag, Skeleton, Image, Footer, BackTop, Time, Countdown, Carousel, Form, FormItem, TimePicker, CodeBlock, Cursor, Background,
-  ProgressBar, ProgressBytes, ProgressSlotBar, SegmentedTabs, Select,
+  ProgressBar, ProgressBytes, ProgressSlotBar, Tabs, TabsPanel, PillTrack, Select,
   StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header, ThemeToggle,
 };
 export type { AccordionItem } from './components/ui/Accordion.svelte';

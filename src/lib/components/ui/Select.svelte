@@ -79,10 +79,8 @@
 		const options = dropdown.querySelectorAll<HTMLElement>('.select-option');
 		const btn = options[idx] as HTMLElement | null;
 		if (!btn) { indicatorStyle = 'opacity: 0'; return; }
-		const ddRect = dropdown.getBoundingClientRect();
-		const btnRect = btn.getBoundingClientRect();
-		const top = btnRect.top - ddRect.top;
-		indicatorStyle = `opacity: 1; top: ${top}px; height: ${btnRect.height}px;`;
+		// 内容坐标（offsetParent 即下拉容器），与 scrollTop 无关；indicator 为下拉内绝对定位，随内容滚动
+		indicatorStyle = `opacity: 1; top: ${btn.offsetTop}px; height: ${btn.offsetHeight}px;`;
 	}
 
 	$effect(() => {

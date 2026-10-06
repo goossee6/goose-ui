@@ -1,6 +1,21 @@
+<script lang="ts" module>
+	export const TABS_KEY = Symbol('goose-tabs');
+
+	export interface TabsContext {
+		/** 当前选中的 tab value，供 TabsPanel 匹配 */
+		get activeValue(): string;
+	}
+
+	/** value → 可用于 id 的安全片段 */
+	export function tabId(value: string): string {
+		return String(value).replace(/[^\w-]/g, '-');
+	}
+</script>
+
 <script lang="ts">
 	import type { Component } from 'svelte';
-	import { onMount } from 'svelte';
+	import { setContext } from 'svelte';
+	import PillTrack from './PillTrack.svelte';
 
 	interface TabItem {
 		value: string;
@@ -31,56 +46,44 @@
 
 	const sizeClass = $derived(`tabs-root--${size}`);
 
-	let groupEl: HTMLElement;
+	let groupEl = $state<HTMLElement>();
 
-	let pillLeft = $state(0);
-	let pillTop = $state(0);
-	let pillWidth = $state(0);
-	let pillHeight = $state(0);
-	let pillOpacity = $state(0);
+	const ctx: TabsContext = {
+		get activeValue() {
+			return value;
+		},
+	};
+	setContext(TABS_KEY, ctx);
 
 	function select(v: string) {
 		if (disabled) return;
+		if (v === value) return;
 		if (onchange) onchange(v);
 		else value = v;
 	}
 
-	function measure() {
-		if (!groupEl) return;
-		const btn = groupEl.querySelector<HTMLElement>('.tab-active');
-		if (!btn) { pillOpacity = 0; return; }
-		const br = btn.getBoundingClientRect();
-		const gr = groupEl.getBoundingClientRect();
-		const cs = getComputedStyle(groupEl);
-		const bl = parseInt(cs.borderLeftWidth) || 0;
-		const bt = parseInt(cs.borderTopWidth) || 0;
-		if (mode === 'vertical') {
-			pillLeft = 4;
-			pillTop = br.top - gr.top - bt;
-			pillWidth = gr.width - 8;
-			pillHeight = br.height;
-		} else {
-			pillLeft = br.left - gr.left - bl;
-			pillTop = 0;
-			pillWidth = br.width;
-			pillHeight = 0;
-		}
-		pillOpacity = 1;
+	// 键盘：方向键在 tab 间移动焦点并跟随选中（automatic activation），Home/End 到首尾
+	function onGroupKeydown(e: KeyboardEvent) {
+		if (!groupEl || disabled) return;
+		const tabs = [...groupEl.querySelectorAll<HTMLButtonElement>('.tab:not(:disabled)')];
+		if (!tabs.length) return;
+		const cur = tabs.indexOf(document.activeElement as HTMLButtonElement);
+		if (cur < 0) return;
+		const vertical = mode === 'vertical';
+		let next = -1;
+		if (e.key === 'ArrowRight' && !vertical) next = cur + 1;
+		else if (e.key === 'ArrowLeft' && !vertical) next = cur - 1;
+		else if (e.key === 'ArrowDown' && vertical) next = cur + 1;
+		else if (e.key === 'ArrowUp' && vertical) next = cur - 1;
+		else if (e.key === 'Home') next = 0;
+		else if (e.key === 'End') next = tabs.length - 1;
+		else return;
+		e.preventDefault();
+		const target = tabs[(next + tabs.length) % tabs.length];
+		target.focus();
+		const v = target.dataset.value;
+		if (v !== undefined) select(v);
 	}
-
-	onMount(() => {
-		measure();
-	});
-
-	$effect(() => {
-		value;
-		measure();
-	});
-
-	$effect(() => {
-		items;
-		measure();
-	});
 </script>
 
 <div class="tabs-root {sizeClass} {cls}" style={style}>
@@ -88,32 +91,31 @@
 		bind:this={groupEl}
 		class="tabs-group tabs-group--{mode}"
 		role="tablist"
+		aria-orientation={mode === 'vertical' ? 'vertical' : 'horizontal'}
+		onkeydown={onGroupKeydown}
 	>
-		{#if mode === 'segmented'}
-			<div
-				class="tabs-pill"
-				style="left: {pillLeft}px; width: {pillWidth}px; opacity: {pillOpacity}"
-			></div>
-		{/if}
-		{#if mode === 'vertical'}
-			<div
-				class="tabs-pill tabs-pill--vertical"
-				style="top: {pillTop}px; height: {pillHeight}px; width: calc(100% - 8px); opacity: {pillOpacity}"
-			></div>
-		{/if}
-		{#if mode === 'underline'}
-			<div
-				class="tabs-indicator"
-				style="left: {pillLeft}px; width: {pillWidth}px; opacity: {pillOpacity}"
-			></div>
-		{/if}
+		<PillTrack
+			container={groupEl}
+			itemSelector=".tab"
+			activeSelector=".tab-active"
+			disabledMatch=":disabled"
+			variant={mode === 'underline' ? 'line' : 'box'}
+			insetX={mode === 'vertical' ? 4 : undefined}
+			background="var(--primary)"
+			hoverBackground={mode === 'underline' ? 'var(--border-strong)' : 'var(--hover)'}
+			radius="var(--radius-md)"
+		/>
 		{#each items as item}
 			{@const isActive = value === item.value}
 			<button
 				type="button"
 				class="tab {isActive ? 'tab-active' : ''} tabs-mode--{mode}"
 				role="tab"
+				id="tabs-trigger-{tabId(item.value)}"
 				aria-selected={isActive}
+				aria-controls="tabs-panel-{tabId(item.value)}"
+				tabindex={isActive ? 0 : -1}
+				data-value={item.value}
 				{disabled}
 				onclick={() => select(item.value)}
 			>
@@ -158,33 +160,6 @@
 		gap: 2px;
 		width: 100%;
 	}
-	.tabs-pill {
-		position: absolute;
-		left: 0;
-		top: 4px;
-		bottom: 4px;
-		border-radius: var(--radius-md);
-		background-color: var(--primary);
-		z-index: 0;
-		pointer-events: none;
-		transition: left 0.22s ease-out, top 0.22s ease-out, width 0.22s ease-out, height 0.22s ease-out, opacity 0.15s;
-	}
-	.tabs-pill--vertical {
-		left: 4px;
-		right: 4px;
-		top: auto;
-		bottom: auto;
-	}
-	.tabs-indicator {
-		position: absolute;
-		bottom: -1px;
-		height: 2px;
-		background: var(--primary);
-		border-radius: 1px;
-		transition: left 0.22s ease-out, width 0.22s ease-out;
-		z-index: 0;
-		pointer-events: none;
-	}
 	.tab {
 		position: relative;
 		z-index: 10;
@@ -203,7 +178,7 @@
 	}
 	.tabs-mode--segmented.tab-active { color: var(--primary-text); }
 	.tabs-mode--segmented:not(.tab-active) { color: var(--text-muted); }
-	.tabs-mode--segmented:not(.tab-active):hover { background-color: var(--hover); color: var(--text-strong); }
+	.tabs-mode--segmented:not(.tab-active):hover { color: var(--text-strong); }
 	.tabs-mode--underline {
 		flex: 1;
 		text-align: center;
@@ -225,5 +200,5 @@
 	}
 	.tabs-mode--vertical.tab-active { color: var(--primary-text); }
 	.tabs-mode--vertical:not(.tab-active) { color: var(--text-muted); }
-	.tabs-mode--vertical:not(.tab-active):hover { background-color: var(--hover); color: var(--text-strong); }
+	.tabs-mode--vertical:not(.tab-active):hover { color: var(--text-strong); }
 </style>

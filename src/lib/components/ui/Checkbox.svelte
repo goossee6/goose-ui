@@ -1,6 +1,7 @@
 <script lang="ts">
 	let {
 		checked = $bindable(false),
+		indeterminate = $bindable(false),
 		disabled = false,
 		ariaLabel = '',
 		onchange,
@@ -9,6 +10,7 @@
 		style = '',
 	}: {
 		checked?: boolean;
+		indeterminate?: boolean;
 		disabled?: boolean;
 		ariaLabel?: string;
 		onchange?: (e: Event) => void;
@@ -21,9 +23,21 @@
 </script>
 
 <label class="checkbox-label {cls}" style={style} class:disabled>
-	<input type="checkbox" bind:checked {disabled} aria-label={ariaLabel} class="checkbox-input" onchange={(e) => onchange?.(e)} />
-	<span class="checkbox-box {sizeClass}" class:checked>
-		{#if checked}
+	<input
+		type="checkbox"
+		bind:checked
+		bind:indeterminate
+		{disabled}
+		aria-label={ariaLabel}
+		class="checkbox-input"
+		onchange={(e) => onchange?.(e)}
+	/>
+	<span class="checkbox-box {sizeClass}" class:checked class:indeterminate>
+		{#if indeterminate}
+			<svg class="checkbox-check checkbox-check--{size}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+				<line x1="5" y1="12" x2="19" y2="12" />
+			</svg>
+		{:else if checked}
 			<svg class="checkbox-check checkbox-check--{size}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
 				<polyline points="20 6 9 17 4 12" />
 			</svg>
@@ -54,7 +68,8 @@
 	}
 	.checkbox-box--small { width: 14px; height: 14px; }
 	.checkbox-box--large { width: 22px; height: 22px; }
-	.checkbox-box.checked {
+	.checkbox-box.checked,
+	.checkbox-box.indeterminate {
 		background-color: var(--primary);
 		border-color: var(--primary);
 	}

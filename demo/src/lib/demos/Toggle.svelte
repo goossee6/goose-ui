@@ -4,21 +4,15 @@
   let t1 = $state(false);
   let t2 = $state(true);
   let t3 = $state(false);
-  let c1 = $state(false);
-  let c2 = $state(true);
   let c3 = $state(false);
   let prevT1 = $state(t1);
   let prevT2 = $state(t2);
   let prevT3 = $state(t3);
-  let prevC1 = $state(c1);
-  let prevC2 = $state(c2);
   let prevC3 = $state(c3);
 
   $effect(() => { if (t1 !== prevT1) { prevT1 = t1; Notification.success(t1 ? '已开启' : '已关闭'); } });
   $effect(() => { if (t2 !== prevT2) { prevT2 = t2; Notification.success(t2 ? '已开启' : '已关闭'); } });
   $effect(() => { if (t3 !== prevT3) { prevT3 = t3; Notification.success(t3 ? '通知已开启' : '通知已关闭'); } });
-  $effect(() => { if (c1 !== prevC1) { prevC1 = c1; Notification.success(c1 ? '已选中' : '已取消'); } });
-  $effect(() => { if (c2 !== prevC2) { prevC2 = c2; Notification.success(c2 ? '已选中' : '已取消'); } });
   $effect(() => { if (c3 !== prevC3) { prevC3 = c3; Notification.success(c3 ? '已同意' : '已取消同意'); } });
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
@@ -33,16 +27,6 @@
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
-  const checkboxProps: PropsTableItem[] = [
-    { name: "checked", desc: "是否选中（可双向绑定）", type: "boolean", default: "false" },
-    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
-    { name: "size", desc: "尺寸档", type: "'small' | 'middle' | 'large'", default: "'middle'" },
-    { name: "onchange", desc: "变更回调", type: "(e: Event) => void" },
-    { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
-    { name: "class", desc: "附加类名", type: "string", default: "''" },
-    { name: "style", desc: "内联样式", type: "string", default: "''" },
-  ];
-
   const labelProps: PropsTableItem[] = [
     { name: "for", desc: "关联控件 id", type: "string", default: "''" },
     { name: "children", desc: "标签文本", type: "Snippet" },
@@ -51,7 +35,7 @@
   ];
 </script>
 
-<Page title="开关 Toggle & Checkbox" description="带弹性动画的切换开关，以及复选框" >
+<Page title="开关 Toggle" description="带弹性动画的切换开关" >
   <Card title="Toggle 尺寸 Sizes">
     <Row>
       <div class="demo-item">
@@ -96,50 +80,6 @@
     </Row>
   </Card>
 
-  <Card title="Checkbox 尺寸 Sizes">
-    <Row>
-      <div class="demo-item">
-        <Checkbox size="small" checked={true} />
-        <Label>small</Label>
-      </div>
-      <div class="demo-item">
-        <Checkbox checked={true} />
-        <Label>middle (默认)</Label>
-      </div>
-      <div class="demo-item">
-        <Checkbox size="large" checked={true} />
-        <Label>large</Label>
-      </div>
-    </Row>
-  </Card>
-
-  <Card title="Checkbox 状态 States">
-    <Row>
-      <div class="demo-item">
-        <Checkbox bind:checked={c1} />
-        <Label>未选中</Label>
-      </div>
-      <div class="demo-item">
-        <Checkbox bind:checked={c2} />
-        <Label>已选中</Label>
-      </div>
-    </Row>
-    <p class="demo-val">c1 = {c1}, c2 = {c2}</p>
-  </Card>
-
-  <Card title="Checkbox 禁用 Disabled">
-    <Row>
-      <div class="demo-item">
-        <Checkbox checked={false} disabled />
-        <Label>禁用未选中</Label>
-      </div>
-      <div class="demo-item">
-        <Checkbox checked={true} disabled />
-        <Label>禁用已选中</Label>
-      </div>
-    </Row>
-  </Card>
-
   <Card title="实际场景：设置项">
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="setting-row">
@@ -174,10 +114,6 @@
   </Card>
   <Card title="Toggle Props">
     <PropsTable items={toggleProps} />
-  </Card>
-
-  <Card title="Checkbox Props">
-    <PropsTable items={checkboxProps} />
   </Card>
 
   <Card title="Label Props">

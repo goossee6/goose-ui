@@ -4,8 +4,9 @@
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
-  import { slide } from 'svelte/transition';
   import { pageDirStore } from '../pageDirStore.svelte.js';
+  import PillTrack from './PillTrack.svelte';
+  import Collapsible from './Collapsible.svelte';
 
   export interface SidebarTabItem {
     value: string;
@@ -159,27 +160,56 @@
     return group.items.some(i => i.value === activeTab);
   }
 
+  const activeSel = $derived.by(() => {
+    const idx = groups.findIndex((e) => isGroup(e) && hasActiveItem(e));
+    return idx >= 0 && !expandedGroups.has(idx) ? '' : '.nav-item--active';
+  });
+
   let navEl = $state<HTMLElement | null>(null);
 
-  let pillTop = $state(0);
-  let pillLeft = $state(0);
-  let pillWidth = $state(0);
-  let pillHeight = $state(0);
-  let pillOpacity = $state(0);
-
-  function measurePill(scroll = false) {
-    if (!navEl) return;
-    const idx = groups.findIndex((e) => isGroup(e) && e.items.some((i) => i.value === activeTab));
-    if (collapsed || (idx >= 0 && !expandedGroups.has(idx))) { pillOpacity = 0; return; }
-    const item = navEl.querySelector<HTMLElement>('.nav-item--active');
-    if (!item) { pillOpacity = 0; return; }
-    if (scroll) item.scrollIntoView({ block: 'nearest' });
-    pillLeft = item.offsetLeft;
-    pillTop = item.offsetTop;
-    pillWidth = item.offsetWidth;
-    pillHeight = item.offsetHeight;
-    pillOpacity = 1;
+  function scrollActiveIntoView() {
+    const item = navEl?.querySelector<HTMLElement>('.nav-item--active');
+    item?.scrollIntoView({ block: 'nearest' });
   }
+
+  // 吸顶判定：stuck 时组头需不透明底遮身后内容；未吸顶透明底，hover 交给下层 pill（与 nav-item 同动画）
+  function updateStuckHeaders() {
+    const nav = navEl;
+    if (!nav) return;
+    const navTop = nav.getBoundingClientRect().top;
+    for (const el of nav.querySelectorAll<HTMLElement>('.collapsible-trigger')) {
+      const r = el.getBoundingClientRect();
+      // 被钉在顶边（上界）且下缘仍在视口内（下界，排除已滚出上方的组头）
+      el.classList.toggle('stuck', r.top <= navTop + 0.5 && r.bottom > navTop + 0.5);
+    }
+  }
+
+  let stuckRaf = 0;
+
+  $effect(() => {
+    const nav = navEl;
+    if (!nav) return;
+    const onScroll = () => {
+      cancelAnimationFrame(stuckRaf);
+      stuckRaf = requestAnimationFrame(updateStuckHeaders);
+    };
+    nav.addEventListener('scroll', onScroll, { passive: true });
+    updateStuckHeaders();
+    return () => {
+      nav.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(stuckRaf);
+    };
+  });
+
+  // 分组开合/折叠切换改变组头纵向位置（含 0.25s 展开动画），即时 + 收尾各补测一次
+  $effect(() => {
+    expandedGroups;
+    collapsed;
+    groups;
+    updateStuckHeaders();
+    const t = setTimeout(updateStuckHeaders, 300);
+    return () => clearTimeout(t);
+  });
 
   let prevDirTab = activeTab;
 
@@ -203,8 +233,10 @@
     expandedGroups;
     const tabChanged = activeTab !== prevScrollTab;
     prevScrollTab = activeTab;
-    measurePill(tabChanged);
-    const t = setTimeout(() => measurePill(tabChanged), 340);
+    if (tabChanged) scrollActiveIntoView();
+    const t = setTimeout(() => {
+      if (tabChanged) scrollActiveIntoView();
+    }, 340);
     return () => clearTimeout(t);
   });
 </script>
@@ -237,11 +269,6 @@
   </div>
 
   <nav class="sidebar-nav" bind:this={navEl}>
-    <div
-      class="nav-pill"
-      aria-hidden="true"
-      style="top: {pillTop}px; left: {pillLeft}px; width: {pillWidth}px; height: {pillHeight}px; opacity: {pillOpacity}"
-    ></div>
     {#each groups as entry, gi}
       {#if isItem(entry)}
         {#if collapsed}
@@ -287,22 +314,39 @@
         {:else}
           <div class="group-block">
             {#if entry.title}
-              <button
-                type="button"
-                class="group-header"
-                onclick={() => toggleGroup(gi)}
+              {@const title = entry.title}
+              <Collapsible
+                open={expandedGroups.has(gi)}
+                onchange={() => toggleGroup(gi)}
               >
-                {#if entry.icon}
-                  <span class="group-icon"><Icon icon={entry.icon} size={16} /></span>
-                {/if}
-                <span class="group-title">{entry.title}</span>
-                <span class="group-chevron" class:group-chevron--up={!expandedGroups.has(gi)}>
-                  <Icon icon={ChevronDown} size={14} />
-                </span>
-              </button>
-            {/if}
-            {#if expandedGroups.has(gi)}
-              <div class="group-items" transition:slide={{ duration: 200 }}>
+                {#snippet trigger()}
+                  {#if entry.icon}
+                    <span class="group-icon"><Icon icon={entry.icon} size={16} /></span>
+                  {/if}
+                  <span class="group-title">{title}</span>
+                  <span
+                    class="group-chevron"
+                    class:group-chevron--up={!expandedGroups.has(gi)}
+                  >
+                    <Icon icon={ChevronDown} size={14} />
+                  </span>
+                {/snippet}
+                {#each entry.items as item}
+                  <button
+                    type="button"
+                    class="nav-item"
+                    class:nav-item--active={activeTab === item.value}
+                    onclick={() => selectTab(item.value)}
+                  >
+                    {#if item.icon}
+                      <Icon icon={item.icon} size={16} class="nav-item-icon" />
+                    {/if}
+                    <span class="nav-item-label">{item.label}</span>
+                  </button>
+                {/each}
+              </Collapsible>
+            {:else if expandedGroups.has(gi)}
+              <div class="group-items">
                 {#each entry.items as item}
                   <button
                     type="button"
@@ -334,10 +378,18 @@
           {#if item.icon}
             <Icon icon={item.icon} size={16} class="nav-item-icon" />
           {/if}
-          <span class="nav-item-label">{item.label}</span>
+          <span class="nav-item-label">{itemLabel(item)}</span>
         </button>
       {/each}
     {/if}
+    <PillTrack
+      container={navEl}
+      itemSelector=".nav-item, .collapsible-trigger"
+      activeSelector={activeSel}
+      background="var(--primary)"
+      hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+      radius="var(--radius-md)"
+    />
   </nav>
 
   {#if footer && !collapsed}
@@ -485,35 +537,26 @@
   .sidebar-nav > * {
     flex-shrink: 0;
   }
-  .sidebar-nav > :not(.nav-pill):first-child {
+  .sidebar-nav > :first-child {
     margin-top: 8px;
   }
   .nav-item--end.end-first {
     margin-top: auto;
   }
 
-  .nav-pill {
-    position: absolute;
-    z-index: 0;
-    border-radius: var(--radius-md);
-    background: var(--primary);
-    pointer-events: none;
-    transition: top 0.22s ease-out, left 0.22s ease-out, width 0.22s ease-out, height 0.22s ease-out, opacity 0.15s;
-  }
-
-  /* ── Group header (expanded) ─────────────────────────────────────────────── */
-  .group-header {
+  /* ── Group header (expanded)：Collapsible trigger 覆写（同 Accordion 先例） ── */
+  /* 几何与 .nav-item 对齐：同宽（nav content box）、同间隙（两侧 8px）、同高（37px）、同圆角 */
+  .sidebar-nav :global(.collapsible-trigger) {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 10px;
     position: sticky;
     top: 0;
-    z-index: 1;
-    width: calc(100% + 16px);
-    margin: 0 -8px;
-    padding: 8px 22px 6px;
+    padding: 9px 14px;
     border: none;
-    background: var(--surface);
+    border-radius: var(--radius-md);
+    background: transparent;
     color: var(--text-muted);
     font-size: 14px;
     font-weight: 600;
@@ -521,10 +564,21 @@
     letter-spacing: 0.05em;
     cursor: pointer;
     text-align: left;
-    transition: color 0.2s ease;
+    transition: color 0.8s ease, background 0.22s ease-out;
+    z-index: 2;
   }
-  .group-header:hover {
+  /* :not(:disabled) 提特异性至 0,4,0：压过 Collapsible 自身的 --hover 底，保持透明让下层 pill 透出 */
+  .sidebar-nav :global(.collapsible-trigger:hover:not(:disabled)) {
     color: var(--text-strong);
+    background: transparent;
+  }
+  /* 吸顶（stuck）时必须不透明底遮住身后滚过的内容；hover 自背景仅此态生效 */
+  .sidebar-nav :global(.collapsible-trigger.stuck) {
+    background: var(--surface);
+  }
+  .sidebar-nav :global(.collapsible-trigger.stuck:hover:not(:disabled)) {
+    /* 同色自背景（= pill hover 色叠 surface，不透明）：与下层 pill 同色叠加无视觉冲突 */
+    background: color-mix(in srgb, var(--primary) 15%, var(--surface));
   }
   .group-icon {
     display: flex;
@@ -569,6 +623,7 @@
   /* ── Nav items (expanded) ────────────────────────────────────────────────── */
   .nav-item {
     position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -589,7 +644,6 @@
     padding-left: 14px;
   }
   .nav-item:hover {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
     color: var(--primary);
   }
   .nav-item--active,

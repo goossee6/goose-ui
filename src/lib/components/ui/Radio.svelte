@@ -93,6 +93,7 @@
 		font-size: 13px;
 		color: var(--text);
 		line-height: 1;
+		transition: color 0.15s;
 	}
 	.radio--disabled {
 		opacity: 0.5;
@@ -127,12 +128,18 @@
 		width: 18px;
 		height: 18px;
 	}
+	.radio:hover:not(.radio--disabled) {
+		color: var(--primary);
+	}
 	.radio:hover:not(.radio--disabled) .radio-indicator {
 		border-color: var(--primary);
 	}
 	.radio-input:focus-visible + .radio-indicator {
 		outline: 2px solid var(--primary);
 		outline-offset: 2px;
+	}
+	.radio--checked {
+		color: var(--primary);
 	}
 	.radio--checked .radio-indicator {
 		border-color: var(--primary);

@@ -7,6 +7,8 @@
 </script>
 
 <script lang="ts">
+	import PillTrack from './PillTrack.svelte';
+
 	let {
 		items = [],
 		value = $bindable<string[]>([]),
@@ -45,14 +47,29 @@
 		value = next;
 		onchange?.(next);
 	}
+
+	let groupEl = $state<HTMLElement>();
 </script>
 
 <div
 	class="toggle-group toggle-group--{variant} toggle-group--{size} {cls}"
+	class:toggle-group--single={!multiple}
 	class:toggle-group--disabled={disabled}
 	role="group"
+	bind:this={groupEl}
 	style={style}
 >
+	<PillTrack
+		container={groupEl}
+		itemSelector=".toggle-group-item"
+		activeSelector=".toggle-group-item.active"
+		disabledMatch=":disabled"
+		showSelected={!multiple}
+		background={variant === 'outline' ? 'var(--primary-soft)' : 'var(--surface)'}
+		hoverBackground="var(--hover)"
+		radius="calc(var(--radius-lg) - 4px)"
+		shadow={variant === 'outline' ? '' : '0 1px 3px rgba(0, 0, 0, 0.12)'}
+	/>
 	{#each items as item (item.value)}
 		<button
 			type="button"
@@ -71,6 +88,7 @@
 	.toggle-group {
 		display: inline-flex;
 		align-items: center;
+		position: relative;
 		padding: 3px;
 		gap: 2px;
 		border-radius: var(--radius-lg);
@@ -85,6 +103,8 @@
 		opacity: 0.5;
 	}
 	.toggle-group-item {
+		position: relative;
+		z-index: 1;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -107,7 +127,7 @@
 		font-size: 14px;
 	}
 	.toggle-group-item:hover:not(:disabled) {
-		color: var(--text-strong);
+		color: var(--primary);
 	}
 	.toggle-group-item:focus-visible {
 		outline: 2px solid var(--primary);
@@ -118,13 +138,18 @@
 	}
 	.toggle-group-item.active {
 		background: var(--surface);
-		color: var(--text-strong);
+		color: var(--primary);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 		font-weight: 600;
 	}
 	.toggle-group--outline .toggle-group-item.active {
 		background: var(--primary-soft);
 		color: var(--primary);
+		box-shadow: none;
+	}
+	/* 单选模式：高亮由滑动 pill 承担，按钮本身透明（置于两条 .active 规则之后以覆盖） */
+	.toggle-group--single .toggle-group-item.active {
+		background: transparent;
 		box-shadow: none;
 	}
 </style>

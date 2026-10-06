@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Page, Empty, Row, Button, Card, SegmentedTabs } from 'goose-ui';
+  import { Page, Empty, Row, Button, Card, Tabs } from 'goose-ui';
   import Inbox from '@lucide/svelte/icons/inbox';
   import PropsTable, { type PropsTableItem } from '../PropsTable.svelte';
 
@@ -72,7 +72,7 @@
   <h3 class="section">Row</h3>
   <div class="preview-box">
     <Row gap="md">
-      <SegmentedTabs items={[{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }]} value="a" onchange={() => {}} />
+      <Tabs items={[{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }]} value="a" onchange={() => {}} />
       <Button variant="default">按钮一</Button>
       <Button variant="default">按钮二</Button>
     </Row>

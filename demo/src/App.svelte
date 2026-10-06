@@ -31,7 +31,6 @@
   import NavigationMenuDemo from './lib/demos/NavigationMenu.svelte';
   import ToolbarDemo from './lib/demos/Toolbar.svelte';
   import SliderDemo from './lib/demos/Slider.svelte';
-  import ToggleGroupDemo from './lib/demos/ToggleGroup.svelte';
   import ComboboxDemo from './lib/demos/Combobox.svelte';
   import PopoverDemo from './lib/demos/Popover.svelte';
   import AlertDialogDemo from './lib/demos/AlertDialog.svelte';
@@ -49,8 +48,7 @@
   import SelectDemo from './lib/demos/Select.svelte';
   import DatePicker from './lib/demos/DatePicker.svelte';
   import TimePicker from './lib/demos/TimePicker.svelte';
-  import CheckboxDemo from './lib/demos/Checkbox.svelte';
-  import Radio from './lib/demos/Radio.svelte';
+  import ChoiceDemo from './lib/demos/Choice.svelte';
   import Form from './lib/demos/Form.svelte';
   import NotificationDemo from './lib/demos/Notification.svelte';
   import ModalDemo from './lib/demos/Modal.svelte';
@@ -110,13 +108,11 @@
         { value: 'select', label: 'Select 选择器' },
         { value: 'datepicker', label: 'DatePicker 日期选择' },
         { value: 'timepicker', label: 'TimePicker 时间选择' },
-        { value: 'checkbox', label: 'Checkbox 多选框' },
-        { value: 'radio', label: 'Radio 单选框' },
+        { value: 'choice', label: '选择控件 单选/多选' },
         { value: 'dropzone', label: 'DropZone 拖拽上传' },
         { value: 'rating', label: 'Rating 评分' },
         { value: 'pininput', label: 'PINInput 验证码' },
         { value: 'slider', label: 'Slider 滑块' },
-        { value: 'togglegroup', label: 'ToggleGroup 切换组' },
         { value: 'combobox', label: 'Combobox 组合框' },
         { value: 'datefield', label: 'Date/Time Field 字段' },
         { value: 'form', label: 'Form 表单' },
@@ -184,13 +180,21 @@
   const endItems = [{ value: 'settings', label: '设置', icon: Settings }];
 
   const DEFAULT_TAB = 'button';
+  // 旧 hash → 新页面（页面归并后的兼容映射）
+  const LEGACY_TABS: Record<string, string> = {
+    radio: 'choice',
+    checkbox: 'choice',
+    togglegroup: 'choice',
+    segmentedtabs: 'tabs',
+  };
   const validTabs = new Set([
     ...groups.flatMap((e) => ('items' in e ? e.items.map((i) => i.value) : [e.value])),
     ...endItems.map((i) => i.value),
   ]);
 
   function tabFromHash(): string {
-    const v = location.hash.replace(/^#\/?/, '');
+    const raw = location.hash.replace(/^#\/?/, '');
+    const v = LEGACY_TABS[raw] ?? raw;
     return validTabs.has(v) ? v : DEFAULT_TAB;
   }
 
@@ -264,8 +268,6 @@
       <PINInputDemo />
     {:else if activeTab === 'slider'}
       <SliderDemo />
-    {:else if activeTab === 'togglegroup'}
-      <ToggleGroupDemo />
     {:else if activeTab === 'combobox'}
       <ComboboxDemo />
     {:else if activeTab === 'popover'}
@@ -310,10 +312,8 @@
       <DatePicker />
     {:else if activeTab === 'timepicker'}
       <TimePicker />
-    {:else if activeTab === 'checkbox'}
-      <CheckboxDemo />
-    {:else if activeTab === 'radio'}
-      <Radio />
+    {:else if activeTab === 'choice'}
+      <ChoiceDemo />
     {:else if activeTab === 'form'}
       <Form />
     {:else if activeTab === 'notification'}
