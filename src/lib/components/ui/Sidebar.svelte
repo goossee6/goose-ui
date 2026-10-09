@@ -7,6 +7,7 @@
   import { pageDirStore } from '../pageDirStore.svelte.js';
   import PillTrack from './PillTrack.svelte';
   import Collapsible from './Collapsible.svelte';
+  import ThemeToggle from './ThemeToggle.svelte';
 
   export interface SidebarTabItem {
     value: string;
@@ -44,6 +45,7 @@
     embedded = false,
     onchange,
     footer,
+    themeToggle = true,
     endItems,
     header,
     class: cls = '',
@@ -59,6 +61,8 @@
     embedded?: boolean;
     onchange?: (value: string) => void;
     footer?: Snippet;
+    /** footer 区尾部（版本等 footer 内容之后）显示主题切换按钮 */
+    themeToggle?: boolean;
     /** 列表结尾固定项：渲染在导航列表末尾（有余量时贴底），参与 activeTab、共享 pill 动画 */
     endItems?: SidebarTabItem[];
     header?: Snippet;
@@ -392,8 +396,15 @@
     />
   </nav>
 
-  {#if footer && !collapsed}
-    <div class="sidebar-footer">{@render footer()}</div>
+  {#if (footer || themeToggle) && !collapsed}
+    <div class="sidebar-footer">
+      {#if footer}{@render footer()}{/if}
+      {#if themeToggle}
+        <div class="sidebar-footer-theme">
+          <ThemeToggle />
+        </div>
+      {/if}
+    </div>
   {/if}
 </aside>
 
@@ -564,7 +575,7 @@
     letter-spacing: 0.05em;
     cursor: pointer;
     text-align: left;
-    transition: color 0.8s ease, background 0.22s ease-out;
+    transition: color 0.15s ease, background 0.22s ease-out;
     z-index: 2;
   }
   /* :not(:disabled) 提特异性至 0,4,0：压过 Collapsible 自身的 --hover 底，保持透明让下层 pill 透出 */
@@ -636,7 +647,7 @@
     font-size: 14px;
     text-align: left;
     cursor: pointer;
-    transition: background 0.8s ease, color 0.8s ease;
+    transition: background 0.15s ease, color 0.15s ease;
     border-radius: var(--radius-md);
   }
   /* 顶层项与分组标题（1 级）左缘对齐；组内项保持 2 级缩进 */
@@ -668,7 +679,6 @@
     color: rgba(255, 255, 255, 0.45);
   }
   :global(.dark) .nav-item:hover {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
     color: var(--primary);
   }
   :global(.dark) .nav-item--active,
@@ -679,11 +689,20 @@
 
   /* ── Footer ──────────────────────────────────────────────────────────────── */
   .sidebar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     padding: 10px 14px 0;
     border-top: 1px solid var(--border);
     font-size: 11px;
     color: var(--text-muted);
     flex-shrink: 0;
+  }
+  .sidebar-footer-theme {
+    display: flex;
+    align-items: center;
+    margin: -6px -8px -6px 0;
   }
   :global(.dark) .sidebar-footer {
     color: rgba(255, 255, 255, 0.3);

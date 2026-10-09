@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import { floatingPosition } from './floatingPosition';
+  import PillTrack from './PillTrack.svelte';
 
   interface Option {
     value: string;
@@ -25,6 +26,7 @@
 
   let open = $state(false);
   let rootEl: HTMLElement;
+  let menuEl = $state<HTMLElement | null>(null);
   let dropdownStyle = $state('');
 
   function toggle() {
@@ -112,7 +114,14 @@
     <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
   </div>
   {#if open}
-    <div class="menu" style={dropdownStyle} role="listbox" aria-multiselectable="true">
+    <div class="menu" style={dropdownStyle} role="listbox" aria-multiselectable="true" bind:this={menuEl}>
+      <PillTrack
+        container={menuEl}
+        itemSelector=".option:not(.selected)"
+        showSelected={false}
+        hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+        radius="var(--radius-md)"
+      />
       {#each items as item (item.value)}
         <button type="button" class="option" class:selected={values.includes(item.value)} role="option" aria-selected={values.includes(item.value)} onclick={() => toggleItem(item.value)}>
           <input type="checkbox" class="option-check" checked={values.includes(item.value)} tabindex="-1" />
@@ -138,8 +147,8 @@
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
   .menu { position: fixed; overflow-y: auto; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); padding: var(--sp-xs); z-index: var(--z-max); }
-  .option { display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
-  .option:hover { background-color: var(--hover); color: var(--text-strong); }
+  .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+  .option:hover { color: var(--text-strong); }
   .option.selected { background-color: var(--primary-soft); color: var(--primary); }
   .option-check { width: auto; margin: 0; accent-color: var(--primary); pointer-events: none; }
 </style>

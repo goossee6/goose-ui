@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends string | number">
 	import { onMount, tick } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
+	import PillTrack from './PillTrack.svelte';
 
 	interface Option {
 		value: string | number;
@@ -40,7 +41,7 @@
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
 	let wrapperEl: HTMLElement;
-	let indicatorStyle = $state('');
+	let dropdownEl = $state<HTMLElement | null>(null);
 
 	const selected = $derived(options.find((o) => o.value === value));
 
@@ -73,16 +74,6 @@
 		else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0 && options[activeIdx]) choose(options[activeIdx]); }
 	}
 
-	function updateIndicator(idx: number) {
-		const dropdown = wrapperEl?.querySelector('.select-dropdown');
-		if (!dropdown) return;
-		const options = dropdown.querySelectorAll<HTMLElement>('.select-option');
-		const btn = options[idx] as HTMLElement | null;
-		if (!btn) { indicatorStyle = 'opacity: 0'; return; }
-		// 内容坐标（offsetParent 即下拉容器），与 scrollTop 无关；indicator 为下拉内绝对定位，随内容滚动
-		indicatorStyle = `opacity: 1; top: ${btn.offsetTop}px; height: ${btn.offsetHeight}px;`;
-	}
-
 	$effect(() => {
 		if (!open) return;
 		tick().then(() => {
@@ -100,11 +91,6 @@
 			dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
 			mounted = true;
 		});
-	});
-
-	$effect(() => {
-		activeIdx;
-		if (mounted) requestAnimationFrame(() => updateIndicator(activeIdx));
 	});
 
 	function handleOutsideClick(e: MouseEvent) {
@@ -136,8 +122,14 @@
 	</button>
 
 	{#if open && mounted}
-		<div class="select-dropdown" style={dropdownStyle} role="listbox">
-			<div class="select-indicator" style={indicatorStyle}></div>
+		<div class="select-dropdown" style={dropdownStyle} role="listbox" bind:this={dropdownEl}>
+			<PillTrack
+				container={dropdownEl}
+				activeSelector=".select-option--active"
+				insetX={6}
+				background="color-mix(in srgb, var(--primary) 15%, transparent)"
+				radius="var(--radius-md)"
+			/>
 			{#if options.length === 0}
 				<div class="select-empty">暂无选项</div>
 			{:else}
@@ -145,7 +137,7 @@
 					<button
 						type="button"
 						class="select-option"
-						class:select-option--active={i === activeIdx && opt.value !== value}
+						class:select-option--active={i === activeIdx}
 						class:select-option--selected={opt.value === value}
 						onclick={() => choose(opt)}
 						onmouseenter={() => activeIdx = i}
@@ -202,16 +194,6 @@
 		background-color: var(--surface);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 		color: var(--text);
-	}
-	.select-indicator {
-		position: absolute;
-		left: 6px;
-		right: 6px;
-		border-radius: var(--radius-md);
-		background-color: var(--hover);
-		pointer-events: none;
-		transition: top 0.12s cubic-bezier(0.4, 0, 0.2, 1), height 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s;
-		z-index: 0;
 	}
 	.select-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
 	.select-option {

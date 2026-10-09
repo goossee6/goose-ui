@@ -48,6 +48,34 @@ export function unpinPage(node: HTMLElement): void {
   node.style.pointerEvents = saved.pointerEvents;
 }
 
+/** 从自身向上找第一个实际可滚动的祖先（Layout 的 .layout-content 场景），无则回退文档滚动元素 */
+function findScrollable(node: HTMLElement): Element {
+  let el: HTMLElement | null = node.parentElement;
+  while (el) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) return el;
+    el = el.parentElement;
+  }
+  return document.scrollingElement ?? document.documentElement;
+}
+
+/**
+ * 页面离场：共享滚动容器回顶（{#if} 切页只换容器内容，scrollTop 残留会带进新页）。
+ * 嵌套页离场不动共享滚动；delta 为 0 时无任何副作用。
+ * 返回 delta 供调用方对已 pin 的旧页做位移补偿（视觉冻结）。
+ */
+export function resetScrollOnPageLeave(node: HTMLElement): number {
+  // 最外层 Page 才拥有共享滚动容器（.page 祖先 = 嵌套场景）
+  if (node.parentElement?.closest('.page')) return 0;
+  // content 恒滚动：滚动区在自身 page-body——{#if} 随页销毁天然归零，keep-alive 需显式清
+  const body = node.querySelector<HTMLElement>(':scope > .page-body');
+  if (body && body.scrollTop > 0) body.scrollTop = 0;
+  const scroller = findScrollable(node);
+  const delta = scroller.scrollTop;
+  if (delta > 0) scroller.scrollTop = 0;
+  return delta;
+}
+
 /** 手动驱动用的过渡配置：方向随配置走，驱动器只负责播放 */
 export interface DrivenTransitionConfig extends TransitionConfig {
   /** outro 方向：按 Svelte 语义从 t=1 反向播放到 t=0（离开）；缺省为 in（t: 0→1） */
@@ -64,9 +92,14 @@ export function pageInConfig(node: HTMLElement): TransitionConfig {
   });
 }
 
-/** 离开：向上切换时落向下方（down）反之；先 pin 防堆叠 */
+/** 离开：向上切换时落向下方（down）反之；先 pin 防堆叠，再回顶共享滚动并补偿旧页位移 */
 export function pageOutConfig(node: HTMLElement): DrivenTransitionConfig {
   pinPage(node);
+  const delta = resetScrollOnPageLeave(node);
+  if (delta > 0 && pinned.has(node)) {
+    // 滚动已回 0，旧页 absolute top 等量上移，抵消可见跳动
+    node.style.top = `${node.offsetTop - delta}px`;
+  }
   return {
     ...fly(node, {
       duration: PAGE_TRANSITION_DURATION,

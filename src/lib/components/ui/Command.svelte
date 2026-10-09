@@ -10,6 +10,7 @@
 
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
+	import PillTrack from './PillTrack.svelte';
 
 	let {
 		open = $bindable(false),
@@ -30,6 +31,7 @@
 	} = $props();
 
 	let inputEl = $state<HTMLInputElement | null>(null);
+	let listEl = $state<HTMLElement | null>(null);
 	let query = $state('');
 	let activeIndex = $state(0);
 
@@ -152,7 +154,13 @@
 				/>
 				<kbd class="command-kbd">Esc</kbd>
 			</div>
-			<ul class="command-list" id="command-list" role="listbox">
+			<ul class="command-list" id="command-list" role="listbox" bind:this={listEl}>
+				<PillTrack
+					container={listEl}
+					activeSelector=".command-item.active"
+					background="color-mix(in srgb, var(--primary) 15%, transparent)"
+					radius="var(--radius-md)"
+				/>
 				{#if !filtered.length}
 					<li class="command-empty" role="presentation">{emptyText}</li>
 				{/if}
@@ -262,6 +270,7 @@
 		color: var(--text-muted);
 	}
 	.command-list {
+		position: relative;
 		list-style: none;
 		margin: 0;
 		padding: var(--sp-xs);
@@ -276,6 +285,7 @@
 		color: var(--text-muted);
 	}
 	.command-item {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -287,7 +297,6 @@
 		cursor: pointer;
 	}
 	.command-item.active {
-		background: var(--hover);
 		color: var(--text-strong);
 	}
 	.command-item-value {

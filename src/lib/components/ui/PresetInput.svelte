@@ -4,6 +4,7 @@
     import X from '@lucide/svelte/icons/x';
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import Icon from './Icon.svelte';
+    import PillTrack from './PillTrack.svelte';
 
     interface PresetOption {
         value: string;
@@ -55,6 +56,7 @@
     let inputEl = $state<HTMLInputElement | null>(null);
     let textareaEl = $state<HTMLTextAreaElement | null>(null);
     let dropdownStyle = $state('');
+    let menuEl = $state<HTMLElement | null>(null);
 
     const multiline = $derived(rows >= 2);
     const hasPresets = $derived(presets.length > 0 && !multiline);
@@ -164,7 +166,14 @@
         </button>
     {/if}
     {#if open}
-        <div class="preset-menu" style={dropdownStyle} role="listbox">
+        <div class="preset-menu" style={dropdownStyle} role="listbox" bind:this={menuEl}>
+            <PillTrack
+                container={menuEl}
+                itemSelector=".preset-item"
+                showSelected={false}
+                hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+                radius="var(--radius-md)"
+            />
             {#each options as opt}
                 <button class="preset-item" role="option" aria-selected="false" onclick={() => pick(opt)}>{opt.label}</button>
             {/each}
@@ -186,6 +195,5 @@
     .preset-toggle:hover:not(:disabled) { color: var(--text-strong); }
     .preset-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
     .preset-menu { position: fixed; overflow: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); background-color: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
-    .preset-item { display: block; width: 100%; padding: var(--sp-md) var(--sp-xl); text-align: left; background: none; border: none; color: var(--text-strong); font-size: 13px; font-family: var(--font-mono); cursor: pointer; white-space: nowrap; }
-    .preset-item:hover { background-color: var(--hover); }
+    .preset-item { position: relative; display: block; width: 100%; padding: var(--sp-md) var(--sp-xl); text-align: left; background: none; border: none; color: var(--text-strong); font-size: 13px; font-family: var(--font-mono); cursor: pointer; white-space: nowrap; }
 </style>

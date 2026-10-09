@@ -6,6 +6,7 @@
 
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
+	import PillTrack from './PillTrack.svelte';
 
 	let {
 		value = $bindable(''),
@@ -31,6 +32,9 @@
 
 	let rootEl = $state<HTMLElement | null>(null);
 	let panelEl = $state<HTMLElement | null>(null);
+	let hColEl = $state<HTMLElement | null>(null);
+	let mColEl = $state<HTMLElement | null>(null);
+	let sColEl = $state<HTMLElement | null>(null);
 	let panelStyle = $state('');
 	let open = $state(false);
 	let flipUp = $state(false);
@@ -147,18 +151,39 @@
 	{#if open}
 		<div class="tp-panel" bind:this={panelEl} style={panelStyle} class:flip-up={flipUp} role="dialog" aria-label="选择时间">
 			<div class="tp-columns">
-				<div class="tp-col" role="listbox" aria-label="小时">
+				<div class="tp-col" role="listbox" aria-label="小时" bind:this={hColEl}>
+					<PillTrack
+						container={hColEl}
+						itemSelector=".tp-opt"
+						showSelected={false}
+						hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+						radius="var(--radius-sm)"
+					/>
 					{#each hours as h (h)}
 						<button type="button" class="tp-opt" class:active={parts.h === h} aria-pressed={parts.h === h} onclick={() => setPart('h', h)}>{h}</button>
 					{/each}
 				</div>
-				<div class="tp-col" role="listbox" aria-label="分钟">
+				<div class="tp-col" role="listbox" aria-label="分钟" bind:this={mColEl}>
+					<PillTrack
+						container={mColEl}
+						itemSelector=".tp-opt"
+						showSelected={false}
+						hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+						radius="var(--radius-sm)"
+					/>
 					{#each minutes as m (m)}
 						<button type="button" class="tp-opt" class:active={parts.m === m} aria-pressed={parts.m === m} onclick={() => setPart('m', m)}>{m}</button>
 					{/each}
 				</div>
 				{#if seconds}
-					<div class="tp-col" role="listbox" aria-label="秒">
+					<div class="tp-col" role="listbox" aria-label="秒" bind:this={sColEl}>
+						<PillTrack
+							container={sColEl}
+							itemSelector=".tp-opt"
+							showSelected={false}
+							hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+							radius="var(--radius-sm)"
+						/>
 						{#each secs as s (s)}
 							<button type="button" class="tp-opt" class:active={parts.s === s} aria-pressed={parts.s === s} onclick={() => setPart('s', s)}>{s}</button>
 						{/each}
@@ -260,6 +285,7 @@
 		gap: var(--sp-xs);
 	}
 	.tp-col {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
@@ -271,6 +297,7 @@
 		background: var(--surface-2);
 	}
 	.tp-opt {
+		position: relative;
 		min-width: 44px;
 		padding: 5px 8px;
 		border: none;
@@ -280,9 +307,6 @@
 		font-family: var(--font-mono);
 		font-size: 13px;
 		cursor: pointer;
-	}
-	.tp-opt:hover {
-		background: var(--hover);
 	}
 	.tp-opt.active {
 		background: var(--primary);

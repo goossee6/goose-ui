@@ -7,6 +7,8 @@
 </script>
 
 <script lang="ts">
+	import PillTrack from './PillTrack.svelte';
+
 	let {
 		options = [],
 		value = $bindable(''),
@@ -31,6 +33,7 @@
 
 	let rootEl = $state<HTMLElement | null>(null);
 	let inputEl = $state<HTMLInputElement | null>(null);
+	let listEl = $state<HTMLElement | null>(null);
 	let open = $state(false);
 	let query = $state('');
 	let activeIndex = $state(0);
@@ -143,7 +146,13 @@
 	</div>
 
 	{#if open}
-		<ul class="combobox-list" role="listbox" id={listId}>
+		<ul class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
+			<PillTrack
+				container={listEl}
+				activeSelector=".combobox-option.active"
+				background="color-mix(in srgb, var(--primary) 15%, transparent)"
+				radius="var(--radius-md)"
+			/>
 			{#if !filtered.length}
 				<li class="combobox-empty" role="presentation">无匹配项</li>
 			{/if}
@@ -253,6 +262,7 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 	}
 	.combobox-option {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -264,7 +274,6 @@
 		cursor: pointer;
 	}
 	.combobox-option.active {
-		background: var(--hover);
 		color: var(--text-strong);
 	}
 	.combobox-option.selected {

@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
+	import PillTrack from './PillTrack.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
@@ -44,6 +45,7 @@
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
 	let wrapperEl: HTMLElement;
+	let listEl = $state<HTMLElement | null>(null);
 	let searchEl = $state<HTMLInputElement>();
 
 	const filtered = $derived(
@@ -200,7 +202,13 @@
 					class="cs-search-input"
 				/>
 			</div>
-			<div class="cs-list">
+			<div class="cs-list" bind:this={listEl}>
+				<PillTrack
+					container={listEl}
+					activeSelector=".cs-option--active:not(.cs-option--selected)"
+					background="color-mix(in srgb, var(--primary) 15%, transparent)"
+					radius="var(--radius-md)"
+				/>
 				{#if loading}
 					<div class="cs-loading">
 						{#if loadingIndicator}
@@ -316,10 +324,11 @@
 		color: var(--text);
 		font-size: 13px;
 	}
-	.cs-list { flex: 1; overflow-y: auto; max-height: 220px; }
+	.cs-list { position: relative; flex: 1; overflow-y: auto; max-height: 220px; }
 	.cs-loading { display: flex; justify-content: center; padding: 12px 0; }
 	.cs-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); }
 	.cs-option {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -335,7 +344,7 @@
 		transition: background-color 0.1s;
 	}
 	.cs-option:hover { color: var(--text-strong); }
-	.cs-option--active { background-color: var(--hover); color: var(--text-strong); }
+	.cs-option--active { color: var(--text-strong); }
 	.cs-option--selected { background-color: var(--primary-soft); color: var(--text-strong); }
 	.cs-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	:global(.cs-option-check) { color: var(--primary); flex-shrink: 0; }

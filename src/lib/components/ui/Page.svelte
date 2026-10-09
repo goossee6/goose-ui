@@ -1,18 +1,19 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import PageHeader from './PageHeader.svelte';
+	import Separator from './Separator.svelte';
 	import {
 		pageInConfig,
 		pageOutConfig,
 		unpinPage,
 		runTransition,
+		resetScrollOnPageLeave,
 		type TransitionRun,
 	} from './pageTransitions.js';
 
 	let {
 		title = '',
 		description = '',
-		scroll = false,
 		maxWidth,
 		right,
 		active = undefined,
@@ -20,11 +21,10 @@
 		class: cls = '',
 		style = '',
 		children,
+		footer,
 	}: {
 		title?: string;
 		description?: string;
-		/** body 整页滚动（默认 false：body 不滚，由页面内部滚动区处理） */
-		scroll?: boolean;
 		/** 内容限宽，如 '800px' */
 		maxWidth?: string;
 		right?: Snippet;
@@ -38,6 +38,8 @@
 		class?: string;
 		style?: string;
 		children?: Snippet;
+		/** 页脚：渲染在内容区末尾，随内容滚；内容不足一屏时吸内容区底 */
+		footer?: Snippet;
 	} = $props();
 
 	let root = $state<HTMLDivElement | undefined>(undefined);
@@ -50,7 +52,10 @@
 	}
 
 	function pageOut(node: HTMLElement) {
-		if (!transition) return { duration: 0 };
+		if (!transition) {
+			resetScrollOnPageLeave(node);
+			return { duration: 0 };
+		}
 		return pageOutConfig(node);
 	}
 
@@ -92,6 +97,7 @@
 					unpinPage(el);
 				});
 			} else {
+				resetScrollOnPageLeave(el);
 				el.style.display = 'none';
 			}
 		}
@@ -101,7 +107,6 @@
 <div
 	bind:this={root}
 	class="page {cls}"
-	class:page--scroll={scroll}
 	style={maxWidth ? `max-width: ${maxWidth}; ${style}` : style}
 	in:pageIn
 	out:pageOut
@@ -112,9 +117,13 @@
 				{#if right}{@render right()}{/if}
 			{/snippet}
 		</PageHeader>
+		<Separator />
 	{/if}
 	<div class="page-body">
 		{@render children?.()}
+		{#if footer}
+			<div class="page-footer">{@render footer()}</div>
+		{/if}
 	</div>
 </div>
 
@@ -125,6 +134,10 @@
 		flex-direction: column;
 		min-height: 100%;
 		min-width: 0;
+		/* 定高约束：flex 列内 header 固定、page-body 成为唯一滚动区；
+		   裸壳父级不定高时 100% 退化 auto，由 100dvh 接管（Layout 内该项永不生效） */
+		height: 100%;
+		max-height: 100dvh;
 		padding: var(--page-pad, 16px);
 		gap: var(--page-gap, 16px);
 	}
@@ -134,9 +147,17 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--page-gap, 16px);
-	}
-	.page--scroll .page-body {
 		overflow-y: auto;
 		overscroll-behavior: contain;
+		padding-block: var(--page-gap, 16px);
+		/* 滚动条贴容器右缘：负边距吃掉页面右 padding，内容右留白由 padding-right 补回 */
+		margin-right: calc(-1 * var(--page-pad-r, var(--layout-pad-x, 16px)));
+		padding-right: var(--page-pad-r, var(--layout-pad-x, 16px));
+	}
+	.page-body > :global(*) {
+		flex-shrink: 0;
+	}
+	.page-footer {
+		margin-top: auto;
 	}
 </style>

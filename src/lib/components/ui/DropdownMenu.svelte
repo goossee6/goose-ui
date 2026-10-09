@@ -12,6 +12,8 @@
 </script>
 
 <script lang="ts">
+	import PillTrack from './PillTrack.svelte';
+
 	let {
 		open = $bindable(false),
 		items = [],
@@ -175,6 +177,13 @@
 			onkeydown={onMenuKeydown}
 			transition:dropdownFade={{ up: flipUp }}
 		>
+			<PillTrack
+				container={menuEl}
+				itemSelector=".dropdown-item:not(.danger)"
+				showSelected={false}
+				hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+				radius="var(--radius-md)"
+			/>
 			{@render children?.()}
 			{#each items as item, i (i)}
 				{#if item.separator}
@@ -252,6 +261,7 @@
 		right: 0;
 	}
 	.dropdown-item {
+		position: relative;
 		display: flex;
 		align-items: center;
 		gap: var(--sp-sm);
@@ -266,7 +276,9 @@
 		cursor: pointer;
 		white-space: nowrap;
 	}
-	.dropdown-item:hover:not(:disabled),
+	.dropdown-item:hover:not(:disabled) {
+		color: var(--text-strong);
+	}
 	.dropdown-item:focus-visible {
 		background-color: var(--hover);
 		color: var(--text-strong);

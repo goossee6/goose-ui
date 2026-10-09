@@ -3,6 +3,7 @@
   import Icon from "../ui/Icon.svelte";
   import { menuStore } from "../contextMenuStore.svelte.js";
   import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu";
+  import PillTrack from "../ui/PillTrack.svelte";
 
   let menuEl = $state<HTMLElement | null>(null);
   let pos = $state({ left: 0, top: 0 });
@@ -58,6 +59,13 @@
 
 {#if menuStore.visible}
   <div class="ctxmenu" style="left: {pos.left}px; top: {pos.top}px" transition:fade={{ duration: 90 }} bind:this={menuEl} role="menu">
+    <PillTrack
+      container={menuEl}
+      itemSelector=".ctxmenu-item"
+      showSelected={false}
+      hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+      radius="var(--radius-md)"
+    />
     {#each items as item (item.id)}
       <button type="button" class="ctxmenu-item" role="menuitem" onclick={() => pick(item)}>
         {#if item.icon}<Icon icon={item.icon} size={14} class="ctxmenu-item-icon" />{/if}
@@ -69,8 +77,8 @@
 
 <style>
   .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-xs); background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
-  .ctxmenu-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+  .ctxmenu-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+  .ctxmenu-item:hover { color: var(--text-strong); }
   .ctxmenu-item :global(.ctxmenu-item-icon) { color: var(--text-muted); flex-shrink: 0; }
-  .ctxmenu-item:hover { background-color: var(--hover); color: var(--text-strong); }
   .ctxmenu-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
 </style>
