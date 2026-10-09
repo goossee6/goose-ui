@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Input, Icon, PresetInput, Page, Notification, Row} from "goose-ui";
+  import {Card, Input, Textarea, Icon, Page, Notification, Row} from "goose-ui";
   import Search from '@lucide/svelte/icons/search';
   import User from '@lucide/svelte/icons/user';
   import Mail from '@lucide/svelte/icons/mail';
@@ -9,11 +9,9 @@
   let email = $state('');
   let amount = $state('');
   let search = $state('');
-  let preset = $state('');
-  let multiline = $state('');
+  let multiText = $state('');
+  let limited = $state('');
 
-  let prevPreset = $state(preset);
-  $effect(() => { if (preset !== prevPreset) { prevPreset = preset; if (preset) Notification.success(`已选择「${preset}」`); } });
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const inputProps: PropsTableItem[] = [
@@ -37,21 +35,17 @@
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
 
-  const presetInputProps: PropsTableItem[] = [
+  const textareaProps: PropsTableItem[] = [
     { name: "value", desc: "输入值（可双向绑定）", type: "string", default: "''" },
-    { name: "presets", desc: "预设值列表，元素为 string 或 { label, value }", type: "Array<string | PresetOption>", default: "[]" },
     { name: "placeholder", desc: "占位文案", type: "string", default: "''" },
-    { name: "clearable", desc: "显示清空按钮", type: "boolean", default: "true" },
-    { name: "error", desc: "错误状态", type: "boolean", default: "false" },
+    { name: "rows", desc: "可见行数", type: "number", default: "3" },
+    { name: "maxlength", desc: "最大字符数", type: "number", default: "—" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
-    { name: "digitsOnly", desc: "仅允许数字输入", type: "boolean", default: "false" },
-    { name: "rows", desc: "多行行数（>1 时为多行输入）", type: "number", default: "1" },
-    { name: "inputmode", desc: "原生 inputmode", type: "'text' | 'numeric' | 'decimal' | 'email' | 'search' | 'tel' | 'url' | 'none'", default: "'text'" },
-    { name: "autocomplete", desc: "原生 autocomplete", type: "string", default: "''" },
-    { name: "spellcheck", desc: "原生 spellcheck", type: "'true' | 'false'", default: "'false'" },
+    { name: "readonly", desc: "只读", type: "boolean", default: "false" },
+    { name: "status", desc: "状态样式", type: "'error' | 'warning'" },
     { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
-    { name: "ariaDescribedby", desc: "无障碍描述关联", type: "string", default: "''" },
-    { name: "onenter", desc: "回车键回调", type: "(() => void) | null", default: "null" },
+    { name: "oninput", desc: "输入回调", type: "(e: Event) => void" },
+    { name: "onkeydown", desc: "按键回调", type: "(e: KeyboardEvent) => void" },
     { name: "id", desc: "原生 id", type: "string", default: "''" },
     { name: "name", desc: "原生 name", type: "string", default: "''" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
@@ -59,7 +53,7 @@
   ];
 </script>
 
-<Page title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、预设输入" >
+<Page title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、多行文本域" >
   <Card title="状态 Status">
     <Row>
       <div class="demo-col">
@@ -141,35 +135,33 @@
     </Row>
   </Card>
 
-  <Card title="预设输入 PresetInput">
-    <div class="demo-col" style="max-width:360px">
-      <PresetInput
-        name="preset"
-        placeholder="选择预设或手动输入"
-        presets={['选项一', '选项二', '选项三']}
-        bind:value={preset}
-      />
-      <span class="demo-val">值: "{preset}"</span>
-    </div>
-  </Card>
-
-  <Card title="预设输入（多行）">
-    <div class="demo-col" style="max-width:360px">
-      <PresetInput
-        name="multiline"
-        placeholder="多行文本，rows >= 2 时渲染为 textarea"
-        rows={4}
-        bind:value={multiline}
-      />
-      <span class="demo-val">值: "{multiline}"</span>
-    </div>
+  <Card title="多行 Textarea">
+    <Row>
+      <div class="demo-col" style="max-width:360px">
+        <Textarea placeholder="请输入多行文本" rows={4} bind:value={multiText} />
+        <span class="demo-val">值: "{multiText}"</span>
+      </div>
+      <div class="demo-col" style="max-width:360px">
+        <Textarea placeholder="最多 100 字" maxlength={100} bind:value={limited} />
+        <span class="demo-val">{limited.length}/100</span>
+      </div>
+      <div class="demo-col" style="max-width:360px">
+        <Textarea status="error" placeholder="错误状态" value="字数超出限制" />
+      </div>
+      <div class="demo-col" style="max-width:360px">
+        <Textarea status="warning" placeholder="警告状态" value="内容可能过长" />
+      </div>
+      <div class="demo-col" style="max-width:360px">
+        <Textarea disabled placeholder="禁用状态" value="不能编辑" />
+      </div>
+    </Row>
   </Card>
   <Card title="Input Props">
     <PropsTable items={inputProps} />
   </Card>
 
-  <Card title="PresetInput Props">
-    <PropsTable items={presetInputProps} />
+  <Card title="Textarea Props">
+    <PropsTable items={textareaProps} />
   </Card>
 </Page>
 

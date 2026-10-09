@@ -1,11 +1,15 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import { floatingPosition } from './floatingPosition';
+  import { rowsHeight } from './rowHeight';
   import PillTrack from './PillTrack.svelte';
+  import ScrollZones from './ScrollZones.svelte';
 
   interface Option {
     value: string;
     label: string;
+    /** 分组名：连续同名的选项归入同组，组头吸顶 */
+    group?: string;
   }
 
   let {
@@ -26,19 +30,24 @@
 
   let open = $state(false);
   let rootEl: HTMLElement;
-  let menuEl = $state<HTMLElement | null>(null);
+  let scrollEl = $state<HTMLElement | null>(null);
   let dropdownStyle = $state('');
+
+  const isGroupHead = (i: number) => {
+    const g = items[i]?.group;
+    return !!g && (i === 0 || items[i - 1].group !== g);
+  };
 
   function toggle() {
     if (disabled) return;
     open = !open;
-    if (open) tick().then(positionDropdown);
   }
 
   function positionDropdown() {
     if (!rootEl) return;
     const rect = rootEl.getBoundingClientRect();
-    const ddh = Math.min(items.length * 36 + 8, 260);
+    // 面板高度 = 前 10 行（组头算一行）的实际高度，不足则自适应；8 为菜单内边距，2 为边框
+    const ddh = rowsHeight(items, 8).height + 2;
     const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH: ddh, gap: 4 });
     dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
   }
@@ -62,13 +71,25 @@
 
   $effect(() => {
     if (!open) return;
+    tick().then(positionDropdown);
+    // 打开期间跟随页面滚动/缩放：fixed 面板否则会脱离触发器
+    const onWin = (e: Event) => {
+      if (scrollEl && e.target === scrollEl) return;
+      positionDropdown();
+    };
+    window.addEventListener('scroll', onWin, true);
+    window.addEventListener('resize', onWin);
     function onDocDown(e: MouseEvent) {
       if (rootEl && !rootEl.contains(e.target as Node)) {
         open = false;
       }
     }
     document.addEventListener("mousedown", onDocDown);
-    return () => document.removeEventListener("mousedown", onDocDown);
+    return () => {
+      window.removeEventListener('scroll', onWin, true);
+      window.removeEventListener('resize', onWin);
+      document.removeEventListener("mousedown", onDocDown);
+    };
   });
 </script>
 
@@ -114,20 +135,26 @@
     <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
   </div>
   {#if open}
-    <div class="menu" style={dropdownStyle} role="listbox" aria-multiselectable="true" bind:this={menuEl}>
-      <PillTrack
-        container={menuEl}
-        itemSelector=".option:not(.selected)"
-        showSelected={false}
-        hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
-        radius="var(--radius-md)"
-      />
-      {#each items as item (item.value)}
-        <button type="button" class="option" class:selected={values.includes(item.value)} role="option" aria-selected={values.includes(item.value)} onclick={() => toggleItem(item.value)}>
-          <input type="checkbox" class="option-check" checked={values.includes(item.value)} tabindex="-1" />
-          {item.label}
-        </button>
-      {/each}
+    <div class="menu" style={dropdownStyle} role="listbox" aria-multiselectable="true">
+      <div class="menu-scroll" bind:this={scrollEl}>
+        <PillTrack
+          container={scrollEl}
+          itemSelector=".option:not(.selected)"
+          showSelected={false}
+          hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+          radius="var(--radius-md)"
+        />
+        {#each items as item, i (item.value)}
+          {#if isGroupHead(i)}
+            <div class="ms-group" role="presentation">{item.group}</div>
+          {/if}
+          <button type="button" class="option" class:selected={values.includes(item.value)} role="option" aria-selected={values.includes(item.value)} onclick={() => toggleItem(item.value)}>
+            <input type="checkbox" class="option-check" checked={values.includes(item.value)} tabindex="-1" />
+            {item.label}
+          </button>
+        {/each}
+      </div>
+      <ScrollZones target={scrollEl} />
     </div>
   {/if}
 </div>
@@ -146,9 +173,14 @@
   .badge-x:hover { background-color: rgba(0, 0, 0, 0.15); }
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
-  .menu { position: fixed; overflow-y: auto; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); padding: var(--sp-xs); z-index: var(--z-max); }
-  .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+    .menu { position: fixed; display: flex; flex-direction: column; overflow: hidden; padding: var(--sp-xs); background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
+  /* 唯一滚动体：隐藏滚动条 → 左右内边距一致 */
+    /* 内边距在 .menu（面板层）：sticky 组头吸附滚动容器顶边，组头上方面板 padding 带无内容可透出 */
+    .menu-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+  .menu-scroll::-webkit-scrollbar { display: none; }
+  .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：padding 20 + checkbox 16 + gap 8 */ padding: 0 44px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: var(--surface); }
+  .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--ui-md-height); padding: 0 var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .option:hover { color: var(--text-strong); }
   .option.selected { background-color: var(--primary-soft); color: var(--primary); }
-  .option-check { width: auto; margin: 0; accent-color: var(--primary); pointer-events: none; }
+  .option-check { width: 16px; height: 16px; flex-shrink: 0; margin: 0; accent-color: var(--primary); pointer-events: none; }
 </style>

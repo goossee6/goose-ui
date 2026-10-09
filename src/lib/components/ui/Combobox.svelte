@@ -3,11 +3,16 @@
 		value: string;
 		label: string;
 		disabled?: boolean;
+		/** 分组名：连续同名的选项归入同组，组头吸顶 */
+		group?: string;
 	}
 </script>
 
 <script lang="ts">
 	import PillTrack from './PillTrack.svelte';
+	import ScrollZones from './ScrollZones.svelte';
+	import { floatingPosition } from './floatingPosition';
+	import { rowsHeight } from './rowHeight';
 
 	let {
 		options = [],
@@ -37,6 +42,7 @@
 	let open = $state(false);
 	let query = $state('');
 	let activeIndex = $state(0);
+	let dropdownStyle = $state('');
 
 	const selectedLabel = $derived(options.find((o) => o.value === value)?.label ?? '');
 
@@ -46,7 +52,21 @@
 		return options.filter((o) => o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q));
 	});
 
+	const isGroupHead = (i: number) => {
+		const g = filtered[i]?.group;
+		return !!g && (i === 0 || filtered[i - 1].group !== g);
+	};
+
 	const listId = `combobox-${Math.random().toString(36).slice(2, 8)}`;
+
+	function position() {
+		if (!rootEl) return;
+		const rect = rootEl.getBoundingClientRect();
+		// 面板高度 = 前 10 行（组头算一行）的实际高度，不足则自适应；8 为列表内边距，2 为边框
+		const panelH = rowsHeight(filtered, 8).height + 2;
+		const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH, gap: 4 });
+		dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+	}
 
 	function openMenu() {
 		if (disabled) return;
@@ -114,7 +134,33 @@
 			if (rootEl && !rootEl.contains(e.target as Node)) closeMenu();
 		};
 		document.addEventListener('mousedown', onDocDown);
-		return () => document.removeEventListener('mousedown', onDocDown);
+		// 面板为 fixed：跟随页面滚动/缩放；过滤结果变化时翻转/高度也需重算
+		void query;
+		position();
+		const onWin = (e: Event) => {
+			if (listEl && e.target === listEl) return;
+			position();
+		};
+		window.addEventListener('scroll', onWin, true);
+		window.addEventListener('resize', onWin);
+		return () => {
+			document.removeEventListener('mousedown', onDocDown);
+			window.removeEventListener('scroll', onWin, true);
+			window.removeEventListener('resize', onWin);
+		};
+	});
+
+	// 隐藏滚动条后键盘导航须把活动项滚进可视区（手写边界，避免 fixed 面板连带滚页面）
+	$effect(() => {
+		const idx = activeIndex;
+		const el = listEl;
+		if (!open || !el) return;
+		const item = el.querySelectorAll<HTMLElement>('.combobox-option')[idx];
+		if (!item) return;
+		const top = item.offsetTop;
+		const bottom = top + item.offsetHeight;
+		if (top < el.scrollTop) el.scrollTop = top;
+		else if (bottom > el.scrollTop + el.clientHeight) el.scrollTop = bottom - el.clientHeight;
 	});
 </script>
 
@@ -134,6 +180,7 @@
 			aria-autocomplete={filter ? 'list' : 'none'}
 			aria-activedescendant={open ? `${listId}-${activeIndex}` : undefined}
 			onfocus={openMenu}
+			onclick={() => { if (!open) openMenu(); }}
 			oninput={(e) => (query = e.currentTarget.value)}
 			onkeydown={onInputKeydown}
 		/>
@@ -146,39 +193,46 @@
 	</div>
 
 	{#if open}
-		<ul class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
-			<PillTrack
-				container={listEl}
-				activeSelector=".combobox-option.active"
-				background="color-mix(in srgb, var(--primary) 15%, transparent)"
-				radius="var(--radius-md)"
-			/>
-			{#if !filtered.length}
-				<li class="combobox-empty" role="presentation">无匹配项</li>
-			{/if}
-			{#each filtered as opt, i (opt.value)}
-				<li
-					class="combobox-option"
-					class:active={i === activeIndex}
-					class:selected={opt.value === value}
-					class:disabled={opt.disabled}
-					id={`${listId}-${i}`}
-					role="option"
-					aria-selected={opt.value === value}
-					aria-disabled={opt.disabled || undefined}
-					onmousedown={(e) => {
-						e.preventDefault();
-						select(opt);
-					}}
-					onmouseenter={() => (activeIndex = i)}
-				>
-					{opt.label}
-					{#if opt.value === value}
-						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+		<div class="combobox-panel" style={dropdownStyle}>
+			<div class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
+				<PillTrack
+					container={listEl}
+					activeSelector=".combobox-option.active"
+					background="color-mix(in srgb, var(--primary) 15%, transparent)"
+					radius="var(--radius-md)"
+				/>
+				{#if !filtered.length}
+					<div class="combobox-empty" role="presentation">无匹配项</div>
+				{/if}
+				{#each filtered as opt, i (opt.value)}
+					{#if isGroupHead(i)}
+						<div class="combobox-group" role="presentation">{opt.group}</div>
 					{/if}
-				</li>
-			{/each}
-		</ul>
+					<div
+						class="combobox-option"
+						class:active={i === activeIndex}
+						class:selected={opt.value === value}
+						class:disabled={opt.disabled}
+						id={`${listId}-${i}`}
+						role="option"
+						tabindex="-1"
+						aria-selected={opt.value === value}
+						aria-disabled={opt.disabled || undefined}
+						onmousedown={(e) => {
+							e.preventDefault();
+							select(opt);
+						}}
+						onmouseenter={() => (activeIndex = i)}
+					>
+						{opt.label}
+						{#if opt.value === value}
+							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+						{/if}
+					</div>
+				{/each}
+			</div>
+			<ScrollZones target={listEl} bg="var(--surface-2)" />
+		</div>
 	{/if}
 </div>
 
@@ -192,6 +246,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--sp-xs);
+		height: var(--ui-md-height);
 		padding: 0 var(--sp-sm);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
@@ -245,29 +300,54 @@
 	.combobox-arrow.open {
 		transform: rotate(180deg);
 	}
-	.combobox-list {
-		position: absolute;
-		z-index: var(--z-dropdown);
-		top: calc(100% + 6px);
-		left: 0;
-		right: 0;
-		max-height: 240px;
-		overflow-y: auto;
-		margin: 0;
+	.combobox-panel {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		/* 面板层内边距（原在列表上）：pill 不贴边、sticky 组头上方无内容透出 */
 		padding: var(--sp-xs);
-		list-style: none;
 		background: var(--surface-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 	}
+	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致；高度由面板 max-height（前 10 行）控制 */
+	.combobox-list {
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		margin: 0;
+		list-style: none;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+	.combobox-list::-webkit-scrollbar {
+		display: none;
+	}
+	.combobox-group {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		height: 24px;
+		/* 与选项文字列对齐（选项 padding 12） */
+		padding: 0 var(--sp-md);
+		font-size: 12px;
+		font-weight: 600;
+		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
+		background: var(--surface-2);
+	}
 	.combobox-option {
 		position: relative;
+		z-index: 1;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--sp-sm);
-		padding: var(--sp-sm) var(--sp-md);
+		height: var(--ui-md-height);
+		padding: 0 var(--sp-md);
 		border-radius: var(--radius-md);
 		font-size: 13px;
 		color: var(--text);
@@ -289,5 +369,7 @@
 		font-size: 13px;
 		color: var(--text-muted);
 		text-align: center;
+		position: relative;
+		z-index: 1;
 	}
 </style>

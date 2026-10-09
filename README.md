@@ -119,18 +119,18 @@ import "goose-ui/styles/theme.css";
 | 组件           | 说明                                                                       |
 | -------------- | -------------------------------------------------------------------------- |
 | Input          | 输入框，clearable/Enter 回调/digitsOnly/status，prefix/suffix 为 snippet    |
-| Select         | 下拉选择，支持键盘导航和 meta 标签                                         |
-| MultiSelect    | 多选下拉，支持 badge 标签                                                   |
+| Select         | 下拉选择，支持键盘导航、meta 标签、分组吸顶（组头），无滚动条+两侧箭头滚动区 |
+| MultiSelect    | 多选下拉，支持 badge 标签与分组吸顶（组头）                                 |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                                      |
 | Checkbox       | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）  |
 | Radio / RadioGroup | 单选与单选组（context 注入，自动关联 label）                            |
 | Toggle         | iOS 风格开关，带弹性动画                                                    |
 | ToggleGroup    | 单选/多选切换组，default/outline 变体                                       |
 | Slider         | 滑块（pointer 捕获拖拽 + 键盘）                                             |
-| Combobox       | 组合框（输入过滤 + role=combobox/listbox/option 键盘导航）                   |
+| Combobox       | 组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航）         |
 | Rating         | 评分（半星/只读/键盘 slider 语义）                                          |
 | PINInput       | 验证码输入（跳格/粘贴/退格回跳，`group`+`separator` 分组）                  |
-| PresetInput    | 带预设的输入框，支持多行模式                                                 |
+| Textarea       | 多行文本域，rows/status/maxlength + resize: vertical                         |
 | DropZone       | 拖拽上传区                                                                   |
 | Form / FormItem | 表单容器与表单项（context 传递 layout/labelWidth，必填星号 + 错误态）      |
 | TimePicker     | 时间选择器（时/分(/秒) 列 + 「现在」快捷 + 自动翻转）                        |

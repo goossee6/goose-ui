@@ -24,6 +24,24 @@
     { value: 'd', label: '未评级', meta: '-', metaClass: 'default' as const },
   ];
 
+  let grouped = $state('');
+
+  const groupedOptions = [
+    { value: 'svelte', label: 'Svelte', group: '前端框架' },
+    { value: 'react', label: 'React', group: '前端框架' },
+    { value: 'vue', label: 'Vue', group: '前端框架' },
+    { value: 'solid', label: 'Solid', group: '前端框架' },
+    { value: 'angular', label: 'Angular', group: '前端框架' },
+    { value: 'vite', label: 'Vite', group: '构建工具' },
+    { value: 'webpack', label: 'Webpack', group: '构建工具' },
+    { value: 'rollup', label: 'Rollup', group: '构建工具' },
+    { value: 'esbuild', label: 'esbuild', group: '构建工具' },
+    { value: 'postgres', label: 'PostgreSQL', group: '数据库' },
+    { value: 'mysql', label: 'MySQL', group: '数据库' },
+    { value: 'sqlite', label: 'SQLite', group: '数据库' },
+    { value: 'clickhouse', label: 'ClickHouse', group: '数据库' },
+  ];
+
   let items = $state(['Svelte', 'React', 'Vue', 'Solid', 'Angular']);
 
   let prevMulti = $state<string[]>([]);
@@ -41,7 +59,7 @@
 
   const selectProps: PropsTableItem[] = [
     { name: "value", desc: "选中值（可双向绑定；组件为泛型，本页示例 string）", type: "T", default: "undefined" },
-    { name: "options", desc: "选项数组，元素 { value, label, meta?, metaClass? }", type: "Option[]", default: "[]" },
+    { name: "options", desc: "选项数组，元素 { value, label, meta?, metaClass?, group? }（group 连续同名归组，组头吸顶）", type: "Option[]", default: "[]" },
     { name: "onchange", desc: "变更回调", type: "(v: T) => void" },
     { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
     { name: "width", desc: "宽度", type: "string", default: "'100%'" },
@@ -55,7 +73,7 @@
 
   const multiSelectProps: PropsTableItem[] = [
     { name: "values", desc: "选中值数组（可双向绑定）", type: "string[]", default: "[]" },
-    { name: "items", desc: "选项数组，元素 { value, label, meta?, metaClass? }", type: "Option[]", default: "[]" },
+    { name: "items", desc: "选项数组，元素 { value, label, group? }（group 连续同名归组，组头吸顶）", type: "Option[]", default: "[]" },
     { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
@@ -106,6 +124,15 @@
       <div class="demo-col">
         <Select options={options} value="apple" disabled />
       </div>
+    </Row>
+  </Card>
+
+  <Card title="分组选择器 Select">
+    <Row>
+      <div class="demo-col">
+        <Select options={groupedOptions} bind:value={grouped} placeholder="13 个选项，3 组（组头吸顶）" />
+      </div>
+      <span class="demo-val">选中: "{grouped}"</span>
     </Row>
   </Card>
 

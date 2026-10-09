@@ -59,7 +59,7 @@
         + 添加
       </button>
     </Row>
-    <p class="note">已关闭 {3 - tags.filter((t) => t.id <= 3).length} 个</p>
+    <p class="note">已关闭 {nextId - 1 - tags.length} 个</p>
   </Card>
 
   <Card title="Props">

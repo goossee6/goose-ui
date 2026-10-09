@@ -3,6 +3,7 @@
 	import type { Snippet } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
 	import PillTrack from './PillTrack.svelte';
+	import ScrollZones from './ScrollZones.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
@@ -45,6 +46,7 @@
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
 	let wrapperEl: HTMLElement;
+	let ddEl = $state<HTMLElement | null>(null);
 	let listEl = $state<HTMLElement | null>(null);
 	let searchEl = $state<HTMLInputElement>();
 
@@ -154,12 +156,45 @@
 	async function positionDropdown() {
 		if (!wrapperEl) return;
 		const rect = wrapperEl.getBoundingClientRect();
-		const r = floatingPosition(rect, { panelW: Math.max(240, rect.width), panelH: 320, gap: 4 });
-		dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+		// 头部/搜索/页脚高度随 title、onCreateItem 变化 → 先写估算值，渲染后按实测 scrollHeight 校准
+		const write = (h: number) => {
+			const r = floatingPosition(rect, { panelW: Math.max(240, rect.width), panelH: h, gap: 4 });
+			dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+		};
+		write(estimateHeight());
 		mounted = true;
 		await tick();
+		// scrollHeight 不含面板 1px×2 边框（border-box 的 max-height 含边框）→ 补 2
+		const real = ddEl ? ddEl.scrollHeight + 2 : 0;
+		if (real && Math.abs(real - estimateHeight()) > 1) write(real);
 		searchEl?.focus();
 	}
+
+	/** 面板高度估算：chrome + 前 10 行 × 36px（无分组行）+ 面板边框 */
+	function estimateHeight(): number {
+		let chrome = 43 + 42; // .cs-header + .cs-search 恒在
+		if (onCreateItem) chrome += 66; // .cs-footer
+		const rows = filtered.length ? filtered.length * 36 : 44; // 空态文案行下限
+		return chrome + Math.min(rows, 360) + 2;
+	}
+
+	// 打开期间跟随页面滚动/缩放（面板为 fixed，否则会脱离触发器）；输入过滤/异步加载后面板高度也会变
+	$effect(() => {
+		if (!open) return;
+		void query;
+		void filtered;
+		tick().then(() => { if (open) positionDropdown(); });
+		const onWin = (e: Event) => {
+			if (listEl && e.target === listEl) return;
+			positionDropdown();
+		};
+		window.addEventListener('scroll', onWin, true);
+		window.addEventListener('resize', onWin);
+		return () => {
+			window.removeEventListener('scroll', onWin, true);
+			window.removeEventListener('resize', onWin);
+		};
+	});
 
 	function handleOutsideClick(e: MouseEvent) {
 		if (wrapperEl && !wrapperEl.contains(e.target as Node)) close();
@@ -190,7 +225,7 @@
 
 	{#if open && mounted}
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div class="cs-dropdown" style={dropdownStyle} role="listbox" tabindex="-1" onkeydown={onDropdownKeydown}>
+		<div class="cs-dropdown" bind:this={ddEl} style={dropdownStyle} role="listbox" tabindex="-1" onkeydown={onDropdownKeydown}>
 			<div class="cs-header">{title}</div>
 			<div class="cs-search">
 				<Search size={14} class="cs-search-icon" />
@@ -202,47 +237,50 @@
 					class="cs-search-input"
 				/>
 			</div>
-			<div class="cs-list" bind:this={listEl}>
-				<PillTrack
-					container={listEl}
-					activeSelector=".cs-option--active:not(.cs-option--selected)"
-					background="color-mix(in srgb, var(--primary) 15%, transparent)"
-					radius="var(--radius-md)"
-				/>
-				{#if loading}
-					<div class="cs-loading">
-						{#if loadingIndicator}
-							{@render loadingIndicator()}
-						{/if}
-					</div>
-				{:else if filtered.length === 0}
-					<div class="cs-empty">
-						{#if query.trim()}
-							无匹配，可新建「{query.trim()}」
-						{:else}
-							暂无数据
-						{/if}
-					</div>
-				{:else}
-					{#each filtered as item, i (item)}
-						<button
-							type="button"
-							class="cs-option"
-							class:cs-option--active={i === activeIdx}
-							class:cs-option--selected={item === value}
-							onclick={() => choose(item)}
-							onmouseenter={() => activeIdx = i}
-							role="option"
-							aria-selected={item === value}
-							title={item}
-						>
-							<span class="cs-option-label">{item}</span>
-							{#if item === value}
-								<Check size={14} class="cs-option-check" />
+			<div class="cs-listwrap">
+				<div class="cs-list" bind:this={listEl}>
+					<PillTrack
+						container={listEl}
+						activeSelector=".cs-option--active:not(.cs-option--selected)"
+						background="color-mix(in srgb, var(--primary) 15%, transparent)"
+						radius="var(--radius-md)"
+					/>
+					{#if loading}
+						<div class="cs-loading">
+							{#if loadingIndicator}
+								{@render loadingIndicator()}
 							{/if}
-						</button>
-					{/each}
-				{/if}
+						</div>
+					{:else if filtered.length === 0}
+						<div class="cs-empty">
+							{#if query.trim()}
+								无匹配，可新建「{query.trim()}」
+							{:else}
+								暂无数据
+							{/if}
+						</div>
+					{:else}
+						{#each filtered as item, i (item)}
+							<button
+								type="button"
+								class="cs-option"
+								class:cs-option--active={i === activeIdx}
+								class:cs-option--selected={item === value}
+								onclick={() => choose(item)}
+								onmouseenter={() => activeIdx = i}
+								role="option"
+								aria-selected={item === value}
+								title={item}
+							>
+								<span class="cs-option-label">{item}</span>
+								{#if item === value}
+									<Check size={14} class="cs-option-check" />
+								{/if}
+							</button>
+						{/each}
+					{/if}
+				</div>
+				<ScrollZones target={listEl} />
 			</div>
 			{#if onCreateItem}
 				<div class="cs-footer">
@@ -290,6 +328,7 @@
 	.cs-chevron--open { transform: rotate(180deg); }
 
 	.cs-dropdown {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
@@ -324,7 +363,11 @@
 		color: var(--text);
 		font-size: 13px;
 	}
-	.cs-list { position: relative; flex: 1; overflow-y: auto; max-height: 220px; }
+	/* 列表区（滚动视口）：触发区的定位基准 */
+	.cs-listwrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致；360 = 严格前 10 行 × 36px */
+	.cs-list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: 360px; scrollbar-width: none; -ms-overflow-style: none; }
+	.cs-list::-webkit-scrollbar { display: none; }
 	.cs-loading { display: flex; justify-content: center; padding: 12px 0; }
 	.cs-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); }
 	.cs-option {
@@ -334,7 +377,8 @@
 		justify-content: space-between;
 		gap: var(--gap-md);
 		width: 100%;
-		padding: var(--sp-md) var(--sp-xl);
+		height: var(--ui-md-height);
+		padding: 0 var(--sp-xl);
 		border: none;
 		background: none;
 		color: var(--text);
