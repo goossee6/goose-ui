@@ -10,21 +10,25 @@
 
 	let {
 		value = $bindable(''),
-		seconds = false,
+		showSeconds = true,
 		disabled = false,
 		clearable = true,
 		placeholder = '选择时间…',
-		interval = 30,
+		hourStep = 1,
+		minuteStep = 1,
+		secondStep = 1,
 		onchange,
 		class: cls = '',
 		style = '',
 	}: {
 		value?: string;
-		seconds?: boolean;
+		showSeconds?: boolean;
 		disabled?: boolean;
 		clearable?: boolean;
 		placeholder?: string;
-		interval?: number;
+		hourStep?: number;
+		minuteStep?: number;
+		secondStep?: number;
 		onchange?: (value: string) => void;
 		class?: string;
 		style?: string;
@@ -48,31 +52,55 @@
 		};
 	});
 
-	const hours = $derived(Array.from({ length: 24 }, (_, i) => pad(i)));
-	// interval<=0 会让 length 变 Infinity，Array.from 直接 RangeError
+	// 草稿态：半成品选择（compose 合不出完整值）存在这里，空状态逐步点选才不会丢；
+	// 只有 value 被外部改动（bind/清除/外部赋值）时才由 parts 重置
+	let draft = $state({ h: '', m: '', s: '' });
+
+	$effect(() => {
+		draft = { h: parts.h, m: parts.m, s: parts.s };
+	});
+
+	const hours = $derived.by(() => {
+		// xxStep<=0 会让 length 变 Infinity，Array.from 直接 RangeError
+		const hs = Number.isFinite(hourStep) && hourStep >= 1 ? Math.floor(hourStep) : 1;
+		return Array.from({ length: Math.ceil(24 / hs) }, (_, i) => pad((i * hs) % 24));
+	});
 	const minutes = $derived.by(() => {
-		const iv = Number.isFinite(interval) && interval >= 1 ? Math.floor(interval) : 1;
+		const iv = Number.isFinite(minuteStep) && minuteStep >= 1 ? Math.floor(minuteStep) : 1;
 		return Array.from({ length: Math.min(60, Math.floor(60 / iv)) }, (_, i) => pad(i * iv));
 	});
-	const secs = $derived(Array.from({ length: 60 }, (_, i) => pad(i)));
+	const secs = $derived.by(() => {
+		const sv = Number.isFinite(secondStep) && secondStep >= 1 ? Math.floor(secondStep) : 1;
+		return Array.from({ length: Math.min(60, Math.floor(60 / sv)) }, (_, i) => pad(i * sv));
+	});
 
 	function valid(): boolean {
-		if (parts.h === '' || parts.m === '') return false;
-		if (seconds && parts.s === '') return false;
+		if (draft.h === '' || draft.m === '') return false;
+		if (showSeconds && draft.s === '') return false;
 		return true;
 	}
 
 	function compose(h: string, m: string, s: string): string {
 		if (!h || !m) return '';
-		if (seconds) return s ? `${h}:${m}:${s}` : '';
+		if (showSeconds) return s ? `${h}:${m}:${s}` : '';
 		return `${h}:${m}`;
 	}
 
 	function setPart(k: 'h' | 'm' | 's', v: string) {
-		const next = { ...parts, [k]: v } as typeof parts;
-		const out = compose(next.h, next.m, next.s);
+		draft = { ...draft, [k]: v };
+		const out = compose(draft.h, draft.m, draft.s);
 		value = out;
 		if (valid()) onchange?.(out);
+	}
+
+	// 原子写入：各列一次填齐 → 只写一次 value、只发一次 onchange（避免 showSeconds 模式发出中间态 HH:mm）
+	function now() {
+		const d = new Date();
+		draft = { h: pad(d.getHours()), m: pad(d.getMinutes()), s: showSeconds ? pad(d.getSeconds()) : '' };
+		const out = compose(draft.h, draft.m, draft.s);
+		value = out;
+		if (valid()) onchange?.(out);
+		hide();
 	}
 
 	function show() {
@@ -160,7 +188,7 @@
 						radius="var(--radius-sm)"
 					/>
 					{#each hours as h (h)}
-						<button type="button" class="tp-opt" class:active={parts.h === h} aria-pressed={parts.h === h} onclick={() => setPart('h', h)}>{h}</button>
+						<button type="button" class="tp-opt" class:active={draft.h === h} aria-pressed={draft.h === h} onclick={() => setPart('h', h)}>{h}</button>
 					{/each}
 				</div>
 				<div class="tp-col" role="listbox" aria-label="分钟" bind:this={mColEl}>
@@ -172,10 +200,10 @@
 						radius="var(--radius-sm)"
 					/>
 					{#each minutes as m (m)}
-						<button type="button" class="tp-opt" class:active={parts.m === m} aria-pressed={parts.m === m} onclick={() => setPart('m', m)}>{m}</button>
+						<button type="button" class="tp-opt" class:active={draft.m === m} aria-pressed={draft.m === m} onclick={() => setPart('m', m)}>{m}</button>
 					{/each}
 				</div>
-				{#if seconds}
+				{#if showSeconds}
 					<div class="tp-col" role="listbox" aria-label="秒" bind:this={sColEl}>
 						<PillTrack
 							container={sColEl}
@@ -185,20 +213,14 @@
 							radius="var(--radius-sm)"
 						/>
 						{#each secs as s (s)}
-							<button type="button" class="tp-opt" class:active={parts.s === s} aria-pressed={parts.s === s} onclick={() => setPart('s', s)}>{s}</button>
+							<button type="button" class="tp-opt" class:active={draft.s === s} aria-pressed={draft.s === s} onclick={() => setPart('s', s)}>{s}</button>
 						{/each}
 					</div>
 				{/if}
 			</div>
 			<div class="tp-footer">
 				<span class="tp-hint">{value || '未选择'}</span>
-				<button type="button" class="tp-now" onclick={() => {
-					const d = new Date();
-					setPart('h', pad(d.getHours()));
-					setPart('m', pad(d.getMinutes()));
-					if (seconds) setPart('s', pad(d.getSeconds()));
-					hide();
-				}}>现在</button>
+				<button type="button" class="tp-now" onclick={now}>现在</button>
 			</div>
 		</div>
 	{/if}

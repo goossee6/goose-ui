@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PillTrack from './PillTrack.svelte';
+
 	let {
 		widths = [],
 		value = $bindable<string[]>([]),
@@ -23,6 +25,7 @@
 
 	let inputs = $state<HTMLInputElement[]>([]);
 	let focused = $state(-1);
+	let fieldEl = $state<HTMLElement | null>(null);
 
 	const cells = $derived.by(() => {
 		const arr: string[] = [];
@@ -92,7 +95,14 @@
 	}
 </script>
 
-<div class="segment-field {cls}" style={style} role="group" aria-disabled={disabled || undefined}>
+<div class="segment-field {cls}" style={style} role="group" aria-disabled={disabled || undefined} bind:this={fieldEl}>
+	<PillTrack
+		container={fieldEl}
+		itemSelector=".segment-cell"
+		showSelected={false}
+		hoverBackground="var(--hover)"
+		radius="var(--radius-sm)"
+	/>
 	{#each cells as ch, i (i)}
 		{#if i > 0}
 			<span class="segment-sep" aria-hidden="true">{separator}</span>
@@ -120,6 +130,7 @@
 
 <style>
 	.segment-field {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		gap: 2px;
@@ -139,6 +150,7 @@
 		background: var(--surface-2);
 	}
 	.segment-cell {
+		position: relative;
 		width: 4ch;
 		padding: var(--sp-sm) 2px;
 		border: none;

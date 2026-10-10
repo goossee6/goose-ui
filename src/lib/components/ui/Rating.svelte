@@ -52,6 +52,7 @@
 		if (next !== null) {
 			e.preventDefault();
 			value = next;
+			hover = next;
 			onchange?.(next);
 		}
 	}
@@ -81,7 +82,7 @@
 			disabled={readonlyOrDisabled}
 			aria-label="第 {i + 1} 星"
 			onclick={(e) => handleClick(i, e)}
-			onmouseenter={(e) => !readonlyOrDisabled && (hover = starValue(i, e))}
+			onmousemove={(e) => !readonlyOrDisabled && (hover = starValue(i, e))}
 			onfocus={() => !readonlyOrDisabled && (hover = i + 1)}
 		>
 			<svg
@@ -95,6 +96,19 @@
 					d="M12 2.5l2.95 5.98 6.6.96-4.77 4.65 1.12 6.57L12 17.57l-5.9 3.09 1.12-6.57L2.45 9.44l6.6-.96L12 2.5z"
 				/>
 			</svg>
+			{#if shown >= i + 0.5 && shown < i + 1}
+				<svg
+					class="rating-star-overlay"
+					viewBox="0 0 24 24"
+					width={px}
+					height={px}
+					aria-hidden="true"
+				>
+					<path
+						d="M12 2.5l2.95 5.98 6.6.96-4.77 4.65 1.12 6.57L12 17.57l-5.9 3.09 1.12-6.57L2.45 9.44l6.6-.96L12 2.5z"
+					/>
+				</svg>
+			{/if}
 		</button>
 	{/each}
 </div>
@@ -118,12 +132,14 @@
 		color: var(--border-strong);
 		line-height: 0;
 		border-radius: var(--radius-sm);
+		position: relative;
 	}
 	.rating-star:disabled {
 		cursor: default;
 	}
-	.rating:not(.rating--disabled) .rating-star:hover,
-	.rating:not(.rating--disabled) .rating-star:focus-visible {
+	/* 悬停/聚焦上色只作用于整星；半星由 overlay 表达，底星保持灰色以免右半变黄 */
+	.rating:not(.rating--disabled) .rating-star:hover:not(.rating-star--half),
+	.rating:not(.rating--disabled) .rating-star:focus-visible:not(.rating-star--half) {
 		color: var(--warning);
 	}
 	.rating-star:focus-visible {
@@ -136,10 +152,15 @@
 	.rating-star--active {
 		color: var(--warning);
 	}
-	.rating-star--half {
+	.rating-star-overlay {
+		position: absolute;
+		left: 2px;
+		top: 2px;
 		color: var(--warning);
-	}
-	.rating-star--half .rating-star-svg {
 		clip-path: inset(0 50% 0 0);
+		pointer-events: none;
+	}
+	.rating-star-overlay path {
+		fill: currentColor;
 	}
 </style>

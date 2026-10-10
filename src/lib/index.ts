@@ -68,7 +68,6 @@ import Empty from './components/ui/Empty.svelte';
 import Form from './components/ui/Form.svelte';
 import FormItem from './components/ui/FormItem.svelte';
 import PINInput from './components/ui/PINInput.svelte';
-import Radio from './components/ui/Radio.svelte';
 import RadioGroup from './components/ui/RadioGroup.svelte';
 import Rating from './components/ui/Rating.svelte';
 import Row from './components/ui/Row.svelte';
@@ -111,7 +110,7 @@ import Header from './components/ui/Header.svelte';
 import ThemeToggle from './components/ui/ThemeToggle.svelte';
 export {
   Accordion, AlertDialog, AspectRatio, Avatar, Button, Calendar, Card, Checkbox, Collapsible, Combobox, Command, CreatableSelect, DataList, DataTable, DateField, DateRangeField, DatePicker, DateRangePicker, DropZone, DropdownMenu,
-  MultiSelect, Input, Textarea, Label, LinkPreview, Loading, Meter, Modal, PageHeader, Page, Empty, PINInput, Radio, RadioGroup, RangeCalendar, Rating, Row, ScrollArea, Separator, Slider, Menubar, NavigationMenu, Pagination, Popover, ToggleGroup, TimeField, TimeRangeField, Toolbar, Tag, Skeleton, Image, Footer, BackTop, Time, Countdown, Carousel, Form, FormItem, TimePicker, CodeBlock, Cursor, Background,
+  MultiSelect, Input, Textarea, Label, LinkPreview, Loading, Meter, Modal, PageHeader, Page, Empty, PINInput, RadioGroup, RangeCalendar, Rating, Row, ScrollArea, Separator, Slider, Menubar, NavigationMenu, Pagination, Popover, ToggleGroup, TimeField, TimeRangeField, Toolbar, Tag, Skeleton, Image, Footer, BackTop, Time, Countdown, Carousel, Form, FormItem, TimePicker, CodeBlock, Cursor, Background,
   ProgressBar, ProgressBytes, ProgressSlotBar, Tabs, TabsPanel, PillTrack, Select,
   StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header, ThemeToggle,
 };

@@ -1,16 +1,6 @@
 <script lang="ts">
-  import {Card, Page, Radio, RadioGroup, Checkbox, ToggleGroup, Row} from "goose-ui";
+  import {Card, Page, RadioGroup, Checkbox, ToggleGroup} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
-
-  // Radio
-  const radioProps: PropsTableItem[] = [
-    { name: "value", desc: "选项值（组内由 RadioGroup 管理）", type: "string", default: "''" },
-    { name: "checked", desc: "独立使用时的选中态（双向绑定）", type: "boolean", default: "false" },
-    { name: "name", desc: "独立使用时的原生 name", type: "string", default: "''" },
-    { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
-    { name: "size", desc: "尺寸档", type: "'small' | 'middle' | 'large'", default: "'middle'" },
-    { name: "children", desc: "文字标签（snippet）", type: "Snippet", default: "—" },
-  ];
 
   const groupProps: PropsTableItem[] = [
     { name: "options", desc: "选项列表（value/label/disabled）", type: "RadioGroupOption[]", default: "[]" },
@@ -44,7 +34,6 @@
   ];
 
   // 单选 state
-  let standalone = $state(true);
   let group = $state('option-a');
   let vertical = $state('v2');
   let single = $state<string[]>(['center']);
@@ -61,25 +50,10 @@
   let multi = $state<string[]>(['bold']);
 </script>
 
-<Page title="选择控件 单选 / 多选" description="按选择模式分组：单选（圆形圆点 / pill 分段）与多选（方形复选 / pill 分段）">
+<Page title="选择控件 单选 / 多选" description="按选择模式分组：单选（pill 分段轨道）与多选（方形复选 / pill 分段）">
   <!-- ═══════════════════ 单选 ═══════════════════ -->
   <Card title="单选">
     <div class="section">
-      <p class="section-title">圆形样式 — Radio 圆点</p>
-      <Row>
-        <Radio bind:checked={standalone}>记住我</Radio>
-        <span class="note">checked = {standalone}</span>
-      </Row>
-      <Row>
-        <Radio size="small">small</Radio>
-        <Radio size="middle">middle</Radio>
-        <Radio size="large">large</Radio>
-        <Radio disabled>禁用</Radio>
-      </Row>
-      <p class="note">独立 Radio 各自维护选中态；成组单选请用下方 pill 轨道的 RadioGroup</p>
-    </div>
-
-    <div class="section section--divided">
       <p class="section-title">pill 样式 — 分段轨道</p>
       <div style="display:flex;flex-direction:column;gap:16px">
         <RadioGroup
@@ -189,9 +163,6 @@
   </Card>
 
   <!-- ═══════════════════ Props ═══════════════════ -->
-  <Card title="Props — Radio">
-    <PropsTable items={radioProps} />
-  </Card>
   <Card title="Props — RadioGroup">
     <PropsTable items={groupProps} />
   </Card>

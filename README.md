@@ -123,7 +123,7 @@ import "goose-ui/styles/theme.css";
 | MultiSelect    | 多选下拉，支持 badge 标签与分组吸顶（组头）                                 |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                                      |
 | Checkbox       | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）  |
-| Radio / RadioGroup | 单选与单选组（context 注入，自动关联 label）                            |
+| RadioGroup | 单选组（pill 分段轨道，context 注入）                                  |
 | Toggle         | iOS 风格开关，带弹性动画                                                    |
 | ToggleGroup    | 单选/多选切换组，default/outline 变体                                       |
 | Slider         | 滑块（pointer 捕获拖拽 + 键盘）                                             |

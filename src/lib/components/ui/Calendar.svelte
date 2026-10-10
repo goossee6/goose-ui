@@ -28,6 +28,8 @@
 </script>
 
 <script lang="ts">
+	import PillTrack from './PillTrack.svelte';
+
 	let {
 		value = $bindable(''),
 		min = '',
@@ -54,6 +56,11 @@
 
 	const today = $derived(new Date());
 	const selected = $derived(fromISO(value));
+
+	// PillTrack 容器：header（导航）/ grid（日期格）/ footer（今天按钮）
+	let headerEl = $state<HTMLElement | null>(null);
+	let gridEl = $state<HTMLElement | null>(null);
+	let footerEl = $state<HTMLElement | null>(null);
 
 	let viewYear = $state(new Date().getFullYear());
 	let viewMonth = $state(new Date().getMonth());
@@ -122,7 +129,14 @@
 </script>
 
 <div class="calendar {cls}" class:disabled style={style}>
-	<div class="calendar-header">
+	<div class="calendar-header" bind:this={headerEl}>
+		<PillTrack
+			container={headerEl}
+			itemSelector=".calendar-nav"
+			showSelected={false}
+			hoverBackground="var(--hover)"
+			radius="var(--radius-md)"
+		/>
 		<button type="button" class="calendar-nav" aria-label="上个月" disabled={disabled} onclick={() => shiftMonth(-1)}>
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
 		</button>
@@ -138,7 +152,15 @@
 		{/each}
 	</div>
 
-	<div class="calendar-grid" role="grid" tabindex={disabled ? -1 : 0} aria-label="日历" onkeydown={onKeydown}>
+	<div class="calendar-grid" role="grid" tabindex={disabled ? -1 : 0} aria-label="日历" onkeydown={onKeydown} bind:this={gridEl}>
+		<PillTrack
+			container={gridEl}
+			itemSelector=".calendar-day"
+			activeSelector=".calendar-day.selected"
+			hoverBackground="var(--hover)"
+			background="var(--primary)"
+			radius="var(--radius-md)"
+		/>
 		{#each cells as cell (cell.iso)}
 			{@const off = isDisabled(cell.iso)}
 			<button
@@ -158,7 +180,14 @@
 	</div>
 
 	{#if showToday}
-		<div class="calendar-footer">
+		<div class="calendar-footer" bind:this={footerEl}>
+			<PillTrack
+				container={footerEl}
+				itemSelector=".calendar-today-btn"
+				showSelected={false}
+				hoverBackground="var(--primary-soft)"
+				radius="var(--radius-sm)"
+			/>
 			<button type="button" class="calendar-today-btn" disabled={disabled} onclick={goToday}>今天</button>
 		</div>
 	{/if}
@@ -177,6 +206,7 @@
 		opacity: 0.5;
 	}
 	.calendar-header {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -188,6 +218,7 @@
 		color: var(--text-strong);
 	}
 	.calendar-nav {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -200,7 +231,6 @@
 		cursor: pointer;
 	}
 	.calendar-nav:hover:not(:disabled) {
-		background: var(--hover);
 		color: var(--text-strong);
 	}
 	.calendar-nav:disabled {
@@ -219,6 +249,7 @@
 		padding: var(--sp-xs) 0;
 	}
 	.calendar-grid {
+		position: relative;
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
 		gap: 2px;
@@ -230,6 +261,7 @@
 		border-radius: var(--radius-md);
 	}
 	.calendar-day {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -242,9 +274,6 @@
 		font-family: var(--font-mono);
 		cursor: pointer;
 		transition: background-color 0.12s, color 0.12s;
-	}
-	.calendar-day:hover:not(:disabled) {
-		background: var(--hover);
 	}
 	.calendar-day:disabled {
 		opacity: 0.3;
@@ -260,14 +289,11 @@
 		box-shadow: inset 0 0 0 1px var(--primary);
 	}
 	.calendar-day.selected {
-		background: var(--primary);
 		color: var(--primary-text);
 		box-shadow: none;
 	}
-	.calendar-day.selected:hover:not(:disabled) {
-		background: var(--primary-hover);
-	}
 	.calendar-footer {
+		position: relative;
 		display: flex;
 		justify-content: center;
 		margin-top: var(--sp-sm);
@@ -275,6 +301,7 @@
 		border-top: 1px solid var(--border);
 	}
 	.calendar-today-btn {
+		position: relative;
 		border: none;
 		background: none;
 		color: var(--primary);
@@ -282,8 +309,5 @@
 		cursor: pointer;
 		padding: var(--sp-2xs) var(--sp-sm);
 		border-radius: var(--radius-sm);
-	}
-	.calendar-today-btn:hover:not(:disabled) {
-		background: var(--primary-soft);
 	}
 </style>
