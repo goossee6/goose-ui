@@ -33,8 +33,9 @@
 	const joined = $derived(cellVals.join(''));
 
 	// 外部改 value（父组件 set 或初始值）时同步回格位；本组件编辑时 value === joined 不触发
+	// 初始 cellVals 为空数组，需按 length 展开；length 变化也走同一路径重建
 	$effect(() => {
-		if (value !== joined) {
+		if (value !== joined || cellVals.length !== length) {
 			const next: string[] = [];
 			for (let i = 0; i < length; i++) next.push(value[i] ?? '');
 			cellVals = next;
