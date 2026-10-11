@@ -31,7 +31,6 @@
   import NavigationMenuDemo from './lib/demos/NavigationMenu.svelte';
   import ToolbarDemo from './lib/demos/Toolbar.svelte';
   import SliderDemo from './lib/demos/Slider.svelte';
-  import ComboboxDemo from './lib/demos/Combobox.svelte';
   import PopoverDemo from './lib/demos/Popover.svelte';
   import AlertDialogDemo from './lib/demos/AlertDialog.svelte';
   import CommandDemo from './lib/demos/Command.svelte';
@@ -105,7 +104,7 @@
       items: [
         { value: 'input', label: 'Input 输入框' },
         { value: 'switch', label: 'Toggle 开关' },
-        { value: 'select', label: 'Select 选择器' },
+        { value: 'select', label: 'Select/Combobox 选择器' },
         { value: 'datepicker', label: 'DatePicker 日期选择' },
         { value: 'timepicker', label: 'TimePicker 时间选择' },
         { value: 'choice', label: '选择控件 单选/多选' },
@@ -113,7 +112,6 @@
         { value: 'rating', label: 'Rating 评分' },
         { value: 'pininput', label: 'PINInput 验证码' },
         { value: 'slider', label: 'Slider 滑块' },
-        { value: 'combobox', label: 'Combobox 组合框' },
         { value: 'datefield', label: 'Date/Time Field 字段' },
         { value: 'form', label: 'Form 表单' },
       ],
@@ -268,8 +266,6 @@
       <PINInputDemo />
     {:else if activeTab === 'slider'}
       <SliderDemo />
-    {:else if activeTab === 'combobox'}
-      <ComboboxDemo />
     {:else if activeTab === 'popover'}
       <PopoverDemo />
     {:else if activeTab === 'alertdialog'}

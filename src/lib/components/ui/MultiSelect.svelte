@@ -161,7 +161,7 @@
 
 <style>
   .multi-select { position: relative; display: inline-block; min-width: 200px; }
-  .trigger { display: flex; align-items: center; gap: 8px; padding: var(--ui-md-padding); height: var(--ui-md-height); min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: var(--ui-md-font); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+  .trigger { display: flex; align-items: center; gap: 8px; padding: var(--padding-md); height: var(--height-md); min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: var(--font-md); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
   .trigger:hover:not(.disabled) { background-color: var(--surface-3); }
   .trigger:focus-visible { border-color: var(--primary); outline: none; }
   .trigger.open { border-color: var(--primary); }
@@ -173,13 +173,13 @@
   .badge-x:hover { background-color: rgba(0, 0, 0, 0.15); }
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
-    .menu { position: fixed; display: flex; flex-direction: column; overflow: hidden; padding: var(--sp-xs); background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
+    .menu { position: fixed; display: flex; flex-direction: column; overflow: hidden; padding: var(--sp-sm); background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
   /* 唯一滚动体：隐藏滚动条 → 左右内边距一致 */
     /* 内边距在 .menu（面板层）：sticky 组头吸附滚动容器顶边，组头上方面板 padding 带无内容可透出 */
     .menu-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
   .menu-scroll::-webkit-scrollbar { display: none; }
   .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：padding 20 + checkbox 16 + gap 8 */ padding: 0 44px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: var(--surface); }
-  .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--ui-md-height); padding: 0 var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+  .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .option:hover { color: var(--text-strong); }
   .option.selected { background-color: var(--primary-soft); color: var(--primary); }
   .option-check { width: 16px; height: 16px; flex-shrink: 0; margin: 0; accent-color: var(--primary); pointer-events: none; }

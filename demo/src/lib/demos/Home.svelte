@@ -29,7 +29,7 @@
   .demo-grid {
     display: flex;
     flex-direction: column;
-    gap: var(--gap-2xl);
+    gap: var(--sp-lg);
   }
   .demo-block {
     display: flex;

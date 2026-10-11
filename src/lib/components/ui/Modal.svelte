@@ -227,7 +227,7 @@
   .modal {
     background-color: var(--surface);
     border: 1px solid var(--border-strong);
-    border-radius: var(--radius-2xl);
+    border-radius: var(--radius-lg);
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -242,7 +242,7 @@
     z-index: var(--z-overlay);
     background-color: var(--surface);
     border: 1px solid var(--border-strong);
-    border-radius: var(--radius-2xl);
+    border-radius: var(--radius-lg);
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -253,7 +253,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--sp-md) var(--sp-3xl);
+    padding: var(--sp-lg) 32px;
     font-size: 18px;
     font-weight: 600;
     color: var(--text-strong);
@@ -300,7 +300,7 @@
     color: var(--text-strong);
   }
   .modal-body {
-    padding: var(--sp-3xl) var(--sp-4xl);
+    padding: 32px 40px;
     min-width: 0;
     flex: 1;
     min-height: 0;
@@ -314,8 +314,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--gap-xl);
-    padding: var(--sp-md) var(--sp-3xl);
+    gap: var(--sp-lg);
+    padding: var(--sp-lg) 32px;
     flex-shrink: 0;
   }
   .modal-btn {
@@ -323,7 +323,7 @@
     align-items: center;
     justify-content: center;
     height: 28px;
-    padding: 0 var(--sp-xl);
+    padding: 0 var(--sp-lg);
     border-radius: var(--radius-lg);
     font-size: 13px;
     font-weight: 500;
@@ -338,7 +338,7 @@
   .modal-btn-cancel:hover { background-color: var(--surface-2); color: var(--text-strong); }
   .modal-btn-ok {
     background-color: var(--primary);
-    color: var(--primary-text, #ffffff);
+    color: var(--primary-text);
     border-color: var(--primary);
   }
   .modal-btn-ok:hover { background-color: var(--primary-hover); }

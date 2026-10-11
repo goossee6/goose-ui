@@ -143,7 +143,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 		min-height: 200px;
 		height: 100%;
 	}
@@ -181,19 +181,19 @@
 		background: color-mix(in srgb, #000 65%, transparent);
 	}
 	.carousel-arrow--left {
-		left: var(--sp-sm);
+		left: var(--sp-md);
 	}
 	.carousel-arrow--right {
-		right: var(--sp-sm);
+		right: var(--sp-md);
 	}
 	.carousel-dots {
 		position: absolute;
 		left: 0;
 		right: 0;
-		bottom: var(--sp-sm);
+		bottom: var(--sp-md);
 		display: flex;
 		justify-content: center;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 	}
 	.carousel-dot {
 		width: 8px;

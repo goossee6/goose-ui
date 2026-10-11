@@ -6,6 +6,10 @@
   import Zap from '@lucide/svelte/icons/zap';
 
   let keyDemoCount = $state(0);
+  // 测试钩子：供 e2e 探针驱动同 key 内容更新
+  if (typeof window !== 'undefined') {
+    (window as unknown as Record<string, unknown>).__notify = Notification;
+  }
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const notificationProps: PropsTableItem[] = [
@@ -26,7 +30,7 @@
   ];
 </script>
 
-<Page title="通知 Notification" description="4 种类型、6 个位置、标题+描述、操作按钮、进度条、悬停暂停" >
+<Page title="通知 Notification" description="4 种类型、6 个位置、sonner 风格牌堆：超出自动收起、悬停/Alt+T 展开、拖拽滑除" >
   <Card title="标题 + 描述">
     <Row>
       <Button variant="primary" onclick={() => Notification.success({ title: '操作成功', description: '你的数据已保存到服务器，可以在列表中查看。' })}>带描述 Success</Button>
@@ -142,14 +146,41 @@
       >
         连续弹出 5 条
       </Button>
+      <Button
+        onclick={() => {
+          for (let i = 1; i <= 8; i++) {
+            setTimeout(
+              () =>
+                Notification.success({
+                  title: `牌堆第 ${i} 条`,
+                  description: '超出可见数自动收起为牌堆，悬停或 Alt+T 展开，按住可拖拽滑除',
+                  duration: 0,
+                }),
+              i * 150
+            );
+          }
+        }}
+      >
+        弹 8 条（不自动关闭）
+      </Button>
       <Button variant="ghost" onclick={() => Notification.destroyAll()}>清除全部</Button>
     </Row>
+    <p class="hint">
+      默认可见 3 层：最新一张完整可见，其余收起为 14px 边缘条（逐层缩小 5%）；悬停牌堆或按 Alt+T 展开全部，Escape 收起；按住任意通知朝允许方向拖动超过 45px 即可滑除。
+    </p>
   </Card>
 
   <Card title="NotificationOptions 参数">
     <p class="api-note">
       快捷用法：<code>Notification.success('消息')</code> 或 <code>Notification.open(options)</code>；
       另有 <code>destroy(keyOrId)</code> / <code>destroyAll()</code>，第一个参数可传字符串或完整 options。
+    </p>
+    <p class="api-note">
+      <code>&lt;NotificationProvider /&gt;</code> 容器可配 props：
+      <code>gap</code>（牌堆间距，默认 14）、
+      <code>visibleToasts</code>（收起时可见层数，默认 3）、
+      <code>expand</code>（强制常展开，默认 false）、
+      <code>hotkey</code>（展开热键，默认 Alt+T）。
     </p>
     <PropsTable items={notificationProps} />
   </Card>

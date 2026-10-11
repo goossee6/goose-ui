@@ -54,7 +54,7 @@
 	.form {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-md);
+		gap: var(--sp-lg);
 	}
 	.form--horizontal {
 		align-items: flex-start;

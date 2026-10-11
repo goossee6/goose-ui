@@ -133,7 +133,7 @@
 	.pin-input {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 	}
 	.pin-cell {
 		width: 42px;

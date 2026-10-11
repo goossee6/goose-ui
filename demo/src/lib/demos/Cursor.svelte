@@ -38,7 +38,7 @@
 </Page>
 
 <style>
-  .note { font-size: 13px; color: var(--text-muted); margin: 0 0 var(--sp-sm); }
+  .note { font-size: 13px; color: var(--text-muted); margin: 0 0 var(--sp-md); }
   .opt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
   .zone {
     display: flex;

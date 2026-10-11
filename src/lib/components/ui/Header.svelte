@@ -57,14 +57,14 @@
     top: 0;
     z-index: 5;
     /* 抵消滚动容器（Layout 内容卡片）的 padding，吸顶时贴满卡片内缘 */
-    margin: calc(-1 * var(--layout-pad-y, 0px)) calc(-1 * var(--layout-pad-x, 0px)) 0;
+    margin: calc(-1 * var(--layout-pad-y)) calc(-1 * var(--layout-pad-x)) 0;
     height: var(--header-h);
     background: color-mix(in srgb, var(--surface) 80%, transparent);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 0 var(--layout-pad-x, 24px);
+    padding: 0 var(--layout-pad-x);
   }
 
   .header-left {

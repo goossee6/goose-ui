@@ -109,8 +109,8 @@
 	}
 	.image-zoom-btn {
 		position: absolute;
-		right: var(--sp-xs);
-		bottom: var(--sp-xs);
+		right: var(--sp-sm);
+		bottom: var(--sp-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -133,7 +133,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 		background: var(--surface-2);
 		border: 1px dashed var(--border-strong);
 		color: var(--text-muted);
@@ -152,7 +152,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: var(--sp-xl);
+		padding: var(--sp-lg);
 		background: color-mix(in srgb, #000 75%, transparent);
 		cursor: zoom-out;
 		animation: image-zoom-in 0.15s ease-out;

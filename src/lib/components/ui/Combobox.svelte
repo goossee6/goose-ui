@@ -37,6 +37,7 @@
 	} = $props();
 
 	let rootEl = $state<HTMLElement | null>(null);
+	let controlEl = $state<HTMLElement | null>(null);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let listEl = $state<HTMLElement | null>(null);
 	let open = $state(false);
@@ -60,8 +61,10 @@
 	const listId = `combobox-${Math.random().toString(36).slice(2, 8)}`;
 
 	function position() {
-		if (!rootEl) return;
-		const rect = rootEl.getBoundingClientRect();
+		// 量控件而非 root：面板挂载初期 dropdownStyle 尚未写入（position: relative 内联流），
+		// 会把 root 撑高 → 首次打开误判空间不足翻转到上方
+		if (!controlEl) return;
+		const rect = controlEl.getBoundingClientRect();
 		// 面板高度 = 前 10 行（组头算一行）的实际高度，不足则自适应；8 为列表内边距，2 为边框
 		const panelH = rowsHeight(filtered, 8).height + 2;
 		const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH, gap: 4 });
@@ -165,7 +168,7 @@
 </script>
 
 <div class="combobox {cls}" bind:this={rootEl} style={style}>
-	<div class="combobox-control" class:open class:disabled>
+	<div class="combobox-control" bind:this={controlEl} class:open class:disabled>
 		<input
 			bind:this={inputEl}
 			class="combobox-input"
@@ -245,9 +248,9 @@
 	.combobox-control {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-xs);
-		height: var(--ui-md-height);
-		padding: 0 var(--sp-sm);
+		gap: var(--sp-sm);
+		height: var(--height-md);
+		padding: 0 var(--sp-md);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
@@ -264,7 +267,7 @@
 	.combobox-input {
 		flex: 1;
 		min-width: 0;
-		padding: var(--sp-sm) 0;
+		padding: var(--sp-md) 0;
 		border: none;
 		background: none;
 		outline: none;
@@ -305,7 +308,7 @@
 		flex-direction: column;
 		overflow: hidden;
 		/* 面板层内边距（原在列表上）：pill 不贴边、sticky 组头上方无内容透出 */
-		padding: var(--sp-xs);
+		padding: var(--sp-sm);
 		background: var(--surface-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
@@ -333,7 +336,7 @@
 		align-items: center;
 		height: 24px;
 		/* 与选项文字列对齐（选项 padding 12） */
-		padding: 0 var(--sp-md);
+		padding: 0 var(--sp-lg);
 		font-size: 12px;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
@@ -345,9 +348,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--sp-sm);
-		height: var(--ui-md-height);
-		padding: 0 var(--sp-md);
+		gap: var(--sp-md);
+		height: var(--height-md);
+		padding: 0 var(--sp-lg);
 		border-radius: var(--radius-md);
 		font-size: 13px;
 		color: var(--text);
@@ -365,7 +368,7 @@
 		cursor: not-allowed;
 	}
 	.combobox-empty {
-		padding: var(--sp-md);
+		padding: var(--sp-lg);
 		font-size: 13px;
 		color: var(--text-muted);
 		text-align: center;

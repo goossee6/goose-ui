@@ -71,12 +71,12 @@
 		width: 100%;
 		min-width: 0;
 		min-height: 72px;
-		padding: var(--sp-md) 12px;
+		padding: var(--sp-lg) 12px;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: transparent;
 		color: var(--text-strong);
-		font-size: var(--ui-md-font);
+		font-size: var(--font-md);
 		font-family: inherit;
 		line-height: 1.6;
 		outline: none;

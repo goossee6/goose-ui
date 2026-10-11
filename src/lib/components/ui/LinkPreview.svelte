@@ -166,10 +166,10 @@
 		background: var(--surface-2);
 	}
 	.link-preview-meta {
-		padding: var(--sp-md);
+		padding: var(--sp-lg);
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2xs);
+		gap: 2px;
 	}
 	.link-preview-site {
 		font-size: 11px;

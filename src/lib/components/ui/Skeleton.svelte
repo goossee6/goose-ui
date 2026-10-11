@@ -50,7 +50,7 @@
 		border-radius: var(--radius-md);
 	}
 	.skeleton-group--text .skeleton + .skeleton {
-		margin-top: var(--sp-xs);
+		margin-top: var(--sp-sm);
 	}
 	.skeleton--circle {
 		border-radius: 50%;

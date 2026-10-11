@@ -179,31 +179,31 @@
     top: 0;
     left: 0;
     bottom: 0;
-    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   }
   .drawer--right {
     top: 0;
     right: 0;
     bottom: 0;
-    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   }
   .drawer--top {
     top: 0;
     left: 0;
     right: 0;
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
   .drawer--bottom {
     bottom: 0;
     left: 0;
     right: 0;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
   .drawer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--sp-xl) var(--sp-2xl);
+    padding: var(--sp-lg) 24px;
     font-size: 16px;
     font-weight: 600;
     color: var(--text-strong);
@@ -237,7 +237,7 @@
     color: var(--text-strong);
   }
   .drawer-body {
-    padding: var(--sp-2xl);
+    padding: 24px;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -246,8 +246,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--gap-xl);
-    padding: var(--sp-lg) var(--sp-2xl);
+    gap: var(--sp-lg);
+    padding: var(--sp-lg) 24px;
     border-top: 1px solid var(--border);
     flex-shrink: 0;
   }

@@ -30,14 +30,14 @@
 	.row--wrap {
 		flex-wrap: wrap;
 	}
-	.row--gap-sm {
-		gap: var(--gap-md);
+	.row--sp-md {
+		gap: var(--sp-md);
 	}
-	.row--gap-md {
-		gap: var(--gap-xl);
+	.row--sp-md {
+		gap: var(--sp-lg);
 	}
 	.row--gap-lg {
-		gap: var(--gap-2xl);
+		gap: var(--sp-lg);
 	}
 	.row--align-start {
 		align-items: flex-start;

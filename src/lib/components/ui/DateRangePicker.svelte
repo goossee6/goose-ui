@@ -144,9 +144,9 @@
 	.drp-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		min-width: 240px;
-		padding: var(--sp-sm) var(--sp-sm) var(--sp-sm) var(--sp-md);
+		padding: var(--sp-md) var(--sp-md) var(--sp-md) var(--sp-lg);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
@@ -185,7 +185,7 @@
 	.drp-actions {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 		color: var(--text-muted);
 	}
 	.drp-clear {

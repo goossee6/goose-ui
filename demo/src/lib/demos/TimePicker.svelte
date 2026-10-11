@@ -50,5 +50,5 @@
 </Page>
 
 <style>
-  .note { font-size: 12px; color: var(--text-muted); margin: var(--sp-sm) 0 0; font-family: var(--font-mono); }
+  .note { font-size: 12px; color: var(--text-muted); margin: var(--sp-md) 0 0; font-family: var(--font-mono); }
 </style>

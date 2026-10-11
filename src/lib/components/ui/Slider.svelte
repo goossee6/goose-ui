@@ -117,7 +117,7 @@
 	.slider {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		width: 100%;
 	}
 	.slider--disabled {

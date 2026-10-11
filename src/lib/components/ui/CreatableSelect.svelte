@@ -173,7 +173,7 @@
 	/** 面板高度估算：chrome + 前 10 行 × 36px（无分组行）+ 面板边框 */
 	function estimateHeight(): number {
 		let chrome = 43 + 42; // .cs-header + .cs-search 恒在
-		if (onCreateItem) chrome += 66; // .cs-footer
+		if (onCreateItem) chrome += 45; // .cs-footer（边框 1 + padding 4×2 + 按钮 36）
 		const rows = filtered.length ? filtered.length * 36 : 44; // 空态文案行下限
 		return chrome + Math.min(rows, 360) + 2;
 	}
@@ -233,7 +233,7 @@
 					bind:this={searchEl}
 					bind:value={query}
 					oninput={() => { activeIdx = filtered.length ? 0 : -1; }}
-					placeholder="搜索…"
+					placeholder="搜索或新建…"
 					class="cs-search-input"
 				/>
 			</div>
@@ -254,7 +254,11 @@
 					{:else if filtered.length === 0}
 						<div class="cs-empty">
 							{#if query.trim()}
-								无匹配，可新建「{query.trim()}」
+								{#if onCreateItem}
+									无匹配，可新建「{query.trim()}」
+								{:else}
+									无匹配项
+								{/if}
 							{:else}
 								暂无数据
 							{/if}
@@ -304,17 +308,17 @@
 	.cs-wrapper { position: relative; }
 	.cs-trigger {
 		display: flex;
-		height: var(--ui-md-height);
+		height: var(--height-md);
 		width: 100%;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--gap-md);
-		padding: var(--ui-md-padding);
+		gap: var(--sp-md);
+		padding: var(--padding-md);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: var(--bg);
 		color: var(--text);
-		font-size: var(--ui-md-font);
+		font-size: var(--font-md);
 		cursor: pointer;
 		transition: border-color 0.15s;
 	}
@@ -339,7 +343,7 @@
 		color: var(--text);
 	}
 	.cs-header {
-		padding: var(--sp-md) var(--sp-xl);
+		padding: var(--sp-lg) var(--sp-lg);
 		font-size: 12px;
 		font-weight: 600;
 		color: var(--text-muted);
@@ -350,7 +354,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		padding: var(--sp-md) var(--sp-xl);
+		padding: var(--sp-lg) var(--sp-lg);
 		border-bottom: 1px solid var(--border);
 	}
 	:global(.cs-search-icon) { color: var(--text-muted); flex-shrink: 0; }
@@ -369,16 +373,16 @@
 	.cs-list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: 360px; scrollbar-width: none; -ms-overflow-style: none; }
 	.cs-list::-webkit-scrollbar { display: none; }
 	.cs-loading { display: flex; justify-content: center; padding: 12px 0; }
-	.cs-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); }
+	.cs-empty { padding: var(--sp-lg) var(--sp-lg); font-size: 12px; color: var(--text-muted); }
 	.cs-option {
 		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--gap-md);
+		gap: var(--sp-md);
 		width: 100%;
-		height: var(--ui-md-height);
-		padding: 0 var(--sp-xl);
+		height: var(--height-md);
+		padding: 0 var(--sp-lg);
 		border: none;
 		background: none;
 		color: var(--text);
@@ -393,7 +397,7 @@
 	.cs-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	:global(.cs-option-check) { color: var(--primary); flex-shrink: 0; }
 	.cs-footer {
-		padding: var(--sp-md) var(--sp-xl);
+		padding: var(--sp-sm) var(--sp-lg);
 		border-top: 1px solid var(--border);
 		background-color: var(--surface);
 	}
@@ -402,7 +406,8 @@
 		align-items: center;
 		gap: 6px;
 		width: 100%;
-		padding: var(--sp-md) var(--sp-xl);
+		height: var(--height-md);
+		padding: 0 var(--sp-lg);
 		border: none;
 		background: none;
 		color: var(--primary);

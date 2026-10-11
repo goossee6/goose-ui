@@ -138,21 +138,21 @@
 		   裸壳父级不定高时 100% 退化 auto，由 100dvh 接管（Layout 内该项永不生效） */
 		height: 100%;
 		max-height: 100dvh;
-		padding: var(--page-pad, 16px);
-		gap: var(--page-gap, 16px);
+		padding: var(--page-pad);
+		gap: var(--page-gap);
 	}
 	.page-body {
 		flex: 1;
 		min-height: 0;
 		display: flex;
 		flex-direction: column;
-		gap: var(--page-gap, 16px);
+		gap: var(--page-gap);
 		overflow-y: auto;
 		overscroll-behavior: contain;
-		padding-block: var(--page-gap, 16px);
+		padding-block: var(--page-gap);
 		/* 滚动条贴容器右缘：负边距吃掉页面右 padding，内容右留白由 padding-right 补回 */
-		margin-right: calc(-1 * var(--page-pad-r, var(--layout-pad-x, 16px)));
-		padding-right: var(--page-pad-r, var(--layout-pad-x, 16px));
+		margin-right: calc(-1 * var(--page-pad-r));
+		padding-right: var(--page-pad-r);
 	}
 	.page-body > :global(*) {
 		flex-shrink: 0;

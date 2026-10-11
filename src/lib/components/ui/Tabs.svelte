@@ -132,12 +132,12 @@
 
 <style>
 	.tabs-root { display: inline-flex; align-items: center; }
-	.tabs-root--small .tabs-mode--segmented { padding: 4px 12px; font-size: var(--ui-sm-font); }
-	.tabs-root--small .tabs-mode--underline { padding: 8px 12px; font-size: var(--ui-sm-font); }
-	.tabs-root--small .tabs-mode--vertical { padding: 6px 10px; font-size: var(--ui-sm-font); }
-	.tabs-root--large .tabs-mode--segmented { padding: 8px 20px; font-size: var(--ui-lg-font); }
-	.tabs-root--large .tabs-mode--underline { padding: 16px 20px; font-size: var(--ui-lg-font); }
-	.tabs-root--large .tabs-mode--vertical { padding: 12px 16px; font-size: var(--ui-lg-font); }
+	.tabs-root--small .tabs-mode--segmented { padding: 4px 12px; font-size: var(--font-sm); }
+	.tabs-root--small .tabs-mode--underline { padding: 8px 12px; font-size: var(--font-sm); }
+	.tabs-root--small .tabs-mode--vertical { padding: 6px 10px; font-size: var(--font-sm); }
+	.tabs-root--large .tabs-mode--segmented { padding: 8px 20px; font-size: var(--font-lg); }
+	.tabs-root--large .tabs-mode--underline { padding: 16px 20px; font-size: var(--font-lg); }
+	.tabs-root--large .tabs-mode--vertical { padding: 12px 16px; font-size: var(--font-lg); }
 	.tabs-group {
 		display: flex;
 		position: relative;

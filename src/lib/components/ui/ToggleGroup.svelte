@@ -108,7 +108,7 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		padding: var(--sp-sm) var(--sp-lg);
+		padding: var(--sp-md) var(--sp-lg);
 		border: none;
 		border-radius: calc(var(--radius-lg) - 4px);
 		background: transparent;
@@ -119,11 +119,11 @@
 		transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
 	}
 	.toggle-group--small .toggle-group-item {
-		padding: var(--sp-2xs) var(--sp-md);
+		padding: 2px var(--sp-lg);
 		font-size: 12px;
 	}
 	.toggle-group--large .toggle-group-item {
-		padding: var(--sp-md) var(--sp-xl);
+		padding: var(--sp-lg) var(--sp-lg);
 		font-size: 14px;
 	}
 	.toggle-group-item:hover:not(:disabled) {

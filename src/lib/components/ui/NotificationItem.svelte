@@ -18,6 +18,19 @@
 		style?: string;
 	} = $props();
 
+	let rootEl = $state<HTMLElement | null>(null);
+
+	// 静止光标不派发 mouseenter：通知滑入时若已落在光标下，需主动检测 :hover 补暂停
+	$effect(() => {
+		const el = rootEl;
+		if (!el || !toast.pauseOnHover || toast.duration <= 0) return;
+		requestAnimationFrame(() => {
+			if (el.isConnected && el.matches(':hover')) {
+				notificationStore.pause(toast.position, toast.id);
+			}
+		});
+	});
+
 	function close() {
 		notificationStore.remove(toast.position, toast.id);
 	}
@@ -43,6 +56,7 @@
 <div
 	class="notification notification-{toast.type} {cls}"
 	style={style}
+	bind:this={rootEl}
 	role="alert"
 	aria-live="polite"
 	onclick={handleClick}
@@ -96,34 +110,18 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: var(--gap-md);
-		padding: var(--sp-lg) var(--sp-xl);
-		width: var(--notif-width, 360px);
+		gap: var(--sp-md);
+		padding: var(--sp-lg) var(--sp-lg);
+		width: var(--notif-width);
 		max-width: calc(100vw - 48px);
 		border-radius: var(--radius-lg);
 		font-size: 14px;
 		color: var(--text-strong);
-		background-color: var(--surface);
+		background-color: var(--notif-bg, var(--surface));
 		border: 1px solid var(--border);
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
 		cursor: pointer;
 		overflow: hidden;
-	}
-	.notification-success {
-		background-color: var(--success-soft);
-		border-color: var(--success-border);
-	}
-	.notification-info {
-		background-color: var(--info-soft);
-		border-color: var(--info-border);
-	}
-	.notification-warning {
-		background-color: var(--warning-soft);
-		border-color: var(--warning-border);
-	}
-	.notification-error {
-		background-color: var(--danger-soft);
-		border-color: var(--danger-border);
 	}
 
 	.notification-icon {
@@ -134,11 +132,8 @@
 		width: 32px;
 		height: 32px;
 		border-radius: 50%;
+		color: var(--text-strong);
 	}
-	.notification-icon-success { background-color: var(--surface); color: var(--success-text); }
-	.notification-icon-info { background-color: var(--surface); color: var(--info-text); }
-	.notification-icon-warning { background-color: var(--surface); color: var(--warning-text); }
-	.notification-icon-error { background-color: var(--surface); color: var(--danger-text); }
 
 	.notification-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 	.notification-title { font-weight: 500; word-break: break-word; }

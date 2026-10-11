@@ -63,12 +63,12 @@
 	.form-item {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 	}
 	.form-item--horizontal {
 		flex-direction: row;
 		align-items: flex-start;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 	}
 	.form-label {
 		display: block;
@@ -89,12 +89,12 @@
 		min-width: 0;
 	}
 	.form-error {
-		margin: var(--sp-2xs) 0 0;
+		margin: 2px 0 0;
 		font-size: 12px;
 		color: var(--danger-text);
 	}
 	.form-hint {
-		margin: var(--sp-2xs) 0 0;
+		margin: 2px 0 0;
 		font-size: 12px;
 		color: var(--text-muted);
 	}

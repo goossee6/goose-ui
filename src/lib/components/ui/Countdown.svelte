@@ -113,7 +113,7 @@
 	.countdown {
 		display: inline-flex;
 		align-items: baseline;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 	}
 	.countdown-value {
 		font-family: var(--font-mono);

@@ -99,12 +99,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--gap-sm);
+    gap: var(--sp-md);
     outline: none;
     user-select: none;
-    height: var(--ui-md-height, 36px);
-    padding: var(--ui-md-padding, 0 12px);
-    font-size: var(--ui-md-font, 14px);
+    height: var(--height-md);
+    padding: var(--padding-md);
+    font-size: var(--font-md);
   }
   .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
@@ -113,13 +113,13 @@
   .btn-spinner { display: inline-flex; flex-shrink: 0; animation: btn-spin 0.8s linear infinite; }
   @keyframes btn-spin { to { transform: rotate(360deg); } }
   /* sizes */
-  .btn-small { height: var(--ui-sm-height); padding: var(--ui-sm-padding); font-size: var(--ui-sm-font); }
-  .btn-middle { height: var(--ui-md-height); padding: var(--ui-md-padding); font-size: var(--ui-md-font); }
-  .btn-large { height: var(--ui-lg-height); padding: var(--ui-lg-padding); font-size: var(--ui-lg-font); }
-  .btn-icon { width: var(--ui-md-height); height: var(--ui-md-height); padding: 0; }
-  .btn-icon-sm { width: var(--ui-sm-height); height: var(--ui-sm-height); padding: 0; border-radius: min(var(--radius-md), 12px); }
+  .btn-small { height: var(--height-sm); padding: var(--padding-sm); font-size: var(--font-sm); }
+  .btn-middle { height: var(--height-md); padding: var(--padding-md); font-size: var(--font-md); }
+  .btn-large { height: var(--height-lg); padding: var(--padding-lg); font-size: var(--font-lg); }
+  .btn-icon { width: var(--height-md); height: var(--height-md); padding: 0; }
+  .btn-icon-sm { width: var(--height-sm); height: var(--height-sm); padding: 0; border-radius: min(var(--radius-md), 12px); }
   .btn-icon-xs { width: 24px; height: 24px; padding: 0; border-radius: min(var(--radius-md), 10px); }
-  .btn-icon-lg { width: var(--ui-lg-height); height: var(--ui-lg-height); padding: 0; }
+  .btn-icon-lg { width: var(--height-lg); height: var(--height-lg); padding: 0; }
   /* variants */
   .btn-primary { background-color: var(--primary); color: var(--primary-text); }
   .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }

@@ -76,7 +76,7 @@
 	.time {
 		display: inline-flex;
 		align-items: baseline;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 		font-family: var(--font-mono);
 		font-variant-numeric: tabular-nums;
 		color: var(--text);

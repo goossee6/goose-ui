@@ -234,9 +234,9 @@
 	.tp-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		min-width: 160px;
-		padding: var(--sp-sm) var(--sp-sm) var(--sp-sm) var(--sp-md);
+		padding: var(--sp-md) var(--sp-md) var(--sp-md) var(--sp-lg);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
@@ -275,7 +275,7 @@
 	.tp-actions {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 		color: var(--text-muted);
 	}
 	.tp-clear {
@@ -296,7 +296,7 @@
 		position: fixed;
 		z-index: var(--z-popover);
 		max-width: calc(100vw - 16px);
-		padding: var(--sp-sm);
+		padding: var(--sp-md);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
@@ -304,7 +304,7 @@
 	}
 	.tp-columns {
 		display: flex;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 	}
 	.tp-col {
 		position: relative;
@@ -339,8 +339,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-top: var(--sp-sm);
-		padding-top: var(--sp-sm);
+		margin-top: var(--sp-md);
+		padding-top: var(--sp-md);
 		border-top: 1px solid var(--border);
 	}
 	.tp-hint {
@@ -354,7 +354,7 @@
 		color: var(--primary);
 		font-size: 12px;
 		cursor: pointer;
-		padding: var(--sp-2xs) var(--sp-sm);
+		padding: 2px var(--sp-sm);
 		border-radius: var(--radius-sm);
 	}
 	.tp-now:hover {

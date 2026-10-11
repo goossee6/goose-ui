@@ -121,21 +121,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: var(--sp-xl);
+		padding: var(--sp-lg);
 		background: rgba(0, 0, 0, 0.55);
 		backdrop-filter: blur(2px);
 	}
 	.alert-dialog {
 		width: 100%;
 		max-width: 420px;
-		padding: var(--sp-2xl);
+		padding: 24px;
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-lg);
 		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 	}
 	.alert-title {
-		margin: 0 0 var(--sp-sm);
+		margin: 0 0 var(--sp-md);
 		font-size: 16px;
 		font-weight: 600;
 		color: var(--text-strong);
@@ -154,13 +154,13 @@
 	.alert-actions {
 		display: flex;
 		justify-content: flex-end;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 	}
 	.alert-btn {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-xs);
-		padding: var(--sp-sm) var(--sp-lg);
+		gap: var(--sp-sm);
+		padding: var(--sp-md) var(--sp-lg);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
 		font-size: 13px;

@@ -88,7 +88,7 @@
 	.radio {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		cursor: pointer;
 		font-size: 13px;
 		color: var(--text);

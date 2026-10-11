@@ -221,8 +221,8 @@
 	.dropdown-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-xs);
-		padding: var(--sp-sm) var(--sp-md);
+		gap: var(--sp-sm);
+		padding: var(--sp-md) var(--sp-lg);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface);
@@ -244,7 +244,7 @@
 		z-index: var(--z-dropdown);
 		min-width: 180px;
 		max-width: min(320px, calc(100vw - 16px));
-		padding: var(--sp-xs);
+		padding: var(--sp-sm);
 		background-color: var(--surface-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
@@ -264,9 +264,9 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		width: 100%;
-		padding: var(--sp-sm) var(--sp-md);
+		padding: var(--sp-md) var(--sp-lg);
 		border: none;
 		border-radius: var(--radius-md);
 		background: none;
@@ -303,7 +303,7 @@
 	}
 	.dropdown-separator {
 		height: 1px;
-		margin: var(--sp-xs) 0;
+		margin: var(--sp-sm) 0;
 		background-color: var(--border);
 	}
 </style>

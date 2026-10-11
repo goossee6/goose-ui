@@ -54,7 +54,7 @@
 	.time-range-field {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 	}
 	.range-sep {
 		color: var(--text-muted);

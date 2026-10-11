@@ -45,8 +45,8 @@
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
-		gap: var(--gap-xl);
-		margin-bottom: var(--ph-gap, var(--sp-3xl));
+		gap: var(--sp-lg);
+		margin-bottom: var(--ph-gap);
 	}
 	.page-header-left {
 		display: flex;
@@ -82,13 +82,13 @@
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
-		gap: var(--gap-md);
+		gap: var(--sp-md);
 		margin-top: 4px;
 	}
 	.page-header-right {
 		display: flex;
 		align-items: center;
-		gap: var(--gap-md);
+		gap: var(--sp-md);
 		flex-shrink: 0;
 		margin-left: auto;
 	}

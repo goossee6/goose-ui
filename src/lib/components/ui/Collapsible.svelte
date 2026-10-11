@@ -51,9 +51,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		width: 100%;
-		padding: var(--sp-md) var(--sp-lg);
+		padding: var(--sp-lg) var(--sp-lg);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface);

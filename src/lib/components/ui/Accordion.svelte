@@ -84,7 +84,7 @@
 	.accordion {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 	}
 	.accordion-item :global(.collapsible-trigger) {
 		border-radius: var(--radius-lg);
@@ -105,7 +105,7 @@
 		transform: rotate(180deg);
 	}
 	.accordion-panel {
-		padding: var(--sp-md) var(--sp-lg);
+		padding: var(--sp-lg) var(--sp-lg);
 		font-size: 13px;
 		color: var(--text-muted);
 		line-height: 1.7;

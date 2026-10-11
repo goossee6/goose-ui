@@ -205,17 +205,17 @@
 	.select-wrapper { position: relative; }
 	.select-trigger {
 		display: flex;
-		height: var(--ui-md-height);
+		height: var(--height-md);
 		width: 100%;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--gap-md);
-		padding: var(--ui-md-padding);
+		gap: var(--sp-md);
+		padding: var(--padding-md);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: var(--bg);
 		color: var(--text);
-		font-size: var(--ui-md-font);
+		font-size: var(--font-md);
 		cursor: pointer;
 		transition: border-color 0.15s;
 	}
@@ -234,7 +234,7 @@
 		flex-direction: column;
 		overflow: hidden;
 		/* 上下 4px 内边距：hover pill / 首末行不贴面板边框（水平不加，文字列几何不变） */
-		padding: var(--sp-xs) 0;
+		padding: var(--sp-sm) 0;
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
 		background-color: var(--surface);
@@ -258,24 +258,24 @@
 		display: flex;
 		align-items: center;
 		height: 24px;
-		/* 与选项文字列对齐（选项 padding 20 + 文字缩进 20） */
-		padding: 0 40px;
+		/* 与选项文字列对齐：选项 padding-left 16 (var(--sp-lg)) + 文字缩进 20 = 36 */
+		padding: 0 36px;
 		font-size: 12px;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
 		background-color: var(--surface);
 	}
-	.select-empty { padding: var(--sp-md) var(--sp-xl); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
+	.select-empty { padding: var(--sp-lg) var(--sp-lg); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
 	.select-option {
 		position: relative;
 		z-index: 1;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--gap-md);
+		gap: var(--sp-md);
 		width: 100%;
-		height: var(--ui-md-height);
-		padding: 0 var(--sp-xl);
+		height: var(--height-md);
+		padding: 0 var(--sp-lg);
 		border: none;
 		background: none;
 		color: var(--text);
@@ -287,7 +287,7 @@
 	.select-option:hover { color: var(--text-strong); }
 	.select-option--active { color: var(--text-strong); }
 	.select-option--selected { color: var(--text-strong); font-weight: 500; }
-	.select-option-left { display: flex; align-items: center; gap: var(--gap-md); min-width: 0; }
+	.select-option-left { display: flex; align-items: center; gap: var(--sp-md); min-width: 0; }
 	/* 6px 圆点 + 6px 外边距 + 8px gap = 20px，与未选中行的 20px 文字缩进同列 */
 	.select-option-dot { width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background-color: var(--primary); flex-shrink: 0; }
 	.select-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

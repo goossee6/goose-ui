@@ -36,15 +36,15 @@
 	.card {
 		background-color: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: var(--radius-2xl);
+		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}
 	.card-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--gap-xl);
-		padding: var(--sp-md) var(--sp-lg);
+		gap: var(--sp-lg);
+		padding: var(--sp-lg) var(--sp-lg);
 		border-bottom: 1px solid var(--border);
 		background-color: var(--surface-2);
 	}
@@ -56,12 +56,12 @@
 	.card-right {
 		display: flex;
 		align-items: center;
-		gap: var(--gap-md);
+		gap: var(--sp-md);
 	}
 	.card-body {
 		display: flex;
 		flex-direction: column;
-		gap: var(--gap-md);
-		padding: var(--sp-xl);
+		gap: var(--sp-md);
+		padding: var(--sp-lg);
 	}
 </style>

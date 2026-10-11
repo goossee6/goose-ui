@@ -119,8 +119,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		height: var(--titlebar-h, 42px);
-		min-height: var(--titlebar-h, 42px);
+		height: var(--titlebar-h);
+		min-height: var(--titlebar-h);
 		padding: 0 0 0 16px;
 		background: transparent;
 		user-select: none;
@@ -178,7 +178,7 @@
 	.win-btn {
 		--wails-draggable: no-drag;
 		width: 46px;
-		height: var(--titlebar-h, 42px);
+		height: var(--titlebar-h);
 		display: flex;
 		align-items: center;
 		justify-content: center;

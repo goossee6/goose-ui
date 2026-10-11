@@ -42,7 +42,7 @@
 	}
 	.separator--vertical {
 		width: 1px;
-		min-height: var(--sp-md);
+		min-height: var(--sp-lg);
 		align-self: stretch;
 	}
 	.separator--dashed {
@@ -64,7 +64,7 @@
 	.separator--horizontal.separator--label {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		height: auto;
 		background: none;
 	}
@@ -89,7 +89,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		width: auto;
 		background: none;
 	}

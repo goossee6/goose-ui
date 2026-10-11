@@ -189,7 +189,7 @@
 <style>
 	.range-calendar {
 		width: 280px;
-		padding: var(--sp-md);
+		padding: var(--sp-lg);
 		background: var(--surface-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
@@ -202,7 +202,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: var(--sp-sm);
+		margin-bottom: var(--sp-md);
 	}
 	.rc-title {
 		font-size: 13px;
@@ -228,13 +228,13 @@
 	.rc-weekdays {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
-		margin-bottom: var(--sp-2xs);
+		margin-bottom: 2px;
 	}
 	.rc-weekday {
 		text-align: center;
 		font-size: 11px;
 		color: var(--text-muted);
-		padding: var(--sp-xs) 0;
+		padding: var(--sp-sm) 0;
 	}
 	.rc-grid {
 		display: grid;
@@ -297,8 +297,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-top: var(--sp-sm);
-		padding-top: var(--sp-sm);
+		margin-top: var(--sp-md);
+		padding-top: var(--sp-md);
 		border-top: 1px solid var(--border);
 	}
 	.rc-hint {
@@ -311,7 +311,7 @@
 		color: var(--primary);
 		font-size: 12px;
 		cursor: pointer;
-		padding: var(--sp-2xs) var(--sp-sm);
+		padding: 2px var(--sp-sm);
 		border-radius: var(--radius-sm);
 	}
 	.rc-clear:hover:not(:disabled) {

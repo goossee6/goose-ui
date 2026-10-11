@@ -41,6 +41,6 @@
 <style>
   .list-container { width: 100%; height: 100%; overflow: auto; }
   .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
-  .list-row { padding: var(--sp-xl) var(--sp-2xl); border-bottom: 1px solid var(--border); transition: background-color 0.15s; }
+  .list-row { padding: var(--sp-lg) 24px; border-bottom: 1px solid var(--border); transition: background-color 0.15s; }
   .list-row:hover { background-color: var(--surface-3); }
 </style>

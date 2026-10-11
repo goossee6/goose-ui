@@ -197,7 +197,7 @@
 	.navmenu-list {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-2xs);
+		gap: 2px;
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -208,8 +208,8 @@
 	.navmenu-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-2xs);
-		padding: var(--sp-sm) var(--sp-md);
+		gap: 2px;
+		padding: var(--sp-md) var(--sp-lg);
 		border: none;
 		border-radius: var(--radius-md);
 		background: none;
@@ -240,7 +240,7 @@
 		position: fixed;
 		z-index: var(--z-dropdown);
 		max-width: calc(100vw - 16px);
-		padding: var(--sp-xs);
+		padding: var(--sp-sm);
 		background-color: var(--surface-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
@@ -253,7 +253,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
-		padding: var(--sp-sm) var(--sp-md);
+		padding: var(--sp-md) var(--sp-lg);
 		border-radius: var(--radius-md);
 		color: var(--text);
 		text-decoration: none;

@@ -76,8 +76,8 @@
 {/if}
 
 <style>
-  .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-xs); background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
-  .ctxmenu-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-md) var(--sp-xl); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+  .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-sm); background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+  .ctxmenu-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-lg) var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .ctxmenu-item:hover { color: var(--text-strong); }
   .ctxmenu-item :global(.ctxmenu-item-icon) { color: var(--text-muted); flex-shrink: 0; }
   .ctxmenu-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }

@@ -62,10 +62,10 @@ import "goose-ui/styles/theme.css";
 </Page>
 
 <style>
-  .lead { margin: 0 0 var(--sp-md); font-size: 14px; line-height: 1.7; color: var(--text); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-md); }
-  .cell { padding: var(--sp-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-2); }
+  .lead { margin: 0 0 var(--sp-lg); font-size: 14px; line-height: 1.7; color: var(--text); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-lg); }
+  .cell { padding: var(--sp-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-2); }
   .cell-title { font-size: 14px; color: var(--text-strong); }
-  .cell-desc { margin: var(--sp-xs) 0 0; font-size: 12.5px; line-height: 1.6; color: var(--text-muted); }
-  .actions { display: flex; gap: var(--sp-sm); margin-top: var(--sp-md); }
+  .cell-desc { margin: var(--sp-sm) 0 0; font-size: 12.5px; line-height: 1.6; color: var(--text-muted); }
+  .actions { display: flex; gap: var(--sp-md); margin-top: var(--sp-lg); }
 </style>

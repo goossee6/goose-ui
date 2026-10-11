@@ -58,7 +58,7 @@
 	.meter {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2xs);
+		gap: 2px;
 		width: 100%;
 	}
 	.meter-label {

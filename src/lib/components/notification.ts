@@ -47,8 +47,6 @@ export interface NotificationOptions {
   showProgress?: boolean;
 }
 
-const MAX_PER_POSITION = 5;
-
 function createNotificationStore() {
   const containers: Record<NotificationPosition, Writable<NotificationItem[]>> = {
     'top-left': writable([]),
@@ -60,6 +58,54 @@ function createNotificationStore() {
   };
 
   let nextId = 1;
+
+  // 全局暂停（牌堆展开 / 页面隐藏）：暂停期间 resume() 与新计时均不启动
+  let suspended = false;
+  const suspendReasons = { expanded: false, hidden: false };
+
+  function pauseAllItems() {
+    (Object.keys(containers) as NotificationPosition[]).forEach((p) => {
+      containers[p].update((list) =>
+        list.map((n) => {
+          if (!n._timer || !n._startedAt) return n;
+          clearTimeout(n._timer);
+          const elapsed = Date.now() - n._startedAt;
+          const remaining = Math.max(0, (n._remaining ?? n.duration) - elapsed);
+          return { ...n, _timer: undefined, _remaining: remaining, _startedAt: undefined, _paused: true };
+        })
+      );
+    });
+  }
+
+  function resumeAllItems() {
+    (Object.keys(containers) as NotificationPosition[]).forEach((p) => {
+      containers[p].update((list) =>
+        list.map((n) => {
+          if (!n._paused || n._timer || !n._remaining || n._remaining <= 0) return n;
+          const remaining = n._remaining;
+          const timer = setTimeout(() => remove(p, n.id), remaining);
+          return { ...n, _timer: timer, _startedAt: Date.now(), _paused: false };
+        })
+      );
+    });
+  }
+
+  function applySuspend() {
+    const should = suspendReasons.expanded || suspendReasons.hidden;
+    if (should === suspended) return;
+    suspended = should;
+    if (should) pauseAllItems();
+    else resumeAllItems();
+  }
+
+  function setSuspend(reason: 'expanded' | 'hidden', value: boolean) {
+    suspendReasons[reason] = value;
+    applySuspend();
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => setSuspend('hidden', document.hidden));
+  }
 
   function open(opts: NotificationOptions): number {
     const position = opts.position ?? 'top';
@@ -91,9 +137,7 @@ function createNotificationStore() {
       showProgress: opts.showProgress ?? false,
     };
 
-    containers[position].update((list) =>
-      [...list, item].slice(-MAX_PER_POSITION)
-    );
+    containers[position].update((list) => [...list, item]);
 
     if (item.duration > 0) {
       startTimer(position, item.id, item.duration);
@@ -145,6 +189,13 @@ function createNotificationStore() {
   }
 
   function startTimer(position: NotificationPosition, id: number, duration: number) {
+    if (suspended) {
+      // 全局暂停期间不启动计时，存为暂停态待解除后统一恢复
+      containers[position].update((list) =>
+        list.map((n) => n.id === id ? { ...n, _timer: undefined, _remaining: duration, _startedAt: undefined, _paused: true } : n)
+      );
+      return;
+    }
     const timer = setTimeout(() => remove(position, id), duration);
     containers[position].update((list) =>
       list.map((n) => n.id === id ? { ...n, _timer: timer, _remaining: duration, _startedAt: Date.now() } : n)
@@ -164,6 +215,7 @@ function createNotificationStore() {
   }
 
   function resume(position: NotificationPosition, id: number) {
+    if (suspended) return;
     containers[position].update((list) =>
       list.map((n) => {
         if (n.id !== id || n._timer || !n._remaining || n._remaining <= 0) return n;
@@ -232,6 +284,7 @@ function createNotificationStore() {
     destroy,
     destroyAll,
     subscribe,
+    setSuspend,
   };
 }
 

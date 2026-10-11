@@ -178,7 +178,7 @@
   .section {
     display: flex;
     flex-direction: column;
-    gap: var(--gap-md);
+    gap: var(--sp-md);
   }
   .section--divided {
     border-top: 1px solid var(--border);

@@ -37,11 +37,11 @@
 </Modal>
 
 <style>
-  .error-list { display: flex; flex-direction: column; gap: var(--gap-xl); }
+  .error-list { display: flex; flex-direction: column; gap: var(--sp-lg); }
   .error-item { border: 1px solid var(--danger-border); border-radius: var(--radius-lg); background-color: var(--danger-soft); overflow: hidden; }
-  .error-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-sm) var(--sp-lg); background-color: rgba(220, 38, 38, 0.15); }
+  .error-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-md) var(--sp-lg); background-color: rgba(220, 38, 38, 0.15); }
   .error-kind { font-size: 12px; font-weight: 600; color: var(--danger-text); font-family: var(--font-mono); }
-  .btn-copy { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; padding: var(--sp-2xs) var(--sp-sm); border-radius: var(--radius-sm); }
+  .btn-copy { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; padding: 2px var(--sp-sm); border-radius: var(--radius-sm); }
   .btn-copy:hover { background-color: var(--surface-3); color: var(--text-strong); }
-  .error-text { margin: 0; padding: var(--sp-md) var(--sp-lg); font-size: 12px; line-height: 1.5; font-family: var(--font-mono); color: var(--text); white-space: pre-wrap; word-break: break-all; user-select: text; }
+  .error-text { margin: 0; padding: var(--sp-lg) var(--sp-lg); font-size: 12px; line-height: 1.5; font-family: var(--font-mono); color: var(--text); white-space: pre-wrap; word-break: break-all; user-select: text; }
 </style>

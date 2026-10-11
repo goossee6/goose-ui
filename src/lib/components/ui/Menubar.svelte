@@ -92,7 +92,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 2px;
-		padding: var(--sp-xs);
+		padding: var(--sp-sm);
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
@@ -103,7 +103,7 @@
 	.menubar :global(.dropdown-trigger) {
 		border: none;
 		background: none;
-		padding: var(--sp-sm) var(--sp-md);
+		padding: var(--sp-md) var(--sp-lg);
 		border-radius: var(--radius-md);
 	}
 	.menubar :global(.dropdown-trigger:hover) {

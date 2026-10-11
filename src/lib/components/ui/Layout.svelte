@@ -104,7 +104,7 @@
 		padding: 0;
 		margin: 0 8px 8px;
 		border: 1px solid var(--border);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-lg);
 		background: var(--surface, var(--bg));
 	}
 	.layout-content--fixed {

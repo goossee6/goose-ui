@@ -134,7 +134,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 2px;
-		padding: 0 var(--sp-sm);
+		padding: 0 var(--sp-md);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
@@ -152,7 +152,7 @@
 	.segment-cell {
 		position: relative;
 		width: 4ch;
-		padding: var(--sp-sm) 2px;
+		padding: var(--sp-md) 2px;
 		border: none;
 		background: none;
 		outline: none;

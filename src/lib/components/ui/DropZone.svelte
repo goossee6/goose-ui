@@ -129,10 +129,10 @@
 		justify-content: center;
 		width: 100%;
 		height: 140px;
-		gap: var(--gap-md);
+		gap: var(--sp-md);
 		border: 2px dashed var(--border-strong);
-		border-radius: var(--radius-2xl);
-		padding: var(--sp-xl);
+		border-radius: var(--radius-lg);
+		padding: var(--sp-lg);
 		text-align: center;
 		transition: border-color 0.15s, background-color 0.15s;
 		box-sizing: border-box;
@@ -175,7 +175,7 @@
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
-		gap: var(--sp-sm);
+		gap: var(--sp-md);
 		font-size: 12px;
 		color: var(--text);
 		line-height: 1.5;

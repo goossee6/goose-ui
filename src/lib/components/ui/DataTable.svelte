@@ -161,7 +161,7 @@
   .table-container { width: 100%; height: 100%; overflow: auto; }
   .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { position: sticky; top: 0; z-index: 1; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-xl) var(--sp-2xl); border-bottom: 2px solid var(--border-strong); white-space: nowrap; }
+  th { position: sticky; top: 0; z-index: 1; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-lg) 24px; border-bottom: 2px solid var(--border-strong); white-space: nowrap; }
   th.right { text-align: right; }
   th.center { text-align: center; }
   .sort-btn { display: inline-flex; align-items: center; gap: 4px; padding: 0; background: none; border: none; cursor: pointer; font: inherit; color: inherit; white-space: nowrap; }
@@ -169,7 +169,7 @@
   .sort-btn:hover :global(svg) { color: var(--text-strong); }
   .sort-btn.active :global(svg) { color: var(--primary); }
   .sort-btn :global(.sort-flip) { transform: rotate(180deg); }
-  td { padding: var(--sp-xl) var(--sp-2xl); border-bottom: 1px solid var(--border); color: var(--text); background-color: var(--surface); transition: background-color 0.15s; }
+  td { padding: var(--sp-lg) 24px; border-bottom: 1px solid var(--border); color: var(--text); background-color: var(--surface); transition: background-color 0.15s; }
   td.right { text-align: right; }
   td.center { text-align: center; }
   tr:hover td { background-color: var(--surface-3); }
@@ -177,6 +177,6 @@
   tr.disabled td { opacity: 0.5; }
   .mono { font-family: var(--font-mono); font-size: 14px; font-variant-numeric: tabular-nums; word-break: break-all; }
   .actions-cell { white-space: nowrap; width: 1%; }
-  .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--gap-md); }
+  .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-md); }
   mark { background-color: rgba(255, 213, 0, 0.45); color: inherit; padding: 0 1px; border-radius: 2px; }
 </style>

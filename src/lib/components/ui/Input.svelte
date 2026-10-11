@@ -124,8 +124,8 @@
 	.input-wrapper {
 		display: flex;
 		align-items: center;
-		height: var(--ui-md-height);
-		padding: var(--ui-md-padding);
+		height: var(--height-md);
+		padding: var(--padding-md);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: transparent;
@@ -145,7 +145,7 @@
 		background: transparent;
 		padding: 0;
 		color: var(--text-strong);
-		font-size: var(--ui-md-font);
+		font-size: var(--font-md);
 		outline: none;
 	}
 	.input::placeholder { color: var(--text-muted); }

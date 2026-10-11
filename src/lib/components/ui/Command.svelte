@@ -198,8 +198,8 @@
 	.command-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-sm);
-		padding: var(--sp-sm) var(--sp-md);
+		gap: var(--sp-md);
+		padding: var(--sp-md) var(--sp-lg);
 		min-width: 240px;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
@@ -233,7 +233,7 @@
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
-		padding: 12vh var(--sp-xl) var(--sp-xl);
+		padding: 12vh var(--sp-lg) var(--sp-lg);
 		background: rgba(0, 0, 0, 0.55);
 		backdrop-filter: blur(2px);
 	}
@@ -242,7 +242,7 @@
 		max-width: 480px;
 		background: var(--surface-2);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-lg);
 		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 		overflow: hidden;
 		display: flex;
@@ -252,8 +252,8 @@
 	.command-input-row {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-sm);
-		padding: var(--sp-md) var(--sp-lg);
+		gap: var(--sp-md);
+		padding: var(--sp-lg) var(--sp-lg);
 		border-bottom: 1px solid var(--border);
 		color: var(--text-muted);
 	}
@@ -273,11 +273,11 @@
 		position: relative;
 		list-style: none;
 		margin: 0;
-		padding: var(--sp-xs);
+		padding: var(--sp-sm);
 		overflow-y: auto;
 	}
 	.command-group {
-		padding: var(--sp-sm) var(--sp-md) var(--sp-2xs);
+		padding: var(--sp-sm) var(--sp-lg) 2px;
 		font-size: 11px;
 		font-weight: 600;
 		text-transform: uppercase;
@@ -289,8 +289,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--sp-sm);
-		padding: var(--sp-sm) var(--sp-md);
+		gap: var(--sp-md);
+		padding: var(--sp-md) var(--sp-lg);
 		border-radius: var(--radius-md);
 		font-size: 13px;
 		color: var(--text);
@@ -305,7 +305,7 @@
 		color: var(--text-muted);
 	}
 	.command-empty {
-		padding: var(--sp-2xl);
+		padding: 24px;
 		text-align: center;
 		font-size: 13px;
 		color: var(--text-muted);

@@ -470,7 +470,7 @@
 
   /* ── 装饰（与 mode 正交，由 shadow/radius props 控制）────────────────────── */
   .sidebar--radius {
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
   }
 
   .sidebar--shadow {

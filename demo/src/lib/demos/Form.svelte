@@ -22,13 +22,20 @@
   let email = $state("");
   let errors = $state<Record<string, string>>({});
 
+  const roleOptions = [
+    { value: "dev", label: "开发" },
+    { value: "design", label: "设计" },
+    { value: "pm", label: "产品" },
+  ];
+
   function submit() {
     const next: Record<string, string> = {};
     if (!name.trim()) next.name = "姓名不能为空";
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) next.email = "邮箱格式不正确";
     errors = next;
     if (Object.keys(next).length === 0) {
-      Notification.success(`提交成功：${name}（${role}）`);
+      const roleLabel = roleOptions.find((o) => o.value === role)?.label ?? role;
+      Notification.success(`提交成功：${name}（${roleLabel}）`);
     }
   }
 </script>
@@ -43,10 +50,7 @@
         <Input id="f-email" bind:value={email} placeholder="you@example.com" />
       </FormItem>
       <FormItem label="角色" hint="通过 context 读取 Form 的 layout/disabled">
-        <RadioGroup
-          options={[{ value: "dev", label: "开发" }, { value: "design", label: "设计" }, { value: "pm", label: "产品" }]}
-          bind:value={role}
-        />
+        <RadioGroup options={roleOptions} bind:value={role} />
       </FormItem>
       <FormItem label="">
         <Button type="submit" variant="primary">提交</Button>

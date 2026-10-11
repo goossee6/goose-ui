@@ -100,7 +100,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--sp-xs) var(--sp-sm);
+		padding: var(--sp-sm) var(--sp-md);
 		border-bottom: 1px solid var(--border);
 		background: color-mix(in srgb, var(--surface) 60%, var(--surface-2));
 	}
@@ -134,7 +134,7 @@
 	}
 	.cb-pre {
 		margin: 0;
-		padding: var(--sp-md);
+		padding: var(--sp-lg);
 		overflow: auto;
 		font-family: var(--font-mono);
 		font-size: 12.5px;

@@ -49,7 +49,7 @@
 	.toolbar {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-xs);
+		gap: var(--sp-sm);
 	}
 	.toolbar--horizontal {
 		flex-direction: row;

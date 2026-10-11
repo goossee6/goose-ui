@@ -54,7 +54,7 @@
 
 <style>
 	.footer {
-		padding: var(--sp-lg) var(--sp-xl);
+		padding: var(--sp-lg) var(--sp-lg);
 		background: var(--surface);
 		color: var(--text-muted);
 		font-size: 13px;
@@ -72,7 +72,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--sp-md);
+		gap: var(--sp-lg);
 		flex-wrap: wrap;
 	}
 	.footer-left {
@@ -81,7 +81,7 @@
 	.footer-links {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-md);
+		gap: var(--sp-lg);
 		flex-wrap: wrap;
 	}
 	.footer-link {
@@ -98,7 +98,7 @@
 		color: var(--primary);
 	}
 	.footer-copyright {
-		margin: var(--sp-sm) 0 0;
+		margin: var(--sp-md) 0 0;
 		font-size: 12px;
 		text-align: center;
 		color: var(--text-muted);

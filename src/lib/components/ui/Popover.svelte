@@ -134,8 +134,8 @@
 	.popover-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-xs);
-		padding: var(--sp-sm) var(--sp-md);
+		gap: var(--sp-sm);
+		padding: var(--sp-md) var(--sp-lg);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface);
@@ -175,8 +175,8 @@
 	}
 	.popover-close {
 		position: absolute;
-		top: var(--sp-sm);
-		right: var(--sp-sm);
+		top: var(--sp-md);
+		right: var(--sp-md);
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -196,8 +196,8 @@
 		font-size: 14px;
 		font-weight: 600;
 		color: var(--text-strong);
-		margin-bottom: var(--sp-sm);
-		padding-right: var(--sp-xl);
+		margin-bottom: var(--sp-md);
+		padding-right: var(--sp-lg);
 	}
 	.popover-body {
 		font-size: 13px;

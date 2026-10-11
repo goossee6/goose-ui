@@ -59,39 +59,36 @@
 	--info-text: #2563eb;
 	--info-border: #bfdbfe;
 
-	/* 间距 */
-	--sp-2xs: 2px;
-	--sp-xs: 4px;
-	--sp-sm: 8px;
-	--sp-md: 12px;
+	/* 间距（3 档） */
+	--sp-sm: 4px;
+	--sp-md: 8px;
 	--sp-lg: 16px;
-	--sp-xl: 20px;
-	--sp-2xl: 24px;
-	--sp-3xl: 32px;
-	--sp-4xl: 40px;
-	--gap-xs: 4px;
-	--gap-sm: 6px;
-	--gap-md: 8px;
-	--gap-xl: 12px;
-	--gap-2xl: 16px;
 
-	/* 圆角 */
+	/* 圆角（3 档） */
 	--radius-sm: 4px;
 	--radius-md: 6px;
 	--radius-lg: 8px;
-	--radius-xl: 10px;
-	--radius-2xl: 12px;
 
-	/* 控件尺寸 */
-	--ui-sm-height: 28px;
-	--ui-sm-font: 12px;
-	--ui-sm-padding: 0 8px;
-	--ui-md-height: 36px;
-	--ui-md-font: 14px;
-	--ui-md-padding: 0 12px;
-	--ui-lg-height: 44px;
-	--ui-lg-font: 16px;
-	--ui-lg-padding: 0 16px;
+	/* 控件尺寸（3 档，组件 size prop 默认 md） */
+	--height-sm: 28px;
+	--height-md: 36px;
+	--height-lg: 44px;
+	--font-sm: 12px;
+	--font-md: 14px;
+	--font-lg: 16px;
+	--padding-sm: 0 8px;
+	--padding-md: 0 12px;
+	--padding-lg: 0 16px;
+
+	/* 组件尺寸默认值（覆盖：在父级设置同名变量） */
+	--titlebar-h: 42px;
+	--layout-pad-x: 24px;
+	--layout-pad-y: 0px;
+	--page-pad: 16px;
+	--page-gap: 16px;
+	--page-pad-r: var(--layout-pad-x);
+	--ph-gap: 32px;
+	--notif-width: 360px;
 
 	/* 字体 */
 	--font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
