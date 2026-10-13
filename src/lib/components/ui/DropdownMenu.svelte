@@ -39,8 +39,10 @@
 	let rootEl = $state<HTMLElement | null>(null);
 	let menuEl = $state<HTMLElement | null>(null);
 	let flipUp = $state(false);
-	let flipX = $state(false);
+	let pos = $state({ left: 0, top: 0 });
 	let activeIndex = $state(-1);
+
+	const GAP = 6;
 
 	const selectable = $derived(items.map((it, i) => ({ it, i })).filter(({ it }) => !it.separator && !it.disabled));
 
@@ -49,10 +51,32 @@
 		const r = rootEl.getBoundingClientRect();
 		const h = menuEl.offsetHeight;
 		const w = menuEl.offsetWidth;
-		flipUp = placement.startsWith('top') ? false : r.bottom + h + 8 > window.innerHeight && r.top - h - 8 > 8;
-		if (placement.startsWith('top')) flipUp = true;
-		flipX = placement.endsWith('end');
-		if (flipX && r.right - w < 8) flipX = false;
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+
+		let top: number;
+		if (placement.startsWith('top')) {
+			top = r.top - h - GAP;
+			if (top < 8 && r.bottom + h + GAP < vh) top = r.bottom + GAP;
+		} else {
+			top = r.bottom + GAP;
+			if (top + h > vh - 8 && r.top - h - GAP > 8) top = r.top - h - GAP;
+		}
+		flipUp = top < r.top;
+
+		let left: number;
+		if (placement.endsWith('end')) {
+			left = r.right - w;
+			if (left < 8 && r.left + w < vw - 8) left = r.left;
+		} else {
+			left = r.left;
+			if (left + w > vw - 8 && r.right - w > 8) left = r.right - w;
+		}
+
+		left = Math.max(8, Math.min(left, vw - w - 8));
+		top = Math.max(8, Math.min(top, vh - h - 8));
+
+		pos = { left, top };
 	}
 
 	function openMenu(idx = -1) {
@@ -119,6 +143,10 @@
 	}
 
 	$effect(() => {
+		if (open && menuEl) measure();
+	});
+
+	$effect(() => {
 		if (!open) return;
 		const onDocDown = (e: MouseEvent) => {
 			if (rootEl && !rootEl.contains(e.target as Node)) close();
@@ -169,17 +197,17 @@
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
 			class="dropdown-menu"
-			class:flip-up={flipUp}
-			class:flip-x={flipX}
 			role="menu"
 			tabindex="-1"
 			bind:this={menuEl}
 			onkeydown={onMenuKeydown}
 			transition:dropdownFade={{ up: flipUp }}
+			style="left:{pos.left}px;top:{pos.top}px"
 		>
 			<PillTrack
 				container={menuEl}
-				itemSelector=".dropdown-item:not(.danger)"
+				itemSelector=".dropdown-item"
+				disabledMatch=""
 				showSelected={false}
 				hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
 				radius="var(--radius-md)"
@@ -195,6 +223,7 @@
 						class:danger={item.danger}
 						role="menuitem"
 						data-idx={i}
+						data-pill-bg={item.danger ? 'color-mix(in srgb, var(--danger) 12%, transparent)' : undefined}
 						tabindex={activeIndex === i ? 0 : -1}
 						disabled={item.disabled}
 						onclick={() => pick(item, i)}
@@ -240,8 +269,8 @@
 		outline-offset: 2px;
 	}
 	.dropdown-menu {
-		position: absolute;
-		z-index: var(--z-dropdown);
+		position: fixed;
+		z-index: var(--z-dialog);
 		min-width: 180px;
 		max-width: min(320px, calc(100vw - 16px));
 		padding: var(--sp-sm);
@@ -249,16 +278,6 @@
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-		top: calc(100% + 6px);
-		left: 0;
-	}
-	.dropdown-menu.flip-up {
-		top: auto;
-		bottom: calc(100% + 6px);
-	}
-	.dropdown-menu.flip-x {
-		left: auto;
-		right: 0;
 	}
 	.dropdown-item {
 		position: relative;
@@ -292,7 +311,7 @@
 		color: var(--danger);
 	}
 	.dropdown-item.danger:hover:not(:disabled) {
-		background-color: color-mix(in srgb, var(--danger) 12%, transparent);
+		color: var(--danger);
 	}
 	.dropdown-item-icon {
 		color: var(--text-muted);
@@ -303,7 +322,10 @@
 	}
 	.dropdown-separator {
 		height: 1px;
-		margin: var(--sp-sm) 0;
+		/* padding 扩大命中区（替代 margin）：鼠标穿过分割线上下间隙时 target 仍是 separator，pill 不断档 */
+		padding: var(--sp-sm) 0;
+		box-sizing: content-box;
 		background-color: var(--border);
+		background-clip: content-box;
 	}
 </style>

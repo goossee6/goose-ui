@@ -30,10 +30,10 @@
 	.row--wrap {
 		flex-wrap: wrap;
 	}
-	.row--sp-md {
+	.row--gap-sm {
 		gap: var(--sp-md);
 	}
-	.row--sp-md {
+	.row--gap-md {
 		gap: var(--sp-lg);
 	}
 	.row--gap-lg {

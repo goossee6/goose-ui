@@ -555,7 +555,13 @@
     margin-top: auto;
   }
 
-  /* ── Group header (expanded)：Collapsible trigger 覆写（同 Accordion 先例） ── */
+  /* ── Group header (expanded)：Collapsible 触发区/根覆写（同 Accordion 先例） ── */
+  /* 菜单分组不要卡片边框；overflow visible 保住分组头 position:sticky 吸顶 */
+  .sidebar-nav :global(.collapsible) {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
   /* 几何与 .nav-item 对齐：同宽（nav content box）、同间隙（两侧 8px）、同高（37px）、同圆角 */
   .sidebar-nav :global(.collapsible-trigger) {
     display: flex;
@@ -590,6 +596,19 @@
   .sidebar-nav :global(.collapsible-trigger.stuck:hover:not(:disabled)) {
     /* 同色自背景（= pill hover 色叠 surface，不透明）：与下层 pill 同色叠加无视觉冲突 */
     background: color-mix(in srgb, var(--primary) 15%, var(--surface));
+  }
+  /* 菜单分组内容不做卡片式内边距/弱化色/分隔线（Collapsible 内容默认样式覆写） */
+  .sidebar-nav :global(.collapsible-body) {
+    padding: 0;
+    border-top: none;
+    margin-top: 0;
+    font-size: inherit;
+    color: inherit;
+    line-height: inherit;
+  }
+  /* 侧栏分组用自己的树形箭头（收起指左），隐藏 Collapsible 内置箭头 */
+  .sidebar-nav :global(.collapsible-chevron) {
+    display: none;
   }
   .group-icon {
     display: flex;

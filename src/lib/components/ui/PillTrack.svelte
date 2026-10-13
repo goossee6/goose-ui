@@ -43,6 +43,7 @@
 	// 下次显示时从顶部飞入）
 	let hoverGeom = $state('');
 	let hoverOn = $state(false);
+	let hoverBg = $state('');
 	let selectedGeom = $state('');
 	let selectedOn = $state(false);
 	// 选中 pill 移动时长：按位移距离自适应（近快远慢），写入 --pill-dur 供 transition 读取
@@ -55,7 +56,7 @@
 	);
 
 	const hoverBase = $derived(
-		`background: ${hoverBackground};${variant === 'line' ? '' : ` border-radius: ${radius};`}`
+		`background: ${hoverBg || hoverBackground};${variant === 'line' ? '' : ` border-radius: ${radius};`}`
 	);
 	const selectedBase = $derived(
 		`background: ${background};${variant === 'line' ? '' : ` border-radius: ${radius};`}${
@@ -157,15 +158,23 @@
 		const onOver = (e: PointerEvent) => {
 			const target = e.target as HTMLElement | null;
 			const item = target?.closest?.<HTMLElement>(sel) ?? null;
-			if (!item || !c.contains(item) || (disabledMatch && item.matches(disabledMatch))) {
+			if (!item || !c.contains(item)) {
+				// 分割线：保持上一个 pill（跨分割线移动不断档），仅真正离开容器才隐藏
+				if (target?.closest?.('[role="separator"]')) return;
+				hoverOn = false;
+				return;
+			}
+			if (disabledMatch && item.matches(disabledMatch)) {
 				hoverOn = false;
 				return;
 			}
 			hoverGeom = geometry(item);
+			hoverBg = item.dataset.pillBg ?? '';
 			hoverOn = true;
 		};
 		const onLeave = () => {
 			hoverOn = false;
+			hoverBg = '';
 		};
 		c.addEventListener('pointerover', onOver);
 		c.addEventListener('pointerleave', onLeave);
@@ -199,13 +208,14 @@
 		pointer-events: none;
 		transition: opacity 0.15s;
 	}
-	/* hover：维持原手感（0.22s ease-out） */
+	/* hover：维持原手感（0.22s ease-out）+ 背景色 0.15s 缓动 */
 	.pill-track--hover {
 		transition:
 			left 0.22s ease-out,
 			top 0.22s ease-out,
 			width 0.22s ease-out,
 			height 0.22s ease-out,
+			background-color 0.15s,
 			opacity 0.15s;
 	}
 	/* 选中：位移 back-out 过冲回弹 + 距离自适应时长；尺寸 expo-out 柔收（不过冲，避免 insetX/line 宽度越界） */

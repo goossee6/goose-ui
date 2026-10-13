@@ -24,21 +24,48 @@
 	let rootEl = $state<HTMLElement | null>(null);
 	let popEl = $state<HTMLElement | null>(null);
 	let flipUp = $state(false);
-	let flipX = $state(false);
+	let pos = $state({ left: 0, top: 0 });
+
+	const GAP = 8;
 
 	function measure() {
 		if (!rootEl || !popEl) return;
 		const r = rootEl.getBoundingClientRect();
-		const h = popEl.offsetHeight;
-		flipUp = placement.startsWith('top') ? true : r.bottom + h + 8 > window.innerHeight && r.top - h - 8 > 8;
-		flipX = placement.endsWith('end');
-		if (flipX && r.left - popEl.offsetWidth < 8) flipX = false;
+		const pw = popEl.offsetWidth;
+		const ph = popEl.offsetHeight;
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+
+		// 垂直：placement 声明优先方向，空间不足时翻转
+		let top: number;
+		if (placement.startsWith('top')) {
+			top = r.top - ph - GAP;
+			if (top < 8 && r.bottom + ph + GAP < vh) top = r.bottom + GAP;
+		} else {
+			top = r.bottom + GAP;
+			if (top + ph > vh - 8 && r.top - ph - GAP > 8) top = r.top - ph - GAP;
+		}
+		flipUp = top < r.top;
+
+		// 水平：end 右对齐，空间不足改左
+		let left: number;
+		if (placement.endsWith('end')) {
+			left = r.right - pw;
+			if (left < 8 && r.left + pw < vw - 8) left = r.left;
+		} else {
+			left = r.left;
+			if (left + pw > vw - 8 && r.right - pw > 8) left = r.right - pw;
+		}
+
+		left = Math.max(8, Math.min(left, vw - pw - 8));
+		top = Math.max(8, Math.min(top, vh - ph - 8));
+
+		pos = { left, top };
 	}
 
 	function show() {
 		open = true;
 		onOpenChange?.(true);
-		requestAnimationFrame(measure);
 	}
 
 	function hide() {
@@ -49,6 +76,10 @@
 	function toggle() {
 		open ? hide() : show();
 	}
+
+	$effect(() => {
+		if (open && popEl) measure();
+	});
 
 	$effect(() => {
 		if (!open) return;
@@ -107,10 +138,10 @@
 		<div
 			class="popover-panel"
 			class:flip-up={flipUp}
-			class:flip-x={flipX}
 			role="dialog"
 			tabindex="-1"
 			bind:this={popEl}
+			style="left:{pos.left}px;top:{pos.top}px"
 			transition:popFade={{ up: flipUp }}
 		>
 			<button type="button" class="popover-close" aria-label="关闭" onclick={hide}>
@@ -153,10 +184,8 @@
 		outline-offset: 2px;
 	}
 	.popover-panel {
-		position: absolute;
-		z-index: var(--z-popover);
-		top: calc(100% + 8px);
-		left: 0;
+		position: fixed;
+		z-index: var(--z-dialog);
 		min-width: 220px;
 		max-width: min(320px, calc(100vw - 16px));
 		padding: var(--sp-lg);
@@ -164,14 +193,6 @@
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-	}
-	.popover-panel.flip-up {
-		top: auto;
-		bottom: calc(100% + 8px);
-	}
-	.popover-panel.flip-x {
-		left: auto;
-		right: 0;
 	}
 	.popover-close {
 		position: absolute;

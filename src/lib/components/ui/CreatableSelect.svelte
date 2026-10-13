@@ -164,18 +164,27 @@
 		write(estimateHeight());
 		mounted = true;
 		await tick();
-		// scrollHeight 不含面板 1px×2 边框（border-box 的 max-height 含边框）→ 补 2
-		const real = ddEl ? ddEl.scrollHeight + 2 : 0;
-		if (real && Math.abs(real - estimateHeight()) > 1) write(real);
+		// 校准不能用 ddEl.scrollHeight：列表自身 min-height:0 + overflow:auto 会被面板 max-height
+		// 夹扁而不溢出，面板 scrollHeight 看不穿这层收缩 → 少量结果时列表被压到小于内容高，
+		// 被误判可滚、点亮下触发区遮挡项。改用实测 chrome + 列表真实内容高。
+		if (ddEl) {
+			const panel = ddEl;
+			const q = (s: string) => (panel.querySelector(s) as HTMLElement | null)?.offsetHeight ?? 0;
+			const chrome = q('.cs-header') + q('.cs-search') + q('.cs-footer');
+			// listwrap 上下内边距 4×2；列表内容高按 360 上限（与 max-height 一致）
+			const listH = listEl ? Math.min(listEl.scrollHeight, 360) : 0;
+			const real = chrome + listH + 8 + 2; // 8 = listwrap 内边距，2 = 面板边框
+			if (Math.abs(real - estimateHeight()) > 1) write(real);
+		}
 		searchEl?.focus();
 	}
 
-	/** 面板高度估算：chrome + 前 10 行 × 36px（无分组行）+ 面板边框 */
+	/** 面板高度估算：chrome + 前 10 行 × 36px（无分组行）+ listwrap 内边距 + 面板边框 */
 	function estimateHeight(): number {
 		let chrome = 43 + 42; // .cs-header + .cs-search 恒在
 		if (onCreateItem) chrome += 45; // .cs-footer（边框 1 + padding 4×2 + 按钮 36）
 		const rows = filtered.length ? filtered.length * 36 : 44; // 空态文案行下限
-		return chrome + Math.min(rows, 360) + 2;
+		return chrome + Math.min(rows, 360) + 8 + 2; // 8 = .cs-listwrap 上下内边距 4×2
 	}
 
 	// 打开期间跟随页面滚动/缩放（面板为 fixed，否则会脱离触发器）；输入过滤/异步加载后面板高度也会变
@@ -236,6 +245,9 @@
 					placeholder="搜索或新建…"
 					class="cs-search-input"
 				/>
+				{#if filtered.length > 0}
+					<span class="cs-count">{filtered.length} 项</span>
+				{/if}
 			</div>
 			<div class="cs-listwrap">
 				<div class="cs-list" bind:this={listEl}>
@@ -276,10 +288,12 @@
 								aria-selected={item === value}
 								title={item}
 							>
+								<span class="cs-option-check" aria-hidden="true">
+									{#if item === value}
+										<Check size={14} />
+									{/if}
+								</span>
 								<span class="cs-option-label">{item}</span>
-								{#if item === value}
-									<Check size={14} class="cs-option-check" />
-								{/if}
 							</button>
 						{/each}
 					{/if}
@@ -358,6 +372,12 @@
 		border-bottom: 1px solid var(--border);
 	}
 	:global(.cs-search-icon) { color: var(--text-muted); flex-shrink: 0; }
+	.cs-count {
+		flex-shrink: 0;
+		font-size: var(--font-sm);
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
 	.cs-search-input {
 		flex: 1;
 		min-width: 0;
@@ -367,8 +387,8 @@
 		color: var(--text);
 		font-size: 13px;
 	}
-	/* 列表区（滚动视口）：触发区的定位基准 */
-	.cs-listwrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+	/* 列表区（滚动视口）：触发区的定位基准；四边 4px 内边距 → pill 不贴面板边框（与 Select/Combobox/MultiSelect 一致） */
+	.cs-listwrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: var(--sp-sm); }
 	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致；360 = 严格前 10 行 × 36px */
 	.cs-list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: 360px; scrollbar-width: none; -ms-overflow-style: none; }
 	.cs-list::-webkit-scrollbar { display: none; }
@@ -378,7 +398,6 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		gap: var(--sp-md);
 		width: 100%;
 		height: var(--height-md);
@@ -389,13 +408,14 @@
 		font-size: 13px;
 		text-align: left;
 		cursor: pointer;
-		transition: background-color 0.1s;
+		transition: color 0.1s, background-color 0.1s;
 	}
 	.cs-option:hover { color: var(--text-strong); }
 	.cs-option--active { color: var(--text-strong); }
-	.cs-option--selected { background-color: var(--primary-soft); color: var(--text-strong); }
-	.cs-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	:global(.cs-option-check) { color: var(--primary); flex-shrink: 0; }
+	.cs-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
+	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
+	.cs-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
+	.cs-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.cs-footer {
 		padding: var(--sp-sm) var(--sp-lg);
 		border-top: 1px solid var(--border);

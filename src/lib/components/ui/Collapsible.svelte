@@ -34,10 +34,27 @@
 		onclick={toggle}
 	>
 		{@render trigger?.()}
+		<svg
+			class="collapsible-chevron"
+			class:open
+			width="16"
+			height="16"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			aria-hidden="true"
+		>
+			<polyline points="6 9 12 15 18 9" />
+		</svg>
 	</button>
 	<div class="collapsible-content" class:open>
 		<div class="collapsible-inner">
-			{@render children?.()}
+			<div class="collapsible-body">
+				{@render children?.()}
+			</div>
 		</div>
 	</div>
 </div>
@@ -46,6 +63,9 @@
 	.collapsible {
 		display: flex;
 		flex-direction: column;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		overflow: hidden;
 	}
 	.collapsible-trigger {
 		display: flex;
@@ -53,26 +73,34 @@
 		justify-content: space-between;
 		gap: var(--sp-md);
 		width: 100%;
-		padding: var(--sp-lg) var(--sp-lg);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		background: var(--surface);
+		padding: var(--sp-lg);
+		border: none;
+		background: transparent;
 		color: var(--text);
 		font-size: 14px;
 		text-align: left;
 		cursor: pointer;
-		transition: background-color 0.15s, border-color 0.15s;
+		transition: background-color 0.15s;
 	}
 	.collapsible-trigger:hover:not(:disabled) {
 		background-color: var(--hover);
 	}
 	.collapsible-trigger:focus-visible {
 		outline: 2px solid var(--primary);
-		outline-offset: 2px;
+		outline-offset: -2px;
 	}
 	.collapsible-trigger:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+	.collapsible-chevron {
+		flex-shrink: 0;
+		margin-left: auto;
+		color: var(--text-muted);
+		transition: transform 0.25s ease;
+	}
+	.collapsible-chevron.open {
+		transform: rotate(180deg);
 	}
 	.collapsible-content {
 		display: grid;
@@ -85,5 +113,12 @@
 	.collapsible-inner {
 		overflow: hidden;
 		min-height: 0;
+	}
+	.collapsible-body {
+		padding: var(--sp-lg);
+		border-top: 1px solid var(--border);
+		font-size: 13px;
+		color: var(--text-muted);
+		line-height: 1.7;
 	}
 </style>

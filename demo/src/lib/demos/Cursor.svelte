@@ -27,7 +27,7 @@
       <div class="zone">
         <p class="zone-title">Hover 区域</p>
         <p class="zone-sub">此区域内移动鼠标查看效果；移出后系统光标恢复。</p>
-        <Button size="small" variant="primary">按钮仍可点击</Button>
+        <Button variant="primary">按钮仍可点击</Button>
       </div>
     </Cursor>
   </Card>

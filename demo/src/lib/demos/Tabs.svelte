@@ -7,6 +7,8 @@
   import Bell from '@lucide/svelte/icons/bell';
   import Shield from '@lucide/svelte/icons/shield';
   import type { Component } from 'svelte';
+  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   let seg = $state('one');
   let underline = $state('one');
@@ -19,8 +21,6 @@
     { value: 'two', label: '选项二' },
     { value: 'three', label: '选项三' },
   ];
-
-
 
   const iconItems = [
     { value: 'grid', label: '网格', icon: LayoutGrid as Component<{size?:number}> },
@@ -39,7 +39,41 @@
     { value: 'banana', label: '香蕉' },
     { value: 'cherry', label: '樱桃' },
   ];
-  import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+
+  const previewItems = [
+    { value: 'apple', label: '苹果' },
+    { value: 'banana', label: '香蕉' },
+  ];
+
+  const previewSource = `<script lang="ts">
+  import { Tabs, TabsPanel } from "goose-ui";
+
+  let active = $state("apple");
+  const items = [
+    { value: "apple", label: "苹果" },
+    { value: "banana", label: "香蕉" },
+  ];
+<\/script>
+
+<Tabs items={items} bind:value={active} style="gap: var(--sp-md)">
+  <TabsPanel value="apple">
+    <div class="panel">苹果内容区域 — 面板随选中项自动切换渲染</div>
+  </TabsPanel>
+  <TabsPanel value="banana">
+    <div class="panel">香蕉内容区域 — 这里可以放任意复杂的页面内容</div>
+  </TabsPanel>
+</Tabs>
+
+<style>
+  .panel {
+    padding: 20px;
+    background: var(--surface-2);
+    border-radius: var(--radius-lg);
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+</style>`;
 
   const tabsProps: PropsTableItem[] = [
     { name: "items", desc: "标签项数组，元素 { value, label, icon?, iconHtml? }", type: "readonly TabItem[]", default: "[]" },
@@ -48,6 +82,8 @@
     { name: "mode", desc: "展示模式", type: "'segmented' | 'underline' | 'vertical'", default: "'segmented'" },
     { name: "size", desc: "尺寸档", type: "'small' | 'middle' | 'large'", default: "'middle'" },
     { name: "onchange", desc: "切换回调", type: "(value: string) => void" },
+    { name: "lead", desc: "提供后标签条并入卡片式标题栏；lead 内容在左、标签条在右，空 snippet 时标题栏只留标签条（居左）", type: "Snippet", default: "—" },
+    { name: "children", desc: "面板内容（放 TabsPanel，须在 Tabs 内部）", type: "Snippet", default: "—" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
@@ -60,20 +96,34 @@
   ];
 </script>
 
-<Page title="标签页 Tabs" description="分段式、下划线式、垂直式三种模式的切换标签，配合 TabsPanel 展示内容面板" >
-  <Card title="TabPanel 内容面板">
+<Page title="标签页 Tabs" description="分段式、下划线式、垂直式三种模式的切换标签，配合 TabsPanel 展示内容面板">
+  <Card title="基础用法 segmented（默认）">
     <div style="display:flex;flex-direction:column;gap:16px">
-      <Tabs items={panelItems} bind:value={panel} />
-      <TabsPanel value="apple">
-        <div class="panel">苹果内容区域 — 面板随选中项自动切换渲染</div>
-      </TabsPanel>
-      <TabsPanel value="banana">
-        <div class="panel">香蕉内容区域 — 这里可以放任意复杂的页面内容</div>
-      </TabsPanel>
-      <TabsPanel value="cherry">
-        <div class="panel">樱桃内容区域 — TabsPanel value 与 Tabs value 匹配时显示</div>
-      </TabsPanel>
-      <p class="demo-val">当前选中: {panel}（方向键 ←→ 可在 tab 间移动）</p>
+      <Tabs items={basicItems} bind:value={seg} />
+      <p class="demo-val">当前选中: {seg}（方向键 ←→ 可在 tab 间移动）</p>
+    </div>
+  </Card>
+
+  <Card title="下划线模式 underline">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <Tabs items={basicItems} bind:value={underline} mode="underline" />
+      <p class="demo-val">当前选中: {underline}</p>
+    </div>
+  </Card>
+
+  <Card title="垂直模式 vertical">
+    <div style="display:flex;gap:24px">
+      <div style="width:200px">
+        <Tabs items={verticalItems} bind:value={vertical} mode="vertical" />
+      </div>
+      <div class="panel" style="flex:1">内容区域 — {vertical}</div>
+    </div>
+  </Card>
+
+  <Card title="带图标">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <Tabs items={iconItems} bind:value={withIcons} />
+      <p class="demo-val">当前视图: {withIcons}</p>
     </div>
   </Card>
 
@@ -94,37 +144,6 @@
     </div>
   </Card>
 
-  <Card title="分段模式 segmented（默认）">
-    <div style="display:flex;flex-direction:column;gap:16px">
-      <Tabs items={basicItems} bind:value={seg}   />
-      <p class="demo-val">当前选中: {seg}</p>
-      <div class="panel">内容区域 — 选项 {seg}</div>
-    </div>
-  </Card>
-
-  <Card title="带图标">
-    <div style="display:flex;flex-direction:column;gap:16px">
-      <Tabs items={iconItems} bind:value={withIcons}   />
-      <div class="panel">当前视图: {withIcons}</div>
-    </div>
-  </Card>
-
-  <Card title="下划线模式 underline">
-    <div style="display:flex;flex-direction:column;gap:16px">
-      <Tabs items={basicItems} bind:value={underline} mode="underline"   />
-      <div class="panel">内容区域 — 选项 {underline}</div>
-    </div>
-  </Card>
-
-  <Card title="垂直模式 vertical">
-    <div style="display:flex;gap:24px">
-      <div style="width:200px">
-        <Tabs items={verticalItems} bind:value={vertical} mode="vertical"   />
-      </div>
-      <div class="panel" style="flex:1">内容区域 — {vertical}</div>
-    </div>
-  </Card>
-
   <Card title="禁用状态">
     <div>
       <Tabs items={basicItems} value="one" disabled />
@@ -141,6 +160,38 @@
       <p class="demo-val">使用 onchange 而非 bind:value 也能正常切换</p>
     </div>
   </Card>
+
+  <Card title="TabPanel 内容面板">
+    <div class="inner-card">
+      <Tabs items={panelItems} bind:value={panel} style="width:100%">
+        {#snippet lead()}{/snippet}
+        <div class="inner-body">
+          <TabsPanel value="apple">
+            <div class="panel">苹果内容区域 — 面板随选中项自动切换渲染</div>
+          </TabsPanel>
+          <TabsPanel value="banana">
+            <div class="panel">香蕉内容区域 — 这里可以放任意复杂的页面内容</div>
+          </TabsPanel>
+          <TabsPanel value="cherry">
+            <div class="panel">樱桃内容区域 — TabsPanel value 与 Tabs value 匹配时显示</div>
+          </TabsPanel>
+        </div>
+      </Tabs>
+    </div>
+    <p class="demo-val">提供 <code>lead</code>（此处为空 snippet）后标签条并入卡片式标题栏并靠左，切换 tab 修改内层内容区；当前选中: {panel}</p>
+  </Card>
+
+  <CodePreview title="TabPanel 代码预览" code={previewSource} language="svelte">
+    <Tabs items={previewItems} bind:value={panel} style="width:100%; gap: var(--sp-md)">
+      <TabsPanel value="apple">
+        <div class="panel">苹果内容区域 — 面板随选中项自动切换渲染</div>
+      </TabsPanel>
+      <TabsPanel value="banana">
+        <div class="panel">香蕉内容区域 — 这里可以放任意复杂的页面内容</div>
+      </TabsPanel>
+    </Tabs>
+  </CodePreview>
+
   <Card title="Props — Tabs">
     <PropsTable items={tabsProps} />
   </Card>
@@ -152,6 +203,17 @@
 <style>
   .demo-label { font-size: 12px; color: var(--text-muted); margin: 0 0 6px; }
   .demo-val { font-size: 13px; color: var(--text-muted); margin: 0; }
+  .inner-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .inner-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+    padding: var(--sp-lg);
+  }
   .panel {
     padding: 20px;
     background: var(--surface-2);

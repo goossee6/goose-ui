@@ -5,7 +5,11 @@
   import { Notification } from "../notification";
   import { copyToClipboard } from "../../utils/clipboard";
 
-  let open = $derived($errorStore.length > 0);
+  let open = $state(false);
+
+  $effect(() => {
+    open = $errorStore.length > 0;
+  });
 
   async function copyItem(item: { kind: string; text: string }) {
     const ok = await copyToClipboard(`[${item.kind}]\n${item.text}`);
@@ -18,7 +22,7 @@
   }
 </script>
 
-<Modal {open} title="程序错误" width={480} onClose={errorStore.clear} typewriter={false}>
+<Modal bind:open modeless title="程序错误" width={480} onClose={errorStore.clear} typewriter={false}>
   <div class="error-list">
     {#each $errorStore as item (item.id)}
       <div class="error-item">

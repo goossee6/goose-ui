@@ -31,20 +31,37 @@
 	let cardEl = $state<HTMLElement | null>(null);
 	let visible = $state(false);
 	let flipUp = $state(true);
+	let pos = $state({ left: 0, top: 0 });
+
+	const GAP = 8;
 
 	let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function measure() {
 		if (!rootEl || !cardEl) return;
 		const r = rootEl.getBoundingClientRect();
-		const h = cardEl.offsetHeight;
-		// .flip-up 类 = 卡片显示在 anchor 下方（默认 CSS 为上方）
+		const cw = cardEl.offsetWidth;
+		const ch = cardEl.offsetHeight;
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+
 		// placement='top'：默认上方，仅在上方空间不足时翻下
 		// placement='bottom'：默认下方，仅在下方空间不足时翻上
-		flipUp =
-			placement === 'top'
-				? r.top - h - 8 < 8
-				: !(r.bottom + h + 8 > window.innerHeight);
+		let top: number;
+		if (placement === 'top') {
+			top = r.top - ch - GAP;
+			if (top < 8 && r.bottom + ch + GAP < vh) top = r.bottom + GAP;
+		} else {
+			top = r.bottom + GAP;
+			if (top + ch > vh - 8 && r.top - ch - GAP > 8) top = r.top - ch - GAP;
+		}
+		// flipUp = 卡片显示在 anchor 下方（仅用于动画方向）
+		flipUp = top > r.bottom;
+
+		let left = r.left + r.width / 2 - cw / 2;
+		left = Math.max(8, Math.min(left, vw - cw - 8));
+
+		pos = { left, top };
 	}
 
 	function onEnter() {
@@ -52,7 +69,6 @@
 		if (hoverTimer) clearTimeout(hoverTimer);
 		hoverTimer = setTimeout(() => {
 			visible = true;
-			requestAnimationFrame(measure);
 		}, delay);
 	}
 
@@ -66,13 +82,20 @@
 			duration: 120,
 			css: (t: number) => {
 				const y = params.up ? 4 : -4;
-				return `opacity: ${t}; transform: translateX(-50%) translateY(${(1 - t) * y}px);`;
+				return `opacity: ${t}; transform: translateY(${(1 - t) * y}px);`;
 			},
 		};
 	}
 
 	$effect(() => {
+		if (visible && cardEl) measure();
+	});
+
+	$effect(() => {
 		if (!visible) return;
+		const onMove = () => measure();
+		window.addEventListener('scroll', onMove, { capture: true, passive: true });
+		window.addEventListener('resize', onMove, { passive: true });
 		// capture 阶段响应 Esc，阻止冒泡到外层 Modal 的 Esc 监听
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
@@ -81,7 +104,11 @@
 			}
 		};
 		document.addEventListener('keydown', onKey, true);
-		return () => document.removeEventListener('keydown', onKey, true);
+		return () => {
+			window.removeEventListener('scroll', onMove, { capture: true } as AddEventListenerOptions);
+			window.removeEventListener('resize', onMove);
+			document.removeEventListener('keydown', onKey, true);
+		};
 	});
 </script>
 
@@ -101,9 +128,9 @@
 	{#if visible && (title || description || image)}
 		<div
 			class="link-preview-card"
-			class:flip-up={flipUp}
 			role="tooltip"
 			bind:this={cardEl}
+			style="left:{pos.left}px;top:{pos.top}px"
 			transition:cardFade={{ up: flipUp }}
 		>
 			{#if image}
@@ -141,11 +168,8 @@
 		cursor: not-allowed;
 	}
 	.link-preview-card {
-		position: absolute;
-		z-index: var(--z-popover);
-		bottom: calc(100% + 8px);
-		left: 50%;
-		transform: translateX(-50%);
+		position: fixed;
+		z-index: var(--z-dialog);
 		width: 280px;
 		background: var(--surface-2);
 		border: 1px solid var(--border-strong);
@@ -153,10 +177,6 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 		overflow: hidden;
 		pointer-events: none;
-	}
-	.link-preview-card.flip-up {
-		bottom: auto;
-		top: calc(100% + 8px);
 	}
 	.link-preview-image {
 		display: block;

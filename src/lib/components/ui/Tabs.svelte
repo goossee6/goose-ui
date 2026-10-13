@@ -13,7 +13,7 @@
 </script>
 
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 	import { setContext } from 'svelte';
 	import PillTrack from './PillTrack.svelte';
 
@@ -32,6 +32,8 @@
 		class: cls = '',
 		onchange,
 		size = 'middle',
+		lead,
+		children,
 		style = '',
 	}: {
 		items?: readonly TabItem[];
@@ -41,6 +43,13 @@
 		class?: string;
 		onchange?: (value: string) => void;
 		size?: 'small' | 'middle' | 'large';
+		/**
+		 * 提供后（含空 snippet）标签条会并入卡片式标题栏行（surface-2 背景 + 下边框 + 内边距）。
+		 * lead 内容渲染在标题栏左侧、标签条在右；空 lead 时标题栏只含标签条（单子元素靠左）。
+		 */
+		lead?: Snippet;
+		/** 面板内容（放 TabsPanel 用，需在 Tabs 内部才能共享选中状态） */
+		children?: Snippet;
 		style?: string;
 	} = $props();
 
@@ -86,7 +95,7 @@
 	}
 </script>
 
-<div class="tabs-root {sizeClass} {cls}" style={style}>
+{#snippet bar()}
 	<div
 		bind:this={groupEl}
 		class="tabs-group tabs-group--{mode}"
@@ -128,10 +137,32 @@
 			</button>
 		{/each}
 	</div>
+{/snippet}
+
+<div class="tabs-root {sizeClass} {cls}" style={style}>
+	{#if lead}
+		<div class="tabs-topline">
+			{@render lead()}
+			{@render bar()}
+		</div>
+	{:else}
+		{@render bar()}
+	{/if}
+	{@render children?.()}
 </div>
 
 <style>
-	.tabs-root { display: inline-flex; align-items: center; }
+	.tabs-root { display: inline-flex; flex-direction: column; align-items: flex-start; }
+	.tabs-topline {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-lg);
+		width: 100%;
+		padding: var(--sp-md) var(--sp-lg);
+		border-bottom: 1px solid var(--border);
+		background-color: var(--surface);
+	}
 	.tabs-root--small .tabs-mode--segmented { padding: 4px 12px; font-size: var(--font-sm); }
 	.tabs-root--small .tabs-mode--underline { padding: 8px 12px; font-size: var(--font-sm); }
 	.tabs-root--small .tabs-mode--vertical { padding: 6px 10px; font-size: var(--font-sm); }

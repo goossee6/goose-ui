@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Header, Card, Icon, Page, ThemeToggle} from "goose-ui";
+  import {Header, Card, Icon, Page, ThemeToggle, Button} from "goose-ui";
   import Search from '@lucide/svelte/icons/search';
   import Bell from '@lucide/svelte/icons/bell';
   import Settings from '@lucide/svelte/icons/settings';
@@ -33,9 +33,9 @@
       <div class="preview-frame">
         <Header title="管理后台">
           {#snippet right()}
-            <button class="demo-icon-btn"><Icon icon={Search} size={14} /></button>
-            <button class="demo-icon-btn"><Icon icon={Bell} size={14} /></button>
-            <button class="demo-icon-btn"><Icon icon={Settings} size={14} /></button>
+            <Button size="icon-sm" variant="ghost" icon={Search} ariaLabel="搜索" />
+            <Button size="icon-sm" variant="ghost" icon={Bell} ariaLabel="通知" />
+            <Button size="icon-sm" variant="ghost" icon={Settings} ariaLabel="设置" />
           {/snippet}
         </Header>
         <div class="preview-content">内容区域</div>
@@ -82,7 +82,7 @@
         <Header title="全宽 Header">
           {#snippet right()}
             <ThemeToggle />
-            <button class="demo-icon-btn"><Icon icon={User} size={14} /></button>
+            <Button size="icon-sm" variant="ghost" icon={User} ariaLabel="用户" />
           {/snippet}
         </Header>
         <div class="preview-content preview-content--full">内容区域（全宽）</div>
@@ -114,19 +114,11 @@
     min-height: 320px;
   }
   .preview-content--full { padding-left: 40px; }
-  .demo-icon-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--surface);
-    color: var(--text-muted);
-    cursor: pointer;
+  /* Header 自带负 margin 抵消 Layout 卡片内边距；demo 预览框内无此内边距，需归零并给自身留白 */
+  .preview-frame :global(.header) {
+    margin: 0;
+    padding: 0 16px;
   }
-  .demo-icon-btn:hover { background: var(--hover); color: var(--text-strong); }
   .demo-breadcrumb { font-size: 13px; color: var(--text-muted); }
   .demo-breadcrumb--active { color: var(--text-strong); font-weight: 500; }
   .demo-breadcrumb-sep { margin: 0 4px; color: var(--text-muted); font-size: 12px; }

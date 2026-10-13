@@ -4,6 +4,7 @@
 	import { rowsHeight } from './rowHeight';
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
+	import Check from '@lucide/svelte/icons/check';
 
 	interface Option {
 		value: string | number;
@@ -161,8 +162,7 @@
 			<div class="select-scroll" bind:this={scrollEl}>
 				<PillTrack
 					container={scrollEl}
-					activeSelector=".select-option--active"
-					insetX={6}
+					activeSelector=".select-option--active:not(.select-option--selected)"
 					background="color-mix(in srgb, var(--primary) 15%, transparent)"
 					radius="var(--radius-md)"
 				/>
@@ -183,12 +183,12 @@
 							role="option"
 							aria-selected={opt.value === value}
 						>
-							<div class="select-option-left">
-								{#if opt.value === value}
-									<span class="select-option-dot"></span>
-								{/if}
-								<span class="select-option-label" class:select-option-label--indent={opt.value !== value}>{opt.label}</span>
-							</div>
+						<span class="select-option-check" aria-hidden="true">
+							{#if opt.value === value}
+								<Check size={14} />
+							{/if}
+						</span>
+						<span class="select-option-label">{opt.label}</span>
 							{#if opt.meta}
 								<span class="select-meta select-meta--{opt.metaClass ?? 'default'}">{opt.meta}</span>
 							{/if}
@@ -233,8 +233,8 @@
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-		/* 上下 4px 内边距：hover pill / 首末行不贴面板边框（水平不加，文字列几何不变） */
-		padding: var(--sp-sm) 0;
+		/* 上下左右 4px 内边距：hover pill / 首末行不贴面板边框 */
+		padding: var(--sp-sm);
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
 		background-color: var(--surface);
@@ -258,8 +258,8 @@
 		display: flex;
 		align-items: center;
 		height: 24px;
-		/* 与选项文字列对齐：选项 padding-left 16 (var(--sp-lg)) + 文字缩进 20 = 36 */
-		padding: 0 36px;
+		/* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */
+		padding: 0 40px;
 		font-size: 12px;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
@@ -271,7 +271,6 @@
 		z-index: 1;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		gap: var(--sp-md);
 		width: 100%;
 		height: var(--height-md);
@@ -279,19 +278,17 @@
 		border: none;
 		background: none;
 		color: var(--text);
-		font-size: 14px;
+		font-size: 13px;
 		text-align: left;
 		cursor: pointer;
-		transition: color 0.1s;
+		transition: color 0.1s, background-color 0.1s;
 	}
 	.select-option:hover { color: var(--text-strong); }
 	.select-option--active { color: var(--text-strong); }
-	.select-option--selected { color: var(--text-strong); font-weight: 500; }
-	.select-option-left { display: flex; align-items: center; gap: var(--sp-md); min-width: 0; }
-	/* 6px 圆点 + 6px 外边距 + 8px gap = 20px，与未选中行的 20px 文字缩进同列 */
-	.select-option-dot { width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background-color: var(--primary); flex-shrink: 0; }
-	.select-option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.select-option-label--indent { padding-left: 20px; }
+	.select-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
+	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
+	.select-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
+	.select-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.select-meta {
 		font-size: 12px;
 		padding: 2px 6px;

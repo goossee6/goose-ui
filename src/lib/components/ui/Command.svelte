@@ -234,7 +234,7 @@
 		align-items: flex-start;
 		justify-content: center;
 		padding: 12vh var(--sp-lg) var(--sp-lg);
-		background: rgba(0, 0, 0, 0.55);
+		background: var(--overlay);
 		backdrop-filter: blur(2px);
 	}
 	.command-dialog {

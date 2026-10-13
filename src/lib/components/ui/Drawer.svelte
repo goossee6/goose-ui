@@ -13,7 +13,6 @@
     height = 300,
     maskClosable = true,
     pushBackground = true,
-    contentSelector = '',
     footer,
     onClose,
     children,
@@ -27,7 +26,6 @@
     height?: number | string;
     maskClosable?: boolean;
     pushBackground?: boolean;
-    contentSelector?: string;
     footer?: Snippet | null;
     onClose?: () => void;
     children?: Snippet;
@@ -63,13 +61,8 @@
   }
 
   $effect(() => {
-    if (!pushBackground || !contentSelector) return;
-    let el: HTMLElement | null = null;
-    try {
-      el = document.querySelector(contentSelector) as HTMLElement | null;
-    } catch {
-      return;
-    }
+    if (!pushBackground) return;
+    const el = document.querySelector('.layout, .layout-content, main') as HTMLElement | null;
     if (!el) return;
     if (open) {
       el.style.transition = 'transform 0.36s cubic-bezier(0.2, 0, 0.2, 1), filter 0.36s, border-radius 0.36s';

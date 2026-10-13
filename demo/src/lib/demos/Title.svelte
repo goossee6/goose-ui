@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, PageHeader, Page} from "goose-ui";
+  import {Card, PageHeader, Page, Button} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const pageHeaderProps: PropsTableItem[] = [
@@ -30,8 +30,8 @@
   <Card title="带操作按钮">
     <PageHeader title="管理页面" description="管理您的数据">
       {#snippet right()}
-        <button class="demo-btn">导出</button>
-        <button class="demo-btn demo-btn--primary">新建</button>
+        <Button size="small">导出</Button>
+        <Button size="small" variant="primary">新建</Button>
       {/snippet}
     </PageHeader>
   </Card>
@@ -42,16 +42,4 @@
 
 <style>
   .custom-title { font-size: 16px; font-weight: 600; color: var(--text-strong); }
-  .demo-btn {
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--surface);
-    color: var(--text-muted);
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .demo-btn:hover { background: var(--hover); color: var(--text-strong); }
-  .demo-btn--primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .demo-btn--primary:hover { opacity: 0.9; }
 </style>

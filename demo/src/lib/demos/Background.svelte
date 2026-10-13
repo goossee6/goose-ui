@@ -19,7 +19,7 @@
   <Card title="切换变体">
     <Row>
       {#each variants as v (v)}
-        <Button size="small" variant={variant === v ? "primary" : "default"} onclick={() => (variant = v)}>{v}</Button>
+        <Button variant={variant === v ? "primary" : "default"} onclick={() => (variant = v)}>{v}</Button>
       {/each}
       <label class="opt"><input type="checkbox" bind:checked={animated} /> 动画（仅 gradient）</label>
     </Row>

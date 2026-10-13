@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Page, Skeleton, Row} from "goose-ui";
+  import {Card, Page, Skeleton, Row, Button} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const props: PropsTableItem[] = [
@@ -47,9 +47,9 @@
 
   <Card title="加载 → 内容切换">
     <Row>
-      <button type="button" class="btn" onclick={() => { loading = true; }}>
+      <Button onclick={() => { loading = true; }}>
         重新加载（2.5s 后显示内容）
-      </button>
+      </Button>
     </Row>
     <div style="margin-top:16px;min-height:96px">
       {#if loading}
@@ -66,14 +66,4 @@
 </Page>
 
 <style>
-  .btn {
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    border-radius: var(--radius-md);
-    padding: 6px 12px;
-    font-size: 13px;
-    color: var(--text);
-    cursor: pointer;
-  }
-  .btn:hover { border-color: var(--primary); }
 </style>

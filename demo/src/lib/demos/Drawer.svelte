@@ -18,8 +18,7 @@
     { name: "width", desc: "宽度（左右方向生效）", type: "number | string", default: "378" },
     { name: "height", desc: "高度（上下方向生效）", type: "number | string", default: "300" },
     { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "true" },
-    { name: "pushBackground", desc: "打开时下沉背景内容", type: "boolean", default: "true" },
-    { name: "contentSelector", desc: "被下沉的背景选择器", type: "string", default: "''（不下沉）" },
+    { name: "pushBackground", desc: "景深下沉（缩放 + 模糊 + 圆角），默认启用，传 false 关闭", type: "boolean", default: "true" },
     { name: "footer", desc: "底部区域插槽", type: "Snippet | null" },
     { name: "onClose", desc: "关闭回调", type: "() => void" },
     { name: "children", desc: "抽屉内容", type: "Snippet" },
@@ -76,7 +75,7 @@
     <Row>
       <Button onclick={() => (noPushOpen = true)}>关闭景深</Button>
       <Drawer bind:open={noPushOpen} title="关闭景深" maskClosable pushBackground={false}>
-        <p>设置 <code>pushBackground=false</code>，背景不会产生缩放和模糊景深效果。</p>
+        <p>景深默认启用；显式传 <code>pushBackground=false</code> 后，背景不会产生缩放和模糊景深效果。</p>
         <p>点击遮罩仍然可以关闭。</p>
       </Drawer>
     </Row>

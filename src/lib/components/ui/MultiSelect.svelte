@@ -4,6 +4,7 @@
   import { rowsHeight } from './rowHeight';
   import PillTrack from './PillTrack.svelte';
   import ScrollZones from './ScrollZones.svelte';
+  import Check from '@lucide/svelte/icons/check';
 
   interface Option {
     value: string;
@@ -149,7 +150,11 @@
             <div class="ms-group" role="presentation">{item.group}</div>
           {/if}
           <button type="button" class="option" class:selected={values.includes(item.value)} role="option" aria-selected={values.includes(item.value)} onclick={() => toggleItem(item.value)}>
-            <input type="checkbox" class="option-check" checked={values.includes(item.value)} tabindex="-1" />
+            <span class="option-check" aria-hidden="true">
+              {#if values.includes(item.value)}
+                <Check size={14} />
+              {/if}
+            </span>
             {item.label}
           </button>
         {/each}
@@ -178,9 +183,10 @@
     /* 内边距在 .menu（面板层）：sticky 组头吸附滚动容器顶边，组头上方面板 padding 带无内容可透出 */
     .menu-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
   .menu-scroll::-webkit-scrollbar { display: none; }
-  .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：padding 20 + checkbox 16 + gap 8 */ padding: 0 44px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: var(--surface); }
+  .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */ padding: 0 40px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: var(--surface); }
   .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .option:hover { color: var(--text-strong); }
-  .option.selected { background-color: var(--primary-soft); color: var(--primary); }
-  .option-check { width: 16px; height: 16px; flex-shrink: 0; margin: 0; accent-color: var(--primary); pointer-events: none; }
+  .option.selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
+  /* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
+  .option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
 </style>

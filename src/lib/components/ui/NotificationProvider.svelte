@@ -61,6 +61,14 @@
 	}
 	onDestroy(() => clearTimeout(marginsAnimTimer));
 
+	// 展开态翻转必须先同步开 margin 过渡窗口再改状态：渲染 flush 内 flip 会强制布局读，
+	// margin 值在窗口类落地前的 recalc 里就已瞬跳（transition 只挂在窗口类上）→ hover 展开无动画
+	function setUserExpanded(v: boolean) {
+		if (userExpanded === v) return;
+		bumpMarginsAnim();
+		userExpanded = v;
+	}
+
 	$effect(() => {
 		const unsubs = positions.map((p) =>
 			notificationStore.subscribe(p, (items) => {
@@ -89,7 +97,7 @@
 	// 仅剩 1 条时强制收起（sonner 行为）
 	$effect(() => {
 		const total = positions.reduce((s, p) => s + stacks[p].length, 0);
-		if (total <= 1) userExpanded = false;
+		if (total <= 1) setUserExpanded(false);
 	});
 
 	// 热键展开（默认 Alt+T）/ Escape 收起（焦点在通知内时）
@@ -99,13 +107,13 @@
 				hotkey.length > 0 &&
 				hotkey.every((key) => (event as unknown as Record<string, boolean>)[key] || event.code === key);
 			if (pressed) {
-				userExpanded = true;
+				setUserExpanded(true);
 				requestAnimationFrame(() => {
 					rootEl?.querySelector<HTMLElement>('.nc.has-items')?.focus();
 				});
 			}
 			if (event.code === 'Escape' && userExpanded) {
-				userExpanded = false;
+				setUserExpanded(false);
 			}
 		}
 		window.addEventListener('keydown', onKeydown);
@@ -397,7 +405,7 @@
 		const s = swipe;
 		if (!s || s.out || event.pointerId !== s.pointerId) return;
 		endSwipe(s);
-		if (s.axis) userExpanded = false;
+		if (s.axis) setUserExpanded(false);
 		const get = (v: string) => Number(s.ni.style.getPropertyValue(v).replace('px', '')) || 0;
 		const amountX = get('--sx');
 		const amountY = get('--sy');
@@ -426,7 +434,7 @@
 		const s = swipe;
 		if (!s || event.pointerId !== s.pointerId) return;
 		endSwipe(s);
-		if (s.axis) userExpanded = false;
+		if (s.axis) setUserExpanded(false);
 		s.ni.style.setProperty('--sx', '0px');
 		s.ni.style.setProperty('--sy', '0px');
 	}
@@ -446,10 +454,10 @@
 			style={positionMap[pos]}
 			role="list"
 			tabindex={-1}
-			onmouseenter={() => (userExpanded = true)}
-			onmousemove={() => (userExpanded = true)}
+			onmouseenter={() => setUserExpanded(true)}
+			onmousemove={() => setUserExpanded(true)}
 			onmouseleave={() => {
-				if (!interacting) userExpanded = false;
+				if (!interacting) setUserExpanded(false);
 			}}
 		>
 			{#each stacks[pos] as item, i (item.id)}
@@ -509,6 +517,13 @@
 	.nc > .ns:last-child {
 		--notif-bg: #ffffff;
 	}
+	/* 暗色：硬编码近白背景不随主题翻转 → 白字白底不可见。用主题 token 保持前后卡两档层次 */
+	:global(.dark) .ns {
+		--notif-bg: var(--surface);
+	}
+	:global(.dark) .nc > .ns:last-child {
+		--notif-bg: var(--surface-2);
+	}
 	/* 收起态卡片重叠：任何 drop shadow（含 front 往下投的）都会污染 sliver，导致中层比下层暗。
 	   收起态全部去阴影，层级靠 border + 缩放区分；展开态卡片有真实间隙，保留阴影 */
 	.nc:not(.expanded) > .ns :global(.notification) {
@@ -547,6 +562,22 @@
 	.nc:not(.expanded) > .ns:not(:last-child) :global(.notification > *) {
 		opacity: 0;
 		transition: opacity 400ms;
+	}
+	/* 混合卡高：top 系 sliver 展示的是各卡底部区域，钳制裁切会裁掉底边框（条带分界线缺失）。
+	   卡壳 flex 钉底 → 底边框永远落在 sliver 末端；等高时与顶对齐像素等价（零回归）。
+	   flex-shrink:0 保持卡壳自然高（被 .ni 裁切而非压扁）→ --h/--front-h 测的 offsetHeight 不变。
+	   bottom 系 sliver 展示顶边，无需处理 */
+	.nc:not(.expanded).top-left > .ns:not(:last-child) .ni,
+	.nc:not(.expanded).top > .ns:not(:last-child) .ni,
+	.nc:not(.expanded).top-right > .ns:not(:last-child) .ni {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+	}
+	.nc:not(.expanded).top-left > .ns:not(:last-child) :global(.notification),
+	.nc:not(.expanded).top > .ns:not(:last-child) :global(.notification),
+	.nc:not(.expanded).top-right > .ns:not(:last-child) :global(.notification) {
+		flex-shrink: 0;
 	}
 
 	/* 展开：自然高度、正 gap 间距、内容可见 */

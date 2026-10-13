@@ -11,6 +11,7 @@
 <script lang="ts">
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
+	import Check from '@lucide/svelte/icons/check';
 	import { floatingPosition } from './floatingPosition';
 	import { rowsHeight } from './rowHeight';
 
@@ -197,10 +198,13 @@
 
 	{#if open}
 		<div class="combobox-panel" style={dropdownStyle}>
+			{#if filtered.length > 0}
+				<span class="combobox-count">{filtered.length} 项</span>
+			{/if}
 			<div class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
 				<PillTrack
 					container={listEl}
-					activeSelector=".combobox-option.active"
+					activeSelector=".combobox-option.active:not(.selected)"
 					background="color-mix(in srgb, var(--primary) 15%, transparent)"
 					radius="var(--radius-md)"
 				/>
@@ -227,10 +231,12 @@
 						}}
 						onmouseenter={() => (activeIndex = i)}
 					>
-						{opt.label}
-						{#if opt.value === value}
-							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
-						{/if}
+						<span class="combobox-option-check" aria-hidden="true">
+							{#if opt.value === value}
+								<Check size={14} />
+							{/if}
+						</span>
+						<span class="combobox-option-label">{opt.label}</span>
 					</div>
 				{/each}
 			</div>
@@ -314,6 +320,17 @@
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 	}
+	/* 结果计数：absolute 不进 rowsHeight 高度模型；pointer-events:none 不拦顶部滚动触发区 */
+	.combobox-count {
+		position: absolute;
+		top: 4px;
+		right: 8px;
+		z-index: 4;
+		font-size: var(--font-sm);
+		color: var(--text-muted);
+		white-space: nowrap;
+		pointer-events: none;
+	}
 	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致；高度由面板 max-height（前 10 行）控制 */
 	.combobox-list {
 		position: relative;
@@ -335,8 +352,8 @@
 		display: flex;
 		align-items: center;
 		height: 24px;
-		/* 与选项文字列对齐（选项 padding 12） */
-		padding: 0 var(--sp-lg);
+		/* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */
+		padding: 0 40px;
 		font-size: 12px;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
@@ -347,7 +364,6 @@
 		z-index: 1;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		gap: var(--sp-md);
 		height: var(--height-md);
 		padding: 0 var(--sp-lg);
@@ -355,14 +371,19 @@
 		font-size: 13px;
 		color: var(--text);
 		cursor: pointer;
+		transition: color 0.1s, background-color 0.1s;
 	}
 	.combobox-option.active {
 		color: var(--text-strong);
 	}
 	.combobox-option.selected {
-		color: var(--primary);
-		font-weight: 600;
+		background-color: var(--primary-soft);
+		color: var(--text-strong);
+		font-weight: 500;
 	}
+	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
+	.combobox-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
+	.combobox-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.combobox-option.disabled {
 		opacity: 0.45;
 		cursor: not-allowed;

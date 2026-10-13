@@ -4,6 +4,7 @@
   import type { Snippet } from "svelte";
   import X from '@lucide/svelte/icons/x';
   import Icon from './Icon.svelte';
+  import Button from './Button.svelte';
 
   let {
     open = $bindable(false),
@@ -12,6 +13,8 @@
     width = 520,
     maskClosable = false,
     mask: maskProp = 'dark',
+    blur = true,
+    modeless = false,
     disableClose = false,
     typewriter = false,
     typewriterDuration = 1500,
@@ -35,6 +38,8 @@
     width?: number | string;
     maskClosable?: boolean;
     mask?: 'dark' | 'light';
+    blur?: boolean;
+    modeless?: boolean;
     disableClose?: boolean;
     typewriter?: boolean;
     typewriterDuration?: number;
@@ -146,7 +151,7 @@
 
 {#if open}
   <div
-    class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}"
+    class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}{blur ? '' : ' modal-no-blur'}{modeless ? ' modal-overlay-modeless' : ''}"
     role="presentation"
     onclick={handleMaskClick}
     onkeydown={handleKeydown}
@@ -193,12 +198,17 @@
       {:else if showFooter && (showCancel || showOk)}
         <div class="modal-footer">
           {#if showCancel}
-            <button class="modal-btn modal-btn-cancel" onclick={doCancel}>{cancelText}</button>
+            <Button variant="default" size="middle" onclick={doCancel}>{cancelText}</Button>
           {/if}
           {#if showOk}
-            <button class="modal-btn modal-btn-ok" onclick={handleOk} disabled={okBusy || okDisabled} aria-busy={okBusy}>
-              {okBusy ? '处理中…' : okText}
-            </button>
+            <Button
+              variant="primary"
+              size="middle"
+              onclick={handleOk}
+              disabled={okDisabled}
+              loading={okBusy}
+              aria-busy={okBusy}
+            >{okBusy ? '处理中…' : okText}</Button>
           {/if}
         </div>
       {/if}
@@ -221,8 +231,20 @@
     z-index: var(--z-overlay);
   }
   .modal-overlay-light {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: var(--overlay-light);
     backdrop-filter: blur(2px);
+  }
+  .modal-no-blur {
+    backdrop-filter: none;
+  }
+  /* 非模态：去掉遮罩变暗与模糊，遮罩层点击穿透到页面；面板自身恢复接收指针 */
+  .modal-overlay-modeless {
+    background: none;
+    backdrop-filter: none;
+    pointer-events: none;
+  }
+  .modal-overlay-modeless .modal {
+    pointer-events: auto;
   }
   .modal {
     background-color: var(--surface);
@@ -318,34 +340,4 @@
     padding: var(--sp-lg) 32px;
     flex-shrink: 0;
   }
-  .modal-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 28px;
-    padding: 0 var(--sp-lg);
-    border-radius: var(--radius-lg);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid var(--border-strong);
-    transition: background-color 0.2s, border-color 0.2s;
-  }
-  .modal-btn-cancel {
-    background-color: transparent;
-    color: var(--text-muted);
-  }
-  .modal-btn-cancel:hover { background-color: var(--surface-2); color: var(--text-strong); }
-  .modal-btn-ok {
-    background-color: var(--primary);
-    color: var(--primary-text);
-    border-color: var(--primary);
-  }
-  .modal-btn-ok:hover { background-color: var(--primary-hover); }
-  .modal-btn:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-  .modal-btn-cancel:disabled:hover { background-color: transparent; color: var(--text-muted); }
-  .modal-btn-ok:disabled:hover { background-color: var(--primary); }
 </style>

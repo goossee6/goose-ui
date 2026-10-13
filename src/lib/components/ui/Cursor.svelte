@@ -24,6 +24,17 @@
 	let trailEl = $state<HTMLSpanElement | null>(null);
 	let active = $state(false);
 
+	// 最近一次鼠标相对位置（未减半尺寸）；dot 首帧渲染时 mousemove 已跑完、dotEl 尚 null，用它补定位
+	let last = { x: 0, y: 0, inside: false };
+
+	$effect(() => {
+		// dot/trail 元素挂载（active 翻转渲染）时补一次 transform
+		void dotEl;
+		void trailEl;
+		if (last.inside && dotEl) dotEl.style.transform = `translate(${last.x - size / 2}px, ${last.y - size / 2}px)`;
+		if (last.inside && trailEl) trailEl.style.transform = `translate(${last.x - size * 0.9}px, ${last.y - size * 0.9}px)`;
+	});
+
 	$effect(() => {
 		if (typeof window === 'undefined' || !rootEl) return;
 
@@ -38,12 +49,12 @@
 			const dy = target.y - pos.y;
 			pos.x += dx * 0.18;
 			pos.y += dy * 0.18;
-			if (trailEl) trailEl.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+			if (trailEl) trailEl.style.transform = `translate(${pos.x - size * 0.9}px, ${pos.y - size * 0.9}px)`;
 			if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) {
 				raf = requestAnimationFrame(tick);
 			} else {
 				pos = { ...target };
-				if (trailEl) trailEl.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+				if (trailEl) trailEl.style.transform = `translate(${pos.x - size * 0.9}px, ${pos.y - size * 0.9}px)`;
 				running = false;
 			}
 		};
@@ -58,12 +69,14 @@
 				e.clientY >= rect.top &&
 				e.clientY <= rect.bottom;
 			active = inside;
+			last.inside = inside;
 			if (!inside) return;
 			const x = e.clientX - rect.left;
 			const y = e.clientY - rect.top;
+			last = { x, y, inside: true };
 			target = { x, y };
-			if (dotEl) dotEl.style.transform = `translate(${x}px, ${y}px)`;
-			if (trailEl && !running) {
+			if (dotEl) dotEl.style.transform = `translate(${x - size / 2}px, ${y - size / 2}px)`;
+			if (trail && !running) {
 				running = true;
 				raf = requestAnimationFrame(tick);
 			}
@@ -119,8 +132,6 @@
 		will-change: transform;
 		z-index: 60;
 		box-sizing: border-box;
-		margin-left: -0.5em;
-		margin-top: -0.5em;
 	}
 	.cursor-dot.outline {
 		border: 1.5px solid var(--primary);

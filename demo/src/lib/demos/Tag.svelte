@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Page, Tag, Row} from "goose-ui";
+  import {Card, Page, Tag, Row, Button} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const props: PropsTableItem[] = [
@@ -48,16 +48,16 @@
       {#each tags as t (t.id)}
         <Tag variant="primary" closable onclose={() => (tags = tags.filter((x) => x.id !== t.id))}>{t.label}</Tag>
       {/each}
-      <button
-        type="button"
-        style="border:1px dashed var(--border-strong);background:none;border-radius:var(--radius-sm);padding:5px 9px;font-size:12px;color:var(--text-muted);cursor:pointer"
+      <Button
+        variant="ghost"
+        size="small"
         onclick={() => {
           const id = nextId++;
           tags = [...tags, { id, label: `标签 ${id}` }];
         }}
       >
         + 添加
-      </button>
+      </Button>
     </Row>
     <p class="note">已关闭 {nextId - 1 - tags.length} 个</p>
   </Card>

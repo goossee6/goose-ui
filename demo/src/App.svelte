@@ -26,13 +26,10 @@
   import PINInputDemo from './lib/demos/PINInput.svelte';
   import MeterDemo from './lib/demos/Meter.svelte';
   import ScrollAreaDemo from './lib/demos/ScrollArea.svelte';
-  import DropdownMenuDemo from './lib/demos/DropdownMenu.svelte';
-  import MenubarDemo from './lib/demos/Menubar.svelte';
   import NavigationMenuDemo from './lib/demos/NavigationMenu.svelte';
   import ToolbarDemo from './lib/demos/Toolbar.svelte';
   import SliderDemo from './lib/demos/Slider.svelte';
   import PopoverDemo from './lib/demos/Popover.svelte';
-  import AlertDialogDemo from './lib/demos/AlertDialog.svelte';
   import CommandDemo from './lib/demos/Command.svelte';
   import LinkPreviewDemo from './lib/demos/LinkPreview.svelte';
   import DateFieldDemo from './lib/demos/DateField.svelte';
@@ -51,7 +48,6 @@
   import Form from './lib/demos/Form.svelte';
   import NotificationDemo from './lib/demos/Notification.svelte';
   import ModalDemo from './lib/demos/Modal.svelte';
-  import ConfirmDemo from './lib/demos/Confirm.svelte';
   import Drawer from './lib/demos/Drawer.svelte';
   import LoadingDemo from './lib/demos/Loading.svelte';
   import Tooltip from './lib/demos/Tooltip.svelte';
@@ -121,12 +117,10 @@
       icon: MessageCircle,
       items: [
         { value: 'notification', label: 'Notification 通知' },
-        { value: 'modal', label: 'Modal 弹窗' },
-        { value: 'confirm', label: 'Confirm 确认框' },
+        { value: 'modal', label: 'Modal/Confirm/AlertDialog 弹窗确认' },
         { value: 'drawer', label: 'Drawer 抽屉' },
         { value: 'tooltip', label: 'Tooltip 气泡提示' },
         { value: 'popover', label: 'Popover 气泡卡片' },
-        { value: 'alertdialog', label: 'AlertDialog 警惕对话框' },
         { value: 'command', label: 'Command 命令面板' },
         { value: 'linkpreview', label: 'LinkPreview 链接预览' },
         { value: 'loading', label: 'Loading 加载' },
@@ -154,9 +148,7 @@
       icon: Wrench,
       items: [
         { value: 'header', label: 'Header 头部导航' },
-        { value: 'navmenu', label: 'NavigationMenu 导航菜单' },
-        { value: 'menubar', label: 'Menubar 菜单栏' },
-        { value: 'dropdownmenu', label: 'DropdownMenu 下拉菜单' },
+        { value: 'navmenu', label: 'NavigationMenu/Menubar/DropdownMenu 导航与菜单' },
         { value: 'cursor', label: 'Cursor 光标' },
         { value: 'background', label: 'Background 背景' },
         { value: 'footer', label: 'Footer 页脚' },
@@ -184,6 +176,10 @@
     checkbox: 'choice',
     togglegroup: 'choice',
     segmentedtabs: 'tabs',
+    confirm: 'modal',
+    alertdialog: 'modal',
+    menubar: 'navmenu',
+    dropdownmenu: 'navmenu',
   };
   const validTabs = new Set([
     ...groups.flatMap((e) => ('items' in e ? e.items.map((i) => i.value) : [e.value])),
@@ -268,8 +264,6 @@
       <SliderDemo />
     {:else if activeTab === 'popover'}
       <PopoverDemo />
-    {:else if activeTab === 'alertdialog'}
-      <AlertDialogDemo />
     {:else if activeTab === 'command'}
       <CommandDemo />
     {:else if activeTab === 'linkpreview'}
@@ -282,10 +276,6 @@
       <ToolbarDemo />
     {:else if activeTab === 'navmenu'}
       <NavigationMenuDemo />
-    {:else if activeTab === 'menubar'}
-      <MenubarDemo />
-    {:else if activeTab === 'dropdownmenu'}
-      <DropdownMenuDemo />
     {:else if activeTab === 'icon'}
       <IconDemo />
     {:else if activeTab === 'tag'}
@@ -316,8 +306,6 @@
       <NotificationDemo />
     {:else if activeTab === 'modal'}
       <ModalDemo />
-    {:else if activeTab === 'confirm'}
-      <ConfirmDemo />
     {:else if activeTab === 'drawer'}
       <Drawer />
     {:else if activeTab === 'loading'}

@@ -122,7 +122,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: var(--sp-lg);
-		background: rgba(0, 0, 0, 0.55);
+		background: var(--overlay);
 		backdrop-filter: blur(2px);
 	}
 	.alert-dialog {

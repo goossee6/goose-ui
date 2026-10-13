@@ -56,21 +56,6 @@
 			>
 				{#snippet trigger()}
 					<span class="accordion-label">{item.label}</span>
-					<svg
-						class="accordion-chevron"
-						class:open
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<polyline points="6 9 12 15 18 9" />
-					</svg>
 				{/snippet}
 				<div class="accordion-panel">
 					{@render item.content?.()}
@@ -86,23 +71,17 @@
 		flex-direction: column;
 		gap: var(--sp-md);
 	}
-	.accordion-item :global(.collapsible-trigger) {
+	.accordion-item :global(.collapsible) {
 		border-radius: var(--radius-lg);
-		font-weight: 600;
 	}
-	.accordion-item--open :global(.collapsible-trigger) {
+	.accordion-item--open :global(.collapsible) {
 		border-color: var(--border-strong);
+	}
+	.accordion-item :global(.collapsible-trigger) {
+		font-weight: 600;
 	}
 	.accordion-label {
 		flex: 1;
-	}
-	.accordion-chevron {
-		flex-shrink: 0;
-		color: var(--text-muted);
-		transition: transform 0.25s ease;
-	}
-	.accordion-chevron.open {
-		transform: rotate(180deg);
 	}
 	.accordion-panel {
 		padding: var(--sp-lg) var(--sp-lg);

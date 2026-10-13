@@ -21,7 +21,7 @@
   <Card title="固定时长 + 暂停控制">
     <Row>
       <Countdown duration={1000 * 60 * 5 + 32000} bind:paused />
-      <Button size="small" variant={paused ? "primary" : "default"} onclick={() => (paused = !paused)}>
+      <Button variant={paused ? "primary" : "default"} onclick={() => (paused = !paused)}>
         {paused ? "继续" : "暂停"}
       </Button>
     </Row>

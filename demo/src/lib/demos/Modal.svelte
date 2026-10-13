@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Button, Modal, Page, Notification, pushError, Row} from "goose-ui";
+  import {Card, Button, Modal, Page, Notification, pushError, Row, showConfirm, AlertDialog} from "goose-ui";
 
   let modalOpen = $state(false);
   let maskModalOpen = $state(false);
@@ -8,10 +8,69 @@
   let wideModalOpen = $state(false);
   let snippetTitleModalOpen = $state(false);
   let noMaskModalOpen = $state(false);
+  let noBlurOpen = $state(false);
+  let lightNoBlurOpen = $state(false);
   let confirmLikeOpen = $state(false);
   let preventCloseOpen = $state(false);
   let asyncOkOpen = $state(false);
   let noFooterOpen = $state(false);
+
+  const confirmProps: PropsTableItem[] = [
+    { name: "message", desc: "确认框正文（必填）", type: "string" },
+    { name: "title", desc: "标题", type: "string", default: "'确认'" },
+    { name: "confirmText", desc: "确认按钮文案", type: "string", default: "'确定'" },
+    { name: "cancelText", desc: "取消按钮文案", type: "string", default: "'取消'" },
+    { name: "danger", desc: "确认按钮使用危险色（danger）", type: "boolean", default: "false" },
+    { name: "返回值", desc: "Promise<boolean>：确认为 true，取消/关闭为 false；支持 await", type: "Promise<boolean>" },
+  ];
+
+  async function basicConfirm() {
+    const ok = await showConfirm("确定要执行此操作吗？");
+    Notification[ok ? "success" : "info"](ok ? "已确认（返回 true）" : "已取消（返回 false）");
+  }
+
+  async function dangerConfirm() {
+    const ok = await showConfirm("此操作不可撤销，确定要删除全部数据吗？", {
+      confirmText: "删除",
+      danger: true,
+    });
+    Notification[ok ? "success" : "info"](ok ? "已删除" : "已放弃删除");
+  }
+
+  async function customConfirm() {
+    const ok = await showConfirm("要重启服务吗？重启期间服务将短暂不可用。", {
+      title: "重启服务",
+      confirmText: "重启",
+      cancelText: "稍后再说",
+    });
+    Notification[ok ? "success" : "info"](ok ? "已触发重启" : "已推迟");
+  }
+
+  const alertdialogProps: PropsTableItem[] = [
+    { name: "open", desc: "显示状态（双向绑定）", type: "boolean", default: "false" },
+    { name: "title", desc: "标题", type: "string", default: "'确认操作'" },
+    { name: "description", desc: "描述文案", type: "string", default: "''" },
+    { name: "cancelText", desc: "取消按钮文案", type: "string", default: "'取消'" },
+    { name: "confirmText", desc: "确认按钮文案", type: "string", default: "'确定'" },
+    { name: "danger", desc: "确认按钮危险色", type: "boolean", default: "false" },
+    { name: "loading", desc: "确认中（禁用按钮）", type: "boolean", default: "false" },
+    { name: "onCancel", desc: "取消回调", type: "() => void", default: "—" },
+    { name: "onConfirm", desc: "确认回调（需自行收起）", type: "() => void", default: "—" },
+    { name: "content", desc: "自定义内容（snippet）", type: "Snippet", default: "—" },
+  ];
+
+  let adBasicOpen = $state(false);
+  let adDangerOpen = $state(false);
+  let adLoadingOpen = $state(false);
+  let adLoading = $state(false);
+
+  async function adConfirmLoading() {
+    adLoading = true;
+    await new Promise((r) => setTimeout(r, 1500));
+    adLoading = false;
+    adLoadingOpen = false;
+    Notification.success('操作完成');
+  }
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const modalProps: PropsTableItem[] = [
@@ -20,6 +79,8 @@
     { name: "subtitle", desc: "副标题", type: "string | Snippet" },
     { name: "width", desc: "宽度", type: "number | string", default: "520" },
     { name: "mask", desc: "遮罩风格", type: "'dark' | 'light'", default: "'dark'" },
+    { name: "blur", desc: "遮罩背景模糊，与 mask 独立组合", type: "boolean", default: "true" },
+    { name: "modeless", desc: "非模态：无遮罩变暗，点击穿透到页面", type: "boolean", default: "false" },
     { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "false" },
     { name: "disableClose", desc: "禁用标题栏关闭按钮", type: "boolean", default: "false" },
     { name: "typewriter", desc: "正文打字机效果（默认关闭，显式设置才启用）", type: "boolean", default: "false" },
@@ -40,7 +101,7 @@
   ];
 </script>
 
-<Page title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配" >
+<Page title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配；命令式 Confirm（await showConfirm）与声明式 AlertDialog 确认框" >
   <Card title="基础模态框">
     <Row>
       <Button variant="primary" onclick={() => { modalOpen = true; }}>打开模态框</Button>
@@ -104,8 +165,22 @@
     <Row>
       <Button variant="primary" onclick={() => { noMaskModalOpen = true; }}>浅色遮罩</Button>
       <Modal bind:open={noMaskModalOpen} title="浅色遮罩" mask="light">
-        <p>使用半透明白色遮罩，视觉更轻量。</p>
+        <p>使用半透明浅色遮罩，视觉更轻量。</p>
         <p class="muted">适合不需要强遮挡的场景。</p>
+      </Modal>
+    </Row>
+  </Card>
+
+  <Card title="无模糊 blur={false}（与 mask 独立）">
+    <Row>
+      <Button variant="primary" onclick={() => { noBlurOpen = true; }}>无模糊</Button>
+      <Modal bind:open={noBlurOpen} title="无模糊遮罩" blur={false}>
+        <p>遮罩不加 backdrop 模糊，仅保留半透明变暗。</p>
+        <p class="muted">blur 与 mask 可独立组合。</p>
+      </Modal>
+      <Button onclick={() => { lightNoBlurOpen = true; }}>浅色 + 无模糊</Button>
+      <Modal bind:open={lightNoBlurOpen} title="浅色 + 无模糊" mask="light" blur={false}>
+        <p>mask='light' 与 blur={false} 同时生效。</p>
       </Modal>
     </Row>
   </Card>
@@ -179,7 +254,7 @@
   </Card>
 
   <Card title="ErrorDialog 错误收集弹窗">
-    <p class="muted" style="margin-bottom:12px">自动收集运行时错误，支持列表堆叠、单项复制、复制全部。</p>
+    <p class="muted" style="margin-bottom:12px">自动收集运行时错误，支持列表堆叠、单项复制、复制全部。非模态弹窗，弹出后仍可继续触发错误。</p>
     <Row>
       <Button
         variant="danger"
@@ -205,6 +280,87 @@
       </Button>
     </Row>
   </Card>
+
+  <Card title="Confirm 基础用法">
+    <Row>
+      <Button variant="primary" onclick={basicConfirm}>显示确认框</Button>
+    </Row>
+    <p class="muted">在根组件挂载一次 <code>&lt;ConfirmDialog /&gt;</code> 后，任意处 <code>await showConfirm(message)</code>；确认返回 <code>true</code>，取消或关闭返回 <code>false</code>。</p>
+  </Card>
+
+  <Card title="Confirm 危险操作 danger">
+    <Row>
+      <Button variant="danger" onclick={dangerConfirm}>删除全部数据</Button>
+    </Row>
+    <p class="muted">传 <code>danger: true</code> 后确认按钮变为危险色，配合自定义 <code>confirmText</code> 强调后果。</p>
+  </Card>
+
+  <Card title="Confirm 自定义标题 / 按钮文案">
+    <Row>
+      <Button onclick={customConfirm}>重启服务</Button>
+    </Row>
+    <p class="muted">支持 <code>title</code>、<code>confirmText</code>、<code>cancelText</code>；弹窗内按 <code>Enter</code> 等同点击确认。</p>
+  </Card>
+
+  <Card title="showConfirm(message, options?)">
+    <PropsTable items={confirmProps} />
+  </Card>
+
+  <Card title="AlertDialog 基础用法（声明式）">
+    <Row>
+      <Button onclick={() => (adBasicOpen = true)}>打开对话框</Button>
+    </Row>
+    <p class="muted">声明式组件，与命令式 Confirm 互补：适合需要 <code>loading</code>、<code>danger</code>、自定义 <code>content</code> 的场景。</p>
+    <AlertDialog
+      bind:open={adBasicOpen}
+      title="保存更改？"
+      description="离开前需要保存对文档的修改，是否继续？"
+      onConfirm={() => {
+        adBasicOpen = false;
+        Notification.success('已保存');
+      }}
+      onCancel={() => Notification.info('已取消')}
+    />
+  </Card>
+
+  <Card title="AlertDialog 危险操作 danger">
+    <Row>
+      <Button variant="danger" onclick={() => (adDangerOpen = true)}>删除项目</Button>
+    </Row>
+    <p class="muted">传 <code>danger</code> 后确认按钮变为危险色，配合自定义 <code>confirmText</code> 强调后果。</p>
+    <AlertDialog
+      bind:open={adDangerOpen}
+      title="确认删除？"
+      description="此操作不可撤销，项目及其所有关联数据将被永久移除。"
+      confirmText="删除"
+      danger
+      onConfirm={() => {
+        adDangerOpen = false;
+        Notification.success('已删除');
+      }}
+    />
+  </Card>
+
+  <Card title="AlertDialog 加载状态 loading">
+    <Row>
+      <Button onclick={() => (adLoadingOpen = true)}>提交（异步）</Button>
+    </Row>
+    <p class="muted">传 <code>loading</code> 后确认按钮禁用并显示等待态，提交期间 Esc 与取消同样被阻止。</p>
+    <AlertDialog
+      bind:open={adLoadingOpen}
+      title="正在提交…"
+      description="提交期间按钮禁用，Esc 与取消同样被阻止。"
+      confirmText="提交"
+      loading={adLoading}
+      onConfirm={adConfirmLoading}
+      onCancel={() => (adLoadingOpen = false)}
+    />
+  </Card>
+
+  <Card title="AlertDialog Props">
+    <PropsTable items={alertdialogProps} />
+  </Card>
+
   <Card title="Props">
     <PropsTable items={modalProps} />
   </Card>

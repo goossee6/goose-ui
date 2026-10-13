@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Button, Card, Page, Tooltip, Row} from "goose-ui";
+  import {Button, Card, Page, Tooltip, Row, Input} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const tooltipProps: PropsTableItem[] = [
@@ -31,12 +31,12 @@
       </div>
       <div class="ring-row">
         <Tooltip title={"这是左侧提示\n第二行内容\n第三行内容"} placement="left-start"><Button size="small">left-start</Button></Tooltip>
-        <div class="ring-center">center</div>
+        <div class="ring-center"></div>
         <Tooltip title={"这是右侧提示\n第二行内容\n第三行内容"} placement="right-start"><Button size="small">right-start</Button></Tooltip>
       </div>
       <div class="ring-row">
         <Tooltip title={"这是左侧提示\n第二行内容\n第三行内容"} placement="left"><Button size="small">left</Button></Tooltip>
-        <div class="ring-center"></div>
+        <div class="ring-center">center</div>
         <Tooltip title={"这是右侧提示\n第二行内容\n第三行内容"} placement="right"><Button size="small">right</Button></Tooltip>
       </div>
       <div class="ring-row">
@@ -61,7 +61,7 @@
         <Button>Click</Button>
       </Tooltip>
       <Tooltip title="Focus 聚焦触发" trigger="focus">
-        <input class="focus-input" placeholder="点击聚焦" />
+        <Input placeholder="点击聚焦" clearable={false} />
       </Tooltip>
     </Row>
   </Card>
@@ -113,15 +113,5 @@
     font-size: 11px;
     color: var(--text-muted);
     user-select: none;
-  }
-  .focus-input {
-    padding: 6px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    outline: none;
-  }
-  .focus-input:focus {
-    border-color: var(--primary);
   }
 </style>
