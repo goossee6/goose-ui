@@ -48,6 +48,10 @@
 	let wrapperEl: HTMLElement;
 	let scrollEl = $state<HTMLElement | null>(null);
 
+	// combobox/listbox 的 ARIA 关联 id（每个实例唯一，供 aria-controls / aria-activedescendant 使用）
+	const listId = `select-${Math.random().toString(36).slice(2, 8)}`;
+	const optionId = (i: number) => `${listId}-${i}`;
+
 	const selected = $derived(options.find((o) => o.value === value));
 	const isGroupHead = (i: number) => {
 		const g = options[i]?.group;
@@ -147,8 +151,11 @@
 		aria-label={ariaLabel || undefined}
 		onclick={toggle}
 		onkeydown={onKeydown}
+		role="combobox"
 		aria-haspopup="listbox"
 		aria-expanded={open}
+		aria-controls={open ? listId : undefined}
+		aria-activedescendant={open && activeIdx >= 0 ? optionId(activeIdx) : undefined}
 		class="select-trigger"
 		class:select-trigger--open={open}
 		class:select-trigger--placeholder={!selected}
@@ -158,7 +165,7 @@
 	</button>
 
 	{#if open && mounted}
-		<div class="select-dropdown" style={dropdownStyle} role="listbox">
+		<div class="select-dropdown" style={dropdownStyle} role="listbox" id={listId}>
 			<div class="select-scroll" bind:this={scrollEl}>
 				<PillTrack
 					container={scrollEl}
@@ -181,6 +188,7 @@
 							onclick={() => choose(opt)}
 							onmouseenter={() => activeIdx = i}
 							role="option"
+							id={optionId(i)}
 							aria-selected={opt.value === value}
 						>
 						<span class="select-option-check" aria-hidden="true">

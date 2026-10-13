@@ -47,7 +47,7 @@ export interface NotificationOptions {
   showProgress?: boolean;
 }
 
-function createNotificationStore() {
+export function createNotificationStore() {
   const containers: Record<NotificationPosition, Writable<NotificationItem[]>> = {
     'top-left': writable([]),
     'top': writable([]),
@@ -288,7 +288,14 @@ function createNotificationStore() {
   };
 }
 
-export const notificationStore = createNotificationStore();
+export type NotificationStore = ReturnType<typeof createNotificationStore>;
+
+/**
+ * 默认单例：页面级 `Notification.xxx()` 与未显式传入 store 的 Provider 都使用它。
+ * 需要「多个互不干扰的通知容器」时，用 createNotificationStore() 各建一份，
+ * 分别传给 Provider 的 store prop 与 createNotification(store)。
+ */
+export const notificationStore: NotificationStore = createNotificationStore();
 
 type NotificationArg = string | NotificationOptions;
 
@@ -299,19 +306,31 @@ function resolveOpts(type: NotificationType, arg: NotificationArg, extra?: Omit<
   return { ...arg, type };
 }
 
-export const Notification = {
-  success: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
-    notificationStore.open(resolveOpts('success', arg, extra)),
-  info: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
-    notificationStore.open(resolveOpts('info', arg, extra)),
-  warning: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
-    notificationStore.open(resolveOpts('warning', arg, extra)),
-  error: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
-    notificationStore.open(resolveOpts('error', arg, extra)),
-  open: (opts: NotificationOptions) => notificationStore.open(opts),
-  destroy: (keyOrId?: string | number) => notificationStore.destroy(keyOrId),
-  destroyAll: () => notificationStore.destroyAll(),
-};
+/** 把一套快捷方法绑定到指定 store 上 */
+export function createNotification(store: NotificationStore) {
+  return {
+    success: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
+      store.open(resolveOpts('success', arg, extra)),
+    info: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
+      store.open(resolveOpts('info', arg, extra)),
+    warning: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
+      store.open(resolveOpts('warning', arg, extra)),
+    error: (arg: NotificationArg, extra?: Omit<NotificationOptions, 'title' | 'type'>) =>
+      store.open(resolveOpts('error', arg, extra)),
+    open: (opts: NotificationOptions) => store.open(opts),
+    destroy: (keyOrId?: string | number) => store.destroy(keyOrId),
+    destroyAll: () => store.destroyAll(),
+  };
+}
+
+/**
+ * 全局通知 API，绑定在默认单例上：可在任何地方调用（模块级代码、事件回调、非组件模块）。
+ *
+ * 注意：不使用 Svelte context。`getContext()` 只能在组件初始化期间调用，
+ * 在事件处理器/模块级调用会抛 lifecycle_outside_component，无法用 context 做隐式路由。
+ * 需要独立容器时请用 createNotificationStore() + createNotification(store)。
+ */
+export const Notification = createNotification(notificationStore);
 
 export function errorToString(e: unknown): string {
   if (typeof e === 'string') return e;

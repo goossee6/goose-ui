@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import {Card, Select, MultiSelect, CreatableSelect, Combobox, Page, Notification, Row, type ComboboxOption} from "goose-ui";
 
   let basic = $state('');
@@ -44,8 +45,9 @@
 
   let items = $state(['Svelte', 'React', 'Vue', 'Solid', 'Angular']);
 
-  let prevMulti = $state<string[]>([]);
-  let prevCreated = $state(created);
+  // 仅用于变更对比：初值取绑定值的首次值，之后由下方 $effect 改写
+  let prevMulti: string[] = untrack(() => multi);
+  let prevCreated = untrack(() => created);
 
   $effect(() => { if (multi !== prevMulti) { prevMulti = multi; if (multi.length > 0) Notification.success(`已选择 ${multi.length} 项`); } });
   $effect(() => { if (created !== prevCreated) { prevCreated = created; if (created) Notification.success(`已选择「${created}」`); } });

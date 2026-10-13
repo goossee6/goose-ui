@@ -108,11 +108,15 @@
 {#if open}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="drawer-root" use:portal>
+    <!-- 遮罩点击关闭属指针直达操作，键盘等价路径为 Esc（见 svelte:window onkeydown） -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
       class="drawer-overlay"
       onclick={handleMaskClick}
       transition:fade={{ duration: 250 }}
     ></div>
+    <!-- 容器仅做「点内部不关闭」的事件拦截，键盘路径同样由 Esc 提供 -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
       class="drawer drawer--{placement} {cls}"
       style="{drawerStyle} {style}"

@@ -33,11 +33,21 @@
 	const joined = $derived(cellVals.join(''));
 
 	// 外部改 value（父组件 set 或初始值）时同步回格位；本组件编辑时 value === joined 不触发
-	// 初始 cellVals 为空数组，需按 length 展开；length 变化也走同一路径重建
+	//
+	// 必须按长度截断：value 比 length 长时，只播种前 length 位会让 joined 永远等不到 value，
+	// effect 每次写 cellVals 都让 joined 失效 → 自读自写、无限重跑（dev 抛
+	// effect_update_depth_exceeded，prod 卡死）。截断后 joined === value 立即收敛。
+	//
+	// 两个分支必须互斥：先按 value 播种，再按 length 补/裁。若两条都跑，第二条会拿已被
+	// 截断的 value 重新播种，把「有效值 + 清空余位」的写法（见本组件注释与 demo）打回原形。
 	$effect(() => {
-		if (value !== joined || cellVals.length !== length) {
+		if (value !== joined) {
 			const next: string[] = [];
 			for (let i = 0; i < length; i++) next.push(value[i] ?? '');
+			cellVals = next;
+		} else if (cellVals.length !== length) {
+			const next: string[] = [];
+			for (let i = 0; i < length; i++) next.push(cellVals[i] ?? '');
 			cellVals = next;
 		}
 	});

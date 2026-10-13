@@ -114,15 +114,17 @@
 			<span class="dp-placeholder">{placeholder}</span>
 		{/if}
 		<span class="dp-actions">
-			{#if clearable && value && !disabled}
-				<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_interactive_supports_focus -->
-				<span class="dp-clear" role="button" aria-label="清除" tabindex="-1" onclick={clear}>
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-				</span>
-			{/if}
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
 		</span>
 	</button>
+
+	<!-- 清除按钮必须是触发器的兄弟节点：<button> 不能是 <button> 的后代（SSR 会 hydration mismatch）。
+	     用绝对定位叠在日历图标位上，视觉与原来一致。 -->
+	{#if clearable && value && !disabled}
+		<button type="button" class="dp-clear" aria-label="清除" onclick={clear}>
+			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+		</button>
+	{/if}
 
 	{#if open}
 		<div class="dp-panel" bind:this={panelEl} style={panelStyle} class:flip-up={flipUp} transition:panelFade={{ up: flipUp }}>
@@ -184,15 +186,25 @@
 		color: var(--text-muted);
 	}
 	.dp-clear {
+		position: absolute;
+		top: 50%;
+		right: var(--sp-md);
+		transform: translateY(-50%);
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		width: 18px;
 		height: 18px;
+		padding: 0;
+		border: none;
 		border-radius: 50%;
 		background: var(--surface-2);
 		color: var(--text-muted);
 		cursor: pointer;
+	}
+	.dp-clear:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: 1px;
 	}
 	.dp-clear:hover {
 		background: var(--hover);

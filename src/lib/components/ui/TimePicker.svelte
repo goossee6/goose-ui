@@ -6,7 +6,7 @@
 
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
-	import PillTrack from './PillTrack.svelte';
+	import Wheel from './Wheel.svelte';
 
 	let {
 		value = $bindable(''),
@@ -36,9 +36,6 @@
 
 	let rootEl = $state<HTMLElement | null>(null);
 	let panelEl = $state<HTMLElement | null>(null);
-	let hColEl = $state<HTMLElement | null>(null);
-	let mColEl = $state<HTMLElement | null>(null);
-	let sColEl = $state<HTMLElement | null>(null);
 	let panelStyle = $state('');
 	let open = $state(false);
 	let flipUp = $state(false);
@@ -74,6 +71,11 @@
 		return Array.from({ length: Math.min(60, Math.floor(60 / sv)) }, (_, i) => pad(i * sv));
 	});
 
+	// 轮盘当前停靠档位（空值时停在 0 档但不提交）
+	const hIdx = $derived(Math.max(0, hours.indexOf(parts.h)));
+	const mIdx = $derived(Math.max(0, minutes.indexOf(parts.m)));
+	const sIdx = $derived(Math.max(0, secs.indexOf(parts.s)));
+
 	function valid(): boolean {
 		if (draft.h === '' || draft.m === '') return false;
 		if (showSeconds && draft.s === '') return false;
@@ -86,8 +88,14 @@
 		return `${h}:${m}`;
 	}
 
-	function setPart(k: 'h' | 'm' | 's', v: string) {
-		draft = { ...draft, [k]: v };
+	// 轮盘停稳：从当前所有列档位合成完整值提交（滚轮无「半选中」，任一列停稳即提交全值）
+	function onSettle(col: 'h' | 'm' | 's', v: string) {
+		const next = { ...draft, [col]: v };
+		// 空档从当前轮盘位置补齐（打开空值时其他列停在 00）
+		if (next.h === '') next.h = hours[hIdx];
+		if (next.m === '') next.m = minutes[mIdx];
+		if (showSeconds && next.s === '') next.s = secs[sIdx];
+		draft = next;
 		const out = compose(draft.h, draft.m, draft.s);
 		value = out;
 		if (valid()) onchange?.(out);
@@ -166,56 +174,27 @@
 			<span class="tp-placeholder">{placeholder}</span>
 		{/if}
 		<span class="tp-actions">
-			{#if clearable && value && !disabled}
-				<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_interactive_supports_focus -->
-				<span class="tp-clear" role="button" aria-label="清除" tabindex="-1" onclick={clear}>
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-				</span>
-			{/if}
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
 		</span>
 	</button>
 
+	<!-- 清除按钮必须是触发器的兄弟节点：<button> 不能是 <button> 的后代（SSR 会 hydration mismatch）。
+	     用绝对定位叠在时钟图标位上，视觉与原来一致。 -->
+	{#if clearable && value && !disabled}
+		<button type="button" class="tp-clear" aria-label="清除" onclick={clear}>
+			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+		</button>
+	{/if}
+
 	{#if open}
 		<div class="tp-panel" bind:this={panelEl} style={panelStyle} class:flip-up={flipUp} role="dialog" aria-label="选择时间">
 			<div class="tp-columns">
-				<div class="tp-col" role="listbox" aria-label="小时" bind:this={hColEl}>
-					<PillTrack
-						container={hColEl}
-						itemSelector=".tp-opt"
-						showSelected={false}
-						hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
-						radius="var(--radius-sm)"
-					/>
-					{#each hours as h (h)}
-						<button type="button" class="tp-opt" class:active={draft.h === h} aria-pressed={draft.h === h} onclick={() => setPart('h', h)}>{h}</button>
-					{/each}
-				</div>
-				<div class="tp-col" role="listbox" aria-label="分钟" bind:this={mColEl}>
-					<PillTrack
-						container={mColEl}
-						itemSelector=".tp-opt"
-						showSelected={false}
-						hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
-						radius="var(--radius-sm)"
-					/>
-					{#each minutes as m (m)}
-						<button type="button" class="tp-opt" class:active={draft.m === m} aria-pressed={draft.m === m} onclick={() => setPart('m', m)}>{m}</button>
-					{/each}
-				</div>
+				<Wheel items={hours} index={hIdx} ariaLabel="小时" onSettle={(i) => onSettle('h', hours[i])} />
+				<span class="tp-sep" aria-hidden="true">:</span>
+				<Wheel items={minutes} index={mIdx} ariaLabel="分钟" onSettle={(i) => onSettle('m', minutes[i])} />
 				{#if showSeconds}
-					<div class="tp-col" role="listbox" aria-label="秒" bind:this={sColEl}>
-						<PillTrack
-							container={sColEl}
-							itemSelector=".tp-opt"
-							showSelected={false}
-							hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
-							radius="var(--radius-sm)"
-						/>
-						{#each secs as s (s)}
-							<button type="button" class="tp-opt" class:active={draft.s === s} aria-pressed={draft.s === s} onclick={() => setPart('s', s)}>{s}</button>
-						{/each}
-					</div>
+					<span class="tp-sep" aria-hidden="true">:</span>
+					<Wheel items={secs} index={sIdx} ariaLabel="秒" onSettle={(i) => onSettle('s', secs[i])} />
 				{/if}
 			</div>
 			<div class="tp-footer">
@@ -279,14 +258,24 @@
 		color: var(--text-muted);
 	}
 	.tp-clear {
+		position: absolute;
+		top: 50%;
+		right: var(--sp-md);
+		transform: translateY(-50%);
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		width: 18px;
 		height: 18px;
+		padding: 0;
+		border: none;
 		border-radius: 50%;
 		background: var(--surface-2);
 		cursor: pointer;
+	}
+	.tp-clear:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: 1px;
 	}
 	.tp-clear:hover {
 		background: var(--hover);
@@ -304,36 +293,14 @@
 	}
 	.tp-columns {
 		display: flex;
+		align-items: center;
 		gap: var(--sp-sm);
 	}
-	.tp-col {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		height: 220px;
-		overflow-y: auto;
-		padding: 2px;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		background: var(--surface-2);
-	}
-	.tp-opt {
-		position: relative;
-		min-width: 44px;
-		padding: 5px 8px;
-		border: none;
-		border-radius: var(--radius-sm);
-		background: none;
-		color: var(--text);
+	.tp-sep {
 		font-family: var(--font-mono);
-		font-size: 13px;
-		cursor: pointer;
-	}
-	.tp-opt.active {
-		background: var(--primary);
-		color: var(--primary-text);
+		font-size: 16px;
 		font-weight: 600;
+		color: var(--text-muted);
 	}
 	.tp-footer {
 		display: flex;

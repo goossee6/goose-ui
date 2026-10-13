@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import type { Snippet } from "svelte";
 
   let {
@@ -23,7 +24,8 @@
   let tooltipEl = $state<HTMLElement | null>(null);
   let visible = $state(false);
   let pos = $state({ left: 0, top: 0 });
-  let finalPlacement = $state(placementProp);
+  // 起始方位取 placement 的首次值；之后由 calculatePosition 的翻转逻辑改写
+  let finalPlacement = $state(untrack(() => placementProp));
   let animState = $state<"hidden" | "entering" | "visible" | "leaving">("hidden");
 
   const GAP = 8;
@@ -188,7 +190,8 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- 触发器需包裹任意 children，不能强行改成 button；click 模式下由子元素自身承担键盘可达性 -->
+<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
 <div
   class="tooltip-trigger {cls}"
   style={style}

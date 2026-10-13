@@ -8,7 +8,13 @@ import Icon from './components/ui/Icon.svelte';
 export { Icon };
 
 // Stores
-export { notificationStore, Notification, errorToString } from './components/notification';
+export {
+  notificationStore,
+  Notification,
+  createNotification,
+  createNotificationStore,
+  errorToString,
+} from './components/notification';
 export { errorStore, pushError } from './components/errors';
 export { menuStore } from './components/contextMenuStore.svelte.js';
 export { themeStore, initTheme, setTheme, toggleTheme, toggleThemeFromEvent } from './components/themeStore.svelte.js';
@@ -17,7 +23,7 @@ export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, disp
 export { confirmStore, showConfirm } from './components/confirm';
 
 // Types
-export type { NotificationType, NotificationPosition, NotificationOptions } from './components/notification';
+export type { NotificationType, NotificationPosition, NotificationOptions, NotificationStore } from './components/notification';
 export type { MenuItemDef, MenuActionData } from './components/contextMenu';
 export type { Column } from './components/tableTypes';
 export type { SortState, SortDir } from './components/sorting';

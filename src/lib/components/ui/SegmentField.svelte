@@ -24,7 +24,6 @@
 	} = $props();
 
 	let inputs = $state<HTMLInputElement[]>([]);
-	let focused = $state(-1);
 	let fieldEl = $state<HTMLElement | null>(null);
 
 	const cells = $derived.by(() => {
@@ -42,7 +41,6 @@
 
 	function focusCell(i: number) {
 		if (i < 0 || i >= widths.length) return;
-		focused = i;
 		requestAnimationFrame(() => inputs[i]?.focus());
 	}
 
@@ -122,8 +120,6 @@
 			oninput={(e) => handleInput(i, e)}
 			onkeydown={(e) => handleKeydown(i, e)}
 			onpaste={(e) => handlePaste(i, e)}
-			onfocus={() => (focused = i)}
-			onblur={() => (focused = -1)}
 		/>
 	{/each}
 </div>

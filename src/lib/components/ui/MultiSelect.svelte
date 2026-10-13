@@ -33,6 +33,8 @@
   let rootEl: HTMLElement;
   let scrollEl = $state<HTMLElement | null>(null);
   let dropdownStyle = $state('');
+  // 键盘活动项：与 Select 一套交互（方向键移动、Enter 切换、Escape 关闭）
+  let activeIdx = $state(-1);
 
   const isGroupHead = (i: number) => {
     const g = items[i]?.group;
@@ -41,7 +43,38 @@
 
   function toggle() {
     if (disabled) return;
+    if (!open) activeIdx = items.length ? 0 : -1;
     open = !open;
+  }
+
+  function closeMenu() {
+    open = false;
+    activeIdx = -1;
+  }
+
+  function onTriggerKeydown(e: KeyboardEvent) {
+    if (disabled) return;
+    if (!open) {
+      if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+        e.preventDefault();
+        toggle();
+      }
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMenu();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) activeIdx = activeIdx < 0 ? 0 : (activeIdx + 1) % items.length;
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) activeIdx = activeIdx < 0 ? items.length - 1 : (activeIdx - 1 + items.length) % items.length;
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (activeIdx >= 0 && items[activeIdx]) toggleItem(items[activeIdx].value);
+    }
   }
 
   function positionDropdown() {
@@ -92,6 +125,19 @@
       document.removeEventListener("mousedown", onDocDown);
     };
   });
+
+  // 键盘导航须把活动项滚进可视区（手写边界，避免 fixed 面板连带滚页面）
+  $effect(() => {
+    const idx = activeIdx;
+    const el = scrollEl;
+    if (!open || idx < 0 || !el) return;
+    const item = el.querySelector<HTMLElement>(`.option[data-idx="${idx}"]`);
+    if (!item) return;
+    const top = item.offsetTop;
+    const bottom = top + item.offsetHeight;
+    if (top < el.scrollTop) el.scrollTop = top;
+    else if (bottom > el.scrollTop + el.clientHeight) el.scrollTop = bottom - el.clientHeight;
+  });
 </script>
 
 <div class="multi-select {cls}" style={style} bind:this={rootEl}>
@@ -101,12 +147,7 @@
     class:disabled
     class:empty={values.length === 0}
     onclick={toggle}
-    onkeydown={(e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        toggle();
-      }
-    }}
+    onkeydown={onTriggerKeydown}
     role="button"
     tabindex="0"
     aria-haspopup="listbox"
@@ -149,7 +190,17 @@
           {#if isGroupHead(i)}
             <div class="ms-group" role="presentation">{item.group}</div>
           {/if}
-          <button type="button" class="option" class:selected={values.includes(item.value)} role="option" aria-selected={values.includes(item.value)} onclick={() => toggleItem(item.value)}>
+          <button
+            type="button"
+            class="option"
+            class:selected={values.includes(item.value)}
+            class:active={i === activeIdx}
+            role="option"
+            aria-selected={values.includes(item.value)}
+            data-idx={i}
+            onclick={() => toggleItem(item.value)}
+            onmouseenter={() => (activeIdx = i)}
+          >
             <span class="option-check" aria-hidden="true">
               {#if values.includes(item.value)}
                 <Check size={14} />
@@ -186,6 +237,7 @@
   .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */ padding: 0 40px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: var(--surface); }
   .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
   .option:hover { color: var(--text-strong); }
+  .option.active { color: var(--text-strong); }
   .option.selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
   /* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
   .option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }

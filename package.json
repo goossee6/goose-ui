@@ -79,7 +79,6 @@
     "./page-dir-store": "./src/lib/components/pageDirStore.svelte.ts",
     "./context-menu-store": "./src/lib/components/contextMenuStore.svelte.ts",
     "./context-menu-api": "./src/lib/components/contextMenu.ts",
-    "./utils": "./src/lib/index.ts",
     "./clipboard": "./src/lib/utils/clipboard.ts",
     "./format": "./src/lib/utils/format.ts",
     "./accordion": "./src/lib/components/ui/Accordion.svelte",

@@ -13,11 +13,14 @@
 
 <script lang="ts">
 	import PillTrack from './PillTrack.svelte';
+	import { floatingPosition } from './floatingPosition';
 
 	let {
 		open = $bindable(false),
 		items = [],
 		placement = 'bottom-start',
+		disabled = false,
+		triggerMenu = '',
 		onselect,
 		onOpenChange,
 		trigger,
@@ -28,6 +31,10 @@
 		open?: boolean;
 		items?: DropdownMenuItem[];
 		placement?: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end';
+		/** 禁用：触发器不可聚焦/展开（Menubar 用它让禁用菜单真的不可点开） */
+		disabled?: boolean;
+		/** 透传到触发器 button 的 data-menu，供 Menubar 之类的外层按名定位真实焦点元素 */
+		triggerMenu?: string;
 		onselect?: (item: DropdownMenuItem, index: number) => void;
 		onOpenChange?: (open: boolean) => void;
 		trigger?: Snippet;
@@ -42,44 +49,26 @@
 	let pos = $state({ left: 0, top: 0 });
 	let activeIndex = $state(-1);
 
-	const GAP = 6;
-
 	const selectable = $derived(items.map((it, i) => ({ it, i })).filter(({ it }) => !it.separator && !it.disabled));
 
+	// 定位统一走 floatingPosition（gap 与其它浮层统一为 8）
 	function measure() {
 		if (!rootEl || !menuEl) return;
-		const r = rootEl.getBoundingClientRect();
-		const h = menuEl.offsetHeight;
-		const w = menuEl.offsetWidth;
-		const vw = window.innerWidth;
-		const vh = window.innerHeight;
-
-		let top: number;
-		if (placement.startsWith('top')) {
-			top = r.top - h - GAP;
-			if (top < 8 && r.bottom + h + GAP < vh) top = r.bottom + GAP;
-		} else {
-			top = r.bottom + GAP;
-			if (top + h > vh - 8 && r.top - h - GAP > 8) top = r.top - h - GAP;
-		}
-		flipUp = top < r.top;
-
-		let left: number;
-		if (placement.endsWith('end')) {
-			left = r.right - w;
-			if (left < 8 && r.left + w < vw - 8) left = r.left;
-		} else {
-			left = r.left;
-			if (left + w > vw - 8 && r.right - w > 8) left = r.right - w;
-		}
-
-		left = Math.max(8, Math.min(left, vw - w - 8));
-		top = Math.max(8, Math.min(top, vh - h - 8));
-
-		pos = { left, top };
+		const res = floatingPosition(rootEl.getBoundingClientRect(), {
+			panelW: menuEl.offsetWidth,
+			panelH: menuEl.offsetHeight,
+			gap: 8,
+			align: placement.endsWith('end') ? 'end' : 'start',
+			prefer: placement.startsWith('top') ? 'top' : 'bottom',
+			flip: 'space',
+			capHeight: false,
+		});
+		flipUp = res.flipUp;
+		pos = { left: res.left, top: res.top };
 	}
 
 	function openMenu(idx = -1) {
+		if (disabled) return;
 		open = true;
 		onOpenChange?.(true);
 		activeIndex = idx;
@@ -112,6 +101,7 @@
 	}
 
 	function onTriggerClick() {
+		if (disabled) return;
 		open ? close() : openMenu();
 	}
 
@@ -180,11 +170,18 @@
 		class="dropdown-trigger"
 		aria-haspopup="menu"
 		aria-expanded={open}
+		disabled={disabled}
+		data-menu={triggerMenu}
 		onclick={onTriggerClick}
 		onkeydown={(e) => {
+			if (disabled) return;
 			if (e.key === 'ArrowDown') {
 				e.preventDefault();
 				openMenu(selectable[0]?.i ?? -1);
+			} else if (e.key === 'ArrowUp') {
+				// 与 ArrowDown 对称：从最后一项打开
+				e.preventDefault();
+				openMenu(selectable[selectable.length - 1]?.i ?? -1);
 			} else if (e.key === 'Escape' && open) {
 				e.stopPropagation();
 				close();

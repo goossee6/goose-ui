@@ -2,9 +2,10 @@
 	import { onDestroy } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import {
-		notificationStore,
+		notificationStore as defaultStore,
 		type NotificationItem as NotificationItemType,
 		type NotificationPosition,
+		type NotificationStore,
 	} from '../notification';
 	import NotificationItem from './NotificationItem.svelte';
 
@@ -15,6 +16,8 @@
 		visibleToasts = 3,
 		expand = false,
 		hotkey = ['altKey', 'KeyT'],
+		offset = '',
+		store = defaultStore,
 	}: {
 		class?: string;
 		style?: string;
@@ -22,12 +25,19 @@
 		visibleToasts?: number;
 		expand?: boolean;
 		hotkey?: string[];
+		/** 位置微调样式片段（如 'top:120px;left:340px;'），追加在默认定位之后；
+		 *  多个 Provider 同时挂载时用它错开，避免浮层完全重叠。默认空 = 行为不变 */
+		offset?: string;
+		/** 该 Provider 渲染哪一份 store。默认全局单例（配合 Notification.xxx()）；
+		 *  传 createNotificationStore() 的实例即可得到互不干扰的独立容器 */
+		store?: NotificationStore;
 	} = $props();
 
 	const positions: NotificationPosition[] = [
 		'top-left', 'top', 'top-right',
 		'bottom-left', 'bottom', 'bottom-right',
 	];
+
 
 	// 注意：变量名不可叫 state —— 会与 $state rune 在 svelte-check 检测中冲突
 	const stacks: Record<NotificationPosition, NotificationItemType[]> = $state({
@@ -71,16 +81,18 @@
 
 	$effect(() => {
 		const unsubs = positions.map((p) =>
-			notificationStore.subscribe(p, (items) => {
+			store.subscribe(p, (items) => {
 				stacks[p] = items;
 			})
 		);
 		return () => unsubs.forEach((u) => u());
 	});
 
-	// 展开期间暂停全部倒计时
+	// 展开期间暂停全部倒计时；卸载时必须复位。由于 store 已是本实例独占，
+	// 这个清理只影响自己，不会再污染其它 Provider。
 	$effect(() => {
-		notificationStore.setSuspend('expanded', expanded);
+		store.setSuspend('expanded', expanded);
+		return () => store.setSuspend('expanded', false);
 	});
 
 	// 展开/收起切换窗口内开启 margin 过渡（大距离展开动画）；窗口外 margin 瞬时到位
@@ -198,6 +210,9 @@
 		'bottom':      'bottom:24px;left:50%;transform:translateX(-50%);',
 		'bottom-right':'bottom:24px;right:24px;',
 	};
+
+	// offset 追加在基础定位之后（同一条内联样式里后者胜），用于多 Provider 同挂载时错开
+	const ncStyle = (pos: NotificationPosition) => `${positionMap[pos]}${offset}`;
 
 	// CSS 默认 ease（cubic-bezier(0.25, 0.1, 0.25, 1)），sonner 进出场 transition 使用此曲线
 	function bezierEase(x1: number, y1: number, x2: number, y2: number) {
@@ -423,7 +438,7 @@
 			const dir = s.axis === 'x' ? (amountX > 0 ? 'right' : 'left') : (amountY > 0 ? 'down' : 'up');
 			s.el.classList.add(`ns-swipe-out-${dir}`);
 			s.out = true;
-			setTimeout(() => notificationStore.remove(s.position, s.id), 200);
+			setTimeout(() => store.remove(s.position, s.id), 200);
 			return;
 		}
 		s.ni.style.setProperty('--sx', '0px');
@@ -447,11 +462,13 @@
 	aria-label="Notifications {hotkeyLabel}"
 >
 	{#each positions as pos}
+		<!-- 悬停/移动仅用于展开堆叠，tabindex=-1 只为程序化聚焦，不进入 Tab 序列 -->
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 		<div
 			class="nc {pos}"
 			class:expanded
 			class:has-items={stacks[pos].length > 0}
-			style={positionMap[pos]}
+			style={ncStyle(pos)}
 			role="list"
 			tabindex={-1}
 			onmouseenter={() => setUserExpanded(true)}
@@ -483,7 +500,7 @@
 					onpointercancel={handlePointerCancel}
 				>
 					<div class="ni">
-						<NotificationItem toast={item} />
+						<NotificationItem toast={item} store={store} />
 					</div>
 				</div>
 			{/each}

@@ -67,8 +67,11 @@
 	function select(v: string) {
 		if (disabled) return;
 		if (v === value) return;
-		if (onchange) onchange(v);
-		else value = v;
+		// 先写自己的 value 再回调，与库内 Select/Combobox/Slider/Accordion/ToggleGroup 一致。
+		// 若写成 `if (onchange) onchange(v); else value = v;`，则 bind:value 与 onchange 并存时
+		// 绑定永远收不到新值（父级回调不改 value → 选中态不变），是 API 陷阱。
+		value = v;
+		onchange?.(v);
 	}
 
 	// 键盘：方向键在 tab 间移动焦点并跟随选中（automatic activation），Home/End 到首尾
@@ -96,6 +99,8 @@
 </script>
 
 {#snippet bar()}
+	<!-- 子 tab 用 roving tabindex（仅活动项 tabindex=0）并自行处理方向键，tablist 不应再成为焦点停靠点 -->
+	<!-- svelte-ignore a11y_interactive_supports_focus -->
 	<div
 		bind:this={groupEl}
 		class="tabs-group tabs-group--{mode}"
@@ -129,7 +134,8 @@
 				onclick={() => select(item.value)}
 			>
 				{#if item.icon}
-					<svelte:component this={item.icon} size={16} />
+					{@const TabIcon = item.icon}
+					<TabIcon size={16} />
 				{:else if item.iconHtml}
 					<svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">{@html item.iconHtml}</svg>
 				{/if}

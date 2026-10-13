@@ -256,21 +256,6 @@
     overscroll-behavior: contain;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
-  .modal-no-mask {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: var(--z-overlay);
-    background-color: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-lg);
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    overscroll-behavior: contain;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  }
   .modal-header {
     display: flex;
     align-items: center;

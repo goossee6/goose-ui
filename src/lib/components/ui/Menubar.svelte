@@ -45,21 +45,30 @@
 
 	function onBarKeydown(e: KeyboardEvent) {
 		if (!barEl) return;
-		const triggers = [...barEl.querySelectorAll<HTMLElement>('.menubar-trigger')];
+		// 必须选真正可聚焦的 <button class="dropdown-trigger">：
+		// 触发器 snippet 里的 <span class="menubar-trigger"> 不可聚焦，
+		// 用它当 roving 目标会让 document.activeElement 永远对不上、focus() 也是空操作。
+		const triggers = [...barEl.querySelectorAll<HTMLElement>('.dropdown-trigger:not(:disabled)')];
 		const idx = triggers.indexOf(document.activeElement as HTMLElement);
 		if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
 			e.preventDefault();
-			if (idx < 0) return;
+			if (idx < 0 || !triggers.length) return;
 			const next = (idx + (e.key === 'ArrowRight' ? 1 : -1) + triggers.length) % triggers.length;
 			triggers[next].focus();
 			if (openValue !== null) {
 				const v = triggers[next].dataset.menu;
+				// openMenu 内部已有 disabled 守卫
 				if (v) openMenu(v);
 			}
 		} else if (e.key === 'Escape' && openValue !== null) {
 			e.stopPropagation();
 			closeMenu();
 		}
+	}
+
+	// menubar 的 roving 模式：已有菜单展开时，焦点落到相邻触发器即切换该菜单
+	function onTriggerFocus(value: string) {
+		if (openValue !== null) openMenu(value);
 	}
 </script>
 
@@ -75,11 +84,17 @@
 		<DropdownMenu
 			open={openValue === menu.value}
 			items={menu.items}
+			disabled={menu.disabled}
+			triggerMenu={menu.value}
 			onOpenChange={(o) => (o ? openMenu(menu.value) : closeMenu())}
 			onselect={handleSelect(menu.value)}
 		>
 			{#snippet trigger()}
-				<span class="menubar-trigger" data-menu={menu.value} class:disabled={menu.disabled} aria-disabled={menu.disabled}>
+				<span
+					class="menubar-trigger"
+					class:disabled={menu.disabled}
+					onfocusin={() => onTriggerFocus(menu.value)}
+				>
 					{menu.label}
 				</span>
 			{/snippet}

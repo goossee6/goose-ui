@@ -7,6 +7,7 @@
 
   let menuEl = $state<HTMLElement | null>(null);
   let pos = $state({ left: 0, top: 0 });
+  let activeIdx = $state(-1);
 
   const items = $derived(getMenu(menuStore.name) ?? []);
 
@@ -25,6 +26,7 @@
     const name = el.getAttribute("data-menu-name") || "";
     const data = decodeData(el.getAttribute("data-menu-data"));
     if (menuStore.visible && menuStore.name === name && pos.left === e.clientX && pos.top === e.clientY) return;
+    activeIdx = -1;
     openMenuAt(e.clientX, e.clientY, name, data);
   }
 
@@ -32,6 +34,36 @@
     const { name, data } = menuStore;
     closeMenu();
     dispatchMenuAction({ menu: name, action: item.id, data });
+  }
+
+  function focusItem(i: number) {
+    const btns = menuEl?.querySelectorAll<HTMLElement>(".ctxmenu-item");
+    if (!btns?.length) return;
+    const n = btns.length;
+    const idx = ((i % n) + n) % n;
+    activeIdx = idx;
+    btns[idx].focus();
+  }
+
+  function onMenuKeydown(e: KeyboardEvent) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusItem(activeIdx + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusItem(activeIdx - 1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      focusItem(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      focusItem(items.length - 1);
+    } else if (e.key === "Escape") {
+      e.stopPropagation();
+      closeMenu();
+    } else if (e.key === "Tab") {
+      closeMenu();
+    }
   }
 
   $effect(() => {
@@ -46,6 +78,16 @@
     return () => { document.removeEventListener("mousedown", onDocDown); document.removeEventListener("keydown", onKey, true); };
   });
 
+  // 打开后聚焦首项（键盘可立即用方向键）
+  $effect(() => {
+    if (!menuStore.visible || !menuEl) return;
+    if (activeIdx === -1) {
+      requestAnimationFrame(() => {
+        if (menuEl) focusItem(0);
+      });
+    }
+  });
+
   $effect(() => {
     if (!menuStore.visible || !menuEl) return;
     const r = menuEl.getBoundingClientRect();
@@ -58,7 +100,8 @@
 <svelte:window oncontextmenu={onContextMenu} />
 
 {#if menuStore.visible}
-  <div class="ctxmenu" style="left: {pos.left}px; top: {pos.top}px" transition:fade={{ duration: 90 }} bind:this={menuEl} role="menu">
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+  <div class="ctxmenu" style="left: {pos.left}px; top: {pos.top}px" transition:fade={{ duration: 90 }} bind:this={menuEl} role="menu" tabindex="-1" onkeydown={onMenuKeydown}>
     <PillTrack
       container={menuEl}
       itemSelector=".ctxmenu-item"
@@ -66,8 +109,8 @@
       hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
       radius="var(--radius-md)"
     />
-    {#each items as item (item.id)}
-      <button type="button" class="ctxmenu-item" role="menuitem" onclick={() => pick(item)}>
+    {#each items as item, i (item.id)}
+      <button type="button" class="ctxmenu-item" role="menuitem" tabindex={activeIdx === i ? 0 : -1} onfocus={() => (activeIdx = i)} onclick={() => pick(item)}>
         {#if item.icon}<Icon icon={item.icon} size={14} class="ctxmenu-item-icon" />{/if}
         {item.label}
       </button>

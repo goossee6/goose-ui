@@ -1,14 +1,16 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import {Card, Toggle, Checkbox, Label, Page, Notification, Row} from "goose-ui";
 
   let t1 = $state(false);
   let t2 = $state(true);
   let t3 = $state(false);
   let c3 = $state(false);
-  let prevT1 = $state(t1);
-  let prevT2 = $state(t2);
-  let prevT3 = $state(t3);
-  let prevC3 = $state(c3);
+  // 仅用于变更对比：初值取各绑定值的首次值，之后由下方 $effect 改写
+  let prevT1 = untrack(() => t1);
+  let prevT2 = untrack(() => t2);
+  let prevT3 = untrack(() => t3);
+  let prevC3 = untrack(() => c3);
 
   $effect(() => { if (t1 !== prevT1) { prevT1 = t1; Notification.success(t1 ? '已开启' : '已关闭'); } });
   $effect(() => { if (t2 !== prevT2) { prevT2 = t2; Notification.success(t2 ? '已开启' : '已关闭'); } });

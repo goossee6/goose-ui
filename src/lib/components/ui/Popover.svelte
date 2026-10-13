@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { floatingPosition } from './floatingPosition';
 
 	let {
 		open = $bindable(false),
@@ -26,41 +27,20 @@
 	let flipUp = $state(false);
 	let pos = $state({ left: 0, top: 0 });
 
-	const GAP = 8;
-
+	// 定位统一走 floatingPosition（视口钳位 + 翻转）；align 由 placement 的 start/end 决定
 	function measure() {
 		if (!rootEl || !popEl) return;
-		const r = rootEl.getBoundingClientRect();
-		const pw = popEl.offsetWidth;
-		const ph = popEl.offsetHeight;
-		const vw = window.innerWidth;
-		const vh = window.innerHeight;
-
-		// 垂直：placement 声明优先方向，空间不足时翻转
-		let top: number;
-		if (placement.startsWith('top')) {
-			top = r.top - ph - GAP;
-			if (top < 8 && r.bottom + ph + GAP < vh) top = r.bottom + GAP;
-		} else {
-			top = r.bottom + GAP;
-			if (top + ph > vh - 8 && r.top - ph - GAP > 8) top = r.top - ph - GAP;
-		}
-		flipUp = top < r.top;
-
-		// 水平：end 右对齐，空间不足改左
-		let left: number;
-		if (placement.endsWith('end')) {
-			left = r.right - pw;
-			if (left < 8 && r.left + pw < vw - 8) left = r.left;
-		} else {
-			left = r.left;
-			if (left + pw > vw - 8 && r.right - pw > 8) left = r.right - pw;
-		}
-
-		left = Math.max(8, Math.min(left, vw - pw - 8));
-		top = Math.max(8, Math.min(top, vh - ph - 8));
-
-		pos = { left, top };
+		const res = floatingPosition(rootEl.getBoundingClientRect(), {
+			panelW: popEl.offsetWidth,
+			panelH: popEl.offsetHeight,
+			gap: 8,
+			align: placement.endsWith('end') ? 'end' : 'start',
+			prefer: placement.startsWith('top') ? 'top' : 'bottom',
+			flip: 'space',
+			capHeight: false,
+		});
+		flipUp = res.flipUp;
+		pos = { left: res.left, top: res.top };
 	}
 
 	function show() {

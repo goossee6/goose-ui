@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { floatingPosition } from './floatingPosition';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -30,38 +31,27 @@
 	let rootEl = $state<HTMLElement | null>(null);
 	let cardEl = $state<HTMLElement | null>(null);
 	let visible = $state(false);
+	// 语义与其它浮层相反：true = 卡片显示在 anchor 下方（仅用于动画方向）
 	let flipUp = $state(true);
 	let pos = $state({ left: 0, top: 0 });
 
-	const GAP = 8;
-
 	let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
+	// 定位统一走 floatingPosition：横向居中，翻转策略与 Popover/DropdownMenu 一致
 	function measure() {
 		if (!rootEl || !cardEl) return;
-		const r = rootEl.getBoundingClientRect();
-		const cw = cardEl.offsetWidth;
-		const ch = cardEl.offsetHeight;
-		const vw = window.innerWidth;
-		const vh = window.innerHeight;
-
-		// placement='top'：默认上方，仅在上方空间不足时翻下
-		// placement='bottom'：默认下方，仅在下方空间不足时翻上
-		let top: number;
-		if (placement === 'top') {
-			top = r.top - ch - GAP;
-			if (top < 8 && r.bottom + ch + GAP < vh) top = r.bottom + GAP;
-		} else {
-			top = r.bottom + GAP;
-			if (top + ch > vh - 8 && r.top - ch - GAP > 8) top = r.top - ch - GAP;
-		}
-		// flipUp = 卡片显示在 anchor 下方（仅用于动画方向）
-		flipUp = top > r.bottom;
-
-		let left = r.left + r.width / 2 - cw / 2;
-		left = Math.max(8, Math.min(left, vw - cw - 8));
-
-		pos = { left, top };
+		const res = floatingPosition(rootEl.getBoundingClientRect(), {
+			panelW: cardEl.offsetWidth,
+			panelH: cardEl.offsetHeight,
+			gap: 8,
+			align: 'center',
+			prefer: placement === 'top' ? 'top' : 'bottom',
+			flip: 'space',
+			capHeight: false,
+		});
+		// 本组件 flipUp 语义相反：floatingPosition.flipUp = 卡片在 anchor 上方
+		flipUp = !res.flipUp;
+		pos = { left: res.left, top: res.top };
 	}
 
 	function onEnter() {

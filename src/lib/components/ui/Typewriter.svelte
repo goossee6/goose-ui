@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -28,7 +28,8 @@
 
 	let chars: { char: string; visible: boolean }[] = $state([]);
 	let mounted = $state(false);
-	let prevTrigger = trigger;
+	// 只用于变更对比：初值取 trigger 首次值，之后仅由下方 $effect 改写
+	let prevTrigger = untrack(() => trigger);
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let charIndex = $state(0);
 	let totalChars = $state(0);

@@ -6,7 +6,6 @@
   import Lock from '@lucide/svelte/icons/lock';
 
   let text = $state('');
-  let email = $state('');
   let amount = $state('');
   let search = $state('');
   let multiText = $state('');

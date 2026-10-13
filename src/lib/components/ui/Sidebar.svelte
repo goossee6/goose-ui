@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { Component, Snippet } from 'svelte';
   import Icon from './Icon.svelte';
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -76,8 +77,9 @@
     width !== undefined ? `--sidebar-w:${typeof width === 'number' ? `${width}px` : width};` : ''
   );
 
-  let expandedGroups = $state<Set<number>>(new Set(groups.map((_, i) => i)));
-  let prevExpanded = $state<Set<number>>(new Set(groups.map((_, i) => i)));
+  // 初始展开态按「首次拿到的 groups」建一次快照；此后由 toggleGroup / toggleCollapse 独占维护
+  let expandedGroups = $state<Set<number>>(untrack(() => new Set(groups.map((_, i) => i))));
+  let prevExpanded = $state<Set<number>>(untrack(() => new Set(groups.map((_, i) => i))));
 
   let popoverGroup = $state<number>(-1);
   let popoverStyle = $state('');

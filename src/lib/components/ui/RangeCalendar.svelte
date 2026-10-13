@@ -28,12 +28,10 @@
 	const today = $derived(new Date());
 	let picking = $state<'start' | 'end'>('start');
 	let hoverIso = $state('');
+	let gridEl = $state<HTMLElement | null>(null);
 
 	let viewYear = $state(new Date().getFullYear());
 	let viewMonth = $state(new Date().getMonth());
-
-	const startDate = $derived(fromISO(start));
-	const endDate = $derived(fromISO(end));
 
 	const weekdays = $derived.by(() => {
 		if (weekStart === 1) return WEEKDAYS;
@@ -56,9 +54,16 @@
 		if (disabled) return true;
 		if (min && iso < min) return true;
 		if (max && iso > max) return true;
-		if (picking === 'end' && start && iso < start) return true;
-		if (picking === 'start' && end && iso > end) return true;
-		return disabledDate?.(iso) ?? false;
+		if (disabledDate?.(iso)) return true;
+		// 注意：这里刻意不按 picking 约束（不禁止 iso > end / iso < start）。
+		// 那是「点击提交」的语义，若并入 isDisabled 会连带禁掉区间之外的日期，
+		// 使键盘光标无法跨出已选区间（ArrowDown 永远无反应），也无法开启新的选择。
+		return false;
+	}
+
+	/** 仅点击提交时使用的额外约束：选定起点期间不可选早于起点的日期 */
+	function pickBlocked(iso: string): boolean {
+		return picking === 'end' && !!start && iso < start;
 	}
 
 	function inRange(iso: string): boolean {
@@ -70,10 +75,12 @@
 		const d = new Date(viewYear, viewMonth + delta, 1);
 		viewYear = d.getFullYear();
 		viewMonth = d.getMonth();
+		// 翻月后旧光标已不在视图内，丢弃避免下次方向键从陈旧位置起算
+		cursorIso = '';
 	}
 
 	function pick(iso: string) {
-		if (isDisabled(iso)) return;
+		if (isDisabled(iso) || pickBlocked(iso)) return;
 		if (picking === 'start') {
 			start = iso;
 			if (end && iso > end) end = '';
@@ -104,21 +111,66 @@
 
 	const preview = $derived(hoverIso ? previewBounds() : { from: start, to: end });
 
+	// 方向键只移动光标（视图 + 焦点），不提交区间：
+	// 与 Calendar 不同，RangeCalendar 的 pick() 会真的改写 start/end，
+	// 直接照搬 Calendar 的键盘处理器会把已选区间改坏（一次 ArrowRight 就能把
+	// 10 天区间压成 1 天）。提交只由 Enter/Space/点击触发。
+	//
+	// cursorIso 必须持久：若每次移动后清空、下次再从 start 起算，因为键盘导航不改 start，
+	// 光标会永远算回同一天（表现为第一次按键有效、之后全部无反应）。
+	let cursorIso = $state('');
+	// 一次性的「请把焦点搬到我」信号：每帧消费后清空，避免持续抢焦点干扰 Tab 游走
+	let focusRequest = $state('');
+
+	// 已选值变化（外部绑定或点击选中）时把光标对齐到区间起点
+	$effect(() => {
+		start;
+		end;
+		cursorIso = start || '';
+	});
+
 	function onKeydown(e: KeyboardEvent) {
 		if (disabled) return;
-		const cur = startDate ?? today;
+		if (e.key === 'Enter' || e.key === ' ') {
+			// 日期按钮自身也会原生触发 click，这里 preventDefault 掉避免二次提交；
+			// 与 Calendar 一致：Enter/Space 提交光标所在日，而不是「聚焦的按钮」。
+			// 注意不要用 document.activeElement === e.currentTarget 做条件 —— 事件从日期按钮
+			// 冒泡上来时该条件必然为假，会让所有按键在这一层被静默吞掉。
+			if (cursorIso && !isDisabled(cursorIso)) {
+				e.preventDefault();
+				pick(cursorIso);
+			}
+			return;
+		}
+		if (e.key === 'PageUp' || e.key === 'PageDown') {
+			e.preventDefault();
+			shiftMonth(e.key === 'PageUp' ? -1 : 1);
+			return;
+		}
+		// 光标起点：持久光标 → 已选起点 → 今天（绝不直接改区间）
+		const cur = fromISO(cursorIso || start || '') ?? today;
 		let next: Date | null = null;
 		if (e.key === 'ArrowLeft') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 1);
 		else if (e.key === 'ArrowRight') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
 		else if (e.key === 'ArrowUp') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 7);
 		else if (e.key === 'ArrowDown') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7);
-		if (next) {
-			e.preventDefault();
-			viewYear = next.getFullYear();
-			viewMonth = next.getMonth();
-			pick(toISO(next));
-		}
+		if (!next) return;
+		const iso = toISO(next);
+		if (isDisabled(iso)) return;
+		e.preventDefault();
+		viewYear = next.getFullYear();
+		viewMonth = next.getMonth();
+		cursorIso = iso;
+		focusRequest = iso;
 	}
+
+	// focusRequest 变化后把焦点搬到对应日期按钮
+	$effect(() => {
+		const iso = focusRequest;
+		if (!iso || !gridEl) return;
+		gridEl.querySelector<HTMLElement>(`[data-iso="${iso}"]`)?.focus();
+		queueMicrotask(() => (focusRequest = ''));
+	});
 </script>
 
 <div class="range-calendar {cls}" class:disabled style={style}>
@@ -143,11 +195,13 @@
 		role="grid"
 		tabindex={disabled ? -1 : 0}
 		aria-label="日期范围"
+		bind:this={gridEl}
 		onkeydown={onKeydown}
 		onmouseleave={() => (hoverIso = '')}
 	>
 		{#each cells as cell (cell.iso)}
 			{@const off = isDisabled(cell.iso)}
+			{@const blocked = pickBlocked(cell.iso)}
 			<button
 				type="button"
 				class="rc-day"
@@ -158,9 +212,12 @@
 				class:preview={cell.iso === preview.from || cell.iso === preview.to}
 				class:preview-mid={cell.iso > preview.from && cell.iso < preview.to}
 				disabled={off}
+				aria-disabled={!off && blocked ? 'true' : undefined}
+				aria-current={cell.today ? 'date' : undefined}
+				data-iso={cell.iso}
 				data-selected={cell.iso === start || cell.iso === end}
 				onclick={() => pick(cell.iso)}
-				onmouseenter={() => !off && (hoverIso = cell.iso)}
+				onmouseenter={() => !off && !blocked && (hoverIso = cell.iso)}
 			>
 				{cell.date.getDate()}
 			</button>

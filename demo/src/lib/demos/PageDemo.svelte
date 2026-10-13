@@ -3,6 +3,10 @@
   import Inbox from '@lucide/svelte/icons/inbox';
   import PropsTable, { type PropsTableItem } from '../PropsTable.svelte';
 
+  // Row 里嵌 Tabs 的示例：必须 bind:value，传字面量 value="a" 会把选中态钉死、
+  // 点击无任何反应（示例本身可交互才有文档价值）
+  let rowTab = $state('a');
+
   const pageProps: PropsTableItem[] = [
     { name: 'title', desc: '页头标题', type: 'string', default: "''" },
     { name: 'description', desc: '页头描述', type: 'string', default: "''" },
@@ -76,7 +80,7 @@
   <h3 class="section">Row</h3>
   <div class="preview-box">
     <Row gap="md">
-      <Tabs items={[{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }]} value="a" onchange={() => {}} />
+      <Tabs items={[{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }]} bind:value={rowTab} />
       <Button variant="default">按钮一</Button>
       <Button variant="default">按钮二</Button>
     </Row>

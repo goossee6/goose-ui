@@ -2,7 +2,6 @@
 	import { onDestroy } from 'svelte';
 	import Button from './Button.svelte';
 	import { formatBytes } from '../../utils/format';
-	import type { Snippet } from 'svelte';
 
 	let {
 		accept = '',

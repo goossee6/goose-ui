@@ -1,9 +1,15 @@
 <script lang="ts">
-  import {Card, Button, Page, Notification, Row} from "goose-ui";
+  import {Card, Button, Page, Notification, NotificationProvider, createNotification, createNotificationStore, Row} from "goose-ui";
   import Star from '@lucide/svelte/icons/star';
   import Heart from '@lucide/svelte/icons/heart';
   import Bookmark from '@lucide/svelte/icons/bookmark';
   import Zap from '@lucide/svelte/icons/zap';
+
+  // 两个互不干扰的通知容器：各自一份 store + 各自绑定的快捷 API
+  const storeA = createNotificationStore();
+  const storeB = createNotificationStore();
+  const notifyA = createNotification(storeA);
+  const notifyB = createNotification(storeB);
 
   let keyDemoCount = $state(0);
   // 测试钩子：供 e2e 探针驱动同 key 内容更新
@@ -170,6 +176,33 @@
     </p>
   </Card>
 
+  <Card title="多个 Provider 相互独立">
+    <p class="api-note">
+      默认情况下所有 <code>&lt;NotificationProvider /&gt;</code> 渲染同一份全局 store（配合 <code>Notification.xxx()</code>）。
+      需要独立容器时：用 <code>createNotificationStore()</code> 各建一份，分别传给 Provider 的 <code>store</code> prop
+      与 <code>createNotification(store)</code> —— 两边的通知列表、id 序列、暂停位完全隔离，
+      卸载其中一个也不影响另一个。
+    </p>
+    <div class="prov-row">
+      <div class="prov-box">
+        <NotificationProvider store={storeA} class="prov-a" offset="top:24px;left:24px;right:auto;transform:none;" />
+        <Button variant="primary" onclick={() => notifyA.success({ title: '来自 A 区域', duration: 0 })}>
+          A 区域发通知
+        </Button>
+        <Button class="probe-clear-a" variant="ghost" onclick={() => notifyA.destroyAll()}>清空 A</Button>
+      </div>
+      <div class="prov-box">
+        <NotificationProvider store={storeB} class="prov-b" offset="top:140px;left:24px;right:auto;transform:none;" />
+        <Button variant="default" onclick={() => notifyB.success({ title: '来自 B 区域', duration: 0 })}>
+          B 区域发通知
+        </Button>
+      </div>
+    </div>
+    <p class="api-note" style="margin-top:12px">
+      <code>offset</code> 是可选的位置微调片段（默认空 = 行为不变），用来把多个容器的浮层错开。
+    </p>
+  </Card>
+
   <Card title="NotificationOptions 参数">
     <p class="api-note">
       快捷用法：<code>Notification.success('消息')</code> 或 <code>Notification.open(options)</code>；
@@ -180,7 +213,9 @@
       <code>gap</code>（牌堆间距，默认 14）、
       <code>visibleToasts</code>（收起时可见层数，默认 3）、
       <code>expand</code>（强制常展开，默认 false）、
-      <code>hotkey</code>（展开热键，默认 Alt+T）。
+      <code>hotkey</code>（展开热键，默认 Alt+T）、
+      <code>offset</code>（位置微调样式片段，默认空；多 Provider 同挂载时用来错开浮层）。
+      每个 Provider 各自持有独立 store，互不共享。
     </p>
     <PropsTable items={notificationProps} />
   </Card>
@@ -190,4 +225,20 @@
   .hint { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
   .api-note { font-size: 13px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.8; }
   .api-note code { font-family: var(--font-mono); font-size: 12px; }
+  .prov-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  /* 每个 Provider 的浮层是 fixed 定位，无法用 DOM 祖先区分归属；
+     这里用 position:relative 建两个独立 stacking context（各自 z-index 独立），
+     浮层在视觉上被限制在按钮附近，便于目检「谁发的通知出现在谁的区域」。 */
+  .prov-box {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+    min-height: 96px;
+    padding: var(--sp-lg);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+  }
 </style>

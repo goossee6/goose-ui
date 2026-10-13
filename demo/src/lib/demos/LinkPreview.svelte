@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Page, LinkPreview, Notification} from "goose-ui";
+  import {Card, Page, LinkPreview} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const props: PropsTableItem[] = [

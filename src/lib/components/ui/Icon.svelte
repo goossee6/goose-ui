@@ -18,8 +18,9 @@
 </script>
 
 {#if icon}
+	{@const Cmp = icon}
 	<span class="goose-icon {cls}" class:goose-icon--spin={spin} {style}>
-		<svelte:component this={icon} {size} />
+		<Cmp {size} />
 	</span>
 {/if}
 

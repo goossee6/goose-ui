@@ -30,8 +30,16 @@
 	let failed = $state(false);
 	let zoomed = $state(false);
 
+	// src 变化时复位失败态：failed 为真时模板不再渲染 <img>，没有 img 可重新加载，
+	// 否则一张图 404 之后，后续所有 src 都会永久停在兜底（且 onerror 不再触发）。
+	$effect(() => {
+		src;
+		failed = false;
+	});
+
 	function handleLoadError() {
 		failed = true;
+		zoomed = false;
 		onerror?.();
 	}
 

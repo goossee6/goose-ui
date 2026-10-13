@@ -26,6 +26,7 @@
 	} = $props();
 
 	let openValue = $state<string | null>(null);
+	let activeIdx = $state(-1);
 	let navEl = $state<HTMLElement | null>(null);
 	let panelEl = $state<HTMLElement | null>(null);
 	let panelStyle = $state('');
@@ -38,8 +39,34 @@
 		);
 	}
 
-	function openMenu(v: string) {
+	// 面板内可聚焦项（跳过 aria-disabled）
+	function panelItems(): HTMLElement[] {
+		return [...(panelEl?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])].filter(
+			(el) => el.getAttribute('aria-disabled') !== 'true'
+		);
+	}
+
+	// pos 为过滤后列表位置；activeIdx 存模板原始下标（data-panel-idx 对齐）
+	function focusPanelPos(pos: number, wrap = true) {
+		const els = panelItems();
+		if (!els.length) return;
+		const idx = wrap ? (pos + els.length) % els.length : Math.max(0, Math.min(pos, els.length - 1));
+		const raw = Number(els[idx].dataset.panelIdx);
+		activeIdx = Number.isNaN(raw) ? idx : raw;
+		els[idx].focus();
+	}
+
+	// 当前焦点在过滤列表中的位置；不在面板内时按 dir 决定起点
+	function stepPanel(dir: 1 | -1) {
+		const els = panelItems();
+		if (!els.length) return;
+		const cur = els.findIndex((el) => Number(el.dataset.panelIdx) === activeIdx);
+		focusPanelPos(cur < 0 ? (dir === 1 ? 0 : els.length - 1) : cur + dir);
+	}
+
+	function openMenu(v: string, focusTarget: 'first' | 'last' | null = null) {
 		openValue = v;
+		activeIdx = -1;
 		const item = items.find((i) => i.value === v);
 		if (!item?.children?.length) return;
 		requestAnimationFrame(() => {
@@ -53,15 +80,20 @@
 			});
 			flipUp = r.flipUp;
 			panelStyle = r.style;
+			// 键盘打开：焦点进入面板（鼠标 hover/点击不抢焦点）
+			if (focusTarget === 'first') focusPanelPos(0);
+			else if (focusTarget === 'last') focusPanelPos(-1);
 		});
 	}
 
 	function closeMenu() {
 		openValue = null;
+		activeIdx = -1;
 	}
 
 	function handleSelect(value: string) {
 		openValue = null;
+		activeIdx = -1;
 		onselect?.(value);
 	}
 
@@ -78,9 +110,40 @@
 			if (openValue !== null && v) openMenu(v);
 		} else if (e.key === 'ArrowDown' && idx >= 0 && triggers[idx].getAttribute('aria-haspopup')) {
 			e.preventDefault();
-			openMenu(triggers[idx].dataset.navValue ?? '');
+			const v = triggers[idx].dataset.navValue ?? '';
+			if (openValue === v) focusPanelPos(0);
+			else openMenu(v, 'first');
+		} else if (e.key === 'ArrowUp' && idx >= 0 && triggers[idx].getAttribute('aria-haspopup')) {
+			e.preventDefault();
+			const v = triggers[idx].dataset.navValue ?? '';
+			// ArrowUp 打开并聚焦最后一项（WAI-ARIA menu button）
+			if (openValue === v) focusPanelPos(-1);
+			else openMenu(v, 'last');
 		} else if (e.key === 'Escape' && openValue) {
 			e.stopPropagation();
+			closeMenu();
+		}
+	}
+
+	function onPanelKeydown(e: KeyboardEvent) {
+		if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			stepPanel(1);
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			stepPanel(-1);
+		} else if (e.key === 'Home') {
+			e.preventDefault();
+			focusPanelPos(0, false);
+		} else if (e.key === 'End') {
+			e.preventDefault();
+			focusPanelPos(panelItems().length - 1, false);
+		} else if (e.key === 'Escape') {
+			e.stopPropagation();
+			const v = openValue;
+			closeMenu();
+			if (v) navEl?.querySelector<HTMLElement>(`[data-nav-value="${v}"]`)?.focus();
+		} else if (e.key === 'Tab') {
 			closeMenu();
 		}
 	}
@@ -159,17 +222,22 @@
 				class="navmenu-panel"
 				class:flip-up={flipUp}
 				role="menu"
+				tabindex="-1"
 				style={panelStyle}
 				bind:this={panelEl}
+				onkeydown={onPanelKeydown}
 				transition:panelFade={{ up: flipUp }}
 			>
-				{#each item.children as child (child.value)}
+				{#each item.children as child, i (child.value)}
 					<a
 						href={child.href ?? '#/'}
 						class="navmenu-panel-item"
 						class:active={active === child.value}
 						role="menuitem"
 						aria-disabled={child.disabled}
+						data-panel-idx={i}
+						tabindex={activeIdx === i ? 0 : -1}
+						onfocus={() => (activeIdx = i)}
 						onclick={(e) => {
 							if (child.disabled) {
 								e.preventDefault();

@@ -170,17 +170,6 @@
   const endItems = [{ value: 'settings', label: '设置', icon: Settings }];
 
   const DEFAULT_TAB = 'button';
-  // 旧 hash → 新页面（页面归并后的兼容映射）
-  const LEGACY_TABS: Record<string, string> = {
-    radio: 'choice',
-    checkbox: 'choice',
-    togglegroup: 'choice',
-    segmentedtabs: 'tabs',
-    confirm: 'modal',
-    alertdialog: 'modal',
-    menubar: 'navmenu',
-    dropdownmenu: 'navmenu',
-  };
   const validTabs = new Set([
     ...groups.flatMap((e) => ('items' in e ? e.items.map((i) => i.value) : [e.value])),
     ...endItems.map((i) => i.value),
@@ -188,8 +177,7 @@
 
   function tabFromHash(): string {
     const raw = location.hash.replace(/^#\/?/, '');
-    const v = LEGACY_TABS[raw] ?? raw;
-    return validTabs.has(v) ? v : DEFAULT_TAB;
+    return validTabs.has(raw) ? raw : DEFAULT_TAB;
   }
 
   let activeTab = $state(tabFromHash());

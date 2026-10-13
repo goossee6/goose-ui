@@ -20,7 +20,7 @@
   let t4 = $state("");
 </script>
 
-<Page title="TimePicker 时间选择" description="触发器 + 时/分/秒 列选择，默认 24/60/60 全档位；showSeconds=false 隐藏秒列，xxStep 控制步长；自动翻转，支持「现在」快捷键">
+<Page title="TimePicker 时间选择" description="触发器 + 惯性滚轮（拖拽/滚轮/点击均可），停稳自动提交完整值；showSeconds=false 隐藏秒列，xxStep 控制步长；自动翻转，支持「现在」快捷键">
   <Card title="基础用法（默认 24/60/60）">
     <Row>
       <TimePicker bind:value={t1} />

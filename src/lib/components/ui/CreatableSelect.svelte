@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
 	import PillTrack from './PillTrack.svelte';
@@ -38,8 +38,11 @@
 
 	let open = $state(false);
 	let mounted = $state(false);
+	// combobox/listbox 的 ARIA 关联 id（与 Combobox 同一写法）
+	const listId = `cs-${Math.random().toString(36).slice(2, 8)}`;
 	let query = $state('');
-	let data = $state<string[]>(items);
+	// items 只作首次数据源快照；之后 data 由 loadItems 结果与「新建」项独占维护
+	let data = $state<string[]>(untrack(() => items));
 	let loading = $state(false);
 	let loaded = $state(false);
 	let creating = $state(false);
@@ -222,8 +225,10 @@
 		{disabled}
 		onclick={toggle}
 		onkeydown={onTriggerKeydown}
+		role="combobox"
 		aria-haspopup="listbox"
 		aria-expanded={open}
+		aria-controls={open ? listId : undefined}
 		class="cs-trigger"
 		class:cs-trigger--open={open}
 		class:cs-trigger--placeholder={!value}
@@ -233,8 +238,11 @@
 	</button>
 
 	{#if open && mounted}
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div class="cs-dropdown" bind:this={ddEl} style={dropdownStyle} role="listbox" tabindex="-1" onkeydown={onDropdownKeydown}>
+		<!-- 面板本身不再是 listbox：它含 header/搜索框/footer，listbox 的子孙里不允许出现 input/button。
+		     role=listbox 下移到真正承载选项的 .cs-list，组合框语义放在搜索框上（它才是键盘焦点所在）。
+		     本 div 只是键盘代理（Esc/上下/回车），因此显式忽略「无 role 的静态元素带 keydown」。 -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="cs-dropdown" bind:this={ddEl} style={dropdownStyle} tabindex="-1" onkeydown={onDropdownKeydown}>
 			<div class="cs-header">{title}</div>
 			<div class="cs-search">
 				<Search size={14} class="cs-search-icon" />
@@ -244,13 +252,17 @@
 					oninput={() => { activeIdx = filtered.length ? 0 : -1; }}
 					placeholder="搜索或新建…"
 					class="cs-search-input"
+					role="combobox"
+					aria-expanded={open}
+					aria-controls={listId}
+					aria-activedescendant={activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined}
 				/>
 				{#if filtered.length > 0}
 					<span class="cs-count">{filtered.length} 项</span>
 				{/if}
 			</div>
 			<div class="cs-listwrap">
-				<div class="cs-list" bind:this={listEl}>
+				<div class="cs-list" bind:this={listEl} role="listbox" id={listId}>
 					<PillTrack
 						container={listEl}
 						activeSelector=".cs-option--active:not(.cs-option--selected)"
@@ -285,6 +297,7 @@
 								onclick={() => choose(item)}
 								onmouseenter={() => activeIdx = i}
 								role="option"
+								id={`${listId}-${i}`}
 								aria-selected={item === value}
 								title={item}
 							>

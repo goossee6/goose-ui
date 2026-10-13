@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Page, Form, FormItem, Input, Button, Select, RadioGroup, Notification} from "goose-ui";
+  import {Card, Page, Form, FormItem, Input, Button, RadioGroup, Notification} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
 
   const formProps: PropsTableItem[] = [

@@ -5,15 +5,17 @@
 	import CircleX from '@lucide/svelte/icons/circle-x';
 	import X from '@lucide/svelte/icons/x';
 	import Icon from './Icon.svelte';
-	import type { NotificationItem as NotificationItemType } from '../notification';
-	import { notificationStore } from '../notification';
+	import type { NotificationItem as NotificationItemType, NotificationStore } from '../notification';
 
 	let {
 		toast,
+		store,
 		class: cls = '',
 		style = '',
 	}: {
 		toast: NotificationItemType;
+		/** 所属 Provider 的 store 实例（每个 Provider 独立，不共享） */
+		store: NotificationStore;
 		class?: string;
 		style?: string;
 	} = $props();
@@ -26,24 +28,24 @@
 		if (!el || !toast.pauseOnHover || toast.duration <= 0) return;
 		requestAnimationFrame(() => {
 			if (el.isConnected && el.matches(':hover')) {
-				notificationStore.pause(toast.position, toast.id);
+				store.pause(toast.position, toast.id);
 			}
 		});
 	});
 
 	function close() {
-		notificationStore.remove(toast.position, toast.id);
+		store.remove(toast.position, toast.id);
 	}
 
 	function handleMouseEnter() {
 		if (toast.pauseOnHover && toast.duration > 0) {
-			notificationStore.pause(toast.position, toast.id);
+			store.pause(toast.position, toast.id);
 		}
 	}
 
 	function handleMouseLeave() {
 		if (toast.pauseOnHover && toast.duration > 0) {
-			notificationStore.resume(toast.position, toast.id);
+			store.resume(toast.position, toast.id);
 		}
 	}
 
@@ -52,7 +54,9 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<!-- 通知条是 role="alert" 的非交互容器：点击转发 toast.onClick，鼠标进出暂停倒计时 -->
+<!-- 键盘等价路径由 toast.btn / notification-close 按钮提供 -->
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions -->
 <div
 	class="notification notification-{toast.type} {cls}"
 	style={style}
