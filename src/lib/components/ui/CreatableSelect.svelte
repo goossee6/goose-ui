@@ -266,7 +266,7 @@
 					<PillTrack
 						container={listEl}
 						activeSelector=".cs-option--active:not(.cs-option--selected)"
-						background="color-mix(in srgb, var(--primary) 15%, transparent)"
+						background="var(--accent-sub)"
 						radius="var(--radius-md)"
 					/>
 					{#if loading}

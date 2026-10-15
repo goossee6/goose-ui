@@ -183,7 +183,7 @@
           container={scrollEl}
           itemSelector=".option:not(.selected)"
           showSelected={false}
-          hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+          hoverBackground="var(--accent-sub)"
           radius="var(--radius-md)"
         />
         {#each items as item, i (item.value)}

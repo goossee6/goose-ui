@@ -170,7 +170,7 @@
 				<PillTrack
 					container={scrollEl}
 					activeSelector=".select-option--active:not(.select-option--selected)"
-					background="color-mix(in srgb, var(--primary) 15%, transparent)"
+					background="var(--accent-sub)"
 					radius="var(--radius-md)"
 				/>
 				{#if options.length === 0}

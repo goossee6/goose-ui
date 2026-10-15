@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Background, Row, Button} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "variant", desc: "背景图案", type: "'gradient' | 'grid' | 'dots' | 'noise'", default: "'gradient'" },
@@ -13,10 +14,34 @@
   const variants = ["gradient", "grid", "dots", "noise"] as const;
   let variant = $state<(typeof variants)[number]>("gradient");
   let animated = $state(true);
+
+  const variantSource = `<script lang="ts">
+  import { Background, Button, Row } from "goose-ui";
+
+  const variants = ["gradient", "grid", "dots", "noise"] as const;
+  let variant = $state<(typeof variants)[number]>("gradient");
+  let animated = $state(true);
+<\/script>
+
+<Row>
+  {#each variants as v (v)}
+    <Button variant={variant === v ? "primary" : "default"} onclick={() => (variant = v)}>{v}</Button>
+  {/each}
+  <label><input type="checkbox" bind:checked={animated} /> 动画（仅 gradient）</label>
+</Row>
+
+<div style="margin-top:16px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)">
+  <Background {variant} {animated} style="height:240px">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px">
+      <p>children 叠加在背景之上</p>
+      <p>variant = {variant} · animated = {animated}</p>
+    </div>
+  </Background>
+</div>`;
 </script>
 
 <Page title="Background 背景" description="装饰性背景层：渐变光晕 / 网格 / 点阵 / 斜纹">
-  <Card title="切换变体">
+  <CodePreview title="切换变体" code={variantSource}>
     <Row>
       {#each variants as v (v)}
         <Button variant={variant === v ? "primary" : "default"} onclick={() => (variant = v)}>{v}</Button>
@@ -31,7 +56,7 @@
         </div>
       </Background>
     </div>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />

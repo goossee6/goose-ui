@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Tag, Row, Button} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "variant", desc: "变体", type: "'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info'", default: "'default'" },
@@ -20,18 +21,71 @@
     { id: 3, label: "点我关闭" },
   ]);
   let nextId = $state(4);
+
+  const variantSource = `<script lang="ts">
+  import { Tag, Row } from "goose-ui";
+
+  const variants = ["default", "primary", "success", "warning", "danger", "info"] as const;
+<\/script>
+
+<Row>
+  {#each variants as v (v)}
+    <Tag variant={v}>{v}</Tag>
+  {/each}
+</Row>`;
+
+  const sizeSource = `<script lang="ts">
+  import { Tag, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Tag size="small">small</Tag>
+  <Tag size="middle">middle</Tag>
+  <Tag size="large">large</Tag>
+  <Tag variant="primary" dot>运行中</Tag>
+  <Tag variant="success" dot>已完成</Tag>
+  <Tag variant="danger" dot>异常</Tag>
+  <Tag variant="default" disabled>禁用</Tag>
+</Row>`;
+
+  const closableSource = `<script lang="ts">
+  import { Tag, Row, Button } from "goose-ui";
+
+  let tags = $state([
+    { id: 1, label: "可关闭标签" },
+    { id: 2, label: "另一个" },
+    { id: 3, label: "点我关闭" },
+  ]);
+  let nextId = $state(4);
+<\/script>
+
+<Row>
+  {#each tags as t (t.id)}
+    <Tag variant="primary" closable onclose={() => (tags = tags.filter((x) => x.id !== t.id))}>{t.label}</Tag>
+  {/each}
+  <Button
+    variant="ghost"
+    size="small"
+    onclick={() => {
+      const id = nextId++;
+      tags = [...tags, { id, label: \`标签 \${id}\` }];
+    }}
+  >
+    + 添加
+  </Button>
+</Row>`;
 </script>
 
 <Page title="Tag 标签" description="用于标记状态与分类的小型标签">
-  <Card title="变体">
+  <CodePreview title="变体" code={variantSource}>
     <Row>
       {#each variants as v (v)}
         <Tag variant={v}>{v}</Tag>
       {/each}
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="尺寸与圆点">
+  <CodePreview title="尺寸与圆点" code={sizeSource}>
     <Row>
       <Tag size="small">small</Tag>
       <Tag size="middle">middle</Tag>
@@ -41,9 +95,9 @@
       <Tag variant="danger" dot>异常</Tag>
       <Tag variant="default" disabled>禁用</Tag>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="可关闭">
+  <CodePreview title="可关闭" code={closableSource}>
     <Row>
       {#each tags as t (t.id)}
         <Tag variant="primary" closable onclose={() => (tags = tags.filter((x) => x.id !== t.id))}>{t.label}</Tag>
@@ -60,7 +114,7 @@
       </Button>
     </Row>
     <p class="note">已关闭 {nextId - 1 - tags.length} 个</p>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />

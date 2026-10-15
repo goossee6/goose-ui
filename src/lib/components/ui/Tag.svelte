@@ -53,7 +53,7 @@
 		align-items: center;
 		gap: 2px;
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		background: var(--surface);
 		color: var(--text);
 		font-weight: 500;
@@ -80,7 +80,7 @@
 	}
 	.tag--primary {
 		background: var(--primary-soft);
-		border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+		border-color: var(--accent-strong);
 		color: var(--primary);
 	}
 	.tag--success {

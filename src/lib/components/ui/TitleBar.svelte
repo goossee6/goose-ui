@@ -146,7 +146,7 @@
 		font-size: 16px;
 		font-weight: 700;
 		color: var(--text-strong);
-		background: var(--titlebar-logo-gradient, linear-gradient(135deg, #3b82f6, #8b5cf6));
+		background: var(--titlebar-logo-gradient, linear-gradient(135deg, var(--accent), var(--complement)));
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;

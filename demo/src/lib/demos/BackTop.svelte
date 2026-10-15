@@ -1,35 +1,55 @@
 <script lang="ts">
   import {Card, Page, BackTop} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "visibilityHeight", desc: "超过该滚动距离才显示", type: "number", default: "200" },
     { name: "duration", desc: "回顶动画时长（ms，easeOutCubic）", type: "number", default: "300" },
     { name: "label", desc: "无障碍标签/提示文案", type: "string", default: "'返回顶部'" },
   ];
+
+  const basicSource = `<script lang="ts">
+  import { BackTop } from "goose-ui";
+<\/script>
+
+<!-- 页面滚动超过 240px 后，右下角出现返回顶部按钮 -->
+<BackTop visibilityHeight={240} />`;
+
+  const contentSource = `<p>页面内容行 1</p>
+<p>页面内容行 2</p>
+<p>页面内容行 3</p>`;
+
+  const backTopSource = `<script lang="ts">
+  import { BackTop } from "goose-ui";
+<\/script>
+
+<BackTop visibilityHeight={240} duration={300} label="返回顶部" />`;
 </script>
 
 <Page title="BackTop 返回顶部" description="滚动超过阈值后出现，点击平滑回到顶部">
-  <Card title="用法说明">
+  <CodePreview title="用法说明" code={basicSource}>
     <p class="note">本页较长，向下滚动后右下角会出现返回顶部按钮。</p>
     <ul class="list">
       <li>监听 window 滚动（passive），超过 <code>visibilityHeight</code> 显示</li>
       <li>点击执行自实现 easeOutCubic 补间（不依赖 CSS scroll-behavior）</li>
       <li>组件卸载自动解绑监听</li>
     </ul>
-  </Card>
+  </CodePreview>
 
-  <Card title="示例区域">
+  <CodePreview title="示例区域" code={contentSource}>
     {#each Array.from({ length: 24 }) as _, i (i)}
       <p class="row">滚动内容行 {i + 1}</p>
     {/each}
-  </Card>
+  </CodePreview>
+
+  <CodePreview title="自定义触发高度" code={backTopSource}>
+    <BackTop visibilityHeight={240} />
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />
   </Card>
-
-  <BackTop visibilityHeight={240} />
 </Page>
 
 <style>

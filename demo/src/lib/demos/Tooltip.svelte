@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Button, Card, Page, Tooltip, Row, Input} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const tooltipProps: PropsTableItem[] = [
     { name: "title", desc: "提示内容（必填）", type: "string | Snippet" },
@@ -11,18 +12,79 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const basicSource = `<script lang="ts">
+  import { Tooltip, Button } from "goose-ui";
+<\/script>
+
+<Tooltip title="这是一条提示信息">
+  <Button>Hover 我</Button>
+</Tooltip>`;
+
+  const placementSource = `<script lang="ts">
+  import { Tooltip, Button } from "goose-ui";
+<\/script>
+
+<!-- 上 / 下：top-start | top | top-end | bottom-start | bottom | bottom-end -->
+<Tooltip title="top" placement="top">
+  <Button size="small">top</Button>
+</Tooltip>
+
+<!-- 左 / 右：left-start | left | left-end | right-start | right | right-end -->
+<Tooltip title="left" placement="left">
+  <Button size="small">left</Button>
+</Tooltip>
+<Tooltip title="right" placement="right">
+  <Button size="small">right</Button>
+</Tooltip>`;
+
+  const triggerSource = `<script lang="ts">
+  import { Tooltip, Button, Input } from "goose-ui";
+<\/script>
+
+<Tooltip title="Hover 悬浮触发（默认）" trigger="hover">
+  <Button>Hover</Button>
+</Tooltip>
+
+<Tooltip title="Click 点击触发" trigger="click">
+  <Button>Click</Button>
+</Tooltip>
+
+<Tooltip title="Focus 聚焦触发" trigger="focus">
+  <Input placeholder="点击聚焦" clearable={false} />
+</Tooltip>`;
+
+  const multilineSource = `<script lang="ts">
+  import { Tooltip, Button } from "goose-ui";
+<\/script>
+
+<Tooltip title={"第一行\\n第二行\\n第三行"}>
+  <Button>多行文本</Button>
+</Tooltip>`;
+
+  const maxWidthSource = `<script lang="ts">
+  import { Tooltip, Button } from "goose-ui";
+<\/script>
+
+<Tooltip title="这是一段很长的提示文本，当内容超过最大宽度时会自动换行显示，适合用于需要详细说明的场景。" maxWidth={240}>
+  <Button>长文本 (240px)</Button>
+</Tooltip>
+
+<Tooltip title="限制更窄的最大宽度，文本会更早触发换行，用于空间紧凑的场景。" maxWidth={160}>
+  <Button>窄文本 (160px)</Button>
+</Tooltip>`;
 </script>
 
 <Page title="Tooltip 气泡提示" description="悬浮提示信息，支持 12 方向、三种触发方式、自动翻转" >
-  <Card title="基础用法">
+  <CodePreview title="基础用法" code={basicSource}>
     <Row>
       <Tooltip title="这是一条提示信息">
         <Button>Hover 我</Button>
       </Tooltip>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="12 个方向 Placement">
+  <CodePreview title="12 个方向 Placement" code={placementSource}>
     <div class="placement-ring">
       <div class="ring-row">
         <Tooltip title="top-start" placement="top-start"><Button size="small">top-start</Button></Tooltip>
@@ -50,9 +112,9 @@
         <Tooltip title="bottom-end" placement="bottom-end"><Button size="small">bottom-end</Button></Tooltip>
       </div>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="触发方式 Trigger">
+  <CodePreview title="触发方式 Trigger" code={triggerSource}>
     <Row>
       <Tooltip title="Hover 悬浮触发（默认）" trigger="hover">
         <Button>Hover</Button>
@@ -64,17 +126,17 @@
         <Input placeholder="点击聚焦" clearable={false} />
       </Tooltip>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="多行内容">
+  <CodePreview title="多行内容" code={multilineSource}>
     <Row>
       <Tooltip title={"第一行\n第二行\n第三行"}>
         <Button>多行文本</Button>
       </Tooltip>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="长文本自动换行">
+  <CodePreview title="长文本自动换行" code={maxWidthSource}>
     <Row>
       <Tooltip title="这是一段很长的提示文本，当内容超过最大宽度时会自动换行显示，适合用于需要详细说明的场景。" maxWidth={240}>
         <Button>长文本 (240px)</Button>
@@ -83,7 +145,7 @@
         <Button>窄文本 (160px)</Button>
       </Tooltip>
     </Row>
-  </Card>
+  </CodePreview>
   <Card title="Props">
     <PropsTable items={tooltipProps} />
   </Card>

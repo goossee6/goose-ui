@@ -206,7 +206,7 @@
 				itemSelector=".dropdown-item"
 				disabledMatch=""
 				showSelected={false}
-				hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+				hoverBackground="var(--accent-sub)"
 				radius="var(--radius-md)"
 			/>
 			{@render children?.()}

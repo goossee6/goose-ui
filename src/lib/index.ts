@@ -17,7 +17,22 @@ export {
 } from './components/notification';
 export { errorStore, pushError } from './components/errors';
 export { menuStore } from './components/contextMenuStore.svelte.js';
-export { themeStore, initTheme, setTheme, toggleTheme, toggleThemeFromEvent } from './components/themeStore.svelte.js';
+export {
+  themeStore,
+  initTheme,
+  setTheme,
+  toggleTheme,
+  toggleThemeFromEvent,
+  // 主题色（色相旋钮）：只配色相，明度/彩度按亮暗主题派生
+  hueStore,
+  setHue,
+  setHues,
+  resetHues,
+  getHues,
+  initHues,
+  HUE_ROLES,
+  DEFAULT_HUES,
+} from './components/themeStore.svelte.js';
 export { pageDirStore } from './components/pageDirStore.svelte.js';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
 export { confirmStore, showConfirm } from './components/confirm';
@@ -28,7 +43,7 @@ export type { MenuItemDef, MenuActionData } from './components/contextMenu';
 export type { Column } from './components/tableTypes';
 export type { SortState, SortDir } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
-export type { Theme } from './components/themeStore.svelte.js';
+export type { Theme, HueRole, HueMap } from './components/themeStore.svelte.js';
 export type { PageDir } from './components/pageDirStore.svelte.js';
 export type { SidebarTabGroup, SidebarTabItem, SidebarEntry } from './components/ui/Sidebar.svelte';
 

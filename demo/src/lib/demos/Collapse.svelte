@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Collapsible, Accordion} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const collapsibleProps: PropsTableItem[] = [
     { name: "open", desc: "展开状态", type: "boolean", default: "false" },
@@ -21,6 +22,78 @@
   let open1 = $state(false);
   let accValue = $state<string[]>(['a']);
   let accMulti = $state<string[]>(['x']);
+
+  const collapsibleSource = `<script lang="ts">
+  import { Collapsible } from "goose-ui";
+
+  let open1 = $state(false);
+<\/script>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+  <Collapsible open={open1} onchange={(o) => (open1 = o)}>
+    {#snippet trigger()}
+      <span>点我展开 / 收起（当前：{open1 ? '展开' : '收起'}）</span>
+    {/snippet}
+    <div>折叠内容区域。使用 grid-template-rows 0fr→1fr 实现无高度硬编码的平滑过渡。</div>
+  </Collapsible>
+  <Collapsible open={true} disabled>
+    {#snippet trigger()}
+      <span>禁用（保持展开）</span>
+    {/snippet}
+    <div>disabled 的触发区不可点击。</div>
+  </Collapsible>
+</div>`;
+
+  const accordionSource = `<script lang="ts">
+  import { Accordion } from "goose-ui";
+
+  let accValue = $state<string[]>(['a']);
+<\/script>
+
+{#snippet accA()}
+  <p>Collapsible 是受控的展开/收起容器，Accordion 在其之上组装出手风琴交互（互斥、多开、禁用）。</p>
+{/snippet}
+{#snippet accB()}
+  <p>Accordion 通过 <code>value</code> 数组驱动，<code>bind:value</code> 可直接读写展开状态。</p>
+{/snippet}
+{#snippet accC()}
+  <p>禁用项的内容不会渲染（disabled 面板不可展开）。</p>
+{/snippet}
+
+<Accordion
+  items={[
+    { value: 'a', label: '什么是 Collapsible？', content: accA },
+    { value: 'b', label: '什么是 Accordion？', content: accB },
+    { value: 'c', label: '禁用项', disabled: true, content: accC },
+  ]}
+  bind:value={accValue}
+/>`;
+
+  const multipleSource = `<script lang="ts">
+  import { Accordion } from "goose-ui";
+
+  let accMulti = $state<string[]>(['x']);
+<\/script>
+
+{#snippet multiX()}
+  <p>multiple 模式下点击其他项不会收起当前项。</p>
+{/snippet}
+{#snippet multiY()}
+  <p>第二项内容。</p>
+{/snippet}
+{#snippet multiZ()}
+  <p>第三项内容。</p>
+{/snippet}
+
+<Accordion
+  items={[
+    { value: 'x', label: '支持多开（multiple）', content: multiX },
+    { value: 'y', label: '第二项', content: multiY },
+    { value: 'z', label: '第三项', content: multiZ },
+  ]}
+  multiple
+  bind:value={accMulti}
+/>`;
 </script>
 
 {#snippet accA()}
@@ -43,7 +116,7 @@
 {/snippet}
 
 <Page title="Collapse 折叠面板" description="Collapsible 折叠容器与 Accordion 手风琴（共用底层）">
-  <Card title="Collapsible 折叠容器">
+  <CodePreview title="Collapsible 折叠容器" code={collapsibleSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <Collapsible open={open1} onchange={(o) => (open1 = o)}>
         {#snippet trigger()}
@@ -58,9 +131,9 @@
         <div>disabled 的触发区不可点击。</div>
       </Collapsible>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="Accordion 手风琴（单开）">
+  <CodePreview title="Accordion 手风琴（单开）" code={accordionSource}>
     <Accordion
       items={[
         { value: 'a', label: '什么是 Collapsible？', content: accA },
@@ -70,9 +143,9 @@
       bind:value={accValue}
     />
     <p class="note">value = [{accValue.join(', ')}]</p>
-  </Card>
+  </CodePreview>
 
-  <Card title="Accordion（多开 multiple）">
+  <CodePreview title="Accordion（多开 multiple）" code={multipleSource}>
     <Accordion
       items={[
         { value: 'x', label: '支持多开（multiple）', content: multiX },
@@ -83,7 +156,7 @@
       bind:value={accMulti}
     />
     <p class="note">value = [{accMulti.join(', ')}]</p>
-  </Card>
+  </CodePreview>
 
   <Card title="Props — Collapsible">
     <PropsTable items={collapsibleProps} />

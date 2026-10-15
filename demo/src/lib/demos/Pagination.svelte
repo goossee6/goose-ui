@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Pagination} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "page", desc: "当前页（双向绑定）", type: "number", default: "1" },
@@ -13,18 +14,34 @@
 
   let page = $state(1);
   let page2 = $state(5);
+
+  const basicSource = `<script lang="ts">
+  import { Pagination } from "goose-ui";
+
+  let page = $state(1);
+<\/script>
+
+<Pagination bind:page total={87} pageSize={10} />`;
+
+  const collapseSource = `<script lang="ts">
+  import { Pagination } from "goose-ui";
+
+  let page = $state(5);
+<\/script>
+
+<Pagination bind:page total={520} pageSize={10} siblingCount={2} />`;
 </script>
 
 <Page title="Pagination 分页" description="分页导航，自动折叠长页码列表">
-  <Card title="基础用法">
+  <CodePreview title="基础用法" code={basicSource}>
     <Pagination bind:page total={87} pageSize={10} onchange={(p) => (page = p)} />
     <p class="note">当前页：{page}</p>
-  </Card>
+  </CodePreview>
 
-  <Card title="长列表折叠（total=520, siblingCount=2）">
+  <CodePreview title="长列表折叠（total=520, siblingCount=2）" code={collapseSource}>
     <Pagination bind:page={page2} total={520} pageSize={10} siblingCount={2} />
     <p class="note">当前页：{page2}</p>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />

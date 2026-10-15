@@ -2,6 +2,7 @@
   import {Card, TitleBar, Page, Row, ThemeToggle, themeStore, toggleThemeFromEvent} from "goose-ui";
   import Box from '@lucide/svelte/icons/box';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const titleBarProps: PropsTableItem[] = [
     { name: "title", desc: "标题文本（无 logo 时作为渐变文字 logo）", type: "string", default: "''" },
@@ -14,28 +15,75 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const basicSource = `<script lang="ts">
+  import { TitleBar } from "goose-ui";
+<\/script>
+
+<TitleBar title="我的应用" />`;
+
+  const themeToggleSource = `<script lang="ts">
+  import { TitleBar, themeStore, toggleThemeFromEvent } from "goose-ui";
+<\/script>
+
+<TitleBar title="设置" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent} />`;
+
+  const subtitleSource = `<script lang="ts">
+  import { TitleBar, themeStore } from "goose-ui";
+<\/script>
+
+<TitleBar title="ToolKit" subtitle="Windows 工具箱" theme={themeStore.theme} />`;
+
+  const logoSegmentSource = `<script lang="ts">
+  import { TitleBar, themeStore } from "goose-ui";
+  import Box from "@lucide/svelte/icons/box";
+<\/script>
+
+<!-- 图标 logo + 副标题 -->
+<TitleBar logo={Box} title="我的应用" subtitle="Windows 工具箱" theme={themeStore.theme} />
+
+<!-- 图标 logo 未传 subtitle 时，纯文字回退显示 title -->
+<TitleBar logo={Box} title="我的应用" theme={themeStore.theme} />`;
+
+  const darkSource = `<script lang="ts">
+  import { TitleBar } from "goose-ui";
+<\/script>
+
+<TitleBar title="深色模式" theme="dark" />`;
+
+  const lightSource = `<script lang="ts">
+  import { TitleBar } from "goose-ui";
+<\/script>
+
+<TitleBar title="浅色模式" theme="light" />`;
+
+  const themeToggleComponentSource = `<script lang="ts">
+  import { ThemeToggle, Row } from "goose-ui";
+<\/script>
+
+<Row><ThemeToggle /></Row>`;
 </script>
 
 <Page title="TitleBar 标题栏" description="Wails3 桌面应用自定义窗口标题栏，支持拖拽、主题切换、窗口控制" >
-  <Card title="基础用法">
+  <CodePreview title="基础用法" code={basicSource}>
     <div class="demo-preview">
       <TitleBar title="我的应用" />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="带主题切换">
+  <CodePreview title="带主题切换" code={themeToggleSource}>
     <div class="demo-preview">
       <TitleBar title="设置" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="文字 logo + 副标题">
+  <CodePreview title="文字 logo + 副标题" code={subtitleSource}>
     <div class="demo-preview">
       <TitleBar title="ToolKit" subtitle="Windows 工具箱" theme={themeStore.theme} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="图标 logo + 副标题回退">
+  <CodePreview title="图标 logo + 副标题回退" code={logoSegmentSource}>
     <div class="demo-preview">
       <TitleBar logo={Box} title="我的应用" subtitle="Windows 工具箱" theme={themeStore.theme} />
     </div>
@@ -43,24 +91,24 @@
       <TitleBar logo={Box} title="我的应用" theme={themeStore.theme} />
     </div>
     <p class="demo-note" style="margin-top: 8px;">图标 logo 未传 subtitle 时，纯文字回退显示 title。</p>
-  </Card>
+  </CodePreview>
 
-  <Card title="深色主题">
+  <CodePreview title="深色主题" code={darkSource}>
     <div class="demo-preview demo-preview--dark dark">
       <TitleBar title="深色模式" theme="dark" />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="浅色主题">
+  <CodePreview title="浅色主题" code={lightSource}>
     <div class="demo-preview demo-preview--light light">
       <TitleBar title="浅色模式" theme="light" />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="ThemeToggle 组件">
+  <CodePreview title="ThemeToggle 组件" code={themeToggleComponentSource}>
     <p class="demo-note">独立的主题切换按钮，带圆形扩散动画：</p>
     <Row><ThemeToggle /></Row>
-  </Card>
+  </CodePreview>
 
   <Card title="说明">
     <div class="demo-note">

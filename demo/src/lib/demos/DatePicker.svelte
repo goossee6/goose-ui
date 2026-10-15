@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Calendar, RangeCalendar, DatePicker, DateRangePicker} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const calendarProps: PropsTableItem[] = [
     { name: "value", desc: "选中日期 'YYYY-MM-DD'（双向绑定）", type: "string", default: "''" },
@@ -35,10 +36,66 @@
   let picked = $state('2026-10-06');
   let pickedRangeStart = $state('');
   let pickedRangeEnd = $state('');
+
+  const calendarSource = `<script lang="ts">
+  import { Calendar } from "goose-ui";
+
+  let value = $state('2026-10-06');
+<\/script>
+
+<Calendar bind:value />
+<p>value = {value || '（空）'}</p>
+
+<!-- 限制范围并禁用特定日期 -->
+<Calendar
+  value=""
+  min="2026-10-05"
+  max="2026-10-20"
+  disabledDate={(iso) => iso.endsWith('06') || iso.endsWith('07')}
+/>`;
+
+  const rangeCalendarSource = `<script lang="ts">
+  import { RangeCalendar } from "goose-ui";
+
+  let start = $state('2026-10-01');
+  let end = $state('2026-10-07');
+<\/script>
+
+<!-- 先点起点，再点终点；悬停预览 -->
+<RangeCalendar bind:start bind:end />
+<p>{start || '（空）'} → {end || '（空）'}</p>`;
+
+  const datePickerSource = `<script lang="ts">
+  import { DatePicker } from "goose-ui";
+
+  let value = $state('2026-10-06');
+<\/script>
+
+<DatePicker bind:value />
+<p>value = {value || '（空）'}</p>
+
+<!-- 空状态 -->
+<DatePicker value="" placeholder="请选择日期" />
+
+<!-- 禁用 -->
+<DatePicker value="2026-10-06" disabled />`;
+
+  const dateRangePickerSource = `<script lang="ts">
+  import { DateRangePicker } from "goose-ui";
+
+  let start = $state('');
+  let end = $state('');
+<\/script>
+
+<DateRangePicker bind:start bind:end />
+<p>{start || '（空）'} → {end || '（空）'}</p>
+
+<!-- 空状态 -->
+<DateRangePicker start="" end="" placeholder="请选择日期范围" />`;
 </script>
 
 <Page title="Calendar / Date Picker 日历与日期选择" description="日历网格、范围日历与浮层选择器（方向键/PgUp/PgDn 键盘导航）">
-  <Card title="Calendar 日历">
+  <CodePreview title="Calendar 日历" code={calendarSource}>
     <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
       <div style="display:flex;flex-direction:column;gap:8px">
         <Calendar bind:value={calValue} />
@@ -49,31 +106,31 @@
         <p class="note">限制 10-05 ~ 10-20，且禁用 06/07 日</p>
       </div>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="RangeCalendar 范围日历">
+  <CodePreview title="RangeCalendar 范围日历" code={rangeCalendarSource}>
     <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
       <RangeCalendar bind:start={rangeStart} bind:end={rangeEnd} />
       <p class="note">{rangeStart || '（空）'} → {rangeEnd || '（空）'}（先点起点，再点终点；悬停预览）</p>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="DatePicker 日期选择器">
+  <CodePreview title="DatePicker 日期选择器" code={datePickerSource}>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
       <DatePicker bind:value={picked} />
       <DatePicker value="" placeholder="空状态" />
       <DatePicker value="2026-10-06" disabled />
     </div>
     <p class="note" style="margin-top:12px">value = {picked || '（空）'}</p>
-  </Card>
+  </CodePreview>
 
-  <Card title="DateRangePicker 范围选择器">
+  <CodePreview title="DateRangePicker 范围选择器" code={dateRangePickerSource}>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
       <DateRangePicker bind:start={pickedRangeStart} bind:end={pickedRangeEnd} />
       <DateRangePicker start="" end="" placeholder="空状态" />
     </div>
     <p class="note" style="margin-top:12px">{pickedRangeStart || '（空）'} → {pickedRangeEnd || '（空）'}</p>
-  </Card>
+  </CodePreview>
 
   <Card title="Props — Calendar / RangeCalendar">
     <PropsTable items={calendarProps} />

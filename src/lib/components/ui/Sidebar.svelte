@@ -393,7 +393,7 @@
       itemSelector=".nav-item, .collapsible-trigger"
       activeSelector={activeSel}
       background="var(--primary)"
-      hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+      hoverBackground="var(--accent-sub)"
       radius="var(--radius-md)"
     />
   </nav>
@@ -597,7 +597,7 @@
   }
   .sidebar-nav :global(.collapsible-trigger.stuck:hover:not(:disabled)) {
     /* 同色自背景（= pill hover 色叠 surface，不透明）：与下层 pill 同色叠加无视觉冲突 */
-    background: color-mix(in srgb, var(--primary) 15%, var(--surface));
+    background: color-mix(in srgb, var(--accent) 15%, var(--surface));
   }
   /* 菜单分组内容不做卡片式内边距/弱化色/分隔线（Collapsible 内容默认样式覆写） */
   .sidebar-nav :global(.collapsible-body) {
@@ -776,7 +776,7 @@
     transition: background 0.1s, color 0.1s;
   }
   .popover-item:hover {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    background: var(--accent-sub);
     color: var(--primary);
   }
   .popover-item-icon {
@@ -791,7 +791,7 @@
     color: rgba(255, 255, 255, 0.65);
   }
   :global(.dark) .popover-item:hover {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    background: var(--accent-sub);
     color: var(--primary);
   }
   :global(.dark) .popover-item--active {

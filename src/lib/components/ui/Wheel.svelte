@@ -228,8 +228,8 @@
 		top: 72px;
 		height: 36px;
 		border-radius: var(--radius-sm);
-		background: color-mix(in srgb, var(--primary) 10%, transparent);
-		border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+		background: var(--accent-sub);
+		border: 1px solid var(--accent-ring);
 		pointer-events: none;
 		z-index: 0;
 	}

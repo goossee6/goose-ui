@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Meter, Row} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "value", desc: "当前值", type: "number", default: "0" },
@@ -16,10 +17,32 @@
   let usage = $state(62);
   let mem = $state(81);
   let disk = $state(100);
+
+  const basicSource = `<script lang="ts">
+  import { Meter } from "goose-ui";
+
+  let usage = $state(62);
+  let mem = $state(81);
+  let disk = $state(100);
+<\/script>
+
+<Meter value={usage} label="网络流量" format={(n) => \`\${n}%\`} />
+<Meter value={mem} label="内存占用" format={(n) => \`\${n}%\`} />
+<Meter value={disk} label="磁盘使用" format={(n) => \`\${n}%\`} />
+<Meter value={45} min={0} max={200} label="自定义范围" threshold={60} />
+<Meter value={3.7} min={0} max={5} label="CPU 温度" format={(n) => \`\${n}℃\`} threshold={70} />`;
+
+  const stateSource = `<script lang="ts">
+  import { Meter, Row } from "goose-ui";
+<\/script>
+
+<Row><span style="width:120px">normal (&lt; 80%)</span><Meter value={50} style="max-width:240px" /></Row>
+<Row><span style="width:120px">high (≥ 80%)</span><Meter value={85} style="max-width:240px" /></Row>
+<Row><span style="width:120px">critical (= 100%)</span><Meter value={100} style="max-width:240px" /></Row>`;
 </script>
 
 <Page title="Meter 度量条" description="带阈值状态的水平度量条（区别于 ProgressBar 的进度语义）">
-  <Card title="基础用法">
+  <CodePreview title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Meter value={usage} label="网络流量" format={(n) => `${n}%`} />
       <Meter value={mem} label="内存占用" format={(n) => `${n}%`} />
@@ -27,15 +50,15 @@
       <Meter value={45} min={0} max={200} label="自定义范围" threshold={60} />
       <Meter value={3.7} min={0} max={5} label="CPU 温度" format={(n) => `${n}℃`} threshold={70} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="状态演示">
+  <CodePreview title="状态演示" code={stateSource}>
     <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text-muted)">
       <Row><span style="width:120px">normal (&lt; 80%)</span><Meter value={50} style="max-width:240px" /></Row>
       <Row><span style="width:120px">high (≥ 80%)</span><Meter value={85} style="max-width:240px" /></Row>
       <Row><span style="width:120px">critical (= 100%)</span><Meter value={100} style="max-width:240px" /></Row>
     </div>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />

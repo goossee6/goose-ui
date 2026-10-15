@@ -100,7 +100,7 @@
 		cursor: default;
 	}
 	.tw-cursor-char {
-		color: var(--primary, #6366f1);
+		color: var(--accent);
 		font-weight: 300;
 		animation: tw-blink 0.8s step-end infinite;
 		margin-left: 1px;

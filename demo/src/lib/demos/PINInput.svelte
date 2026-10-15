@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, PINInput, Row, Button, Notification} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "length", desc: "格子数", type: "number", default: "4" },
@@ -18,10 +19,31 @@
   let v2 = $state('');
   let v3 = $state('');
   let v4 = $state('');
+
+  const basicSource = `<script lang="ts">
+  import { PINInput } from "goose-ui";
+
+  let v1 = $state('');
+  let v2 = $state('');
+  let v3 = $state('');
+  let v4 = $state('');
+<\/script>
+
+<!-- 4 位数字，填满回调 -->
+<PINInput length={4} bind:value={v1} oncomplete={(v) => console.log('验证码：' + v)} />
+
+<!-- 6 位掩码 -->
+<PINInput length={6} mask bind:value={v2} />
+
+<!-- 分组分隔（4-4），允许非数字 -->
+<PINInput length={8} group={4} separator="–" numeric={false} bind:value={v3} />
+
+<!-- 禁用 -->
+<PINInput length={4} disabled bind:value={v4} placeholder="—" />`;
 </script>
 
 <Page title="PIN Input 验证码输入" description="分格验证码输入，支持自动跳格、粘贴与退格回跳">
-  <Card title="基础用法">
+  <CodePreview title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:20px">
       <div>
         <div class="pin-label">4 位数字（填满提示）</div>
@@ -47,7 +69,7 @@
         <Button size="small" onclick={() => (v1 = '1357')}>填入 1357</Button>
       </Row>
     </div>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />

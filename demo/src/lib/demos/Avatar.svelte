@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Avatar, AspectRatio, Row} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const avatarProps: PropsTableItem[] = [
     { name: "src", desc: "头像图片地址", type: "string", default: "''" },
@@ -16,10 +17,55 @@
     { name: "ratio", desc: "宽高比，同 CSS aspect-ratio", type: "string | number", default: "'16 / 9'" },
     { name: "children", desc: "内容（图片/视频自动填满）", type: "Snippet", default: "—" },
   ];
+
+  const avatarSource = `<script lang="ts">
+  import { Avatar, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Avatar size="small" name="Goose UI" />
+  <Avatar name="Goose UI" />
+  <Avatar size="large" name="Goose UI" />
+  <Avatar size={64} shape="square" name="Goose UI" />
+</Row>
+
+<Row>
+  <Avatar src="https://api.dicebear.com/9.x/thumbs/svg?seed=goose1" alt="goose" />
+  <Avatar name="Misaka" status="online" />
+  <Avatar name="Kuroko" status="busy" />
+  <Avatar name="Index" status="away" />
+  <Avatar name="Touma" status="offline" />
+</Row>
+
+<Row>
+  <Avatar style="background:var(--primary-soft);color:var(--primary)"><span style="font-size:14px">自定义</span></Avatar>
+</Row>`;
+
+  const ratioSource = `<script lang="ts">
+  import { AspectRatio, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <div style="width:220px">
+    <AspectRatio ratio="16 / 9">
+      <div>16 : 9</div>
+    </AspectRatio>
+  </div>
+  <div style="width:160px">
+    <AspectRatio ratio={1}>
+      <div>1 : 1</div>
+    </AspectRatio>
+  </div>
+  <div style="width:220px">
+    <AspectRatio ratio="4 / 3">
+      <div>4 : 3</div>
+    </AspectRatio>
+  </div>
+</Row>`;
 </script>
 
 <Page title="Avatar 头像 / AspectRatio 比例框" description="头像展示与固定宽高比容器">
-  <Card title="头像 Avatar">
+  <CodePreview title="头像 Avatar" code={avatarSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Row>
         <Avatar size="small" name="Goose UI" />
@@ -38,9 +84,9 @@
         <Avatar style="background:var(--primary-soft);color:var(--primary)"><span style="font-size:14px">自定义</span></Avatar>
       </Row>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="比例框 AspectRatio">
+  <CodePreview title="比例框 AspectRatio" code={ratioSource}>
     <Row>
       <div style="width:220px">
         <AspectRatio ratio="16 / 9">
@@ -58,7 +104,7 @@
         </AspectRatio>
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
   <Card title="Props — Avatar">
     <PropsTable items={avatarProps} />

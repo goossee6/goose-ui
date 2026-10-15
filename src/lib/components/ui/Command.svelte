@@ -158,7 +158,7 @@
 				<PillTrack
 					container={listEl}
 					activeSelector=".command-item.active"
-					background="color-mix(in srgb, var(--primary) 15%, transparent)"
+					background="var(--accent-sub)"
 					radius="var(--radius-md)"
 				/>
 				{#if !filtered.length}

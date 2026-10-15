@@ -79,7 +79,7 @@
 		padding-top: 40%;
 		left: -8%;
 		top: -18%;
-		background: color-mix(in srgb, var(--primary) 22%, transparent);
+		background: var(--accent-ring);
 	}
 	.bg-blob--b {
 		width: 35%;

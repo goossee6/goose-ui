@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Form, FormItem, Input, Button, RadioGroup, Notification} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const formProps: PropsTableItem[] = [
     { name: "layout", desc: "排列方向（label 与控件）", type: "'horizontal' | 'vertical'", default: "'vertical'" },
@@ -38,10 +39,68 @@
       Notification.success(`提交成功：${name}（${roleLabel}）`);
     }
   }
+
+  const horizontalSource = `<script lang="ts">
+  import { Form, FormItem, Input, Button, RadioGroup, Notification } from "goose-ui";
+
+  let name = $state("");
+  let role = $state("dev");
+  let email = $state("");
+  let errors = $state<Record<string, string>>({});
+
+  const roleOptions = [
+    { value: "dev", label: "开发" },
+    { value: "design", label: "设计" },
+    { value: "pm", label: "产品" },
+  ];
+
+  function submit() {
+    const next: Record<string, string> = {};
+    if (!name.trim()) next.name = "姓名不能为空";
+    if (!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)) next.email = "邮箱格式不正确";
+    errors = next;
+    if (Object.keys(next).length === 0) {
+      const roleLabel = roleOptions.find((o) => o.value === role)?.label ?? role;
+      Notification.success(\`提交成功：\${name}（\${roleLabel}）\`);
+    }
+  }
+<\/script>
+
+<Form layout="horizontal" labelWidth="80px" onsubmit={submit}>
+  <FormItem label="姓名" required error={errors.name} htmlFor="f-name">
+    <Input id="f-name" bind:value={name} placeholder="请输入姓名" />
+  </FormItem>
+  <FormItem label="邮箱" required error={errors.email} htmlFor="f-email">
+    <Input id="f-email" bind:value={email} placeholder="you@example.com" />
+  </FormItem>
+  <FormItem label="角色" hint="通过 context 读取 Form 的 layout/disabled">
+    <RadioGroup options={roleOptions} bind:value={role} />
+  </FormItem>
+  <FormItem label="">
+    <Button type="submit" variant="primary">提交</Button>
+  </FormItem>
+</Form>`;
+
+  const verticalSource = `<script lang="ts">
+  import { Form, FormItem, Input } from "goose-ui";
+<\/script>
+
+<!-- vertical 为默认布局，无需传 layout -->
+<Form>
+  <FormItem label="项目名称" required>
+    <Input placeholder="请输入项目名称" />
+  </FormItem>
+  <FormItem label="备注" hint="hint 在无 error 时显示">
+    <Input placeholder="选填" />
+  </FormItem>
+  <FormItem label="用户名" error="该用户名已被占用">
+    <Input value="goossee" />
+  </FormItem>
+</Form>`;
 </script>
 
 <Page title="Form 表单" description="Form 提供布局 context，FormItem 消费 label/必填/错误状态">
-  <Card title="横向布局 + 校验">
+  <CodePreview title="横向布局 + 校验" code={horizontalSource}>
     <Form layout="horizontal" labelWidth="80px" onsubmit={submit}>
       <FormItem label="姓名" required error={errors.name} htmlFor="f-name">
         <Input id="f-name" bind:value={name} placeholder="请输入姓名" />
@@ -56,9 +115,9 @@
         <Button type="submit" variant="primary">提交</Button>
       </FormItem>
     </Form>
-  </Card>
+  </CodePreview>
 
-  <Card title="纵向布局">
+  <CodePreview title="纵向布局" code={verticalSource}>
     <Form>
       <FormItem label="项目名称" required>
         <Input placeholder="纵向布局（默认）" />
@@ -70,7 +129,7 @@
         <Input value="goossee" />
       </FormItem>
     </Form>
-  </Card>
+  </CodePreview>
 
   <Card title="Props — Form">
     <PropsTable items={formProps} />

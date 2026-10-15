@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page, Image, Row} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "src", desc: "图片地址", type: "string", default: "''" },
@@ -18,18 +19,45 @@
   const ok = "data:image/svg+xml;utf8," + encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='200'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#93c5fd'/><stop offset='1' stop-color='#c4b5fd'/></linearGradient></defs><rect width='320' height='200' fill='url(#g)'/><text x='160' y='105' font-size='16' fill='#1e293b' text-anchor='middle' font-family='sans-serif'>goose-ui demo</text></svg>`
   );
+
+  const basicSource = `<script lang="ts">
+  import { Image, Row } from "goose-ui";
+
+  const src = "/images/photo.jpg";
+<\/script>
+
+<Row>
+  <Image {src} alt="渐变示例图" width="240px" height="150px" rounded />
+  <Image {src} alt="contain" width="240px" height="150px" fit="contain" rounded />
+</Row>`;
+
+  const fallbackSource = `<script lang="ts">
+  import { Image, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <!-- 默认兜底：图标 + alt 文案 -->
+  <Image src="/definitely-missing.png" alt="缺失图片" width="200px" height="120px" />
+
+  <!-- 自定义兜底 -->
+  <Image src="/definitely-missing.png" alt="自定义兜底" width="200px" height="120px">
+    {#snippet fallback()}
+      <span style="font-size:12px;color:var(--text-muted)">自定义占位内容</span>
+    {/snippet}
+  </Image>
+</Row>`;
 </script>
 
 <Page title="Image 图片" description="图片展示：懒加载、失败兜底、点击放大预览">
-  <Card title="基础用法">
+  <CodePreview title="基础用法" code={basicSource}>
     <Row>
       <Image src={ok} alt="渐变示例图" width="240px" height="150px" rounded />
       <Image src={ok} alt="contain" width="240px" height="150px" fit="contain" rounded />
     </Row>
     <p class="note">点击图片放大预览，Esc 或点击遮罩关闭。</p>
-  </Card>
+  </CodePreview>
 
-  <Card title="加载失败兜底">
+  <CodePreview title="加载失败兜底" code={fallbackSource}>
     <Row>
       <Image src="/definitely-missing.png" alt="缺失图片" width="200px" height="120px" onerror={() => {}} />
       <Image src="/definitely-missing.png" alt="自定义兜底" width="200px" height="120px">
@@ -38,7 +66,7 @@
         {/snippet}
       </Image>
     </Row>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={props} />

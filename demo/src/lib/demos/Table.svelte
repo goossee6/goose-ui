@@ -63,6 +63,7 @@
     { id: "role", header: "角色", render: (r) => r.role, sortable: false },
   ];
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const dataTableProps: PropsTableItem[] = [
     { name: "rows", desc: "行数据数组", type: "T[]", default: "[]" },
@@ -96,10 +97,192 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const dataTableSource = `<script lang="ts">
+  import { DataTable, Input, Icon, type Column } from "goose-ui";
+  import Search from "@lucide/svelte/icons/search";
+
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    status: "正常" | "超额";
+    storage: number;
+    createdAt: string;
+  }
+
+  const users: User[] = [
+    { id: 1, name: "张三", email: "zhangsan@example.com", role: "管理员", status: "正常", storage: 45, createdAt: "2024-01-15" },
+    { id: 2, name: "李四", email: "lisi@example.com", role: "编辑", status: "正常", storage: 78, createdAt: "2024-02-20" },
+  ];
+
+  // align / mono / custom / sortAccessor 控制列行为与排序
+  const columns: Column<User>[] = [
+    { id: "id", header: "ID", render: (r) => String(r.id), align: "center", mono: true },
+    { id: "name", header: "姓名", render: (r) => r.name },
+    { id: "email", header: "邮箱", render: (r) => r.email },
+    { id: "role", header: "角色", render: (r) => r.role },
+    { id: "status", header: "状态", render: (r) => r.status, custom: true, sortAccessor: (r) => r.status },
+    { id: "storage", header: "存储用量", render: (r) => \`\${r.storage}%\`, align: "right", sortAccessor: (r) => r.storage },
+    { id: "createdAt", header: "创建时间", render: (r) => r.createdAt, align: "right" },
+  ];
+
+  let highlight = $state("");
+<\/script>
+
+<Input name="highlight" placeholder="高亮关键字…" bind:value={highlight}>
+  {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
+</Input>
+
+<DataTable rows={users} {columns} {highlight} />`;
+
+  const cellSource = `<script lang="ts">
+  import { DataTable, StatusBadge, type Column } from "goose-ui";
+
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    status: "正常" | "超额";
+    storage: number;
+    createdAt: string;
+  }
+
+  const users: User[] = [
+    { id: 1, name: "张三", email: "zhangsan@example.com", role: "管理员", status: "正常", storage: 45, createdAt: "2024-01-15" },
+    { id: 3, name: "王五", email: "wangwu@example.com", role: "访客", status: "超额", storage: 105, createdAt: "2024-03-08" },
+  ];
+
+  // custom: true 的列交给 cell snippet 渲染
+  const columns: Column<User>[] = [
+    { id: "name", header: "姓名", render: (r) => r.name },
+    { id: "status", header: "状态", render: (r) => r.status, custom: true },
+  ];
+<\/script>
+
+<DataTable rows={users} {columns} cell={statusCell} />
+
+{#snippet statusCell(colId: string, row: User)}
+  {#if colId === "status"}
+    <StatusBadge variant={row.status === "超额" ? "warning" : "normal"} />
+  {:else}
+    {row[colId as keyof User]}
+  {/if}
+{/snippet}`;
+
+  const actionsSource = `<script lang="ts">
+  import { DataTable, Button, Notification, type Column } from "goose-ui";
+  import Eye from "@lucide/svelte/icons/eye";
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
+
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  }
+
+  const users: User[] = [
+    { id: 1, name: "张三", email: "zhangsan@example.com", role: "管理员" },
+    { id: 2, name: "李四", email: "lisi@example.com", role: "编辑" },
+  ];
+
+  const columns: Column<User>[] = [
+    { id: "name", header: "姓名", render: (r) => r.name, sortable: false },
+    { id: "email", header: "邮箱", render: (r) => r.email, sortable: false },
+    { id: "role", header: "角色", render: (r) => r.role, sortable: false },
+  ];
+<\/script>
+
+<DataTable rows={users} {columns} actions={rowActions} />
+
+{#snippet rowActions(row: User)}
+  <Button size="icon-sm" variant="ghost" icon={Eye} ariaLabel="查看" onclick={() => Notification.success(\`查看 \${row.name}\`)} />
+  <Button size="icon-sm" variant="ghost" icon={Pencil} ariaLabel="编辑" onclick={() => Notification.success(\`编辑 \${row.name}\`)} />
+  <Button size="icon-sm" variant="danger" icon={Trash2} ariaLabel="删除" onclick={() => Notification.error(\`删除 \${row.name}\`)} />
+{/snippet}`;
+
+  const stateSource = `<script lang="ts">
+  import { DataTable, type Column } from "goose-ui";
+
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  }
+
+  const columns: Column<User>[] = [
+    { id: "name", header: "姓名", render: (r) => r.name },
+    { id: "email", header: "邮箱", render: (r) => r.email },
+    { id: "role", header: "角色", render: (r) => r.role },
+  ];
+<\/script>
+
+<!-- 加载中 -->
+<DataTable rows={[]} {columns} loading={true} />
+
+<!-- 空状态（自定义文案） -->
+<DataTable rows={[]} {columns} emptyText="暂无用户数据" />`;
+
+  const dataListSource = `<script lang="ts">
+  import { DataList, StatusBadge } from "goose-ui";
+
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    status: "正常" | "超额";
+  }
+
+  const users: User[] = [
+    { id: 1, name: "张三", email: "zhangsan@example.com", role: "管理员", status: "正常" },
+    { id: 3, name: "王五", email: "wangwu@example.com", role: "访客", status: "超额" },
+  ];
+<\/script>
+
+<DataList rows={users}>
+  {#snippet children(row)}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-weight:500">{row.name}</div>
+        <div style="font-size:12px;color:var(--text-muted)">{row.email}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--text-muted)">{row.role}</span>
+        <StatusBadge variant={row.status === "超额" ? "warning" : "normal"} />
+      </div>
+    </div>
+  {/snippet}
+</DataList>`;
+
+  const statusBadgeSource = `<script lang="ts">
+  import { StatusBadge, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <StatusBadge variant="normal" />
+  <StatusBadge variant="warning" />
+  <StatusBadge variant="normal">自定义文本</StatusBadge>
+  <StatusBadge variant="warning">已超额</StatusBadge>
+</Row>`;
+
+  const labelSource = `<script lang="ts">
+  import { Label, Input } from "goose-ui";
+<\/script>
+
+<div style="display:flex;align-items:center;gap:12px">
+  <Label for="demo-input">表单标签</Label>
+  <Input id="demo-input" name="label-demo" placeholder="与 Label 关联的输入框" />
+</div>`;
 </script>
 
 <Page title="表格 Table" description="可排序表格、高亮搜索、列表、状态徽章">
-  <Card title="数据表格 DataTable（可排序 + 关键字高亮）">
+  <CodePreview title="数据表格 DataTable（可排序 + 关键字高亮）" code={dataTableSource}>
     {#snippet right()}
       <div style="width:220px">
         <Input name="highlight" placeholder="高亮关键字…" bind:value={highlight} onClear={() => Notification.success("已清除搜索")}>
@@ -110,24 +293,24 @@
     <div style="max-height:360px;overflow:auto">
       <DataTable rows={users} {columns} {highlight} menu="user-row" />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="自定义单元格渲染 cell snippet">
+  <CodePreview title="自定义单元格渲染 cell snippet" code={cellSource}>
     <div style="max-height:320px;overflow:auto">
       <DataTable rows={users} {columns} cell={statusCell} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="带操作列 actions">
+  <CodePreview title="带操作列 actions" code={actionsSource}>
     <DataTable rows={users} columns={simpleColumns} actions={rowActions} />
-  </Card>
+  </CodePreview>
 
-  <Card title="加载中 / 空状态">
+  <CodePreview title="加载中 / 空状态" code={stateSource}>
     <DataTable rows={[]} columns={simpleColumns} loading={true} />
     <DataTable rows={[]} columns={simpleColumns} emptyText="暂无用户数据" />
-  </Card>
+  </CodePreview>
 
-  <Card title="数据列表 DataList">
+  <CodePreview title="数据列表 DataList" code={dataListSource}>
     <div style="max-height:300px">
       <DataList rows={users}>
         {#snippet children(row)}
@@ -144,23 +327,23 @@
         {/snippet}
       </DataList>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="状态徽章 StatusBadge">
+  <CodePreview title="状态徽章 StatusBadge" code={statusBadgeSource}>
     <Row>
       <StatusBadge variant="normal" />
       <StatusBadge variant="warning" />
       <StatusBadge variant="normal">自定义文本</StatusBadge>
       <StatusBadge variant="warning">已超额</StatusBadge>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="标签 Label">
+  <CodePreview title="标签 Label" code={labelSource}>
     <div class="label-demo">
       <Label for="demo-input">表单标签</Label>
       <Input id="demo-input" name="label-demo" placeholder="与 Label 关联的输入框" />
     </div>
-  </Card>
+  </CodePreview>
   <Card title="DataTable Props">
     <PropsTable items={dataTableProps} />
   </Card>

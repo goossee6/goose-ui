@@ -2,6 +2,7 @@
   import {Card, Page, Carousel, Row, Button, Notification} from "goose-ui";
   import type { CarouselItem } from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const props: PropsTableItem[] = [
     { name: "items", desc: "幻灯片数据（src 或 title/desc/color 纯色卡）", type: "CarouselItem[]", default: "[]" },
@@ -22,10 +23,48 @@
   ];
 
   let autoplay = $state(true);
+
+  const autoplaySource = `<script lang="ts">
+  import { Carousel, Button, Row, type CarouselItem } from "goose-ui";
+
+  const cards: CarouselItem[] = [
+    { title: "零第三方依赖", desc: "纯 Svelte 5 + CSS 变量", color: "#dbeafe" },
+    { title: "Wails3 友好", desc: "桌面应用场景开箱即用", color: "#dcfce7" },
+    { title: "Runes 原生", desc: "$props / $state / $derived", color: "#fef9c3" },
+    { title: "主题可换", desc: "theme.css 单文件定制", color: "#fae8ff" },
+  ];
+
+  let autoplay = $state(true);
+<\/script>
+
+<Row>
+  <Button size="small" variant={autoplay ? "primary" : "default"} onclick={() => (autoplay = !autoplay)}>
+    {autoplay ? "停止自动播放" : "开始自动播放"}
+  </Button>
+  <span>{autoplay ? "悬停轮播区可暂停" : "手动点击箭头/指示点切换"}</span>
+</Row>
+
+<div style="margin-top:12px;max-width:520px">
+  <Carousel items={cards} autoplay={autoplay} interval={2500} onchange={(i) => {}} />
+</div>`;
+
+  const imageSource = `<script lang="ts">
+  import { Carousel, Notification } from "goose-ui";
+<\/script>
+
+<div style="max-width:520px">
+  <Carousel
+    items={[
+      { src: "https://picsum.photos/seed/goose1/520/200" },
+      { src: "https://picsum.photos/seed/goose2/520/200" },
+    ]}
+    onchange={(i) => Notification.info(\`切换到第 \${i + 1} 张\`)}
+  />
+</div>`;
 </script>
 
 <Page title="Carousel 轮播图" description="手动/自动切换，悬停暂停，首尾循环">
-  <Card title="纯色卡片 + 自动播放">
+  <CodePreview title="纯色卡片 + 自动播放" code={autoplaySource}>
     <Row>
       <Button size="small" variant={autoplay ? "primary" : "default"} onclick={() => (autoplay = !autoplay)}>
         {autoplay ? "停止自动播放" : "开始自动播放"}
@@ -35,9 +74,9 @@
     <div style="margin-top:12px;max-width:520px">
       <Carousel items={cards} autoplay={autoplay} interval={2500} onchange={(i) => {}} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="图片模式（不可用时浏览器回退提示）">
+  <CodePreview title="图片模式（不可用时浏览器回退提示）" code={imageSource}>
     <div style="max-width:520px">
       <Carousel
         items={[
@@ -47,7 +86,7 @@
         onchange={(i) => Notification.info(`切换到第 ${i + 1} 张`)}
       />
     </div>
-  </Card>
+  </CodePreview>
 
   <Card title="Props — CarouselItem">
     <PropsTable

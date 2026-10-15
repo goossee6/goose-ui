@@ -139,7 +139,7 @@
 	}
 	.segment-field:focus-within {
 		border-color: var(--primary);
-		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+		box-shadow: 0 0 0 3px var(--accent-ring);
 	}
 	.segment-field:has(:disabled) {
 		opacity: 0.5;

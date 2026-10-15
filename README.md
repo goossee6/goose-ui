@@ -35,28 +35,70 @@ pnpm add goose-ui
 
 ## 快速开始
 
-在应用入口文件中引入主题：
+### 1. 引入主题样式（应用入口，只需一次）
 
 ```ts
 import "goose-ui/styles/theme.css";
 ```
 
-在组件中按需导入：
+### 2. 用组件
 
 ```svelte
-<script>
-  import { Button, Card, Modal, Notification, NotificationProvider } from 'goose-ui';
+<script lang="ts">
+  import { Button, Card, Notification, NotificationProvider } from "goose-ui";
 </script>
 
-<!-- 全局挂载通知容器（App.svelte 顶层） -->
+<!-- 全局挂载通知容器（App.svelte 顶层，只需一次） -->
 <NotificationProvider />
 
 <Card title="用户信息">
   <p>内容</p>
 </Card>
 
-<Button variant="primary" onclick={() => Notification.success('成功')}>保存</Button>
+<Button variant="primary" onclick={() => Notification.success("保存成功")}>保存</Button>
 ```
+
+### 3. 需要完整应用外壳时（Wails3 / 后台应用）
+
+`Layout` 把「标题栏 + 侧边导航 + 内容卡片」三区一次组装好，开箱即用：
+
+```svelte
+<script lang="ts">
+  import {
+    Layout, Sidebar, Page, NotificationProvider,
+    themeStore, toggleThemeFromEvent,
+    type SidebarEntry,
+  } from "goose-ui";
+  import House from "@lucide/svelte/icons/house";
+
+  const groups: SidebarEntry[] = [
+    { value: "home", label: "首页", icon: House },
+    { title: "组件", items: [{ value: "button", label: "按钮" }] },
+  ];
+  let active = $state("home");
+</script>
+
+<NotificationProvider />
+
+<Layout
+  title="我的应用"
+  theme={themeStore.theme}
+  onThemeToggle={toggleThemeFromEvent}
+>
+  {#snippet tabs()}
+    <Sidebar {groups} bind:activeTab={active} embedded shadow={false} />
+  {/snippet}
+
+  {#if active === "home"}
+    <Page title="首页" description="内容区">…</Page>
+  {:else if active === "button"}
+    <Page title="按钮">…</Page>
+  {/if}
+</Layout>
+```
+
+- `themeStore` + `toggleThemeFromEvent` 让标题栏的主题按钮带圆形扩散转场
+- 想看每个组件的真实效果与可复制源码，直接跑 demo（见上）——每个用法都带「效果 / 源码」切换与一键复制
 
 ## 导入方式
 
@@ -119,9 +161,9 @@ import "goose-ui/styles/theme.css";
 | 组件           | 说明                                                                       |
 | -------------- | -------------------------------------------------------------------------- |
 | Input          | 输入框，clearable/Enter 回调/digitsOnly/status，prefix/suffix 为 snippet    |
-| Select         | 下拉选择，支持键盘导航、meta 标签、分组吸顶（组头），无滚动条+两侧箭头滚动区 |
-| MultiSelect    | 多选下拉，支持 badge 标签与分组吸顶（组头）                                 |
-| CreatableSelect | 可新建搜索选择器，支持静态/异步数据源                                      |
+| Select         | 下拉选择，支持键盘导航、meta 标签、分组吸顶（组头），无滚动条+两侧箭头滚动区；combobox/listbox ARIA 关联（aria-controls / aria-activedescendant） |
+| MultiSelect    | 多选下拉，支持 badge 标签与分组吸顶（组头）、Escape/方向键/Enter 键盘操作             |
+| CreatableSelect | 可新建搜索选择器，支持静态/异步数据源；搜索框 role=combobox，选项列表 role=listbox |
 | Checkbox       | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）  |
 | RadioGroup | 单选组（pill 分段轨道，context 注入）                                  |
 | Toggle         | iOS 风格开关，带弹性动画                                                    |
@@ -133,7 +175,7 @@ import "goose-ui/styles/theme.css";
 | Textarea       | 多行文本域，rows/status/maxlength + resize: vertical                         |
 | DropZone       | 拖拽上传区                                                                   |
 | Form / FormItem | 表单容器与表单项（context 传递 layout/labelWidth，必填星号 + 错误态）      |
-| TimePicker     | 时间选择器（时/分(/秒) 列 + 「现在」快捷 + 自动翻转）                        |
+| TimePicker     | 时间选择器（时/分(/秒) 惯性滚轮 Wheel，拖拽+吸附+停稳提交，「现在」快捷）      |
 
 ### 日期与时间
 
@@ -144,9 +186,11 @@ import "goose-ui/styles/theme.css";
 | DateRangeField | 日期范围分段字段（start/end 双向绑定）                      |
 | TimeRangeField | 时间范围分段字段                                            |
 | Calendar       | 日历网格（月导航、min/max、disabledDate、方向键/PgUp/PgDn） |
-| RangeCalendar  | 范围日历（先起点后终点，悬停预览，清除）                    |
+| RangeCalendar  | 范围日历（先起点后终点，悬停预览，清除；方向键移动光标、Enter 提交、PgUp/PgDn 翻月） |
 | DatePicker     | 日期选择器（触发器 + 浮层 Calendar，自动翻转、清除）         |
 | DateRangePicker | 范围选择器（触发器 + 浮层 RangeCalendar）                   |
+
+> 日期/时间选择器的清除按钮为独立 `<button>`（可 Tab 聚焦 + Enter/Space 触发），由绝对定位叠在触发器图标位。
 
 ### 数据展示
 
@@ -164,7 +208,7 @@ import "goose-ui/styles/theme.css";
 | ProgressBytes  | 上传进度（字节/速度/ETA）                |
 | ProgressSlotBar | 分片上传进度                            |
 | UsageBar       | 用量/限额进度条                          |
-| Meter          | 度量条（threshold/critical 状态）        |
+| Meter          | 度量条（threshold 转高亮 / critical 转危险色，role=progressbar） |
 | Typewriter     | 打字机效果，支持逐字文本或淡入 Snippet   |
 | Carousel       | 轮播图（手动/自动播放、悬停暂停、首尾循环） |
 | Time           | 实时时钟（time/date/datetime + 12h 制）  |
@@ -179,8 +223,8 @@ import "goose-ui/styles/theme.css";
 | Sidebar         | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）                                       |
 | Header          | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                    |
 | NavigationMenu  | 导航菜单（面板定位/翻转，链接 + 描述）                                                                           |
-| Menubar         | 菜单栏（横向方向键，复用 DropdownMenu）                                                                          |
-| DropdownMenu    | 下拉菜单（flip 测量、键盘导航）                                                                                  |
+| Menubar         | 菜单栏（横向方向键：焦点在触发器间 roving，已展开时自动切换菜单；复用 DropdownMenu）                              |
+| DropdownMenu    | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                                                     |
 | Toolbar         | 工具栏（role=toolbar + roving 方向键）                                                                           |
 | Layout          | Wails3 应用整体布局（TitleBar + 侧栏 tabs + 内容区）                                                             |
 | BackTop         | 返回顶部（超过阈值淡入 + easeOutCubic 平滑回顶）                                                                  |
@@ -193,12 +237,12 @@ import "goose-ui/styles/theme.css";
 | -------------------- | ---------------------------------------------------------------- |
 | Modal                | 模态弹窗（fade+scale 转场、backdrop blur）                       |
 | Drawer               | 抽屉弹窗（4 方向 + 景深效果 + portal）                           |
-| Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭）                         |
+| Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭；placement 支持 bottom/top × start/end 对齐） |
 | AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                  |
 | Command              | 命令面板（Ctrl/Cmd+K、分组、键盘导航）                            |
-| LinkPreview          | 链接预览（延迟悬停、翻转）                                        |
+| LinkPreview          | 链接预览（延迟悬停、翻转、卡片水平居中于锚点）                     |
 | Tooltip              | 气泡提示（12 方向 + 自动翻转 + hover/focus/click 触发）          |
-| NotificationProvider | 通知容器（App 顶层挂载一次，配合 Notification API 使用）          |
+| NotificationProvider | 通知容器；`store` prop 决定渲染哪份 store（默认全局单例，可传独立实例） |
 | NotificationItem     | 单条通知（由 NotificationProvider 内部渲染）                      |
 | ErrorDialog          | 错误弹窗（配合 pushError 使用）                                   |
 | ConfirmDialog        | 确认框容器（App 顶层挂载一次，配合 showConfirm 使用）             |
@@ -331,6 +375,8 @@ import "goose-ui/styles/theme.css";
       items: [{ value: "port", label: "端口扫描", icon: Wrench }],
     },
   ];
+
+  let activeTab = $state("port");
 </script>
 
 <Sidebar {groups} bind:activeTab mode="float" />
@@ -353,6 +399,8 @@ import "goose-ui/styles/theme.css";
     { value: "home", label: "首页", icon: House }, // 顶层项，排在分组之间任意位置
     { title: "工具", items: [{ value: "port", label: "端口扫描" }] },
   ];
+
+  let activeTab = $state("home");
 </script>
 
 <Sidebar {groups} bind:activeTab />
@@ -365,6 +413,14 @@ import "goose-ui/styles/theme.css";
 渲染在导航列表**末尾**，不新增额外 footer 层级：空间充足时贴底，列表超高时顺次接在末尾；与普通导航项**共享同一 pill**（切换时 pill 连续滑入而非淡出淡入）；左缘与分组标题对齐（1 级）；侧栏折叠时隐藏。
 
 ```svelte
+<script lang="ts">
+  import { Sidebar, type SidebarEntry } from "goose-ui";
+  import SettingsIcon from "@lucide/svelte/icons/settings";
+
+  const groups: SidebarEntry[] = [{ title: "工具", items: [{ value: "port", label: "端口扫描" }] }];
+  let activeTab = $state("port");
+</script>
+
 <Sidebar
   {groups}
   bind:activeTab
@@ -380,6 +436,13 @@ import "goose-ui/styles/theme.css";
 `footer` 是 snippet，内容完全由项目自定义（A 文本、B 按钮随项目放什么）：
 
 ```svelte
+<script lang="ts">
+  import { Sidebar, ThemeToggle, type SidebarEntry } from "goose-ui";
+
+  const groups: SidebarEntry[] = [{ title: "工具", items: [{ value: "port", label: "端口扫描" }] }];
+  let activeTab = $state("port");
+</script>
+
 <Sidebar {groups} bind:activeTab>
   {#snippet footer()}
     <div class="sidebar-footer-inner">
@@ -441,6 +504,29 @@ import { Notification, errorToString } from "goose-ui";
 Notification.error(`加载失败: ${errorToString(err)}`);
 ```
 
+#### 多个互不干扰的通知容器
+
+`Notification` 绑定在**全局单例 store** 上，所有不传 `store` 的 `<NotificationProvider />` 都渲染这一份（默认用法）。
+若需要彼此独立的容器（例如主窗口与浮窗、或不同区域各管各的通知），用工厂显式建实例：
+
+```svelte
+<script lang="ts">
+  import { NotificationProvider, createNotificationStore, createNotification } from "goose-ui";
+
+  const storeA = createNotificationStore();
+  const notifyA = createNotification(storeA);   // 快捷方法与 storeA 绑定
+</script>
+
+<NotificationProvider store={storeA} />
+<button onclick={() => notifyA.success({ title: "只出现在 storeA" })}>发送</button>
+```
+
+- 两份 store 的通知列表、id 序列、暂停位完全独立；卸载其中一个不影响另一个
+- `<NotificationProvider />` 的 props：`store`（渲染哪份 store）、`offset`（位置微调样式片段，
+  多容器同挂载时用 `top:...px;left:...px;` 错开浮层）、`gap`、`visibleToasts`、`expand`、`hotkey`
+- `Notification.xxx()` 不使用 Svelte context：`getContext()` 只能在组件初始化期调用，
+  在事件处理器里会抛 `lifecycle_outside_component`，因此独立容器必须显式传 store
+
 ### 确认框 API
 
 ```ts
@@ -474,10 +560,53 @@ themeStore.theme; // 'light' | 'dark'，响应式，多实例共享
 setTheme("dark"); // 显式设置并持久化
 toggleTheme(); // 切换（传 { x, y } 时启用圆形扩散转场）
 toggleThemeFromEvent; // 主题按钮回调：以按钮中心为圆心圆形扩散，直接作 onThemeToggle 传入
-initTheme(); // 幂等：应用持久化/系统偏好（ThemeToggle 挂载时自动调用）
+initTheme(); // 幂等：应用持久化/系统偏好 + 主题色（ThemeToggle 挂载时自动调用）
 ```
 
 单独使用 `<ThemeToggle />` 无需任何配置：自动读取偏好、持久化、同步所有实例。
+
+### 主题色 API
+
+主题色只暴露**色相**一个自由度，明度与彩度由系统按亮/暗主题各自派生，因此不会配出对比度崩掉的主题。
+
+```ts
+import { setHue, setHues, resetHues, getHues, hueStore, DEFAULT_HUES } from "goose-ui";
+
+setHue("accent", 25); // 单改：把强调色转成橙色
+setHues({ accent: 25, info: 30 }); // 批量
+resetHues(); // 恢复默认并清除持久化
+getHues(); // { accent: 25, complement: 160, ... }
+hueStore.hues; // 响应式，设置界面可直接绑定
+```
+
+- 色相写入 `<html>` 内联样式，**全局生效**（含浮层、portal 出去的元素），并持久化到 `localStorage`
+- 六个角色：`accent` / `complement` / `danger` / `success` / `warning` / `info`
+- 默认值见 `DEFAULT_HUES`；`HUE_ROLES` 为角色顺序数组
+- **纯 CSS 也能配**，无需任何 JS：
+
+```css
+:root {
+  --hue-accent: 25; /* 强调色 */
+  --hue-complement: 230; /* 互补色 */
+  --hue-info: 30; /* 信息 */
+  --hue-danger: 25; /* 危险 */
+  --hue-success: 145; /* 完成 */
+  --hue-warning: 75; /* 警告 */
+}
+```
+
+#### 色彩角色对照
+
+| 角色 | 变量 | 用途 |
+| --- | --- | --- |
+| 强调色 | `--accent` / `--accent-hover` / `--accent-text` | 激活项、主按钮、选中态 |
+| 副强调色 | `--accent-sub` | 低透明度强调色：hover 底、轻淡染 |
+| 焦点环 / 选中强调 | `--accent-ring` / `--accent-strong` | 焦点外圈 / 更重的选中底色 |
+| 互补色 | `--complement` / `--complement-hover` / `--complement-sub` | 与强调色形成对比的位置、进度渐变终点 |
+| 中性黑/灰 | `--neutral-bg` / `--neutral-surface` / `--neutral-surface-2` / `--neutral-border` | 大面积背景填充（无彩色，不参与色相配置） |
+| 危险 / 完成 / 警告 / 信息 | `--danger` / `--success` / `--warning` / `--info`（各带 `-hover` `-soft` `-text` `-border`） | 状态语义 |
+
+> demo 侧栏「设置」页提供可视化调节：6 个色相滑块 + 7 套预设 + 实时预览 + 恢复默认。
 
 ### 右键菜单 API
 
@@ -493,21 +622,43 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 - 配合顶层挂载 `<ContextMenu />` 使用
 - `cellMenuAttrs("row", data)` 生成 `data-menu-*` 属性，绑定到表格单元格
+- `onMenuAction(menu, action, handler)` 返回取消订阅函数。注意同一 `(menu, action)` **只保留最后注册的
+  handler**，且取消订阅会移除该 action 的 handler——多个组件注册同名菜单/同 action 时请改用不同的
+  action 名（或由上层统一注册一次）
 
 ## 主题定制
 
-所有组件使用 CSS 自定义属性，覆盖 `:root` 变量即可定制主题（完整变量清单见 `src/lib/styles/theme.css`）：
+### 优先用色相旋钮（推荐）
+
+不用写任何颜色值，改色相即可得到亮/暗两套协调配色：
 
 ```css
 :root {
-  /* 品牌色 */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
+  --hue-accent: 25; /* 换成橙色主题 */
+  --hue-complement: 230;
+}
+```
+
+系统会据此派生 `--accent` / `--accent-sub` / 焦点环 / 互补色等全部变量，并分别为亮色与暗色选择
+合适的明度与彩度。**这是推荐方式** —— 你不必（也不应该）逐个手写颜色。
+
+### 需要完全自定义时
+
+所有组件都消费 CSS 自定义属性，覆盖 `:root` 即可（完整清单见 `src/lib/styles/theme.css`）：
+
+```css
+:root {
+  /* 强调色（也可只改上面的 --hue-accent） */
+  --accent: oklch(0.51 0.24 264);
+  --accent-sub: color-mix(in srgb, var(--accent) 15%, transparent);
+
+  /* 状态色 */
   --danger: #dc2626;
-  --info: #3b82f6;
-  --warning: #f59e0b;
   --success: #22c55e;
-  /* 基础色 */
+  --warning: #f59e0b;
+  --info: #3b82f6;
+
+  /* 中性面与文字 */
   --bg: #f5f5f5;
   --surface: #fafaf7;
   --text: #2c2c2e;
@@ -515,7 +666,10 @@ onMenuAction("row", "del", (data) => console.log(data));
 }
 ```
 
-暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换；子树内用 `.light` 类可局部恢复浅色 token（与 `.dark` 对称）。
+- 旧名 `--primary` / `--primary-hover` / `--primary-soft` / `--primary-text` 仍然可用，是
+  `--accent` 体系的别名，既有代码无需改动
+- 中性色（`--bg` / `--surface*` / `--border`）刻意不参与色相配置 —— 大面积背景不应被染色
+- 暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换；子树内用 `.light` 类可局部恢复浅色 token
 
 ### 工具类（theme.css 全局提供）
 

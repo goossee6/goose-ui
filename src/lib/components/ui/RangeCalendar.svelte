@@ -339,7 +339,7 @@
 		border-radius: 0;
 	}
 	.rc-day.preview {
-		background: color-mix(in srgb, var(--primary) 30%, transparent);
+		background: var(--accent-strong);
 	}
 	.rc-day.selected,
 	.rc-day.selected.preview {

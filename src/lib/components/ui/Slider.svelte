@@ -166,7 +166,7 @@
 		left: 0;
 		height: 6px;
 		border-radius: 9999px;
-		background: linear-gradient(90deg, var(--primary), #06b6d4);
+		background: linear-gradient(90deg, var(--accent), var(--complement));
 		pointer-events: none;
 	}
 	.slider-thumb {
@@ -183,6 +183,6 @@
 	}
 	.slider-track:hover .slider-thumb,
 	.slider-track:focus-visible .slider-thumb {
-		box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+		box-shadow: 0 0 0 4px var(--accent-ring);
 	}
 </style>

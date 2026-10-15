@@ -12,6 +12,7 @@
   let limited = $state('');
 
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const inputProps: PropsTableItem[] = [
     { name: "value", desc: "输入值（可双向绑定）", type: "string", default: "''" },
@@ -50,10 +51,107 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const statusSource = `<script lang="ts">
+  import { Input, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Input name="error" placeholder="错误状态" status="error" />
+  <Input name="warning" placeholder="警告状态" status="warning" />
+</Row>`;
+
+  const iconsSource = `<script lang="ts">
+  import { Input, Icon, Row } from "goose-ui";
+  import Search from "@lucide/svelte/icons/search";
+  import User from "@lucide/svelte/icons/user";
+  import Mail from "@lucide/svelte/icons/mail";
+  import Lock from "@lucide/svelte/icons/lock";
+<\/script>
+
+<Row>
+  <Input name="prefix-icon" placeholder="前缀图标">
+    {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
+  </Input>
+
+  <Input name="suffix-icon" placeholder="后缀图标">
+    {#snippet suffix()}<Icon icon={Mail} size={16} />{/snippet}
+  </Input>
+
+  <Input name="both-icon" placeholder="前缀 + 后缀">
+    {#snippet prefix()}<Icon icon={User} size={16} />{/snippet}
+    {#snippet suffix()}<Icon icon={Lock} size={16} />{/snippet}
+  </Input>
+</Row>`;
+
+  const clearableSource = `<script lang="ts">
+  import { Input, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Input name="search" placeholder="可清空（默认）" />
+  <Input name="no-clear" placeholder="禁用清空" clearable={false} />
+</Row>`;
+
+  const disabledSource = `<script lang="ts">
+  import { Input } from "goose-ui";
+<\/script>
+
+<Input name="disabled" placeholder="禁用状态" disabled value="不能编辑" />`;
+
+  const readonlySource = `<script lang="ts">
+  import { Input } from "goose-ui";
+<\/script>
+
+<Input name="readonly" placeholder="只读状态" readonly value="只读值" />`;
+
+  const digitsOnlySource = `<script lang="ts">
+  import { Input } from "goose-ui";
+
+  let amount = $state("");
+<\/script>
+
+<Input name="digits" placeholder="只能输入数字" digitsOnly bind:value={amount} />
+<p>值: "{amount}"</p>`;
+
+  const enterSource = `<script lang="ts">
+  import { Input, Notification } from "goose-ui";
+
+  let text = $state("");
+<\/script>
+
+<Input
+  name="enter-submit"
+  placeholder="输入后按回车"
+  onenter={() => Notification.success("回车提交: " + text)}
+  bind:value={text}
+/>`;
+
+  const textareaSource = `<script lang="ts">
+  import { Textarea, Row } from "goose-ui";
+
+  let multiText = $state("");
+  let limited = $state("");
+<\/script>
+
+<Row>
+  <Textarea placeholder="请输入多行文本" rows={4} bind:value={multiText} />
+
+  <!-- 字符限制 -->
+  <Textarea placeholder="最多 100 字" maxlength={100} bind:value={limited} />
+  <span>{limited.length}/100</span>
+
+  <!-- 错误 / 警告状态 -->
+  <Textarea status="error" placeholder="错误状态" value="字数超出限制" />
+  <Textarea status="warning" placeholder="警告状态" value="内容可能过长" />
+
+  <!-- 禁用 -->
+  <Textarea disabled placeholder="禁用状态" value="不能编辑" />
+</Row>`;
 </script>
 
 <Page title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、多行文本域" >
-  <Card title="状态 Status">
+  <CodePreview title="状态 Status" code={statusSource}>
     <Row>
       <div class="demo-col">
         <Input name="error" placeholder="错误状态" status="error" />
@@ -62,9 +160,9 @@
         <Input name="warning" placeholder="警告状态" status="warning" />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="图标 Icons">
+  <CodePreview title="图标 Icons" code={iconsSource}>
     <Row>
       <div class="demo-col">
         <Input name="prefix-icon" placeholder="前缀图标">
@@ -88,9 +186,9 @@
         </Input>
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="清空 Clearable">
+  <CodePreview title="清空 Clearable" code={clearableSource}>
     <Row>
       <div class="demo-col">
         <Input name="search" placeholder="可清空（默认）" bind:value={search} />
@@ -99,42 +197,42 @@
         <Input name="no-clear" placeholder="禁用清空" clearable={false} />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="禁用 Disabled">
+  <CodePreview title="禁用 Disabled" code={disabledSource}>
     <Row>
       <div class="demo-col">
         <Input name="disabled" placeholder="禁用状态" disabled value="不能编辑" />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="只读 Readonly">
+  <CodePreview title="只读 Readonly" code={readonlySource}>
     <Row>
       <div class="demo-col">
         <Input name="readonly" placeholder="只读状态" readonly value="只读值" />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="纯数字 digitsOnly">
+  <CodePreview title="纯数字 digitsOnly" code={digitsOnlySource}>
     <Row>
       <div class="demo-col">
         <Input name="digits" placeholder="只能输入数字" digitsOnly bind:value={amount} />
       </div>
       <span class="demo-val">值: "{amount}"</span>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="回车事件 onenter">
+  <CodePreview title="回车事件 onenter" code={enterSource}>
     <Row>
       <div class="demo-col">
         <Input name="enter-submit" placeholder="输入后按回车" onenter={() => Notification.success(`回车提交: ${text}`)} bind:value={text} />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="多行 Textarea">
+  <CodePreview title="多行 Textarea" code={textareaSource}>
     <Row>
       <div class="demo-col" style="max-width:360px">
         <Textarea placeholder="请输入多行文本" rows={4} bind:value={multiText} />
@@ -154,7 +252,7 @@
         <Textarea disabled placeholder="禁用状态" value="不能编辑" />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
   <Card title="Input Props">
     <PropsTable items={inputProps} />
   </Card>

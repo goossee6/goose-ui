@@ -68,6 +68,7 @@
   import DropZoneDemo from './lib/demos/DropZone.svelte';
   import TitleBarDemo from './lib/demos/TitleBar.svelte';
   import LayoutDemo from './lib/demos/Layout.svelte';
+  import SettingsDemo from './lib/demos/Settings.svelte';
 
   const groups: SidebarEntry[] = [
     { value: 'home', label: '首页', icon: House },
@@ -335,16 +336,7 @@
     {:else if activeTab === 'layout'}
       <LayoutDemo />
     {:else if activeTab === 'settings'}
-      <Page>
-        <div class="end-demo">
-          <h2>endItems 列表结尾项</h2>
-          <p>
-            此项由 Sidebar 的 <code>endItems</code> 渲染在导航列表结尾：空间充足时贴底、列表超高时顺次接在末尾，
-            与普通导航项共享同一 pill 动画。再点击上方任意项，观察 pill 连续滑回。
-          </p>
-          <p>侧栏底部 footer 则是 snippet 自定义区（版本文本）。</p>
-        </div>
-      </Page>
+      <SettingsDemo />
     {/if}
 </Layout>
 
@@ -357,27 +349,5 @@
   .footer-version {
     font-size: 11px;
     color: var(--text-muted);
-  }
-  .end-demo {
-    max-width: 560px;
-  }
-  .end-demo h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-strong);
-    margin: 0 0 12px;
-  }
-  .end-demo p {
-    font-size: 13px;
-    line-height: 1.8;
-    color: var(--text-muted);
-    margin: 0 0 8px;
-  }
-  .end-demo code {
-    padding: 1px 5px;
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--primary) 12%, transparent);
-    color: var(--primary);
-    font-size: 12px;
   }
 </style>

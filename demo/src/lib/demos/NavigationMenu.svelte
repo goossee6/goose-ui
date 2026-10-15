@@ -11,6 +11,7 @@
     type DropdownMenuItem,
   } from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const navProps: PropsTableItem[] = [
     { name: "items", desc: "导航项（含 children 的展开为下拉面板）", type: "NavMenuItem[]", default: "[]" },
@@ -121,18 +122,93 @@
   function handleDropdownSelect(item: DropdownMenuItem) {
     Notification.info(`选中：${item.label ?? item.value}`);
   }
+
+  const navSource = `<script lang="ts">
+  import { NavigationMenu, type NavMenuItem } from "goose-ui";
+
+  const items: NavMenuItem[] = [
+    { value: 'home', label: '首页', href: '#/home' },
+    {
+      value: 'components',
+      label: '组件',
+      children: [
+        { value: 'button', label: 'Button 按钮', href: '#/button', description: '各种状态与尺寸' },
+        { value: 'input', label: 'Input 输入框', href: '#/input', description: '前缀/后缀/清除' },
+      ],
+    },
+    { value: 'disabled', label: '置灰项', disabled: true },
+  ];
+
+  let active = $state('home');
+<\/script>
+
+<NavigationMenu {items} {active} onselect={(value) => (active = value)} />`;
+
+  const menubarSource = `<script lang="ts">
+  import { Menubar, type MenubarMenu } from "goose-ui";
+
+  const menus: MenubarMenu[] = [
+    {
+      value: 'file',
+      label: '文件',
+      items: [
+        { value: 'new', label: '新建' },
+        { value: 'open', label: '打开' },
+        { separator: true },
+        { value: 'export', label: '导出为…' },
+      ],
+    },
+    {
+      value: 'edit',
+      label: '编辑',
+      items: [
+        { value: 'undo', label: '撤销' },
+        { value: 'redo', label: '重做', disabled: true },
+      ],
+    },
+  ];
+<\/script>
+
+<Menubar {menus} onselect={(menuValue, item) => console.log(menuValue, item)} />`;
+
+  const dropdownSource = `<script lang="ts">
+  import { DropdownMenu, type DropdownMenuItem } from "goose-ui";
+
+  const items: DropdownMenuItem[] = [
+    { value: 'new', label: '新建文件' },
+    { value: 'open', label: '打开…' },
+    { value: 'disabled', label: '保存（禁用）', disabled: true },
+    { separator: true },
+    { value: 'delete', label: '删除', danger: true },
+  ];
+
+  let open = $state(false);
+<\/script>
+
+<DropdownMenu {items} onselect={(item) => console.log(item)}>
+  {#snippet trigger()}
+    <span>操作菜单 ⌄</span>
+  {/snippet}
+</DropdownMenu>
+
+<!-- 受控：bind:open -->
+<DropdownMenu bind:open {items} onselect={(item) => console.log(item)}>
+  {#snippet trigger()}
+    <span>受控菜单（{open ? '开' : '关'}）</span>
+  {/snippet}
+</DropdownMenu>`;
 </script>
 
 <Page title="NavigationMenu / Menubar / DropdownMenu 导航与菜单" description="导航栏下拉面板、桌面应用式水平菜单栏、按钮触发的浮层菜单">
-  <Card title="NavigationMenu 导航菜单">
+  <CodePreview title="NavigationMenu 导航菜单" code={navSource}>
     <NavigationMenu {items} {active} onselect={handleNavSelect} />
-  </Card>
+  </CodePreview>
 
-  <Card title="Menubar 菜单栏">
+  <CodePreview title="Menubar 菜单栏" code={menubarSource}>
     <Menubar {menus} onselect={handleMenubarSelect} />
-  </Card>
+  </CodePreview>
 
-  <Card title="DropdownMenu 下拉菜单">
+  <CodePreview title="DropdownMenu 下拉菜单" code={dropdownSource}>
     <div class="demo-row">
       <DropdownMenu items={dropdownItems} onselect={handleDropdownSelect}>
         {#snippet trigger()}
@@ -146,7 +222,7 @@
       </DropdownMenu>
       <span class="note">ArrowDown 打开，Esc 关闭，↑↓ 移动，Tab 收起</span>
     </div>
-  </Card>
+  </CodePreview>
 
   <Card title="Props — NavigationMenu">
     <PropsTable items={navProps} />

@@ -42,6 +42,7 @@
     }, 200);
   }
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
+  import CodePreview from "../CodePreview.svelte";
 
   const progressBarProps: PropsTableItem[] = [
     { name: "percent", desc: "进度百分比 0-100", type: "number", default: "0" },
@@ -86,10 +87,86 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const progressBarSource = `<script lang="ts">
+  import { ProgressBar } from "goose-ui";
+
+  let percent = $state(35);
+<\/script>
+
+<ProgressBar percent={percent} />
+
+<!-- 也可直接传静态值 -->
+<ProgressBar percent={0} />
+<ProgressBar percent={50} />
+<ProgressBar percent={100} />`;
+
+  const progressBytesSource = `<script lang="ts">
+  import { ProgressBytes } from "goose-ui";
+
+  let bytesProgress = $state(42);
+  const fileSize = 1024 * 1024 * 8; // 8 MB
+<\/script>
+
+<ProgressBytes
+  fileName="goose-ui-v0.1.0.zip"
+  progress={Math.round(bytesProgress)}
+  speed="1.2 MB/s"
+  eta="12s"
+  loadedBytes={Math.round(fileSize * bytesProgress / 100)}
+  totalBytes={fileSize}
+  onCancel={() => console.log('上传已取消')}
+/>`;
+
+  const progressMultipartSource = `<script lang="ts">
+  import { ProgressBytes } from "goose-ui";
+<\/script>
+
+<ProgressBytes
+  fileName="large-video.mp4"
+  progress={67}
+  speed="3.4 MB/s"
+  eta="45s"
+  loadedBytes={1024 * 1024 * 670}
+  totalBytes={1024 * 1024 * 1000}
+  totalParts={20}
+  partIndex={13}
+/>`;
+
+  const progressSlotSource = `<script lang="ts">
+  import { ProgressSlotBar } from "goose-ui";
+
+  let loaded = $state(300);
+<\/script>
+
+<ProgressSlotBar part={3} total={10} loaded={loaded} totalSize={1024 * 1024 * 2} />`;
+
+  const usageBarSource = `<script lang="ts">
+  import { UsageBar } from "goose-ui";
+<\/script>
+
+<UsageBar label="存储空间" value={2.4} limit={10} formatValue={(n) => \`\${n} GB\`} />
+<UsageBar label="API 调用次数" value={8500} limit={10000} />
+<UsageBar label="已超额度" value={120} limit={100} />
+<UsageBar label="接近上限" value={88} limit={100} />`;
+
+  const usageBarCustomSource = `<script lang="ts">
+  import { UsageBar } from "goose-ui";
+<\/script>
+
+<!-- 自定义进度条高度 -->
+<UsageBar label="自定义高度 (12px)" value={45} limit={100} barHeight="12px" />
+
+<!-- 右侧插槽：参数 { value, limit, percent, overQuota, formatValue } -->
+{#snippet customLabelRight({ value, limit }: { value: number; limit: number; percent: number; overQuota: boolean; formatValue: (n: number) => string })}
+  {limit - value} 次剩余
+{/snippet}
+
+<UsageBar label="自定义右侧" value={7} limit={10} labelRight={customLabelRight} />`;
 </script>
 
 <Page title="进度条 Progress" description="通用进度条、字节级上传进度、分片进度、用量配额条" >
-  <Card title="基础进度条 ProgressBar">
+  <CodePreview title="基础进度条 ProgressBar" code={progressBarSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <ProgressBar percent={percent} />
       <div style="display:flex;gap:8px;align-items:center">
@@ -101,9 +178,9 @@
       <ProgressBar percent={50} />
       <ProgressBar percent={100} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="字节进度 ProgressBytes">
+  <CodePreview title="字节进度 ProgressBytes" code={progressBytesSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <ProgressBytes
         fileName="goose-ui-v0.1.0.zip"
@@ -118,9 +195,9 @@
         <Button size="small" variant="primary" onclick={startBytesSim}>模拟上传</Button>
       </div>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="分片进度 ProgressBytes (multipart)">
+  <CodePreview title="分片进度 ProgressBytes (multipart)" code={progressMultipartSource}>
     <div>
       <ProgressBytes
         fileName="large-video.mp4"
@@ -133,27 +210,27 @@
         partIndex={13}
       />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="分片槽进度 ProgressSlotBar">
+  <CodePreview title="分片槽进度 ProgressSlotBar" code={progressSlotSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <ProgressSlotBar part={3} total={10} loaded={slotLoaded} totalSize={1024 * 1024 * 2} />
       <div>
         <Button size="small" variant="primary" onclick={startSlotSim}>模拟分片</Button>
       </div>
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="用量条 UsageBar">
+  <CodePreview title="用量条 UsageBar" code={usageBarSource}>
     <div style="display:flex;flex-direction:column;gap:20px">
       <UsageBar label="存储空间" value={2.4} limit={10} formatValue={(n) => `${n} GB`} />
       <UsageBar label="API 调用次数" value={8500} limit={10000} />
       <UsageBar label="已超额度" value={120} limit={100} />
       <UsageBar label="接近上限" value={88} limit={100} />
     </div>
-  </Card>
+  </CodePreview>
 
-  <Card title="自定义高度与右侧插槽">
+  <CodePreview title="自定义高度与右侧插槽" code={usageBarCustomSource}>
     <div style="display:flex;flex-direction:column;gap:20px">
       <UsageBar label="自定义高度 (12px)" value={45} limit={100} barHeight="12px" />
       {#snippet customLabelRight({ value, limit, formatValue }: { value: number; limit: number; percent: number; overQuota: boolean; formatValue: (n: number) => string })}
@@ -161,7 +238,7 @@
       {/snippet}
       <UsageBar label="自定义右侧" value={7} limit={10} labelRight={customLabelRight} />
     </div>
-  </Card>
+  </CodePreview>
   <Card title="ProgressBar Props">
     <PropsTable items={progressBarProps} />
   </Card>

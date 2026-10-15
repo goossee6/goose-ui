@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Card, CodeBlock, Notification, Tabs, copyToClipboard } from "goose-ui";
+  import { Button, CodeBlock, Notification, Tabs, copyToClipboard } from "goose-ui";
   import Copy from '@lucide/svelte/icons/copy';
   import ChevronsDown from '@lucide/svelte/icons/chevrons-down';
   import ChevronsUp from '@lucide/svelte/icons/chevrons-up';
@@ -11,12 +11,15 @@
     code = '',
     language = 'svelte',
     maxHeight = '',
+    right,
     children
   }: {
     title?: string;
     code?: string;
     language?: string;
     maxHeight?: string;
+    /** 标题栏右侧附加内容（渲染在复制按钮左侧），替代原 Card 的 right snippet */
+    right?: Snippet;
     children?: Snippet;
   } = $props();
 
@@ -91,46 +94,52 @@
   }
 </script>
 
-<Card {title}>
-  <div class="cp-card">
-    <div class="cp-topline">
+<!-- 自带单层外框（不再套 Card）：标题在 topline 左侧、紧邻 tab 切换，右侧复制 -->
+<div class="cp-card">
+  <div class="cp-topline">
+    <div class="cp-head">
+      {#if title}<span class="cp-title">{title}</span>{/if}
       <Tabs
         items={[{ value: 'preview', label: '效果' }, { value: 'source', label: '源码' }]}
         value={active}
         onchange={handleTabChange}
       />
+    </div>
+    <div class="cp-actions">
+      {#if right}{@render right()}{/if}
       <Button size="small" variant="default" icon={Copy} iconSize={14} onclick={handleCopy}>
         {copied ? '已复制' : '复制'}
       </Button>
     </div>
-    <div class="cp-body" bind:this={bodyEl}>
-      {#if active === 'preview'}
-        <div class="cp-pane">
-          {@render children?.()}
-        </div>
-      {:else}
-        <div class="cp-pane">
-          <CodeBlock {code} {language} maxHeight={effectiveMaxHeight} showHeader={false} />
-          {#if collapsible}
-            <Button
-              class="cp-expand"
-              size="small"
-              variant="ghost"
-              iconRight={expanded ? ChevronsUp : ChevronsDown}
-              iconSize={14}
-              onclick={toggleExpand}
-            >
-              {expanded ? '收起' : '展开全部'}
-            </Button>
-          {/if}
-        </div>
-      {/if}
-    </div>
   </div>
-</Card>
+  <div class="cp-body" bind:this={bodyEl}>
+    {#if active === 'preview'}
+      <div class="cp-pane">
+        {@render children?.()}
+      </div>
+    {:else}
+      <div class="cp-pane">
+        <CodeBlock {code} {language} maxHeight={effectiveMaxHeight} showHeader={false} />
+        {#if collapsible}
+          <Button
+            class="cp-expand"
+            size="small"
+            variant="ghost"
+            iconRight={expanded ? ChevronsUp : ChevronsDown}
+            iconSize={14}
+            onclick={toggleExpand}
+          >
+            {expanded ? '收起' : '展开全部'}
+          </Button>
+        {/if}
+      </div>
+    {/if}
+  </div>
+</div>
 
 <style>
   .cp-card {
+    background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -139,10 +148,28 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--sp-md);
+    gap: var(--sp-lg);
     padding: var(--sp-md) var(--sp-lg);
     border-bottom: 1px solid var(--border);
-    background-color: var(--surface);
+    background-color: var(--surface-2);
+  }
+  .cp-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-lg);
+    min-width: 0;
+  }
+  .cp-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-md);
+    flex-shrink: 0;
+  }
+  .cp-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
   }
   .cp-body {
     padding: var(--sp-lg);

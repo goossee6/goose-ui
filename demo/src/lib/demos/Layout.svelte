@@ -1,6 +1,7 @@
 <script lang="ts">
   import {Card, Page} from "goose-ui";
   import PropsTable, { type PropsTableItem } from '../PropsTable.svelte';
+  import CodePreview from "../CodePreview.svelte";
 
   const layoutProps: PropsTableItem[] = [
     { name: "title", desc: "传递给 TitleBar 的标题", type: "string", default: "''" },
@@ -17,10 +18,21 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const structureSource = `<script lang="ts">
+  import { Layout, Tabs } from "goose-ui";
+<\/script>
+
+<Layout title="我的应用" theme="light" windowControls={true}>
+  {#snippet tabs()}
+    <Tabs items={[{ value: 'home', label: '首页' }]} value="home" />
+  {/snippet}
+  <p>主内容区</p>
+</Layout>`;
 </script>
 
 <Page title="Layout 布局" description="Wails3 桌面应用完整外壳布局，包含标题栏、侧边栏和主内容区" >
-  <Card title="布局结构">
+  <CodePreview title="布局结构" code={structureSource}>
     <div class="layout-diagram">
       <div class="diagram-titlebar">TitleBar 标题栏</div>
       <div class="diagram-body">
@@ -32,7 +44,7 @@
         </div>
       </div>
     </div>
-  </Card>
+  </CodePreview>
 
   <Card title="Props">
     <PropsTable items={layoutProps} />

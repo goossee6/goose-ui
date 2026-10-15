@@ -1,6 +1,7 @@
 <script lang="ts">
   import { untrack } from "svelte";
   import {Card, Toggle, Checkbox, Label, Page, Notification, Row} from "goose-ui";
+  import CodePreview from "../CodePreview.svelte";
 
   let t1 = $state(false);
   let t2 = $state(true);
@@ -35,10 +36,61 @@
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
+
+  const basicSource = `<script lang="ts">
+  import { Toggle, Label, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Toggle size="small" checked={true} ariaLabel="small" />
+  <Toggle checked={true} ariaLabel="middle" />
+  <Toggle size="large" checked={true} ariaLabel="large" />
+</Row>`;
+
+  const statesSource = `<script lang="ts">
+  import { Toggle, Label, Row } from "goose-ui";
+
+  let off = $state(false);
+  let on = $state(true);
+<\/script>
+
+<Row>
+  <Toggle bind:checked={off} ariaLabel="关闭" />
+  <Toggle bind:checked={on} ariaLabel="开启" />
+</Row>
+
+<p>off = {off}, on = {on}</p>`;
+
+  const disabledSource = `<script lang="ts">
+  import { Toggle, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Toggle checked={false} disabled ariaLabel="禁用关闭" />
+  <Toggle checked={true} disabled ariaLabel="禁用开启" />
+</Row>`;
+
+  const settingsSource = `<script lang="ts">
+  import { Toggle, Checkbox } from "goose-ui";
+
+  let notify = $state(false);
+  let agreed = $state(false);
+<\/script>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <span>启用通知</span>
+    <Toggle bind:checked={notify} ariaLabel="通知" />
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <span>我已阅读并同意用户协议</span>
+    <Checkbox bind:checked={agreed} />
+  </div>
+</div>`;
 </script>
 
 <Page title="开关 Toggle" description="带弹性动画的切换开关" >
-  <Card title="Toggle 尺寸 Sizes">
+  <CodePreview title="Toggle 尺寸 Sizes" code={basicSource}>
     <Row>
       <div class="demo-item">
         <Label>small</Label>
@@ -53,9 +105,9 @@
         <Toggle size="large" checked={true} ariaLabel="large" />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="Toggle 状态 States">
+  <CodePreview title="Toggle 状态 States" code={statesSource}>
     <Row>
       <div class="demo-item">
         <Label>关闭</Label>
@@ -67,9 +119,9 @@
       </div>
     </Row>
     <p class="demo-val">t1 = {t1}, t2 = {t2}</p>
-  </Card>
+  </CodePreview>
 
-  <Card title="Toggle 禁用 Disabled">
+  <CodePreview title="Toggle 禁用 Disabled" code={disabledSource}>
     <Row>
       <div class="demo-item">
         <Label>禁用关闭</Label>
@@ -80,9 +132,9 @@
         <Toggle checked={true} disabled ariaLabel="禁用开启" />
       </div>
     </Row>
-  </Card>
+  </CodePreview>
 
-  <Card title="实际场景：设置项">
+  <CodePreview title="实际场景：设置项" code={settingsSource}>
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="setting-row">
         <div>
@@ -113,7 +165,7 @@
         <Checkbox bind:checked={c3} />
       </div>
     </div>
-  </Card>
+  </CodePreview>
   <Card title="Toggle Props">
     <PropsTable items={toggleProps} />
   </Card>

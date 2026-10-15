@@ -136,7 +136,7 @@
 	.cursor-dot.outline {
 		border: 1.5px solid var(--primary);
 		border-radius: 50%;
-		background: color-mix(in srgb, var(--primary) 12%, transparent);
+		background: var(--accent-sub);
 		transform-origin: center;
 	}
 	.cursor-trail {
@@ -144,7 +144,7 @@
 		left: 0;
 		top: 0;
 		pointer-events: none;
-		border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+		border: 1px solid var(--accent-strong);
 		border-radius: 50%;
 		will-change: transform;
 		z-index: 59;
