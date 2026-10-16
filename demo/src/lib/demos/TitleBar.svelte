@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {Card, TitleBar, Page, Row, ThemeToggle, themeStore, toggleThemeFromEvent} from "goose-ui";
-  import type { WindowController } from "goose-ui";
+  import {Card, TitleBar, Page, Row, ThemeToggle, themeStore, toggleThemeFromEvent, Notification} from "goose-ui";
+  import type { WindowController, TitleBarSearchItem } from "goose-ui";
   import Box from '@lucide/svelte/icons/box';
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
   import CodePreview from "../CodePreview.svelte";
@@ -28,6 +28,31 @@
   // 浏览器里用模拟控制器演示三键；打包进 Wails3 时换成真实适配器
   const demoApi: WindowController = createMockController();
 
+  /**
+   * 内联搜索的候选数据。分组（group）会在下拉里渲染成小节标题，
+   * 同一个 value 复用 Command 的 CommandItem 形状，方便两处共享一份数据。
+   * disabled 项不可选中，也不会出现在过滤结果里。
+   */
+  const searchItems: TitleBarSearchItem[] = [
+    { value: 'new-file', label: '新建文件', group: '文件', keywords: 'new create 创建' },
+    { value: 'open-file', label: '打开文件', group: '文件', keywords: 'open 读取' },
+    { value: 'save-all', label: '全部保存', group: '文件', keywords: 'save 写入' },
+    { value: 'recent', label: '最近打开', group: '文件', keywords: 'recent history 历史', disabled: true },
+    { value: 'toggle-sidebar', label: '切换侧边栏', group: '视图', keywords: 'sidebar 面板' },
+    { value: 'toggle-theme', label: '切换主题', group: '视图', keywords: 'theme dark light 深色 浅色' },
+    { value: 'zoom-in', label: '放大', group: '视图', keywords: 'zoom in 缩放' },
+    { value: 'zoom-out', label: '缩小', group: '视图', keywords: 'zoom out 缩放' },
+    { value: 'settings', label: '打开设置', group: '设置', keywords: 'settings preferences 偏好' },
+    { value: 'shortcuts', label: '快捷键', group: '设置', keywords: 'keyboard 键盘' },
+  ];
+
+  /** 选中回调：真实项目里在这里路由跳转或执行命令 */
+  function onSearchSelect(item: TitleBarSearchItem) {
+    Notification.success(`选中：${item.label}（value = ${item.value}）`);
+  }
+
+  let lastPicked = $state<TitleBarSearchItem | null>(null);
+
   const titleBarProps: PropsTableItem[] = [
     { name: "title", desc: "标题文本（无 logo 时作为渐变文字 logo）", type: "string", default: "''" },
     { name: "logo", desc: "logo：字符串=渐变文字，组件=图标；缺省时以 title 文字作渐变 logo", type: "string | Component", default: "undefined" },
@@ -37,6 +62,11 @@
     { name: "controls", desc: "自定义窗口按钮区 snippet（渲染在窗口控制键之前，与默认键共存）", type: "Snippet" },
     { name: "windowControls", desc: "false 不渲染默认窗口三键（如浏览器环境）", type: "boolean", default: "true" },
     { name: "windowApi", desc: "窗口控制实现（WindowController）。未传时三键点击无副作用（UI 保持一致）；库不依赖任何桌面 runtime", type: "WindowController" },
+    { name: "searchable", desc: "显示内联搜索框（默认 false 不显示）。聚焦即展开候选，输入即出下拉，↑↓ 移动、Enter 选中、Esc 关闭", type: "boolean", default: "false" },
+    { name: "searchItems", desc: "搜索候选项；group 相同者在下拉里归为一节，disabled 项不可选中也不参与过滤", type: "TitleBarSearchItem[]", default: "[]" },
+    { name: "searchPlaceholder", desc: "搜索框占位文本", type: "string", default: "'搜索…'" },
+    { name: "searchEmptyText", desc: "无匹配结果时的提示文本", type: "string", default: "'无匹配结果'" },
+    { name: "onSearchSelect", desc: "选中回调（选中后自动收起下拉并清空输入）", type: "(item: TitleBarSearchItem) => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
@@ -108,6 +138,26 @@
 <\/script>
 
 <TitleBar title="我的应用" windowApi={wailsApi} />`;
+
+  const searchSource = `<script lang="ts">
+  import { TitleBar, type TitleBarSearchItem } from "goose-ui";
+
+  // group 相同者在下拉里归为一节；disabled 项不可选中也不参与过滤
+  const items: TitleBarSearchItem[] = [
+    { value: 'new-file', label: '新建文件', group: '文件', keywords: 'new create 创建' },
+    { value: 'open-file', label: '打开文件', group: '文件', keywords: 'open 读取' },
+    { value: 'recent', label: '最近打开', group: '文件', disabled: true },
+    { value: 'settings', label: '打开设置', group: '设置', keywords: 'preferences 偏好' },
+  ];
+<\/script>
+
+<TitleBar
+  title="我的应用"
+  searchable
+  searchItems={items}
+  searchPlaceholder="搜索组件…"
+  onSearchSelect={(item) => console.log(item.value)}
+/>`;
 </script>
 
 <Page title="TitleBar 标题栏" description="桌面应用自定义窗口标题栏：拖拽、主题切换、窗口控制（注入式，不依赖任何桌面 runtime）">
@@ -160,6 +210,29 @@
     </div>
   </CodePreview>
 
+  <CodePreview title="内联搜索" code={searchSource}>
+    <p class="demo-note">
+      传入 <code>searchable</code> 开启搜索框。搜索段是标题栏里唯一的弹性段（两侧为刚体），
+      宽度自适应、上限为标题栏可用空间的 40%，窄窗口下一路收窄并在标题栏 450px 以下隐藏，
+      全程不挤压 logo 与窗口键。聚焦即展开候选列表，输入即过滤，<code>↑↓</code> 移动、<code>Enter</code> 选中、<code>Esc</code> 关闭。
+    </p>
+    <div class="demo-preview demo-preview--search">
+      <TitleBar
+        title="我的应用"
+        theme={themeStore.theme}
+        searchable
+        {searchItems}
+        searchPlaceholder="搜索命令…"
+        onSearchSelect={(item) => { lastPicked = item; onSearchSelect(item); }}
+      />
+    </div>
+    {#if lastPicked}
+      <p class="demo-note demo-note--picked">
+        最近选中：<code>{lastPicked.label}</code>（value = <code>{lastPicked.value}</code>，group = <code>{lastPicked.group ?? '无'}</code>）
+      </p>
+    {/if}
+  </CodePreview>
+
   <CodePreview title="ThemeToggle 组件" code={themeToggleComponentSource}>
     <p class="demo-note">独立的主题切换按钮，带圆形扩散动画：</p>
     <Row><ThemeToggle /></Row>
@@ -190,9 +263,13 @@
 <style>
   .demo-preview { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
   .demo-preview--dark { background: var(--surface); }
-  .demo-preview--light { background: var(--surface); }
+  /* overflow:hidden 会把搜索下拉裁掉（下拉是 absolute 定位、从标题栏往下展开，
+     高度 320px，远超标题栏自身 42px）。这里给「内联搜索」这张预览单独放开，
+     让下拉能正常溢出显示；圆角裁剪由 .demo-preview--search 自己的 border-radius 承担。 */
+  .demo-preview--search { overflow: visible; }
   .demo-note { font-size: 13px; color: var(--text-muted); line-height: 1.8; margin: 0 0 12px; }
   .demo-note p { margin: 0 0 6px; }
+  .demo-note--picked { margin-top: 8px; margin-bottom: 0; color: var(--text); }
   .demo-note code {
     font-family: var(--font-mono);
     font-size: 12px;

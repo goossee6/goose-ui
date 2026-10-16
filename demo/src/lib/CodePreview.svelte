@@ -142,7 +142,14 @@
     background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    /* overflow 不再恒为 hidden：默认裁剪是为了圆角，但会连带把卡片内的
+       浮层裁掉（例如 TitleBar 的搜索下拉、Select 的选项面板 —— 它们从
+       触发器往下展开，高度远超卡片）。
+       圆角裁剪改由子元素自持圆角实现，只在真的需要裁的时候（展开动画期间
+       由 mutateWithHeight 临时设 overflow:hidden）才裁。
+       注意：给 cp-card 加 isolated 之类的层叠上下文只会让情况更糟，
+       这里要的是「不裁剪」，不是「盖住」。 */
+    overflow: visible;
   }
   .cp-topline {
     display: flex;

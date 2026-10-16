@@ -49,6 +49,13 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
 9. **z-index**：用 `--z-overlay/--z-dropdown/--z-popover/--z-dialog/--z-notification` 阶梯，勿写魔法数字。
 10. **Wails3 外壳**：`Layout` 组装标题栏+侧栏+内容区；`theme={themeStore.theme}` +
     `onThemeToggle={toggleThemeFromEvent}` 获得圆形扩散的主题切换。
+11. **标题栏搜索**：`TitleBar` 传 `searchable` + `searchItems` 开内联搜索（`↑↓`/`Enter`/`Esc`）。
+    宽度**自适应且没有可配的 prop**：上限为标题栏可用空间的 40%（`max-width: 40cqw`），
+    窄到标题栏 450px 以下整体隐藏。`cqw` 只能参照 `.titlebar`，别把 `.titlebar-search-wrap`
+    自己声明成容器——自引用会让比例失效。
+    `group` 分组、`keywords` 让中文标签也能用英文搜。
+12. **布局：唯一弹性段**：标题栏三段布局中，只有中段搜索是弹性的，左右（logo / 窗口键）
+    必须 `flex: 0 0 auto`。改任何一段的宽度行为前，先确认另外两段不会被挤压。
 
 ## 常见组合
 
@@ -65,3 +72,22 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
 - 不要把 `<button>` 嵌进 `<button>`（SSR hydration mismatch）；清除按钮做触发器的兄弟节点绝对定位
 - 不要用 `document.querySelector` 抓自己组件外的 DOM 做定位；优先 `bind:this`
 - 不要给介绍页/文档页套「效果/源码」切换（那是组件演示专用）
+- 不要在 `min-width` 里写百分比（如 `min-width: min(var(--x), 100%)`）：百分比按**包含块宽度**
+  而非 flex line 剩余空间解析，窄窗口下会失效并让元素溢出压住相邻组件。要弹性收缩就用
+  `flex: 1 1 <basis>` + `min-width: 0`
+- 不要指望 `flex` 收缩能把带 `padding`/`border` 的元素收到 0 —— 它们不可压缩，需要
+  `@container` / 显式隐藏来兜底窄宽度退化
+
+## 自查与验证
+
+改动后跑（在仓库根目录）：
+
+```bash
+pnpm check                             # svelte-check 类型检查
+pnpm build                             # 确认能构建
+```
+
+布局类改动（宽度、溢出、重叠）类型检查管不到，需在浏览器里实际拖窄窗口验证：
+搜索框在逐档缩窄时不应与 logo / 窗口三键重叠、不应溢出标题栏、三键不被压缩。
+注意 `set value + dispatch('input')` 对 Svelte 5 的 `bind:value` 无效，
+若要脚本化验证必须用真实输入事件（CDP 的 `Input.insertText`）。

@@ -208,6 +208,22 @@
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   });
+
+  // 标题栏搜索：把侧边栏分组展平成候选项（保留 group 用于下拉分组显示）
+  type SearchEntry = { value: string; label: string; group: string };
+  const searchItems = $derived(
+    groups.flatMap((g): SearchEntry[] => {
+      if ("items" in g && g.items) {
+        return g.items.map((it) => ({ value: it.value, label: it.label, group: g.title ?? "" }));
+      }
+      const flat = g as { value?: string; label?: string };
+      return flat.value ? [{ value: flat.value, label: flat.label ?? flat.value, group: "导航" }] : [];
+    }),
+  );
+
+  function onSearchSelect(item: { value: string }) {
+    activeTab = item.value;
+  }
 </script>
 
 <NotificationProvider />
@@ -215,7 +231,18 @@
 <ContextMenu />
 <ConfirmDialog />
 
-<Layout title="Goose-ui" subtitle="Svelte 5 组件库" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent} {windowApi}>
+<Layout
+  title="Goose-ui"
+  subtitle="Svelte 5 组件库"
+  theme={themeStore.theme}
+  onThemeToggle={toggleThemeFromEvent}
+  {windowApi}
+  searchable
+  {searchItems}
+  searchPlaceholder="搜索组件…"
+  {onSearchSelect}
+  class={activeTab === "home" ? "layout--home" : ""}
+>
   {#snippet tabs()}
     <Sidebar {groups} bind:activeTab bind:collapsed={sidebarCollapsed} {endItems} mode={sidebarMode} embedded shadow={false}>
       {#snippet footer()}

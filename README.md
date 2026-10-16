@@ -253,7 +253,7 @@ import "goose-ui/styles/theme.css";
 
 | 组件       | 说明                                                          |
 | ---------- | ------------------------------------------------------------- |
-| TitleBar   | 自绘标题栏（窗口控制经 `windowApi` 注入，库不依赖桌面 runtime；Wails3 见 demo TitleBar 页） |
+| TitleBar   | 自绘标题栏（窗口控制经 `windowApi` 注入，库不依赖桌面 runtime；`searchable` 开内联搜索，见「TitleBar 标题栏」；Wails3 见 demo TitleBar 页） |
 | ThemeToggle | 主题切换按钮（Sun/Moon 图标、圆形扩散动画、localStorage 持久化） |
 | ContextMenu | 右键菜单（全局注册机制）                                     |
 
@@ -358,6 +358,66 @@ import "goose-ui/styles/theme.css";
 - **尺寸档**：`Button`/`Checkbox`/`Toggle`/`Tabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
 - **旋转**：`Icon` 的 `spin` prop（加载态），无需自己写动画
 - **可调变量**：`--titlebar-h`（TitleBar 高度，默认 42px）、`--header-h`（Header 高度，由 `height` prop 写入）、`--ui-{sm,md,lg}-{height,padding,font}`（全局控件 token，见 theme.css）
+
+## TitleBar 标题栏
+
+自绘标题栏。窗口控制经 `windowApi` 注入（包一层 `@wailsio/runtime` 的 `Window` 即可），**库本身不依赖任何桌面 runtime**，因此浏览器里也能完整渲染与调试。
+
+### 内联搜索
+
+传 `searchable` 即在标题栏中段开启搜索框，输入即出下拉：
+
+```svelte
+<script lang="ts">
+  import { TitleBar, Notification, type WindowController, type TitleBarSearchItem } from "goose-ui";
+
+  const items: TitleBarSearchItem[] = [
+    { value: "new-file", label: "新建文件", group: "文件", keywords: "new create 创建" },
+    { value: "save-all", label: "全部保存", group: "文件", keywords: "save 写入" },
+    { value: "recent", label: "最近打开", group: "文件", disabled: true },
+    { value: "toggle-theme", label: "切换主题", group: "视图", keywords: "theme dark light 深色" },
+  ];
+
+  const windowApi: WindowController = { /* Wails3: 包一层 runtime Window */ };
+</script>
+
+<TitleBar
+  title="我的应用"
+  {windowApi}
+  searchable
+  {searchItems}
+  searchPlaceholder="搜索命令…"
+  onSearchSelect={(item) => Notification.success(`选中：${item.label}`)}
+/>
+```
+
+- `TitleBarSearchItem`：`{ value, label, group?, keywords?, disabled? }`。`group` 相同的项在下拉里归为一节；`disabled` 项不可选中、也不参与过滤
+- `keywords` 参与过滤但不显示——中文标签配英文关键词（如 `缩放` ↔ `zoom`）很实用
+- 键盘：`↑`/`↓` 移动、`Enter` 选中、`Esc` 关闭；选中后自动收起下拉并清空输入，再触发 `onSearchSelect`
+- `searchEmptyText` 自定义无匹配时的提示；下拉宽度固定 280px，不跟输入框走（否则长 `label` 会被压窄）
+
+### 搜索框宽度（自适应，上限 40%）
+
+标题栏是三段布局：**左 logo / 中搜索 / 右窗口键**。左、右是刚体（`flex: 0 0 auto`），**搜索段是唯一的弹性段**（`flex: 1 1 0`）：标题栏的剩余空间全部归搜索框，窗口变窄它跟着收窄，全程不挤压 logo 与窗口三键。
+
+宽度上限是**标题栏可用空间的 40%**（`max-width: 40cqw`）。宽窗口下搜索框就停在这条线上——否则超宽屏上它会摊到 800px 以上、把标题栏的视觉重心压垮；窄窗口下它不受这条上限约束，继续随空间收窄。
+
+**没有任何 prop 可以调这个宽度**，因为按像素配置的 min/max 在某个窗口尺寸下总会变成「既不够用、又不肯让位」的负担。比例上限则不会：它天然跟着标题栏一起缩放。
+
+不让搜索框挤到邻居，靠的是这三条：
+
+- 两侧 12px `gap` 保持不变，搜索框与 logo / 窗口键**永不重叠**
+- 窗口键区恒为刚体（`flex: 0 0 auto`），任何宽度下都不被压缩
+- 标题栏窄于 450px 时（此时 40% 已不足 180px，放不下有意义的查询词）**整个搜索框隐藏**，而不是裁出一条无边框的窄缝
+
+> 实现要点：
+>
+> - `padding`(8px×2) 与 `border`(1px×2) 共 18px 是**不可压缩**的，仅靠 flex 收缩无法把搜索框真正收到 0，所以「收到 0」必须由 `@container` 显式隐藏来完成（`container-type: inline-size` 加在 `.titlebar-search-wrap` 上）
+> - `flex-basis` 必须写 `0` 而非 `auto`：`auto` 会以输入框的固有宽度为基准，`min-width: 0` 也就一并失效
+> - **不要用 `min-width: min(--x, 100%)` 这类写法**——`min-width` 里的百分比按包含块宽度解析而非 flex line 剩余空间，窄窗口下会失效并让搜索框溢出压住两侧
+> - `40cqw` 里的 `cqw` **只能参照 `.titlebar`**，不能把 `.titlebar-search-wrap` 自己声明成容器来用：`cqw` 取的是「最近的祖先容器」宽度，自引用会让 `max-width: 40cqw` 变成「wrap 宽度的 40%」而永远填满不了，比例彻底失效。这也是 `container-type: inline-size` 留在 wrap 上、而 `@container` 查询却写 `titlebar` 名字的原因
+
+> 实测（headless Chrome，1920px → 340px）：宽窗口下搜索框稳定占 39.1%–39.6%，`gap` 恒 12px，窗口键恒 138px，**全程零重叠、零溢出**。
 
 ## Sidebar 用法
 
@@ -701,6 +761,15 @@ onMenuAction("row", "del", (data) => console.log(data));
 > `TitleBar` 的 `windowApi` prop 注入（实现 `WindowController` 接口，包一层
 > `@wailsio/runtime` 的 `Window` 即可）；窗口拖拽与四角缩放是纯 CSS。完整示例见
 > demo 的 TitleBar 页「Wails3 接入说明」。
+
+## 开发
+
+```bash
+pnpm dev            # 起 demo（Vite）
+pnpm check          # svelte-check 类型检查
+pnpm build          # 生产构建
+```
+
 
 ## License
 

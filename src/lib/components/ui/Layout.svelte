@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Component, Snippet } from 'svelte';
-	import TitleBar, { type WindowController } from './TitleBar.svelte';
+	import TitleBar, { type WindowController, type TitleBarSearchItem } from './TitleBar.svelte';
 
 	let {
 		title = '',
@@ -11,6 +11,10 @@
 		controls,
 		windowControls = true,
 		windowApi,
+		searchable = false,
+		searchItems = [],
+		searchPlaceholder = '搜索…',
+		onSearchSelect,
 		tabs,
 		children,
 		scroll = true,
@@ -29,6 +33,13 @@
 		windowControls?: boolean;
 		/** 透传给 TitleBar：窗口控制实现。未传时三键点击无副作用；Wails3 使用者注入适配器 */
 		windowApi?: WindowController;
+		/** 透传给 TitleBar：显示内联搜索框（默认 false 不显示） */
+		searchable?: boolean;
+		/** 透传给 TitleBar：搜索候选项 */
+		searchItems?: TitleBarSearchItem[];
+		searchPlaceholder?: string;
+		/** 透传给 TitleBar：选中回调 */
+		onSearchSelect?: (item: TitleBarSearchItem) => void;
 		/** 左侧侧边栏内容（通常放 Sidebar） */
 		tabs?: Snippet;
 		/** 内容区 */
@@ -44,7 +55,20 @@
 
 <div class="layout {cls}" class:layout--resize={resize} style={style}>
 	<div class="layout-titlebar">
-		<TitleBar {title} {logo} {subtitle} {theme} {onThemeToggle} {controls} {windowControls} {windowApi} />
+		<TitleBar
+			{title}
+			{logo}
+			{subtitle}
+			{theme}
+			{onThemeToggle}
+			{controls}
+			{windowControls}
+			{windowApi}
+			{searchable}
+			{searchItems}
+			{searchPlaceholder}
+			{onSearchSelect}
+		/>
 	</div>
 	<div class="layout-body">
 		{#if tabs}

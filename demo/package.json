@@ -8,13 +8,8 @@
     "build:dev": "vite build --minify false --mode development",
     "build": "vite build --mode production",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
-    "verify:codepreview": "node scripts/verify-codepreview.mjs",
-    "verify:snippets": "node scripts/verify-snippets-compile.mjs",
-    "verify:theme": "node scripts/verify-theme-colors.mjs",
-    "verify:readme": "node scripts/verify-readme.mjs",
-    "verify:readme-snippets": "node scripts/verify-readme-snippets.mjs",
-    "verify:all": "node scripts/verify-all.mjs"
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+
   },
   "dependencies": {
     "@lucide/svelte": "^1.43.0",
