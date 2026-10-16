@@ -11,9 +11,6 @@ importers:
       '@lucide/svelte':
         specifier: '>=1.43.0'
         version: 1.43.0(svelte@5.57.0)
-      '@wailsio/runtime':
-        specifier: '>=3.0.0-beta.0'
-        version: 3.0.0-beta.25
     devDependencies:
       svelte:
         specifier: ^5.0.0
@@ -40,6 +37,9 @@ importers:
       '@tsconfig/svelte':
         specifier: ^5.0.8
         version: 5.0.8
+      '@wailsio/runtime':
+        specifier: 3.0.0-beta.29
+        version: 3.0.0-beta.29
       esm-env:
         specifier: ^1.2.2
         version: 1.2.2
@@ -211,8 +211,8 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
-  '@wailsio/runtime@3.0.0-beta.25':
-    resolution: {integrity: sha512-VjymRlaTJWQULr94R4XivNypJUrWWxsNA+vi8aBhREri2JWg4UUJdMhBM9vzPC0cFWH3tioHNJgxpne36OynyA==}
+  '@wailsio/runtime@3.0.0-beta.29':
+    resolution: {integrity: sha512-ZrYvyb2vJ8rAn9mdBBbpNsNRk8Yg5+0DCWhfIQbfoNyI329Lwu8irPYqRneFuNlttA39qsQ0a5mG4mbgBF8g3g==}
 
   acorn@8.18.0:
     resolution: {integrity: sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==}
@@ -577,7 +577,7 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
-  '@wailsio/runtime@3.0.0-beta.25': {}
+  '@wailsio/runtime@3.0.0-beta.29': {}
 
   acorn@8.18.0: {}
 

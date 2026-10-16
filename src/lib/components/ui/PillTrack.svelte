@@ -39,8 +39,10 @@
 		disabled?: boolean;
 	} = $props();
 
-	// 几何与可见性分离：隐藏只翻可见性，保留最后几何（否则 pill 会回落到 0,0，
-	// 下次显示时从顶部飞入）
+	// 几何与可见性分离：几何持久、隐藏只翻 opacity，避免下次显示时从 0,0 飞入。
+	// 但残留几何必须落在容器内容起点：绝对定位元素即使 opacity:0 仍参与 scroll 范围计算
+	// （transform / contain:layout 均无效，只有 display:none 才行，而那会打断过渡），
+	// 隐藏时把 box 收敛到 (0,0,0,0)，既保留"不回落到 nil"的性质，也不会撑大 scrollHeight。
 	let hoverGeom = $state('');
 	let hoverOn = $state(false);
 	let hoverBg = $state('');
@@ -49,10 +51,16 @@
 	// 选中 pill 移动时长：按位移距离自适应（近快远慢），写入 --pill-dur 供 transition 读取
 	let selectedDur = $state(0.26);
 	let selectedBox: Box | null = null;
+	// 从停放位恢复：当帧不播位移过渡（否则 pill 会从左上角飞过来）
+	let restoring = $state(false);
+	let hoverRestoring = $state(false);
 
-	const hoverStyle = $derived(`${hoverGeom} opacity: ${hoverOn ? 1 : 0};`);
+	const hoverStyle = $derived(
+		`${hoverGeom} opacity: ${hoverOn ? 1 : 0};` + (hoverRestoring ? ' transition: none;' : '')
+	);
 	const selectedStyle = $derived(
-		`${selectedGeom} --pill-dur: ${selectedDur}s; opacity: ${selectedOn ? (disabled ? 0.5 : 1) : 0};`
+		`${selectedGeom} --pill-dur: ${selectedDur}s; opacity: ${selectedOn ? (disabled ? 0.5 : 1) : 0};` +
+			(restoring ? ' transition: none;' : '')
 	);
 
 	const hoverBase = $derived(
@@ -97,29 +105,78 @@
 		return b ? boxStyle(b) : '';
 	}
 
+	// 停放几何：绝对定位元素即使 opacity:0 仍撑大容器的 scroll 范围（实测 transform /
+	// contain:layout / visibility:hidden 均无效，只有 display:none 行，但那会打断过渡）。
+	// Sidebar 收起等场景下，旧坐标留在原地会把容器撑到上千像素、凭空多出滚动条，
+	// 故淡出结束后把 box 收敛到内容起点 —— 这也是避免"下次显示从 0,0 飞入"所需的停放位。
+	const PARKED = 'left: 0px; top: 0px; width: 0px; height: 0px;';
+
+	// 淡出尾声（与 opacity 0.15s 对齐）后收敛到停放位；淡出期间若重新显示则取消。
+	// hover pill 同样要停放：它也是 absolute，鼠标在展开态停在列表底部的残留坐标
+	// （如 top:2318px）同样会把 scrollHeight 撑到上千像素。
+	let parkTimer: ReturnType<typeof setTimeout> | undefined;
+	let hoverParkTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function schedulePark() {
+		clearTimeout(parkTimer);
+		parkTimer = setTimeout(() => {
+			parkTimer = undefined;
+			if (!selectedOn) selectedGeom = PARKED;
+		}, 160);
+	}
+
+	function scheduleHoverPark() {
+		clearTimeout(hoverParkTimer);
+		hoverParkTimer = setTimeout(() => {
+			hoverParkTimer = undefined;
+			if (!hoverOn) hoverGeom = PARKED;
+		}, 160);
+	}
+
 	function measureSelected() {
 		if (!container || !showSelected || !activeSelector) {
-			selectedOn = false;
+			setSelected(false);
 			return;
 		}
 		const el = container.querySelector<HTMLElement>(activeSelector);
 		if (!el) {
-			selectedOn = false;
+			setSelected(false);
 			return;
 		}
 		const box = measureBox(el);
 		if (!box) {
-			selectedOn = false;
+			setSelected(false);
 			return;
 		}
+		const wasParked = !selectedOn && selectedGeom === PARKED;
 		// box 未变（340ms 补测/重复触发）不重算，否则 d=0 会把时长重置为下限，飞行中途改写 transition
 		if (selectedBox && (box.l !== selectedBox.l || box.t !== selectedBox.t || box.w !== selectedBox.w || box.h !== selectedBox.h)) {
-			const d = Math.hypot(box.l - selectedBox.l, box.t - selectedBox.t);
+			const d = wasParked ? 0 : Math.hypot(box.l - selectedBox.l, box.t - selectedBox.t);
 			selectedDur = Math.min(0.4, Math.max(0.18, 0.16 + d / 1200));
 		}
 		selectedBox = box;
 		selectedGeom = boxStyle(box);
-		selectedOn = true;
+		// 停放恢复：先禁用过渡落地，下一帧恢复常规过渡
+		if (wasParked) {
+			restoring = true;
+			requestAnimationFrame(() => (restoring = false));
+		}
+		setSelected(true);
+	}
+
+	function setSelected(on: boolean) {
+		if (selectedOn === on) return;
+		selectedOn = on;
+		if (on) clearTimeout(parkTimer);
+		else schedulePark();
+	}
+
+	// hover 走同一套路：仅在可见性翻转时取消 / 排定停放
+	function setHover(on: boolean) {
+		if (hoverOn === on) return;
+		hoverOn = on;
+		if (on) clearTimeout(hoverParkTimer);
+		else scheduleHoverPark();
 	}
 
 	let raf = 0;
@@ -161,19 +218,25 @@
 			if (!item || !c.contains(item)) {
 				// 分割线：保持上一个 pill（跨分割线移动不断档），仅真正离开容器才隐藏
 				if (target?.closest?.('[role="separator"]')) return;
-				hoverOn = false;
+				setHover(false);
 				return;
 			}
 			if (disabledMatch && item.matches(disabledMatch)) {
-				hoverOn = false;
+				setHover(false);
 				return;
 			}
+			// 停放恢复：当帧不播位移过渡，避免从左上角飞过来
+			const wasParked = !hoverOn && hoverGeom === PARKED;
 			hoverGeom = geometry(item);
 			hoverBg = item.dataset.pillBg ?? '';
-			hoverOn = true;
+			if (wasParked) {
+				hoverRestoring = true;
+				requestAnimationFrame(() => (hoverRestoring = false));
+			}
+			setHover(true);
 		};
 		const onLeave = () => {
-			hoverOn = false;
+			setHover(false);
 			hoverBg = '';
 		};
 		c.addEventListener('pointerover', onOver);
@@ -181,7 +244,7 @@
 		return () => {
 			c.removeEventListener('pointerover', onOver);
 			c.removeEventListener('pointerleave', onLeave);
-			hoverOn = false;
+			setHover(false);
 		};
 	});
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Component, Snippet } from 'svelte';
-	import TitleBar from './TitleBar.svelte';
+	import TitleBar, { type WindowController } from './TitleBar.svelte';
 
 	let {
 		title = '',
@@ -10,6 +10,7 @@
 		onThemeToggle,
 		controls,
 		windowControls = true,
+		windowApi,
 		tabs,
 		children,
 		scroll = true,
@@ -26,6 +27,8 @@
 		controls?: Snippet;
 		/** 透传给 TitleBar：false 不渲染默认窗口三键（如浏览器环境） */
 		windowControls?: boolean;
+		/** 透传给 TitleBar：窗口控制实现。未传时三键点击无副作用；Wails3 使用者注入适配器 */
+		windowApi?: WindowController;
 		/** 左侧侧边栏内容（通常放 Sidebar） */
 		tabs?: Snippet;
 		/** 内容区 */
@@ -41,7 +44,7 @@
 
 <div class="layout {cls}" class:layout--resize={resize} style={style}>
 	<div class="layout-titlebar">
-		<TitleBar {title} {logo} {subtitle} {theme} {onThemeToggle} {controls} {windowControls} />
+		<TitleBar {title} {logo} {subtitle} {theme} {onThemeToggle} {controls} {windowControls} {windowApi} />
 	</div>
 	<div class="layout-body">
 		{#if tabs}

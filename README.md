@@ -253,7 +253,7 @@ import "goose-ui/styles/theme.css";
 
 | 组件       | 说明                                                          |
 | ---------- | ------------------------------------------------------------- |
-| TitleBar   | Wails3 自绘标题栏                                             |
+| TitleBar   | 自绘标题栏（窗口控制经 `windowApi` 注入，库不依赖桌面 runtime；Wails3 见 demo TitleBar 页） |
 | ThemeToggle | 主题切换按钮（Sun/Moon 图标、圆形扩散动画、localStorage 持久化） |
 | ContextMenu | 右键菜单（全局注册机制）                                     |
 
@@ -385,6 +385,7 @@ import "goose-ui/styles/theme.css";
 - `mode`：`float`（悬浮岛，默认）/ `flat`（贴边）；`collapsed` 可 `bind:` 双向绑定
 - 组件自带 pill 指示器：切换/折叠/展开分组时自动测量并平滑移动
 - 分组标题滚动时**吸附顶部**（被下一个组头推走）；分组与顶层项字号（14px）、图标文字间距（10px）、左缘对齐一致
+- 外部导航（链接跳转、前进后退、深链改写 `activeTab`）会**自动展开**目标项所在分组并将其滚入视野；手动收起的分组不会被当前项弹开，仅在 `activeTab` 真的变化时才展开。折叠态下跳转则记入展开意图，侧栏再展开时还原
 
 ### 顶层项 —— 与分组同级穿插
 
@@ -410,7 +411,9 @@ import "goose-ui/styles/theme.css";
 
 ### endItems —— 列表结尾固定项
 
-渲染在导航列表**末尾**，不新增额外 footer 层级：空间充足时贴底，列表超高时顺次接在末尾；与普通导航项**共享同一 pill**（切换时 pill 连续滑入而非淡出淡入）；左缘与分组标题对齐（1 级）；侧栏折叠时隐藏。
+渲染在导航列表**末尾**，不新增额外 footer 层级：空间充足时贴底，列表超高时顺次接在末尾；展开态与普通导航项**共享同一 pill**（切换时 pill 连续滑入而非淡出淡入）；左缘与分组标题对齐（1 级）。侧栏折叠时**渲染为图标按钮并同样贴底**（与分组图标同级、同 `title` 悬浮提示、可点击切换）。
+
+> 滚动条：导航区用 `overflow-y: auto`（非 `scroll`），因此**折叠态下 8 个图标不溢出时不会绘制滚动条、也不预留槽位**；展开态列表超高时才出现滚动条。若改用 `overflow-y: scroll` + `scrollbar-gutter: stable`，折叠态会在 56px 宽的侧栏里常驻一条滚动条并占掉 10px。
 
 ```svelte
 <script lang="ts">
@@ -687,13 +690,17 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ## Peer Dependencies
 
-| 包                                | 必需 | 说明                              |
-| --------------------------------- | ---- | --------------------------------- |
-| `svelte` ^5.0.0                   | ✅   | 框架                              |
-| `@lucide/svelte` >=1.43.0         | 可选 | 图标库（Icon 组件及内置图标依赖） |
-| `@wailsio/runtime` >=3.0.0-beta.0 | 可选 | 仅 TitleBar / Layout 组件需要     |
+| 包                        | 必需 | 说明                              |
+| ------------------------- | ---- | --------------------------------- |
+| `svelte` ^5.0.0           | ✅   | 框架                              |
+| `@lucide/svelte` >=1.43.0 | 可选 | 图标库（Icon 组件及内置图标依赖） |
 
 > `clsx` 作为 dependencies 随包自动安装，无需手动引入。
+>
+> **Wails3 桌面应用**：goose-ui 不依赖 `@wailsio/runtime`。窗口控制通过
+> `TitleBar` 的 `windowApi` prop 注入（实现 `WindowController` 接口，包一层
+> `@wailsio/runtime` 的 `Window` 即可）；窗口拖拽与四角缩放是纯 CSS。完整示例见
+> demo 的 TitleBar 页「Wails3 接入说明」。
 
 ## License
 

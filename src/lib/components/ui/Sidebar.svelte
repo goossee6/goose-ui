@@ -106,16 +106,27 @@
     expandedGroups = next;
   }
 
+  /** 展开 value 所在分组；返回是否真的改动了展开集合。
+      折叠态下 expandedGroups 恒为空集，故改写 prevExpanded —— 侧栏再展开时据此还原，
+      否则「折叠时用链接跳转」这一步的展开意图会在还原时丢失。 */
+  function revealGroup(value: string): boolean {
+    const idx = groups.findIndex(g => isGroup(g) && g.items.some(i => i.value === value));
+    if (idx < 0) return false;
+    if (collapsed) {
+      if (prevExpanded.has(idx)) return false;
+      prevExpanded = new Set(prevExpanded).add(idx);
+      return true;
+    }
+    if (expandedGroups.has(idx)) return false;
+    expandedGroups = new Set(expandedGroups).add(idx);
+    return true;
+  }
+
   function selectTab(value: string) {
     activeTab = value;
     onchange?.(value);
     popoverGroup = -1;
-    const idx = groups.findIndex(g => isGroup(g) && g.items.some(i => i.value === value));
-    if (idx >= 0 && !expandedGroups.has(idx)) {
-      const next = new Set(expandedGroups);
-      next.add(idx);
-      expandedGroups = next;
-    }
+    revealGroup(value);
   }
 
   function groupIcon(group: SidebarTabGroup) {
@@ -232,6 +243,7 @@
   });
 
   let prevScrollTab = activeTab;
+  let prevScrollCollapsed = collapsed;
 
   $effect(() => {
     activeTab;
@@ -239,10 +251,34 @@
     expandedGroups;
     const tabChanged = activeTab !== prevScrollTab;
     prevScrollTab = activeTab;
+    // 折叠切换：展开态的滚动位置对收起后的图标列毫无意义，且短列表本不该有滚动区。
+    // 必须归零，否则残留 scrollTop 会让浏览器认定"内容超出一屏"而保留滚动条。
+    const collapsedChanged = collapsed !== prevScrollCollapsed;
+    prevScrollCollapsed = collapsed;
+    if (collapsedChanged) navEl?.scrollTo({ top: 0 });
     if (tabChanged) scrollActiveIntoView();
+    // 恢复展开：收起的图标列里 activeTab 可能早已定好（折叠态下的链接跳转），
+    // tabChanged 不会触发，但此时展开后的列表需要把目标项滚回视野。
+    const reexpanded = collapsedChanged && !collapsed;
     const t = setTimeout(() => {
-      if (tabChanged) scrollActiveIntoView();
+      if (tabChanged || reexpanded) scrollActiveIntoView();
     }, 340);
+    return () => clearTimeout(t);
+  });
+
+  // 外部导航（链接 / 前进后退 / 深链改写 activeTab，而非组件内点击）→ 自动展开目标分组。
+  // 只在 activeTab 真的变化时跑：用户手动收起分组不该被立刻弹开。
+  let prevRevealTab = activeTab;
+
+  $effect(() => {
+    const cur = activeTab;
+    if (cur === prevRevealTab) return;
+    prevRevealTab = cur;
+    const revealed = untrack(() => revealGroup(cur));
+    if (!revealed) return;
+    // 分组刚展开：目标项此刻不在 DOM（原本折叠）或正随 0.25s 展开动画下移，
+    // 上面那次 scrollActiveIntoView 落空，等展开收尾后再滚一次。
+    const t = setTimeout(() => scrollActiveIntoView(), 340);
     return () => clearTimeout(t);
   });
 </script>
@@ -372,20 +408,35 @@
         {/if}
       {/if}
     {/each}
-    {#if !collapsed && endItems?.length}
+    {#if endItems?.length}
       {#each endItems as item, i}
-        <button
-          type="button"
-          class="nav-item nav-item--end nav-item--top"
-          class:end-first={i === 0}
-          class:nav-item--active={activeTab === item.value}
-          onclick={() => selectTab(item.value)}
-        >
-          {#if item.icon}
-            <Icon icon={item.icon} size={16} class="nav-item-icon" />
-          {/if}
-          <span class="nav-item-label">{itemLabel(item)}</span>
-        </button>
+        {#if collapsed}
+          <button
+            type="button"
+            class="group-icon-btn group-icon-btn--end"
+            class:end-first={i === 0}
+            class:group-icon-btn--active={activeTab === item.value}
+            onclick={() => selectTab(item.value)}
+            title={itemLabel(item)}
+          >
+            {#if item.icon}
+              <Icon icon={item.icon} size={18} />
+            {/if}
+          </button>
+        {:else}
+          <button
+            type="button"
+            class="nav-item nav-item--end nav-item--top"
+            class:end-first={i === 0}
+            class:nav-item--active={activeTab === item.value}
+            onclick={() => selectTab(item.value)}
+          >
+            {#if item.icon}
+              <Icon icon={item.icon} size={16} class="nav-item-icon" />
+            {/if}
+            <span class="nav-item-label">{itemLabel(item)}</span>
+          </button>
+        {/if}
       {/each}
     {/if}
     <PillTrack
@@ -540,22 +591,19 @@
     position: relative;
     flex: 1;
     min-height: 0;
-    overflow-y: scroll;
+    /* auto：未溢出时不占渲染空间（收起态 8 个图标从不溢出 → 无滚动条、无预留槽）。
+       展开态列表超高时才真正分配滚动条，此时 stable 的布局位移已无关紧要 */
+    overflow-y: auto;
     overflow-x: hidden;
     padding: 0 8px 8px;
-    scrollbar-gutter: stable;
     display: flex;
     flex-direction: column;
   }
-  .sidebar-nav > * {
-    flex-shrink: 0;
-  }
-  .sidebar-nav > :first-child {
-    margin-top: 8px;
-  }
-  .nav-item--end.end-first {
-    margin-top: auto;
-  }
+  /* endItems：空间有余量时贴底（auto margin），列表超高时顺次接在末尾 */
+  .sidebar-nav > * { flex-shrink: 0; }
+  .sidebar-nav > :first-child { margin-top: 8px; }
+  .nav-item--end.end-first,
+  .group-icon-btn--end.end-first { margin-top: auto; }
 
   /* ── Group header (expanded)：Collapsible 触发区/根覆写（同 Accordion 先例） ── */
   /* 菜单分组不要卡片边框；overflow visible 保住分组头 position:sticky 吸顶 */

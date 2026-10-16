@@ -142,7 +142,7 @@
 
     <div class="hue-jsapi">
       <span class="hue-desc">若要在代码里设置（可持久化）：</span>
-      <CodeBlock code={jsSource} language="svelte" showHeader={false} maxHeight="200px" />
+      <CodeBlock code={jsSource} language="svelte" maxHeight="200px" />
     </div>
   </CodePreview>
 

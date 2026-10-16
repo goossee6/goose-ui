@@ -14,9 +14,17 @@ const DIR = join(SCRIPT_DIR, '..', 'src/lib/demos');
 let problems = 0;
 const files = readdirSync(DIR).filter((f) => f.endsWith('.svelte')).sort();
 
+// 非组件页（首页 / 指南组）：它们是纯说明内容，不该用「效果 / 源码」切换
+const INTRO_PAGES = new Set(['Home.svelte', 'Skill.svelte', 'GettingStarted.svelte']);
+
 for (const f of files) {
   const t = readFileSync(join(DIR, f), 'utf8');
   const errs = [];
+
+  // 0) 介绍页不得使用 CodePreview（没有「组件效果」可预览）
+  if (INTRO_PAGES.has(f) && /<CodePreview/.test(t)) {
+    errs.push('介绍页不应使用 CodePreview（非组件页，请用 <Card> + <CodeBlock>）');
+  }
 
   // 1) 只看 <CodePreview ... code={xxx}> 的引用（CodeBlock 有自己的旧常量，不在校验范围）
   const cpTags = [...t.matchAll(/<CodePreview[\s\S]*?>/g)].map((m) => m[0]);

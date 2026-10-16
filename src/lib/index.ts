@@ -46,6 +46,7 @@ export type { ErrorEntry } from './components/errors';
 export type { Theme, HueRole, HueMap } from './components/themeStore.svelte.js';
 export type { PageDir } from './components/pageDirStore.svelte.js';
 export type { SidebarTabGroup, SidebarTabItem, SidebarEntry } from './components/ui/Sidebar.svelte';
+export type { WindowController } from './components/ui/TitleBar.svelte';
 
 // UI Components
 import Accordion from './components/ui/Accordion.svelte';

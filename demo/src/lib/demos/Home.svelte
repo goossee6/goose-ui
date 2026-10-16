@@ -1,155 +1,271 @@
 <script lang="ts">
-  import { Card, Page, Row, Tag } from "goose-ui";
-  import CodePreview from "../CodePreview.svelte";
+  import { Button, Page, Tag } from "goose-ui";
+  import Rocket from "@lucide/svelte/icons/rocket";
+  import BookOpen from "@lucide/svelte/icons/book-open";
+  import Sparkles from "@lucide/svelte/icons/sparkles";
 
-  const installSource = `pnpm add goose-ui`;
-
-  const setupSource = `// src/main.ts（或任意应用入口）
-import "goose-ui/styles/theme.css";
-import { initTheme } from "goose-ui";
-
-initTheme(); // 应用持久化的亮/暗主题与主题色`;
-
-  const firstSource = `<script lang="ts">
-  import { Button, Card, NotificationProvider, Notification } from "goose-ui";
-<\/script>
-
-<!-- 通知容器：App 顶层挂载一次 -->
-<NotificationProvider />
-
-<Card title="用户信息">
-  <p>卡片内容</p>
-  <Button variant="primary" onclick={() => Notification.success("保存成功")}>
-    保存
-  </Button>
-</Card>`;
-
-  const themeSource = `/* 改色相即可换主题：亮/暗两套自动派生 */
-:root {
-  --hue-accent: 25;      /* 强调色 */
-  --hue-complement: 230; /* 互补色 */
-}`;
-
-  const shellSource = `<script lang="ts">
-  import {
-    Layout, Sidebar, Page, themeStore, toggleThemeFromEvent,
-    type SidebarEntry,
-  } from "goose-ui";
-
-  const groups: SidebarEntry[] = [
-    { title: "组件", items: [{ value: "home", label: "首页" }] },
+  const stats = [
+    { value: "50+", label: "组件" },
+    { value: "0", label: "运行时依赖" },
+    { value: "1", label: "主题文件" },
+    { value: "2", label: "内置主题" },
   ];
-  let active = $state("home");
-<\/script>
 
-<Layout title="我的应用" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent}>
-  {#snippet tabs()}
-    <Sidebar {groups} bind:activeTab={active} embedded />
-  {/snippet}
-
-  <Page title="首页">内容区</Page>
-</Layout>`;
-
-  const highlights = [
-    { label: "零第三方依赖", desc: "运行时仅需 Svelte 5 + 纯 CSS，图标可选" },
-    { label: "Svelte 5 Runes", desc: "全面 $props / $state / $derived / $effect" },
-    { label: "亮暗双主题", desc: "色相旋钮配置，明度彩度自动派生" },
-    { label: "可复制源码", desc: "每个示例都能「效果 / 源码」切换并一键复制" },
+  const features = [
+    {
+      icon: Rocket,
+      title: "开箱即用的外壳",
+      desc: "Layout + Sidebar + Page 把标题栏、导航、内容区一次组装好，为 Wails3 桌面场景预置。",
+    },
+    {
+      icon: Sparkles,
+      title: "色相旋钮主题",
+      desc: "只改 6 个色相值，亮暗两套配色自动派生；明度彩度由系统保证对比度。",
+    },
+    {
+      icon: BookOpen,
+      title: "可复制的演示",
+      desc: "每个组件页的示例都带「效果 / 源码」切换与一键复制，源码包含 import。",
+    },
   ];
+
+  const entries = [
+    {
+      href: "#/getstarted",
+      tag: "入门",
+      title: "开始使用",
+      desc: "从安装到完整外壳的五步接入路径。",
+    },
+    {
+      href: "#/skill",
+      tag: "AI",
+      title: "Skill 技能",
+      desc: "把 goose-ui 的约定装进 AI 编码代理。",
+    },
+    {
+      href: "#/settings",
+      tag: "设置",
+      title: "主题色调节",
+      desc: "滑块实时调整全局强调色与互补色。",
+    },
+    {
+      href: "#/button",
+      tag: "组件",
+      title: "浏览组件",
+      desc: "从左侧分组进入 50+ 组件的独立演示页。",
+    },
+  ];
+
+  function go(hash: string) {
+    location.hash = hash;
+  }
 </script>
 
-<Page title="首页" description="goose-ui — 零第三方依赖的 Svelte 5 纯 CSS 组件库">
-  <Card title="特性">
-    <div class="feat-grid">
-      {#each highlights as h (h.label)}
-        <div class="feat">
-          <Tag variant="primary">{h.label}</Tag>
-          <span class="feat-desc">{h.desc}</span>
-        </div>
-      {/each}
+<div class="hero">
+  <div class="hero-tags">
+    <Tag variant="primary" dot>Svelte 5 Runes</Tag>
+    <Tag variant="success" dot>零依赖</Tag>
+    <Tag variant="info" dot>Wails3</Tag>
+    <Tag>MIT</Tag>
+  </div>
+
+  <h1 class="hero-title">goose-ui</h1>
+  <p class="hero-sub">
+    零第三方依赖的 Svelte 5 纯 CSS 组件库 ——
+    为桌面与后台应用准备的 <em>50+ 组件</em>、单文件主题与开箱即用的应用外壳。
+  </p>
+
+  <div class="hero-actions">
+    <Button variant="primary" size="large" onclick={() => go("#/getstarted")}>
+      开始使用 →
+    </Button>
+    <Button variant="default" size="large" onclick={() => go("#/button")}>
+      浏览组件
+    </Button>
+  </div>
+
+  <div class="hero-stats">
+    {#each stats as s (s.label)}
+      <div class="stat">
+        <span class="stat-value">{s.value}</span>
+        <span class="stat-label">{s.label}</span>
+      </div>
+    {/each}
+  </div>
+</div>
+
+<div class="feat-grid">
+  {#each features as f (f.title)}
+    <div class="feat">
+      <div class="feat-icon"><f.icon size={18} /></div>
+      <div>
+        <div class="feat-title">{f.title}</div>
+        <p class="feat-desc">{f.desc}</p>
+      </div>
     </div>
-  </Card>
+  {/each}
+</div>
 
-  <CodePreview title="1. 安装" code={installSource} language="bash">
-    <p class="note">包管理器命令，装完即可按需引入组件。</p>
-  </CodePreview>
-
-  <CodePreview title="2. 应用入口初始化" code={setupSource} language="ts">
-    <p class="note">
-      主题样式与应用初始化只需在入口做一次：<code>initTheme()</code> 会读取持久化的亮/暗偏好与主题色，
-      并跟随系统深浅色变化。
-    </p>
-  </CodePreview>
-
-  <CodePreview title="3. 第一个组件" code={firstSource}>
-    <Row style="align-items:center;gap:12px;flex-wrap:wrap">
-      <span class="note">左侧导航可进入任意组件页；每页的「效果 / 源码」都能一键复制。</span>
-    </Row>
-  </CodePreview>
-
-  <CodePreview title="4. 换主题色" code={themeSource} language="css">
-    <p class="note">
-      只改色相即可，系统会为亮色与暗色分别派生整套配色。也可用
-      <code>setHue('accent', 25)</code> 在代码里设置并持久化（详见侧栏「设置」页）。
-    </p>
-  </CodePreview>
-
-  <CodePreview title="5. 完整应用外壳（可选）" code={shellSource}>
-    <p class="note">
-      <code>Layout</code> 把「标题栏 + 侧边导航 + 内容区」一次组装好，适合 Wails3 桌面应用或后台系统。
-    </p>
-  </CodePreview>
-
-  <Card title="怎么用这个 demo">
-    <ul class="tips">
-      <li>左侧导航按「基础 / 表单 / 反馈 / 数据展示 / 工具 / Wails3」分组，点进去即是该组件的独立演示页。</li>
-      <li>每个用法卡片右上角有 <strong>效果 / 源码</strong> 切换与<strong>复制</strong>按钮，源码已包含 <code>import</code>，可直接粘进项目。</li>
-      <li>页面 URL 用 hash 路由（如 <code>#/button</code>），可直接分享或刷新后停留在当前页。</li>
-      <li>侧栏底部「设置」可可视化调节主题色，改动全局立即生效。</li>
-    </ul>
-  </Card>
-</Page>
+<div class="entry-grid">
+  {#each entries as e (e.title)}
+    <button type="button" class="entry" onclick={() => go(e.href)}>
+      <span class="entry-tag">{e.tag}</span>
+      <span class="entry-title">{e.title} →</span>
+      <span class="entry-desc">{e.desc}</span>
+    </button>
+  {/each}
+</div>
 
 <style>
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 56px 16px 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(1200px 320px at 50% -80px, var(--accent-sub), transparent 70%),
+      var(--surface);
+    overflow: hidden;
+  }
+  .hero-tags {
+    display: flex;
+    gap: var(--sp-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    margin: 0;
+    font-size: 44px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    color: var(--text-strong);
+    background: linear-gradient(120deg, var(--text-strong) 55%, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .hero-sub {
+    max-width: 620px;
+    margin: 14px 0 26px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--text-muted);
+  }
+  .hero-sub em {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .hero-actions {
+    display: flex;
+    gap: var(--sp-md);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 36px;
+    margin-top: 34px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
   .feat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--sp-lg);
+    margin-top: var(--sp-lg);
   }
   .feat {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: flex-start;
+    gap: var(--sp-md);
+    padding: var(--sp-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+  .feat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-md);
+    background: var(--accent-sub);
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .feat-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
   }
   .feat-desc {
-    font-size: 12px;
+    margin: 4px 0 0;
+    font-size: 12.5px;
     line-height: 1.7;
     color: var(--text-muted);
   }
-  .note {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.8;
-    color: var(--text-muted);
+
+  .entry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: var(--sp-md);
+    margin-top: var(--sp-lg);
   }
-  .note code,
-  .tips code {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 1px 5px;
-    border-radius: 4px;
+  .entry {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: var(--sp-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .entry:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .entry-tag {
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 9999px;
     background: var(--accent-sub);
     color: var(--accent);
   }
-  .tips {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 13px;
-    line-height: 2;
-    color: var(--text-muted);
+  .entry-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
   }
-  .tips strong {
-    color: var(--text);
+  .entry-desc {
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-muted);
   }
 </style>

@@ -15,6 +15,23 @@
 	--hue-info: 260;        /* 信息 */
 }
 
+/* TitleBar logo 品牌渐变：主色 → 主色相邻色相（+40°）。
+   色相偏移用纯数字加法（oklch 的 hue 通道接受 number），并在这里把整条渐变预解析成
+   一个自定义属性，组件直接引用、不做 var() 回退 —— 两个坑都绕开了：
+   1) calc(var(--hue-x) + 40deg) 是 number 与 deg 混算，无效；
+   2) var() 回退值里出现任何 var() 会让整条 background 在计算值阶段失效
+      → background-image:none → logo 隐形。
+   想换品牌渐变，覆盖 :root 上的 --titlebar-logo-gradient 即可。 */
+:root {
+	--titlebar-logo-gradient: linear-gradient(
+		90deg,
+		oklch(0.55 0.24 calc(var(--hue-accent) + 0)),
+		oklch(0.55 0.24 calc(var(--hue-accent) + 40))
+	);
+}
+
+
+
 /* ── Light Theme ───────────────────────────────────────────────────────────── */
 :root, .light {
 	/* 基础色 */

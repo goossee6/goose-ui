@@ -129,14 +129,10 @@
   },
   "peerDependencies": {
     "@lucide/svelte": ">=1.43.0",
-    "@wailsio/runtime": ">=3.0.0-beta.0",
     "svelte": "^5.0.0"
   },
   "peerDependenciesMeta": {
     "@lucide/svelte": {
-      "optional": true
-    },
-    "@wailsio/runtime": {
       "optional": true
     }
   },
