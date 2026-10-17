@@ -158,7 +158,9 @@
 </div>
 
 <style>
-	.tabs-root { display: inline-flex; flex-direction: column; align-items: flex-start; }
+	/* inline-flex 的 min-width 默认 auto，窄容器下会被 tab 的 nowrap 文字撑开；
+	   min-width:0 + max-width:100% 让它在放不下时收缩而不是顶破父级。 */
+	.tabs-root { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 100%; }
 	.tabs-topline {
 		display: flex;
 		align-items: center;
@@ -178,10 +180,20 @@
 	.tabs-group {
 		display: flex;
 		position: relative;
+		/* 收缩到父级宽度以内而不是顶出去；放不下时横向滚动，
+		   避免 tab 的 nowrap 文字把整页撑出横向滚动条。 */
+		min-width: 0;
+		max-width: 100%;
+		overflow-x: auto;
+		scrollbar-width: none;
 	}
+	.tabs-group::-webkit-scrollbar { display: none; }
 	.tabs-group--segmented {
 		gap: 4px;
+		/* fit-content 会被 nowrap 的 tab 撑到内容宽度而顶出父级，
+		   max-width:100% 把它压回容器内，配合上面的 overflow-x 横向滚动。 */
 		width: fit-content;
+		max-width: 100%;
 		padding: 4px;
 		border-radius: var(--radius-lg);
 		background-color: var(--surface-2);

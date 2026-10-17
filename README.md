@@ -196,11 +196,11 @@ import "goose-ui/styles/theme.css";
 
 | 组件           | 说明                                     |
 | -------------- | ---------------------------------------- |
-| DataTable      | 数据表格，支持排序、高亮、右键菜单       |
-| DataList       | 数据列表，带空状态                       |
+| DataTable      | 数据表格，支持排序、高亮、右键菜单、可拖拽列宽；表头圆角，行 hover 为滑动 pill |
+| DataList       | 数据列表，带空状态；行 hover 同样走滑动 pill |
 | Tabs           | 标签页（分段/下划线/垂直模式 + 键盘导航）      |
 | TabsPanel      | 标签页内容面板（value 匹配选中项时渲染）      |
-| PillTrack      | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中） |
+| PillTrack      | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制 |
 | Pagination     | 分页（siblingCount 省略号折叠）          |
 | Collapsible    | 折叠面板（grid-rows 0fr→1fr 过渡）       |
 | Accordion      | 手风琴（单开/多开/collapsible，复用 Collapsible） |

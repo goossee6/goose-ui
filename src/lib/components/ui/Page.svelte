@@ -148,6 +148,10 @@
 		flex-direction: column;
 		gap: var(--page-gap);
 		overflow-y: auto;
+		/* 任何子项宽度超出时由本层承担滚动，不让它继续往外传；
+		   这是"内容不溢出窗口"的最后一道闸。 */
+		overflow-x: auto;
+		min-width: 0;
 		overscroll-behavior: contain;
 		padding-block: var(--page-gap);
 		/* 滚动条贴容器右缘：负边距吃掉页面右 padding，内容右留白由 padding-right 补回 */

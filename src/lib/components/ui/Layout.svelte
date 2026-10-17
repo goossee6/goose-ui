@@ -103,10 +103,14 @@
 	.layout-titlebar {
 		flex-shrink: 0;
 	}
+	/* 栏间距和四周边距分开由两条规则各自负责，不再靠子元素"往外留白"叠加：
+	   gap 只在有相邻兄弟时生效，侧栏不渲染时不会凭空多出左留白。 */
 	.layout-body {
 		position: relative;
 		flex: 1;
 		display: flex;
+		gap: 8px;
+		padding: 0 8px 8px;
 		min-height: 0;
 	}
 	.layout-tabs {
@@ -115,7 +119,7 @@
 		flex-direction: column;
 		width: max-content;
 		background: transparent;
-		padding: 0 8px 8px;
+		padding: 0;
 		overflow-y: auto;
 		overflow-x: hidden;
 	}
@@ -129,7 +133,7 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		padding: 0;
-		margin: 0 8px 8px;
+		margin: 0;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		background: var(--surface, var(--bg));

@@ -40,7 +40,13 @@ export { confirmStore, showConfirm } from './components/confirm';
 // Types
 export type { NotificationType, NotificationPosition, NotificationOptions, NotificationStore } from './components/notification';
 export type { MenuItemDef, MenuActionData } from './components/contextMenu';
-export type { Column } from './components/tableTypes';
+export type { Column, ColumnOverflow } from './components/tableTypes';
+export { loadWidths, saveWidths, clearWidths, toPercents, resizeWeights, MIN_COL_PX } from './components/colWidths.svelte.js';
+export {
+	loadWidthsVersioned,
+	saveWidthsVersioned,
+	weightsFingerprint
+} from './components/colWidths.svelte.js';
 export type { SortState, SortDir } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
 export type { Theme, HueRole, HueMap } from './components/themeStore.svelte.js';

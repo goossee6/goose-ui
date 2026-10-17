@@ -11,6 +11,7 @@
     code = '',
     language = 'svelte',
     maxHeight = '',
+    flush = false,
     right,
     children
   }: {
@@ -18,6 +19,13 @@
     code?: string;
     language?: string;
     maxHeight?: string;
+    /**
+     * 去掉预览区内边距，让内容直接贴到卡片边框。
+     * 用于表格 / 列表（DataTable、DataList）：它们自带单元格内边距和外框，
+     * 再叠一层 16px 会让表格看起来悬浮在中间。
+     * 只作用于「效果」页签；「源码」页签的 CodeBlock 始终保留内边距。
+     */
+    flush?: boolean;
     /** 标题栏右侧附加内容（渲染在复制按钮左侧），替代原 Card 的 right snippet */
     right?: Snippet;
     children?: Snippet;
@@ -112,7 +120,7 @@
       </Button>
     </div>
   </div>
-  <div class="cp-body" bind:this={bodyEl}>
+  <div class="cp-body" class:cp-body--flush={flush && active === 'preview'} bind:this={bodyEl}>
     {#if active === 'preview'}
       <div class="cp-pane">
         {@render children?.()}
@@ -181,6 +189,14 @@
   .cp-body {
     padding: var(--sp-lg);
   }
+  /* 表格 / 列表类内容自带单元格内边距，再叠一层会让表格像悬浮在卡片中间 */
+  .cp-body--flush {
+    padding: 0;
+  }
+  /* 表格/列表贴边模式下，内容自己承担横向滚动。
+     不加这层的话，表格的 nowrap 单元格会冲破 .cp-card（它为了不裁剪下拉
+     浮层而设了 overflow:visible），把横向滚动条推到整个内容区上。 */
+  .cp-body--flush .cp-pane { overflow-x: auto; }
   .cp-pane {
     display: flex;
     flex-direction: column;

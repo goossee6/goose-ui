@@ -132,7 +132,7 @@
         { value: "card", label: "Card 卡片" },
         { value: "collapse", label: "Collapse 折叠面板" },
         { value: "tabs", label: "Tabs 标签页" },
-        { value: "table", label: "Table 表格" },
+        { value: "table", label: "Table/List 表格与列表" },
         { value: "pagination", label: "Pagination 分页" },
         { value: "progress", label: "Progress 进度条" },
         { value: "meter", label: "Meter 度量条" },
