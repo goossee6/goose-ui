@@ -76,8 +76,8 @@
 </Row>`;
 </script>
 
-<Page title="Tag 标签" description="用于标记状态与分类的小型标签">
-  <CodePreview title="变体" code={variantSource}>
+<Page toc title="Tag 标签" description="用于标记状态与分类的小型标签">
+  <CodePreview anchor="variant" anchorLevel={2} title="变体" code={variantSource}>
     <Row>
       {#each variants as v (v)}
         <Tag variant={v}>{v}</Tag>
@@ -85,7 +85,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="尺寸与圆点" code={sizeSource}>
+  <CodePreview anchor="dot" anchorLevel={2} title="尺寸与圆点" code={sizeSource}>
     <Row>
       <Tag size="small">small</Tag>
       <Tag size="middle">middle</Tag>
@@ -97,7 +97,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="可关闭" code={closableSource}>
+  <CodePreview anchor="closable" anchorLevel={2} title="可关闭" code={closableSource}>
     <Row>
       {#each tags as t (t.id)}
         <Tag variant="primary" closable onclose={() => (tags = tags.filter((x) => x.id !== t.id))}>{t.label}</Tag>
@@ -117,7 +117,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

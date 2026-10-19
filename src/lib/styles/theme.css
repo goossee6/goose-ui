@@ -139,6 +139,14 @@
 	--page-pad-r: var(--layout-pad-x);
 	--ph-gap: 32px;
 	--notif-width: 360px;
+	/* 全站吸顶锚点：任何 sticky 元素要给固定顶栏让位时都用它，
+	   不要再各自写死像素。改了 --titlebar-h 或页面自带 Header 高度时同步改这里。 */
+	--header-height: 0px;
+	/* 页内目录（Page 的 toc）：目录列宽，以及目录自身可滚动的最大高度 */
+	--toc-width: 220px;
+	--toc-max-h: calc(100vh - 240px);
+	/* 页内目录每级缩进 */
+	--toc-indent: 12px;
 
 	/* 字体 */
 	--font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;

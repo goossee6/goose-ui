@@ -446,6 +446,7 @@
       background="var(--primary)"
       hoverBackground="var(--accent-sub)"
       radius="var(--radius-md)"
+      zIndex={-1}
     />
   </nav>
 
@@ -639,9 +640,12 @@
     color: var(--text-strong);
     background: transparent;
   }
-  /* 吸顶（stuck）时必须不透明底遮住身后滚过的内容；hover 自背景仅此态生效 */
+  /* 吸顶（stuck）时轻微磨砂：半透明底 + 弱模糊遮住身后滚过的内容，
+     内容在组头下若隐若现，而不是被一块死板的不透明色硬生生切断。
+     未吸顶仍保持透明，hover 交给下层 pill（与 nav-item 同动画）。 */
   .sidebar-nav :global(.collapsible-trigger.stuck) {
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    backdrop-filter: blur(12px);
   }
   .sidebar-nav :global(.collapsible-trigger.stuck:hover:not(:disabled)) {
     /* 同色自背景（= pill hover 色叠 surface，不透明）：与下层 pill 同色叠加无视觉冲突 */
@@ -726,10 +730,16 @@
   .nav-item:hover {
     color: var(--primary);
   }
+  /*
+   * 激活项文字用主色前景（--accent-text），压在实心主色 pill 上 ------
+   * 两套主题都是「主色底 + 白字」：亮色 --primary 是 oklch(0.61 0.22 264)
+   * 的深蓝，暗色 --primary 更暗，白字对比度都够。曾经用过 --text-strong，
+   * 亮色下它是近黑，压在深蓝上几乎看不清。
+   */
   .nav-item--active,
   .nav-item--active:hover {
     background: transparent;
-    color: var(--primary-text);
+    color: var(--accent-text);
     font-weight: 500;
   }
   .nav-item-label {
@@ -753,7 +763,7 @@
   :global(.dark) .nav-item--active,
   :global(.dark) .nav-item--active:hover {
     background: transparent;
-    color: var(--primary-text);
+    color: var(--accent-text);
   }
 
   /* ── Footer ──────────────────────────────────────────────────────────────── */

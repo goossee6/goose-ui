@@ -211,7 +211,7 @@
 	}
 	.tab {
 		position: relative;
-		z-index: 10;
+		z-index: 1;
 		border: none;
 		background: transparent;
 		cursor: pointer;

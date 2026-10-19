@@ -117,8 +117,8 @@
 {/snippet}`;
 </script>
 
-<Page title="抽屉 Drawer" description="侧边/上下抽屉组件，支持四种方向、遮罩关闭、背景下沉" >
-  <CodePreview title="四个方向 placement" code={placementSource}>
+<Page toc title="抽屉 Drawer" description="侧边/上下抽屉组件，支持四种方向、遮罩关闭、背景下沉">
+  <CodePreview anchor="方向" anchorLevel={2} title="四个方向 placement" code={placementSource}>
     <Row>
       <Button variant="primary" onclick={() => (rightOpen = true)}>右侧抽屉 (默认)</Button>
       <Button onclick={() => (leftOpen = true)}>左侧</Button>
@@ -141,7 +141,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="自定义宽度 / 高度" code={sizeSource}>
+  <CodePreview anchor="内容与尺寸" anchorLevel={2} title="自定义宽度 / 高度" code={sizeSource}>
     <Row>
       <Button onclick={() => (wideOpen = true)}>宽抽屉 (600px)</Button>
       <Drawer bind:open={wideOpen} title="宽抽屉" width={600} maskClosable>
@@ -151,7 +151,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="点击遮罩不关闭" code={maskSource}>
+  <CodePreview anchor="no-mask-close" anchorLevel={3} title="点击遮罩不关闭" code={maskSource}>
     <Row>
       <Button onclick={() => (noMaskOpen = true)}>遮罩不可关闭</Button>
       <Drawer bind:open={noMaskOpen} title="遮罩不可关闭" maskClosable={false}>
@@ -161,7 +161,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="关闭景深" code={pushBackgroundSource}>
+  <CodePreview anchor="push-background" anchorLevel={3} title="关闭景深" code={pushBackgroundSource}>
     <Row>
       <Button onclick={() => (noPushOpen = true)}>关闭景深</Button>
       <Drawer bind:open={noPushOpen} title="关闭景深" maskClosable pushBackground={false}>
@@ -171,7 +171,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="自定义 Footer" code={footerSource}>
+  <CodePreview anchor="footer" anchorLevel={3} title="自定义 Footer" code={footerSource}>
     <Row>
       <Button onclick={() => (customFooterOpen = true)}>自定义底部</Button>
       <Drawer bind:open={customFooterOpen} title="自定义 Footer" maskClosable footer={customFooter}>
@@ -181,7 +181,7 @@
     </Row>
   </CodePreview>
   <Card title="Props">
-    <PropsTable items={drawerProps} />
+    <PropsTable anchor="props" items={drawerProps} />
   </Card>
 </Page>
 

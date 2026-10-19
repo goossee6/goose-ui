@@ -160,26 +160,26 @@
 />`;
 </script>
 
-<Page title="TitleBar 标题栏" description="桌面应用自定义窗口标题栏：拖拽、主题切换、窗口控制（注入式，不依赖任何桌面 runtime）">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="TitleBar 标题栏" description="桌面应用自定义窗口标题栏：拖拽、主题切换、窗口控制（注入式，不依赖任何桌面 runtime）">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div class="demo-preview">
       <TitleBar title="我的应用" />
     </div>
   </CodePreview>
 
-  <CodePreview title="带主题切换" code={themeToggleSource}>
+  <CodePreview anchor="advanced" anchorLevel={2} title="带主题切换" code={themeToggleSource}>
     <div class="demo-preview">
       <TitleBar title="设置" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent} />
     </div>
   </CodePreview>
 
-  <CodePreview title="文字 logo + 副标题" code={subtitleSource}>
+  <CodePreview anchor="logo" anchorLevel={3} title="文字 logo + 副标题" code={subtitleSource}>
     <div class="demo-preview">
       <TitleBar title="ToolKit" subtitle="Windows 工具箱" theme={themeStore.theme} />
     </div>
   </CodePreview>
 
-  <CodePreview title="图标 logo + 副标题回退" code={logoSegmentSource}>
+  <CodePreview anchor="logo-2" anchorLevel={3} title="图标 logo + 副标题回退" code={logoSegmentSource}>
     <div class="demo-preview">
       <TitleBar logo={Box} title="我的应用" subtitle="Windows 工具箱" theme={themeStore.theme} />
     </div>
@@ -189,19 +189,19 @@
     <p class="demo-note" style="margin-top: 8px;">图标 logo 未传 subtitle 时，纯文字回退显示 title。</p>
   </CodePreview>
 
-  <CodePreview title="深色主题" code={darkSource}>
+  <CodePreview anchor="dark" anchorLevel={3} title="深色主题" code={darkSource}>
     <div class="demo-preview demo-preview--dark dark">
       <TitleBar title="深色模式" theme="dark" />
     </div>
   </CodePreview>
 
-  <CodePreview title="浅色主题" code={lightSource}>
+  <CodePreview anchor="light" anchorLevel={3} title="浅色主题" code={lightSource}>
     <div class="demo-preview demo-preview--light light">
       <TitleBar title="浅色模式" theme="light" />
     </div>
   </CodePreview>
 
-  <CodePreview title="窗口控制（windowApi 注入）" code={wailsSource}>
+  <CodePreview anchor="window-controls" anchorLevel={2} title="窗口控制（windowApi 注入）" code={wailsSource}>
     <p class="demo-note">
       下面预览里用的是浏览器模拟控制器，三键可点击、最大化状态可切换；打包进 Wails3 后换成真实适配器即可。
     </p>
@@ -210,7 +210,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="内联搜索" code={searchSource}>
+  <CodePreview anchor="search-menu" anchorLevel={2} title="内联搜索" code={searchSource}>
     <p class="demo-note">
       传入 <code>searchable</code> 开启搜索框。搜索段是标题栏里唯一的弹性段（两侧为刚体），
       宽度自适应、上限为标题栏可用空间的 40%，窄窗口下一路收窄并在标题栏 450px 以下隐藏，
@@ -233,7 +233,7 @@
     {/if}
   </CodePreview>
 
-  <CodePreview title="ThemeToggle 组件" code={themeToggleComponentSource}>
+  <CodePreview anchor="themetoggle" anchorLevel={3} title="ThemeToggle 组件" code={themeToggleComponentSource}>
     <p class="demo-note">独立的主题切换按钮，带圆形扩散动画：</p>
     <Row><ThemeToggle /></Row>
   </CodePreview>
@@ -256,7 +256,7 @@
   </Card>
 
   <Card title="Props">
-    <PropsTable items={titleBarProps} />
+    <PropsTable anchor="props" items={titleBarProps} />
   </Card>
 </Page>
 

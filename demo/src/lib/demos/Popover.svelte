@@ -48,8 +48,8 @@
 </Popover>`;
 </script>
 
-<Page title="Popover 气泡卡片" description="点击触发的浮层卡片，可放任意交互内容（Esc / 点击外部关闭）">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Popover 气泡卡片" description="点击触发的浮层卡片，可放任意交互内容（Esc / 点击外部关闭）">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
       <Popover title="什么是 Popover？">
         {#snippet trigger()}
@@ -78,6 +78,6 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>

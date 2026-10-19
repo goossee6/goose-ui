@@ -94,8 +94,8 @@
 <DateRangePicker start="" end="" placeholder="请选择日期范围" />`;
 </script>
 
-<Page title="Calendar / Date Picker 日历与日期选择" description="日历网格、范围日历与浮层选择器（方向键/PgUp/PgDn 键盘导航）">
-  <CodePreview title="Calendar 日历" code={calendarSource}>
+<Page toc title="Calendar / Date Picker 日历与日期选择" description="日历网格、范围日历与浮层选择器（方向键/PgUp/PgDn 键盘导航）">
+  <CodePreview anchor="calendar" anchorLevel={2} title="Calendar 日历" code={calendarSource}>
     <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
       <div style="display:flex;flex-direction:column;gap:8px">
         <Calendar bind:value={calValue} />
@@ -108,14 +108,14 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="RangeCalendar 范围日历" code={rangeCalendarSource}>
+  <CodePreview anchor="rangecalendar" anchorLevel={2} title="RangeCalendar 范围日历" code={rangeCalendarSource}>
     <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
       <RangeCalendar bind:start={rangeStart} bind:end={rangeEnd} />
       <p class="note">{rangeStart || '（空）'} → {rangeEnd || '（空）'}（先点起点，再点终点；悬停预览）</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="DatePicker 日期选择器" code={datePickerSource}>
+  <CodePreview anchor="datepicker" anchorLevel={2} title="DatePicker 日期选择器" code={datePickerSource}>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
       <DatePicker bind:value={picked} />
       <DatePicker value="" placeholder="空状态" />
@@ -124,7 +124,7 @@
     <p class="note" style="margin-top:12px">value = {picked || '（空）'}</p>
   </CodePreview>
 
-  <CodePreview title="DateRangePicker 范围选择器" code={dateRangePickerSource}>
+  <CodePreview anchor="daterangepicker" anchorLevel={2} title="DateRangePicker 范围选择器" code={dateRangePickerSource}>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
       <DateRangePicker bind:start={pickedRangeStart} bind:end={pickedRangeEnd} />
       <DateRangePicker start="" end="" placeholder="空状态" />
@@ -133,7 +133,7 @@
   </CodePreview>
 
   <Card title="Props — Calendar / RangeCalendar">
-    <PropsTable items={calendarProps} />
+    <PropsTable anchor="props" items={calendarProps} />
     <div style="height:12px"></div>
     <PropsTable items={rangeProps} />
   </Card>

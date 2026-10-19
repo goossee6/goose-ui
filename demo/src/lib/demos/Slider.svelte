@@ -90,15 +90,15 @@
 <Slider value={50} disabled label="禁用" />`;
 </script>
 
-<Page title="Slider 滑块" description="拖拽或键盘（方向键/Home/End/PageUp/PageDown）调节连续值；value 双向绑定，onchange 松手/键盘时触发">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Slider 滑块" description="拖拽或键盘（方向键/Home/End/PageUp/PageDown）调节连续值；value 双向绑定，onchange 松手/键盘时触发">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:20px;max-width:420px">
       <Slider bind:value={basic} label="进度" />
       <p class="note">label 显示名称，右侧数值随拖动实时更新；bind:value 双向绑定，当前 = {basic}</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="范围与步长（min / max / step）" code={rangeSource}>
+  <CodePreview anchor="range-step" anchorLevel={2} title="范围与步长（min / max / step）" code={rangeSource}>
     <div style="display:flex;flex-direction:column;gap:20px;max-width:420px">
       <Slider bind:value={temp} min={16} max={30} step={0.5} label="空调温度" format={(n) => `${n.toFixed(1)}℃`} />
       <p class="note">min=16、max=30、step=0.5：按 0.5 递进，format 固定一位小数，当前 = {temp.toFixed(1)}℃</p>
@@ -109,7 +109,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="格式化（format）" code={formatSource}>
+  <CodePreview anchor="format" anchorLevel={3} title="格式化（format）" code={formatSource}>
     <div style="display:flex;flex-direction:column;gap:20px;max-width:420px">
       <Slider bind:value={volume} label="音量" step={5} format={(n) => `${n}%`} />
       <p class="note">format 返回百分号后缀，步进 5，当前显示 {volume}%</p>
@@ -118,7 +118,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="受控与回调（value / onchange）" code={controlledSource}>
+  <CodePreview anchor="value-onchange" anchorLevel={3} title="受控与回调（value / onchange）" code={controlledSource}>
     <div style="display:flex;flex-direction:column;gap:16px;max-width:420px">
       <Slider bind:value={controlled} label="受控 value" onchange={logChange} />
       <Row>
@@ -130,7 +130,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="禁用（disabled）" code={disabledSource}>
+  <CodePreview anchor="disabled" anchorLevel={3} title="禁用（disabled）" code={disabledSource}>
     <div style="display:flex;flex-direction:column;gap:20px;max-width:420px">
       <Slider value={50} disabled label="禁用" />
       <p class="note">禁用后不可拖拽、不可聚焦（tabindex=-1），value 保持外部传入</p>
@@ -138,7 +138,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

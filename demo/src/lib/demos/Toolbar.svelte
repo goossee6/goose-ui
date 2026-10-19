@@ -42,8 +42,8 @@
 </Toolbar>`;
 </script>
 
-<Page title="Toolbar 工具栏" description="成组的操作按钮容器（方向键在控件间循环移动焦点）">
-  <CodePreview title="横向工具栏" code={horizontalSource}>
+<Page toc title="Toolbar 工具栏" description="成组的操作按钮容器（方向键在控件间循环移动焦点）">
+  <CodePreview anchor="horizontal" anchorLevel={2} title="横向工具栏" code={horizontalSource}>
     <Toolbar>
       <Button size="small" onclick={() => Notification.info('粗体')}>B</Button>
       <Button size="small" onclick={() => Notification.info('斜体')}>I</Button>
@@ -58,7 +58,7 @@
     </Toolbar>
   </CodePreview>
 
-  <CodePreview title="纵向工具栏" code={verticalSource}>
+  <CodePreview anchor="vertical" anchorLevel={2} title="纵向工具栏" code={verticalSource}>
     <Toolbar orientation="vertical">
       <Button size="small" onclick={() => Notification.info('保存')}>保存</Button>
       <Button size="small" onclick={() => Notification.info('打印')}>打印</Button>
@@ -67,7 +67,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

@@ -271,7 +271,9 @@
 		font-size: 12px;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
-		background-color: var(--surface);
+		/* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
+		background-color: color-mix(in srgb, var(--surface) 80%, transparent);
+		backdrop-filter: blur(12px);
 	}
 	.select-empty { padding: var(--sp-lg) var(--sp-lg); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
 	.select-option {

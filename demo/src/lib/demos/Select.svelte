@@ -324,8 +324,8 @@
 <Combobox options={cities} value="" filter={false} placeholder="点击展开（不输入过滤）" />`;
 </script>
 
-<Page title="选择器 Select / Combobox" description="单选、多选标签、可搜索可新建的选择器；Combobox 为可输入过滤版（Arrow↓ 打开、↑↓ 移动、Enter 选中、Esc 关闭）" >
-  <CodePreview title="基础单选 Select" code={selectBasicSource}>
+<Page toc title="选择器 Select / Combobox" description="单选、多选标签、可搜索可新建的选择器；Combobox 为可输入过滤版（Arrow↓ 打开、↑↓ 移动、Enter 选中、Esc 关闭）">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础单选 Select" code={selectBasicSource}>
     <Row>
       <div class="demo-col">
         <Select
@@ -339,7 +339,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="带 Meta 标签" code={metaSource}>
+  <CodePreview anchor="meta" anchorLevel={3} title="带 Meta 标签" code={metaSource}>
     <Row>
       <div class="demo-col">
         <Select options={metaOptions} bind:value={meta} onchange={(v) => { meta = v; Notification.success(`评级: ${metaOptions.find(o => o.value === v)?.label ?? v}`); }} placeholder="请选择评级" />
@@ -348,7 +348,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="禁用状态" code={disabledSource}>
+  <CodePreview anchor="advanced" anchorLevel={2} title="禁用状态" code={disabledSource}>
     <Row>
       <div class="demo-col">
         <Select options={options} value="apple" disabled />
@@ -356,7 +356,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="分组选择器 Select" code={groupedSource}>
+  <CodePreview anchor="select" anchorLevel={3} title="分组选择器 Select" code={groupedSource}>
     <Row>
       <div class="demo-col">
         <Select options={groupedOptions} bind:value={grouped} placeholder="13 个选项，3 组（组头吸顶）" />
@@ -365,7 +365,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="弹出位置 placement" code={placementSource}>
+  <CodePreview anchor="placement" anchorLevel={3} title="弹出位置 placement" code={placementSource}>
     <Row>
       <div class="demo-col">
         <Select options={options} bind:value={placementBottom} onchange={(v) => Notification.success(`已选择「${options.find(o => o.value === v)?.label ?? v}」`)} placement="bottom" placeholder="bottom (默认)" />
@@ -382,7 +382,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="多选 MultiSelect" code={multiSource}>
+  <CodePreview anchor="multi-search" anchorLevel={2} title="多选 MultiSelect" code={multiSource}>
     <Row>
       <div class="demo-col">
         <MultiSelect items={options} bind:values={multi} placeholder="选择多种水果" />
@@ -391,7 +391,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="创建型选择器 CreatableSelect" code={creatableSource}>
+  <CodePreview anchor="creatableselect" anchorLevel={3} title="创建型选择器 CreatableSelect" code={creatableSource}>
     <Row>
       <div class="demo-col">
         <CreatableSelect
@@ -407,7 +407,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="异步加载 CreatableSelect" code={asyncSource}>
+  <CodePreview anchor="creatableselect-2" anchorLevel={3} title="异步加载 CreatableSelect" code={asyncSource}>
     <Row>
       <div class="demo-col">
         <CreatableSelect
@@ -423,7 +423,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="Combobox 基础过滤" code={comboboxBasicSource}>
+  <CodePreview anchor="combobox" anchorLevel={3} title="Combobox 基础过滤" code={comboboxBasicSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Combobox options={frameworks} bind:value={cbFw} placeholder="搜索框架…" onchange={(v) => Notification.info(`value = ${v || '（空）'}`)} />
       <p class="note">value = {cbFw || '（空）'}　可输入过滤、clearable 清除；Astro 为 disabled 项</p>
@@ -432,14 +432,14 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="Combobox 分组 + 隐藏滚动条" code={comboboxGroupSource}>
+  <CodePreview anchor="combobox-2" anchorLevel={3} title="Combobox 分组 + 隐藏滚动条" code={comboboxGroupSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Combobox options={groupedPeople} bind:value={cbPerson} placeholder="输入过滤，↑↓ 键跨组移动…" />
       <p class="note">value = {cbPerson || '（空）'}　10 个选项、3 组：上下滚动靠滚轮或两侧的箭头触发区</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="Combobox 禁用 / 不过滤" code={comboboxDisabledSource}>
+  <CodePreview anchor="combobox-3" anchorLevel={3} title="Combobox 禁用 / 不过滤" code={comboboxDisabledSource}>
     <div style="display:flex;gap:16px;flex-wrap:wrap">
       <Combobox options={cities} value="" disabled placeholder="禁用" />
       <Combobox options={cities} value="" filter={false} placeholder="点击展开（不输入过滤）" />
@@ -447,7 +447,7 @@
   </CodePreview>
 
   <Card title="Select Props">
-    <PropsTable items={selectProps} />
+    <PropsTable anchor="props" items={selectProps} />
   </Card>
 
   <Card title="MultiSelect Props">

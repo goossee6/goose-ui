@@ -66,19 +66,19 @@
 </div>`;
 </script>
 
-<Page title="卡片 Card" description="带标题、右侧操作区、内容主体的容器组件" >
-  <CodePreview title="基础卡片 Basic" code={basicSource}>
+<Page title="卡片 Card" description="带标题、右侧操作区、内容主体的容器组件" toc>
+  <CodePreview anchor="basic" anchorLevel={2} title="基础卡片 Basic" code={basicSource}>
     <p>这是一个基础卡片，包含标题和一段正文内容。卡片自带边框、圆角和表面背景色。</p>
   </CodePreview>
 
-  <CodePreview title="带右侧操作" code={rightSource}>
+  <CodePreview anchor="right-action" anchorLevel={2} title="带右侧操作" code={rightSource}>
     {#snippet right()}
       <Button variant="primary" size="small" onclick={() => Notification.success('执行操作')}>操作按钮</Button>
     {/snippet}
     <p>这个卡片在标题栏右侧放置了一个操作按钮，通过 <code>right</code> snippet 传入。</p>
   </CodePreview>
 
-  <CodePreview title="丰富内容" code={contentSource}>
+  <CodePreview anchor="rich" anchorLevel={2} title="丰富内容" code={contentSource}>
     <div class="rich">
       <p>卡片 body 区域可以放置任意内容：</p>
       <ul>
@@ -93,23 +93,24 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="无标题卡片" code={plainSource}>
+  <CodePreview anchor="plain" anchorLevel={2} title="无标题卡片" code={plainSource}>
     <p>这个卡片没有 title 属性，只渲染 body 内容区，标题栏整体不显示。</p>
   </CodePreview>
 
-  <CodePreview title="多个卡片并排" code={gridSource}>
+  <CodePreview anchor="grid" anchorLevel={2} title="多个卡片并排" code={gridSource}>
     <div class="cards-row">
       <Card title="卡片 A"><p>内容 A</p></Card>
       <Card title="卡片 B"><p>内容 B</p></Card>
       <Card title="卡片 C"><p>内容 C</p></Card>
     </div>
   </CodePreview>
-  <Card title="Props">
-    <PropsTable items={cardProps} />
+  <Card title="Props 属性">
+    <PropsTable anchor="props" items={cardProps} />
   </Card>
 </Page>
 
 <style>
+  /* 页内 h2 样式已统一到 demo/src/App.svelte 的全局规则，这里不再重复。 */
   p { margin: 0; line-height: 1.6; color: var(--text); }
   code {
     background: var(--surface-2);

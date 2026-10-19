@@ -31,8 +31,8 @@
 </Row>`;
 </script>
 
-<Page title="图标 Icon" description="基于 lucide-svelte 的图标组件" >
-  <CodePreview title="不同尺寸" code={sizeSource}>
+<Page toc title="图标 Icon" description="基于 lucide-svelte 的图标组件">
+  <CodePreview anchor="size" anchorLevel={2} title="不同尺寸" code={sizeSource}>
     <Row>
       <Icon icon={Zap} size={16} />
       <Icon icon={Heart} size={20} />
@@ -41,7 +41,7 @@
     </Row>
   </CodePreview>
   <Card title="Props">
-    <PropsTable items={iconProps} />
+    <PropsTable anchor="props" items={iconProps} />
   </Card>
 </Page>
 

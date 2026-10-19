@@ -40,8 +40,8 @@
 </div>`;
 </script>
 
-<Page title="Background 背景" description="装饰性背景层：渐变光晕 / 网格 / 点阵 / 斜纹">
-  <CodePreview title="切换变体" code={variantSource}>
+<Page toc title="Background 背景" description="装饰性背景层：渐变光晕 / 网格 / 点阵 / 斜纹">
+  <CodePreview anchor="variant" anchorLevel={2} title="切换变体" code={variantSource}>
     <Row>
       {#each variants as v (v)}
         <Button variant={variant === v ? "primary" : "default"} onclick={() => (variant = v)}>{v}</Button>
@@ -59,7 +59,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

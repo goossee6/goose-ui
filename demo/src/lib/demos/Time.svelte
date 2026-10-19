@@ -26,8 +26,8 @@
 </div>`;
 </script>
 
-<Page title="Time 时钟" description="实时时钟，自动刷新，卸载清理定时器">
-  <CodePreview title="模式" code={modeSource}>
+<Page toc title="Time 时钟" description="实时时钟，自动刷新，卸载清理定时器">
+  <CodePreview anchor="mode" anchorLevel={2} title="模式" code={modeSource}>
     <div style="display:flex;flex-direction:column;gap:12px;font-size:14px">
       <Row><span class="lbl">time（含秒）</span><Time /></Row>
       <Row><span class="lbl">time（不含秒）</span><Time showSeconds={false} /></Row>
@@ -39,7 +39,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

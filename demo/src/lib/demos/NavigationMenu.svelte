@@ -199,16 +199,16 @@
 </DropdownMenu>`;
 </script>
 
-<Page title="NavigationMenu / Menubar / DropdownMenu 导航与菜单" description="导航栏下拉面板、桌面应用式水平菜单栏、按钮触发的浮层菜单">
-  <CodePreview title="NavigationMenu 导航菜单" code={navSource}>
+<Page toc title="NavigationMenu / Menubar / DropdownMenu 导航与菜单" description="导航栏下拉面板、桌面应用式水平菜单栏、按钮触发的浮层菜单">
+  <CodePreview anchor="navigationmenu" anchorLevel={2} title="NavigationMenu 导航菜单" code={navSource}>
     <NavigationMenu {items} {active} onselect={handleNavSelect} />
   </CodePreview>
 
-  <CodePreview title="Menubar 菜单栏" code={menubarSource}>
+  <CodePreview anchor="menubar" anchorLevel={2} title="Menubar 菜单栏" code={menubarSource}>
     <Menubar {menus} onselect={handleMenubarSelect} />
   </CodePreview>
 
-  <CodePreview title="DropdownMenu 下拉菜单" code={dropdownSource}>
+  <CodePreview anchor="dropdownmenu" anchorLevel={2} title="DropdownMenu 下拉菜单" code={dropdownSource}>
     <div class="demo-row">
       <DropdownMenu items={dropdownItems} onselect={handleDropdownSelect}>
         {#snippet trigger()}
@@ -225,7 +225,7 @@
   </CodePreview>
 
   <Card title="Props — NavigationMenu">
-    <PropsTable items={navProps} />
+    <PropsTable anchor="props" items={navProps} />
   </Card>
   <Card title="Props — Menubar">
     <PropsTable items={menubarProps} />

@@ -81,8 +81,8 @@
 <TimeRangeField start="08:00:00" end="18:30:00" seconds disabled />`;
 </script>
 
-<Page title="Date/Time Field 日期时间字段" description="分段键盘输入的日期/时间字段（自动跳格、整串粘贴、退格回跳）">
-  <CodePreview title="DateField 日期字段" code={dateFieldSource}>
+<Page toc title="Date/Time Field 日期时间字段" description="分段键盘输入的日期/时间字段（自动跳格、整串粘贴、退格回跳）">
+  <CodePreview anchor="props" anchorLevel={2} title="DateField 日期字段" code={dateFieldSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <DateField bind:value={date} />
       <p class="note">value = {date || '（空）'}</p>
@@ -90,7 +90,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="TimeField 时间字段" code={timeFieldSource}>
+  <CodePreview anchor="timefield" anchorLevel={3} title="TimeField 时间字段" code={timeFieldSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
         <TimeField bind:value={time} />
@@ -102,14 +102,14 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="DateRangeField 日期范围" code={dateRangeFieldSource}>
+  <CodePreview anchor="daterangefield" anchorLevel={3} title="DateRangeField 日期范围" code={dateRangeFieldSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <DateRangeField bind:start={ds} bind:end={de} />
       <p class="note">{ds || '（空）'} → {de || '（空）'}</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="TimeRangeField 时间范围" code={timeRangeFieldSource}>
+  <CodePreview anchor="timerangefield" anchorLevel={3} title="TimeRangeField 时间范围" code={timeRangeFieldSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <TimeRangeField bind:start={ts} bind:end={te} />
       <p class="note">{ts || '（空）'} → {te || '（空）'}</p>

@@ -16,6 +16,8 @@
     { name: 'footer', desc: '页脚 snippet：内容区末尾、随内容滚，不足一屏时吸内容区底', type: 'Snippet', default: '—' },
     { name: 'active', desc: 'keep-alive 模式：控制显隐与进入/离开过渡（不传则配合外层 {#if} 自动过渡）', type: 'boolean', default: 'undefined' },
     { name: 'transition', desc: '关闭过渡（嵌套 Page 场景）', type: 'boolean', default: 'true' },
+    { name: 'toc', desc: '显示页内目录：自动摘取本页带 id 的 h2/h3，两个标签页签各成一个分组', type: 'boolean', default: 'false' },
+    { name: 'tocTitle', desc: '目录小标题，传空串则不渲染', type: 'string', default: "'本页目录'" },
     { name: 'class', desc: '附加类名', type: 'string', default: "''" },
     { name: 'style', desc: '内联样式', type: 'string', default: "''" },
   ];
@@ -43,13 +45,17 @@
     { name: '--page-pad-r', desc: '内容区右留白 / 滚动条贴边补偿；改动 --page-pad 右值时需同步', type: 'length', default: '跟随 --layout-pad-x，否则 16px' },
     { name: '--page-gap', desc: '页头/内容/卡片垂直节奏', type: 'length', default: '16px' },
     { name: '--ph-gap', desc: '独立使用 PageHeader 时的下间距', type: 'length', default: '32px' },
+    { name: '--header-height', desc: '全站吸顶锚点（theme.css :root）。目录、页头的 sticky top 与锚点偏移都用它，不要再写死像素', type: 'length', default: '0px' },
+    { name: '--toc-width', desc: '页内目录列宽', type: 'length', default: '220px' },
+    { name: '--toc-max-h', desc: '页内目录自身可滚动的最大高度', type: 'length', default: 'calc(100vh - 240px)' },
+    { name: '--toc-indent', desc: '页内目录每级缩进', type: 'length', default: '12px' },
   ];
 </script>
 
 <Page
   title="Page 页面容器"
   description="新项目页面标准结构：根布局 + 页头 + 内容区间距一次到位，零样式模板"
->
+  toc>
   <p class="intro">
     <code>Page</code> 通过 CSS 变量与外壳沟通：裸壳项目自动获得 16px 内边距；
     在 <code>Layout</code> 内使用时自动归零（不双重）。垂直间距由
@@ -70,14 +76,14 @@
     </Page>
   </div>
 
-  <h3 class="section">Page</h3>
+  <p class="section" id="page" data-toc-title="Page" data-toc-level="3">Page</p>
   <PropsTable items={pageProps} />
-  <h3 class="section">Empty</h3>
+  <p class="section" id="empty" data-toc-title="Empty" data-toc-level="3">Empty</p>
   <div class="preview-box">
     <Empty icon={Inbox} title="暂无消息" hint="新消息会出现在这里" />
   </div>
   <PropsTable items={emptyProps} />
-  <h3 class="section">Row</h3>
+  <p class="section" id="row" data-toc-title="Row" data-toc-level="3">Row</p>
   <div class="preview-box">
     <Row gap="md">
       <Tabs items={[{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }]} bind:value={rowTab} />
@@ -86,7 +92,7 @@
     </Row>
   </div>
   <PropsTable items={rowProps} />
-  <h3 class="section">主题变量</h3>
+  <p class="section" id="vars" data-toc-title="主题变量" data-toc-level="3">主题变量</p>
   <PropsTable items={vars} />
 </Page>
 
@@ -106,7 +112,7 @@
   }
   .preview-frame {
     --page-pad: 16px;
-    height: 280px;
+    height: 480px;
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius-lg);
     overflow: hidden;

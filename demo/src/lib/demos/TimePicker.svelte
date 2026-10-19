@@ -54,8 +54,8 @@
 </Row>`;
 </script>
 
-<Page title="TimePicker 时间选择" description="触发器 + 惯性滚轮（拖拽/滚轮/点击均可），停稳自动提交完整值；showSeconds=false 隐藏秒列，xxStep 控制步长；自动翻转，支持「现在」快捷键">
-  <CodePreview title="基础用法（默认 24/60/60）" code={basicSource}>
+<Page toc title="TimePicker 时间选择" description="触发器 + 惯性滚轮（拖拽/滚轮/点击均可），停稳自动提交完整值；showSeconds=false 隐藏秒列，xxStep 控制步长；自动翻转，支持「现在」快捷键">
+  <CodePreview anchor="24-60-60" anchorLevel={2} title="基础用法（默认 24/60/60）" code={basicSource}>
     <Row>
       <TimePicker bind:value={t1} />
       <TimePicker bind:value={t2} placeholder="空状态" />
@@ -64,14 +64,14 @@
     <p class="note">默认时列 00-23 共 24 档、分列 00-59 共 60 档、秒列 00-59 共 60 档。t1 = {t1 || "（空）"}；t2 = {t2 || "（空）"}</p>
   </CodePreview>
 
-  <CodePreview title="隐藏秒 + 分钟步长" code={secondsSource}>
+  <CodePreview anchor="step" anchorLevel={2} title="隐藏秒 + 分钟步长" code={secondsSource}>
     <Row>
       <TimePicker bind:value={t3} showSeconds={false} minuteStep={15} />
     </Row>
     <p class="note">showSeconds=false 隐藏秒列（2 列）；minuteStep=15 时分钟列为 00/15/30/45。当前：{t3 || "（空）"}</p>
   </CodePreview>
 
-  <CodePreview title="xxStep 自定义步长" code={stepSource}>
+  <CodePreview anchor="xxstep" anchorLevel={2} title="xxStep 自定义步长" code={stepSource}>
     <Row>
       <TimePicker bind:value={t4} hourStep={2} minuteStep={5} secondStep={10} />
     </Row>
@@ -79,7 +79,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

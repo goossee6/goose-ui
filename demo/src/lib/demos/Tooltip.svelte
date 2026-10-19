@@ -75,8 +75,8 @@
 </Tooltip>`;
 </script>
 
-<Page title="Tooltip 气泡提示" description="悬浮提示信息，支持 12 方向、三种触发方式、自动翻转" >
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Tooltip 气泡提示" description="悬浮提示信息，支持 12 方向、三种触发方式、自动翻转">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <Row>
       <Tooltip title="这是一条提示信息">
         <Button>Hover 我</Button>
@@ -84,7 +84,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="12 个方向 Placement" code={placementSource}>
+  <CodePreview anchor="12-placement" anchorLevel={3} title="12 个方向 Placement" code={placementSource}>
     <div class="placement-ring">
       <div class="ring-row">
         <Tooltip title="top-start" placement="top-start"><Button size="small">top-start</Button></Tooltip>
@@ -114,7 +114,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="触发方式 Trigger" code={triggerSource}>
+  <CodePreview anchor="trigger-delay" anchorLevel={2} title="触发方式 Trigger" code={triggerSource}>
     <Row>
       <Tooltip title="Hover 悬浮触发（默认）" trigger="hover">
         <Button>Hover</Button>
@@ -128,7 +128,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="多行内容" code={multilineSource}>
+  <CodePreview anchor="multiline" anchorLevel={3} title="多行内容" code={multilineSource}>
     <Row>
       <Tooltip title={"第一行\n第二行\n第三行"}>
         <Button>多行文本</Button>
@@ -136,7 +136,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="长文本自动换行" code={maxWidthSource}>
+  <CodePreview anchor="max-width" anchorLevel={3} title="长文本自动换行" code={maxWidthSource}>
     <Row>
       <Tooltip title="这是一段很长的提示文本，当内容超过最大宽度时会自动换行显示，适合用于需要详细说明的场景。" maxWidth={240}>
         <Button>长文本 (240px)</Button>
@@ -147,7 +147,7 @@
     </Row>
   </CodePreview>
   <Card title="Props">
-    <PropsTable items={tooltipProps} />
+    <PropsTable anchor="props" items={tooltipProps} />
   </Card>
 </Page>
 

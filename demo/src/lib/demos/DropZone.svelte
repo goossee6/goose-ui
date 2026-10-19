@@ -57,26 +57,26 @@
 />`;
 </script>
 
-<Page title="DropZone 拖拽上传" description="固定高度的文件拖拽上传区域，拖入后原位显示文件名与大小；类型不符或多拖时给出提示，支持类型过滤和多文件" >
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="DropZone 拖拽上传" description="固定高度的文件拖拽上传区域，拖入后原位显示文件名与大小；类型不符或多拖时给出提示，支持类型过滤和多文件">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div class="demo-col">
       <DropZone placeholder="拖拽文件到此处" hint="支持任意文件格式" ondrop={handleDrop1} />
     </div>
   </CodePreview>
 
-  <CodePreview title="多文件上传" code={multipleSource}>
+  <CodePreview anchor="multiple" anchorLevel={2} title="多文件上传" code={multipleSource}>
     <div class="demo-col">
       <DropZone multiple placeholder="拖拽多个文件" hint="可同时选择多个文件" ondrop={handleDrop1} />
     </div>
   </CodePreview>
 
-  <CodePreview title="限制文件类型" code={acceptSource}>
+  <CodePreview anchor="accept" anchorLevel={2} title="限制文件类型" code={acceptSource}>
     <div class="demo-col">
       <DropZone accept=".png,.jpg,.gif,.webp" placeholder="拖拽图片文件" hint="仅支持 PNG, JPG, GIF, WebP" ondrop={handleDrop2} />
     </div>
   </CodePreview>
   <Card title="Props">
-    <PropsTable items={dropZoneProps} />
+    <PropsTable anchor="props" items={dropZoneProps} />
   </Card>
 </Page>
 

@@ -14,17 +14,19 @@ export interface Column<T> {
   sortAccessor?: (row: T) => string | number | null | undefined;
 
   /**
-   * 初始宽度权重（**相对值，不是像素**），默认 1。
-   * 表格按 weight/total 换算成百分比分配宽度，所以 [{a:2},{b:1}] 表示 a 占 2/3。
-   * 用户拖拽后以拖拽结果为准，此值只在没有持久化记录时生效。
+   * 列宽声明，三种写法可混用：
+   *  - `2`      → 占 2 份（相对比例，不是像素）；不写则占 1 份、与其它的列均分
+   *  - `'20%'`  → 占容器宽度的 20%
+   *  - `'200px'`→ 200px（按 1000px 参考宽度换算成百分比）
+   *
+   * 约束优先于占比：各列先按声明分配，越界的列被夹到约束上，
+   * 差额按占比分摊给还有余量的列，总和恒为 100%（见 colWidths.svelte.ts）。
    */
-  width?: number;
-  /** 该列最小像素宽，默认 56（小于它手柄就抓不住了） */
-  minWidth?: number;
-  /** 该列最大像素宽（拖拽上限，未设则只受相邻列限制） */
-  maxWidth?: number;
-  /** 该列是否允许拖拽调整宽度；不设则跟随 DataTable 的 resizable */
-  resizable?: boolean;
+  width?: number | string;
+  /** 该列最小宽度，写法同 width；纯数字按像素处理 */
+  minWidth?: number | string;
+  /** 该列最大宽度，写法同 width；纯数字按像素处理 */
+  maxWidth?: number | string;
   /**
    * 内容溢出单元格时的处理方式，默认 'ellipsis'：
    *  - 'ellipsis' 截断并显示省略号，悬停时文字横向滚动展示全文

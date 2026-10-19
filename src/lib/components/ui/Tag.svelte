@@ -57,7 +57,12 @@
 		background: var(--surface);
 		color: var(--text);
 		font-weight: 500;
-		line-height: 1;
+		/* 行高不能写 1。行盒高度 = font-size 时没有半行距可分配，字形位置完全
+		   由字体自身的 ascent/descent 决定，而拉丁字母的下伸部（g/y/p）会把
+		   视觉重心往下拉 —— 纯英文标签看起来就「整体靠下」，中文方块字则正常。
+		   1.4 让上下各有 ~0.2em 的半行距，超出字形的部分被吸收，视觉居中；
+		   与 StatusBadge 的 line-height 保持一致，两个同类组件高度也对得上。 */
+		line-height: 1.4;
 		white-space: nowrap;
 		box-sizing: border-box;
 		vertical-align: middle;

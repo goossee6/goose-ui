@@ -38,8 +38,8 @@
 </ScrollArea>`;
 </script>
 
-<Page title="ScrollArea 滚动区" description="样式化滚动条容器，支持纵向/横向/双向滚动">
-  <CodePreview title="纵向滚动" code={verticalSource}>
+<Page toc title="ScrollArea 滚动区" description="样式化滚动条容器，支持纵向/横向/双向滚动">
+  <CodePreview anchor="vertical" anchorLevel={2} title="纵向滚动" code={verticalSource}>
     <ScrollArea maxHeight="220px">
       <div class="log-list">
         {#each lines as line (line)}
@@ -49,7 +49,7 @@
     </ScrollArea>
   </CodePreview>
 
-  <CodePreview title="横向滚动" code={horizontalSource}>
+  <CodePreview anchor="horizontal" anchorLevel={2} title="横向滚动" code={horizontalSource}>
     <ScrollArea orientation="horizontal" style="width:100%">
       <Row style="width:max-content;gap:12px">
         {#each Array(20) as _, i (i)}
@@ -60,7 +60,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

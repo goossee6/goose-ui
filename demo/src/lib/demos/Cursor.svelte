@@ -42,15 +42,15 @@
 </Cursor>`;
 </script>
 
-<Page title="Cursor 自定义光标" description="区域内自定义光标点跟随，可选拖尾外圈与文字">
-  <CodePreview title="用法说明" code={trailToggleSource}>
+<Page toc title="Cursor 自定义光标" description="区域内自定义光标点跟随，可选拖尾外圈与文字">
+  <CodePreview anchor="usage" anchorLevel={2} title="用法说明" code={trailToggleSource}>
     <p class="note">鼠标移入下方演示区：系统光标隐藏，替换为跟随的圆点（window 监听在组件卸载时解绑）。</p>
     <Row>
       <label class="opt"><input type="checkbox" bind:checked={trail} /> 显示拖尾外圈</label>
     </Row>
   </CodePreview>
 
-  <CodePreview title="演示区" code={basicCardSource}>
+  <CodePreview anchor="demo-area" anchorLevel={2} title="演示区" code={basicCardSource}>
     <Cursor size={28} {trail} label="点我">
       <div class="zone">
         <p class="zone-title">Hover 区域</p>
@@ -61,7 +61,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

@@ -50,8 +50,8 @@
 </div>`;
 </script>
 
-<Page title="Footer 页脚" description="页脚容器：左右插槽 + 链接列表 + 版权行">
-  <CodePreview title="链接 + 版权" code={linksSource}>
+<Page toc title="Footer 页脚" description="页脚容器：左右插槽 + 链接列表 + 版权行">
+  <CodePreview anchor="links" anchorLevel={2} title="链接 + 版权" code={linksSource}>
     <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
       <div style="padding:24px;background:var(--surface-2);font-size:13px;color:var(--text-muted);min-height:80px">（页面内容区）</div>
       <Footer
@@ -72,7 +72,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="吸底页脚（滚动查看）" code={stickySource}>
+  <CodePreview anchor="sticky-footer" anchorLevel={2} title="吸底页脚（滚动查看）" code={stickySource}>
     <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:auto;height:200px">
       <div style="padding:16px;font-size:13px;color:var(--text-muted)">
         {#each Array.from({ length: 12 }) as _, i (i)}
@@ -88,6 +88,6 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>

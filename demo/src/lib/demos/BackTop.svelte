@@ -27,8 +27,8 @@
 <BackTop visibilityHeight={240} duration={300} label="返回顶部" />`;
 </script>
 
-<Page title="BackTop 返回顶部" description="滚动超过阈值后出现，点击平滑回到顶部">
-  <CodePreview title="用法说明" code={basicSource}>
+<Page toc title="BackTop 返回顶部" description="滚动超过阈值后出现，点击平滑回到顶部">
+  <CodePreview anchor="usage" anchorLevel={2} title="用法说明" code={basicSource}>
     <p class="note">本页较长，向下滚动后右下角会出现返回顶部按钮。</p>
     <ul class="list">
       <li>监听 window 滚动（passive），超过 <code>visibilityHeight</code> 显示</li>
@@ -37,18 +37,18 @@
     </ul>
   </CodePreview>
 
-  <CodePreview title="示例区域" code={contentSource}>
+  <CodePreview anchor="demo-area" anchorLevel={2} title="示例区域" code={contentSource}>
     {#each Array.from({ length: 24 }) as _, i (i)}
       <p class="row">滚动内容行 {i + 1}</p>
     {/each}
   </CodePreview>
 
-  <CodePreview title="自定义触发高度" code={backTopSource}>
+  <CodePreview anchor="offset" anchorLevel={2} title="自定义触发高度" code={backTopSource}>
     <BackTop visibilityHeight={240} />
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

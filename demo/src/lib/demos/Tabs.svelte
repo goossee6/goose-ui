@@ -219,22 +219,22 @@
   ];
 </script>
 
-<Page title="标签页 Tabs" description="分段式、下划线式、垂直式三种模式的切换标签，配合 TabsPanel 展示内容面板">
-  <CodePreview title="基础用法 segmented（默认）" code={segmentedSource}>
+<Page toc title="标签页 Tabs" description="分段式、下划线式、垂直式三种模式的切换标签，配合 TabsPanel 展示内容面板">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法 segmented（默认）" code={segmentedSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Tabs items={basicItems} bind:value={seg} />
       <p class="demo-val">当前选中: {seg}（方向键 ←→ 可在 tab 间移动）</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="下划线模式 underline" code={underlineSource}>
+  <CodePreview anchor="underline" anchorLevel={3} title="下划线模式 underline" code={underlineSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Tabs items={basicItems} bind:value={underline} mode="underline" />
       <p class="demo-val">当前选中: {underline}</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="垂直模式 vertical" code={verticalSource}>
+  <CodePreview anchor="vertical" anchorLevel={3} title="垂直模式 vertical" code={verticalSource}>
     <div style="display:flex;gap:24px">
       <div style="width:200px">
         <Tabs items={verticalItems} bind:value={vertical} mode="vertical" />
@@ -243,14 +243,14 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="带图标" code={iconSource}>
+  <CodePreview anchor="with-icon" anchorLevel={3} title="带图标" code={iconSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Tabs items={iconItems} bind:value={withIcons} />
       <p class="demo-val">当前视图: {withIcons}</p>
     </div>
   </CodePreview>
 
-  <CodePreview title="尺寸 Sizes" code={sizeSource}>
+  <CodePreview anchor="sizes" anchorLevel={3} title="尺寸 Sizes" code={sizeSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <div>
         <p class="demo-label">small</p>
@@ -267,13 +267,13 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="禁用状态" code={disabledSource}>
+  <CodePreview anchor="advanced" anchorLevel={2} title="禁用状态" code={disabledSource}>
     <div>
       <Tabs items={basicItems} value="one" disabled />
     </div>
   </CodePreview>
 
-  <CodePreview title="通过 onchange 回调" code={onchangeSource}>
+  <CodePreview anchor="onchange" anchorLevel={3} title="通过 onchange 回调" code={onchangeSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Tabs
         items={basicItems}
@@ -284,7 +284,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="TabPanel 内容面板" code={panelSource}>
+  <CodePreview anchor="tabpanel" anchorLevel={3} title="TabPanel 内容面板" code={panelSource}>
     <div class="inner-card">
       <Tabs items={panelItems} bind:value={panel} style="width:100%">
         {#snippet lead()}{/snippet}
@@ -304,7 +304,7 @@
     <p class="demo-val">提供 <code>lead</code>（此处为空 snippet）后标签条并入卡片式标题栏并靠左，切换 tab 修改内层内容区；当前选中: {panel}</p>
   </CodePreview>
 
-  <CodePreview title="TabPanel 代码预览" code={previewSource} language="svelte">
+  <CodePreview anchor="tabpanel-2" anchorLevel={3} title="TabPanel 代码预览" code={previewSource} language="svelte">
     <Tabs items={previewItems} bind:value={panel} style="width:100%; gap: var(--sp-md)">
       <TabsPanel value="apple">
         <div class="panel">苹果内容区域 — 面板随选中项自动切换渲染</div>
@@ -316,7 +316,7 @@
   </CodePreview>
 
   <Card title="Props — Tabs">
-    <PropsTable items={tabsProps} />
+    <PropsTable anchor="props" items={tabsProps} />
   </Card>
   <Card title="Props — TabsPanel">
     <PropsTable items={panelProps} />

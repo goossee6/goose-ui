@@ -61,19 +61,19 @@ npx skills add goossee6/goose-ui        # Claude Code / Codex / Cursor 通用`;
   ];
 </script>
 
-<Page title="开始使用" description="从安装到完整应用外壳，五步接入 goose-ui">
+<Page toc title="开始使用" description="从安装到完整应用外壳，五步接入 goose-ui">
   <Row style="align-items:center;gap:6px;flex-wrap:wrap">
     {#each steps as s (s.n)}
       <span class="step-chip">{s.n}. {s.title}</span>
     {/each}
   </Row>
 
-  <Card title="1. 安装">
+  <Card anchor="install" title="1. 安装">
     <p class="note">包管理器命令，装完即可按需引入组件。</p>
     <CodeBlock code={installSource} language="bash" />
   </Card>
 
-  <Card title="2. 应用入口初始化">
+  <Card anchor="entry" title="2. 应用入口初始化">
     <p class="note">
       主题样式与初始化只需在入口做一次：<code>initTheme()</code> 会读取持久化的亮/暗偏好与主题色，
       并跟随系统深浅色变化。
@@ -81,14 +81,14 @@ npx skills add goossee6/goose-ui        # Claude Code / Codex / Cursor 通用`;
     <CodeBlock code={setupSource} language="ts" />
   </Card>
 
-  <Card title="3. 第一个组件">
+  <Card anchor="first-component" title="3. 第一个组件">
     <p class="note">
       组件按需导入即可使用。左侧导航可进入任意组件页，那里的示例都带「效果 / 源码」切换与一键复制。
     </p>
     <CodeBlock code={firstSource} language="svelte" maxHeight="320px" />
   </Card>
 
-  <Card title="4. 换主题色">
+  <Card anchor="accent-theme" title="4. 换主题色">
     <p class="note">
       只改色相即可，系统会为亮色与暗色分别派生整套配色。也可用
       <code>setHue('accent', 25)</code> 在代码里设置并持久化（详见左侧「设置」页）。
@@ -96,14 +96,14 @@ npx skills add goossee6/goose-ui        # Claude Code / Codex / Cursor 通用`;
     <CodeBlock code={themeSource} language="css" />
   </Card>
 
-  <Card title="5. 完整应用外壳（可选）">
+  <Card anchor="app-shell" title="5. 完整应用外壳（可选）">
     <p class="note">
       <code>Layout</code> 把「标题栏 + 侧边导航 + 内容区」一次组装好，适合 Wails3 桌面应用或后台系统。
     </p>
     <CodeBlock code={shellSource} language="svelte" maxHeight="320px" />
   </Card>
 
-  <Card title="让 AI 代理学会用 goose-ui">
+  <Card anchor="ai代理" title="让 AI 代理学会用 goose-ui">
     <p class="note">
       本仓库附带一份可安装的 agent 技能（组件选型 / 主题约定 / 反例清单），
       装到 Claude Code / Codex / Cursor 后，模型会按 goose-ui 的约定写界面。

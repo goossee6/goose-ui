@@ -150,8 +150,8 @@
 </Row>`;
 </script>
 
-<Page title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、多行文本域" >
-  <CodePreview title="状态 Status" code={statusSource}>
+<Page toc title="输入框 Input" description="普通输入、前后缀图标、清空按钮、错误/警告状态、多行文本域">
+  <CodePreview anchor="sizes-states" anchorLevel={2} title="状态 Status" code={statusSource}>
     <Row>
       <div class="demo-col">
         <Input name="error" placeholder="错误状态" status="error" />
@@ -162,7 +162,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="图标 Icons" code={iconsSource}>
+  <CodePreview anchor="icons" anchorLevel={3} title="图标 Icons" code={iconsSource}>
     <Row>
       <div class="demo-col">
         <Input name="prefix-icon" placeholder="前缀图标">
@@ -180,6 +180,8 @@
           {#snippet suffix()}<Icon icon={Lock} size={16} />{/snippet}
         </Input>
       </div>
+    </Row>
+    <Row>
       <div class="demo-col">
         <Input name="icon-clear" placeholder="图标 + 清空">
           {#snippet prefix()}<Icon icon={Search} size={16} />{/snippet}
@@ -188,7 +190,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="清空 Clearable" code={clearableSource}>
+  <CodePreview anchor="clearable" anchorLevel={3} title="清空 Clearable" code={clearableSource}>
     <Row>
       <div class="demo-col">
         <Input name="search" placeholder="可清空（默认）" bind:value={search} />
@@ -199,7 +201,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="禁用 Disabled" code={disabledSource}>
+  <CodePreview anchor="disabled" anchorLevel={3} title="禁用 Disabled" code={disabledSource}>
     <Row>
       <div class="demo-col">
         <Input name="disabled" placeholder="禁用状态" disabled value="不能编辑" />
@@ -207,7 +209,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="只读 Readonly" code={readonlySource}>
+  <CodePreview anchor="readonly" anchorLevel={3} title="只读 Readonly" code={readonlySource}>
     <Row>
       <div class="demo-col">
         <Input name="readonly" placeholder="只读状态" readonly value="只读值" />
@@ -215,7 +217,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="纯数字 digitsOnly" code={digitsOnlySource}>
+  <CodePreview anchor="digitsonly" anchorLevel={3} title="纯数字 digitsOnly" code={digitsOnlySource}>
     <Row>
       <div class="demo-col">
         <Input name="digits" placeholder="只能输入数字" digitsOnly bind:value={amount} />
@@ -224,7 +226,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="回车事件 onenter" code={enterSource}>
+  <CodePreview anchor="onenter" anchorLevel={3} title="回车事件 onenter" code={enterSource}>
     <Row>
       <div class="demo-col">
         <Input name="enter-submit" placeholder="输入后按回车" onenter={() => Notification.success(`回车提交: ${text}`)} bind:value={text} />
@@ -232,7 +234,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="多行 Textarea" code={textareaSource}>
+  <CodePreview anchor="textarea" anchorLevel={3} title="多行 Textarea" code={textareaSource}>
     <Row>
       <div class="demo-col" style="max-width:360px">
         <Textarea placeholder="请输入多行文本" rows={4} bind:value={multiText} />
@@ -254,7 +256,7 @@
     </Row>
   </CodePreview>
   <Card title="Input Props">
-    <PropsTable items={inputProps} />
+    <PropsTable anchor="props" items={inputProps} />
   </Card>
 
   <Card title="Textarea Props">
@@ -263,6 +265,7 @@
 </Page>
 
 <style>
+  /* 定宽列放不下时由 <Row> 自动折行 */
   .demo-col { width: 260px; display: flex; flex-direction: column; gap: 8px; }
   .demo-val { font-size: 13px; color: var(--text-muted); padding-top: 10px; }
 </style>

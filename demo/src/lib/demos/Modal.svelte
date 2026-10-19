@@ -420,8 +420,8 @@
 />`;
 </script>
 
-<Page title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配；命令式 Confirm（await showConfirm）与声明式 AlertDialog 确认框" >
-  <CodePreview title="基础模态框" code={basicSource}>
+<Page toc title="模态框 Modal" description="遮罩层、多种关闭策略、自定义 footer、回调接口、宽度可配；命令式 Confirm（await showConfirm）与声明式 AlertDialog 确认框">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础模态框" code={basicSource}>
     <Row>
       <Button variant="primary" onclick={() => { modalOpen = true; }}>打开模态框</Button>
       <Modal bind:open={modalOpen} title="基础模态框">
@@ -431,7 +431,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="点击遮罩关闭 maskClosable" code={maskClosableSource}>
+  <CodePreview anchor="closing" anchorLevel={2} title="点击遮罩关闭 maskClosable" code={maskClosableSource}>
     <Row>
       <Button variant="primary" onclick={() => { maskModalOpen = true; }}>点击遮罩可关闭</Button>
       <Modal bind:open={maskModalOpen} title="遮罩可关闭" maskClosable={true}>
@@ -440,7 +440,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="无关闭按钮 disableClose" code={disableCloseSource}>
+  <CodePreview anchor="disableclose" anchorLevel={3} title="无关闭按钮 disableClose" code={disableCloseSource}>
     <Row>
       <Button variant="primary" onclick={() => { noCloseModalOpen = true; }}>无 X 按钮</Button>
       <Modal bind:open={noCloseModalOpen} title="无关闭按钮" disableClose={true}>
@@ -449,7 +449,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="自定义 Footer" code={customFooterSource}>
+  <CodePreview anchor="layout-content" anchorLevel={2} title="自定义 Footer" code={customFooterSource}>
     <Row>
       <Button variant="primary" onclick={() => { customFooterModalOpen = true; }}>自定义底部</Button>
       <Modal bind:open={customFooterModalOpen} title="自定义 Footer" footer={customFooter}>
@@ -458,7 +458,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="自定义宽度" code={widthSource}>
+  <CodePreview anchor="custom-width" anchorLevel={3} title="自定义宽度" code={widthSource}>
     <Row>
       <Button variant="primary" onclick={() => { wideModalOpen = true; }}>宽模态框 (800px)</Button>
       <Modal bind:open={wideModalOpen} title="宽模态框" width={800}>
@@ -468,7 +468,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="富文本标题 + 内容" code={richTitleSource}>
+  <CodePreview anchor="rich-title" anchorLevel={3} title="富文本标题 + 内容" code={richTitleSource}>
     <Row>
       <Button variant="primary" onclick={() => { snippetTitleModalOpen = true; }}>富文本演示</Button>
       <Modal bind:open={snippetTitleModalOpen} title={richTitle} typewriter={true}>
@@ -480,7 +480,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="浅色遮罩 mask='light'" code={lightMaskSource}>
+  <CodePreview anchor="mask-light" anchorLevel={3} title="浅色遮罩 mask='light'" code={lightMaskSource}>
     <Row>
       <Button variant="primary" onclick={() => { noMaskModalOpen = true; }}>浅色遮罩</Button>
       <Modal bind:open={noMaskModalOpen} title="浅色遮罩" mask="light">
@@ -490,7 +490,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="无模糊 blur={false}（与 mask 独立）" code={blurSource}>
+  <CodePreview anchor="blur-false-mask" anchorLevel={3} title="无模糊 blur={false}（与 mask 独立）" code={blurSource}>
     <Row>
       <Button variant="primary" onclick={() => { noBlurOpen = true; }}>无模糊</Button>
       <Modal bind:open={noBlurOpen} title="无模糊遮罩" blur={false}>
@@ -504,7 +504,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="文案定制 okText / cancelText" code={textCustomSource}>
+  <CodePreview anchor="oktext-canceltext" anchorLevel={3} title="文案定制 okText / cancelText" code={textCustomSource}>
     <Row>
       <Button variant="primary" onclick={() => { confirmLikeOpen = true; }}>打开</Button>
       <Modal
@@ -522,7 +522,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="onOk 返回 false 阻止关闭" code={preventCloseSource}>
+  <CodePreview anchor="onok-false" anchorLevel={3} title="onOk 返回 false 阻止关闭" code={preventCloseSource}>
     <Row>
       <Button variant="primary" onclick={() => { preventCloseOpen = true; }}>打开</Button>
       <Modal
@@ -544,7 +544,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="异步 onOk（处理中态）" code={asyncOkSource}>
+  <CodePreview anchor="onok" anchorLevel={3} title="异步 onOk（处理中态）" code={asyncOkSource}>
     <Row>
       <Button variant="primary" onclick={() => { asyncOkOpen = true; }}>打开</Button>
       <Modal
@@ -562,7 +562,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="隐藏 footer showFooter={false}" code={noFooterSource}>
+  <CodePreview anchor="footer-showfooter-false" anchorLevel={3} title="隐藏 footer showFooter={false}" code={noFooterSource}>
     <Row>
       <Button variant="primary" onclick={() => { noFooterOpen = true; }}>打开</Button>
       <Modal bind:open={noFooterOpen} title="纯展示弹窗" width={420} showFooter={false}>
@@ -572,7 +572,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="ErrorDialog 错误收集弹窗" code={errorDialogSource}>
+  <CodePreview anchor="errordialog" anchorLevel={3} title="ErrorDialog 错误收集弹窗" code={errorDialogSource}>
     <p class="muted" style="margin-bottom:12px">自动收集运行时错误，支持列表堆叠、单项复制、复制全部。非模态弹窗，弹出后仍可继续触发错误。</p>
     <Row>
       <Button
@@ -600,21 +600,21 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="Confirm 基础用法" code={confirmBasicSource}>
+  <CodePreview anchor="imperative" anchorLevel={2} title="Confirm 基础用法" code={confirmBasicSource}>
     <Row>
       <Button variant="primary" onclick={basicConfirm}>显示确认框</Button>
     </Row>
     <p class="muted">在根组件挂载一次 <code>&lt;ConfirmDialog /&gt;</code> 后，任意处 <code>await showConfirm(message)</code>；确认返回 <code>true</code>，取消或关闭返回 <code>false</code>。</p>
   </CodePreview>
 
-  <CodePreview title="Confirm 危险操作 danger" code={confirmDangerSource}>
+  <CodePreview anchor="confirm-danger" anchorLevel={3} title="Confirm 危险操作 danger" code={confirmDangerSource}>
     <Row>
       <Button variant="danger" onclick={dangerConfirm}>删除全部数据</Button>
     </Row>
     <p class="muted">传 <code>danger: true</code> 后确认按钮变为危险色，配合自定义 <code>confirmText</code> 强调后果。</p>
   </CodePreview>
 
-  <CodePreview title="Confirm 自定义标题 / 按钮文案" code={confirmCustomSource}>
+  <CodePreview anchor="confirm" anchorLevel={3} title="Confirm 自定义标题 / 按钮文案" code={confirmCustomSource}>
     <Row>
       <Button onclick={customConfirm}>重启服务</Button>
     </Row>
@@ -625,7 +625,7 @@
     <PropsTable items={confirmProps} />
   </Card>
 
-  <CodePreview title="AlertDialog 基础用法（声明式）" code={alertDialogBasicSource}>
+  <CodePreview anchor="alertdialog" anchorLevel={3} title="AlertDialog 基础用法（声明式）" code={alertDialogBasicSource}>
     <Row>
       <Button onclick={() => (adBasicOpen = true)}>打开对话框</Button>
     </Row>
@@ -642,7 +642,7 @@
     />
   </CodePreview>
 
-  <CodePreview title="AlertDialog 危险操作 danger" code={alertDialogDangerSource}>
+  <CodePreview anchor="alertdialog-danger" anchorLevel={3} title="AlertDialog 危险操作 danger" code={alertDialogDangerSource}>
     <Row>
       <Button variant="danger" onclick={() => (adDangerOpen = true)}>删除项目</Button>
     </Row>
@@ -660,7 +660,7 @@
     />
   </CodePreview>
 
-  <CodePreview title="AlertDialog 加载状态 loading" code={alertDialogLoadingSource}>
+  <CodePreview anchor="alertdialog-loading" anchorLevel={3} title="AlertDialog 加载状态 loading" code={alertDialogLoadingSource}>
     <Row>
       <Button onclick={() => (adLoadingOpen = true)}>提交（异步）</Button>
     </Row>
@@ -677,7 +677,7 @@
   </CodePreview>
 
   <Card title="AlertDialog Props">
-    <PropsTable items={alertdialogProps} />
+    <PropsTable anchor="props" items={alertdialogProps} />
   </Card>
 
   <Card title="Props">

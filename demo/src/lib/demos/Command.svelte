@@ -50,12 +50,12 @@
 <Command {items} onSelect={handleSelect} placeholder="输入命令或搜索…" />`;
 </script>
 
-<Page title="Command 命令面板" description="Ctrl/Cmd+K 唤起的全局命令搜索（↑↓ 移动、Enter 执行、Esc 关闭）">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Command 命令面板" description="Ctrl/Cmd+K 唤起的全局命令搜索（↑↓ 移动、Enter 执行、Esc 关闭）">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <Command {items} onSelect={handleSelect} placeholder="输入命令或搜索…" />
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>

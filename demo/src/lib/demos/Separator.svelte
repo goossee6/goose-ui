@@ -42,8 +42,8 @@
 </Row>`;
 </script>
 
-<Page title="Separator 分割线" description="内容区域分割线，支持横/竖向、虚线与文字分隔">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Separator 分割线" description="内容区域分割线，支持横/竖向、虚线与文字分隔">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:4px">
       <p class="demo-text">上一段内容</p>
       <Separator />
@@ -51,7 +51,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="文字分隔" code={textSource}>
+  <CodePreview anchor="text" anchorLevel={2} title="文字分隔" code={textSource}>
     <div style="display:flex;flex-direction:column;gap:4px">
       <p class="demo-text">上一段内容</p>
       <Separator>或</Separator>
@@ -59,7 +59,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="虚线与竖向" code={variantSource}>
+  <CodePreview anchor="variant" anchorLevel={2} title="虚线与竖向" code={variantSource}>
     <div style="display:flex;flex-direction:column;gap:4px">
       <p class="demo-text">虚线分隔</p>
       <Separator dashed>分组</Separator>
@@ -73,7 +73,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

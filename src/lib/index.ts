@@ -41,13 +41,13 @@ export { confirmStore, showConfirm } from './components/confirm';
 export type { NotificationType, NotificationPosition, NotificationOptions, NotificationStore } from './components/notification';
 export type { MenuItemDef, MenuActionData } from './components/contextMenu';
 export type { Column, ColumnOverflow } from './components/tableTypes';
-export { loadWidths, saveWidths, clearWidths, toPercents, resizeWeights, MIN_COL_PX } from './components/colWidths.svelte.js';
-export {
-	loadWidthsVersioned,
-	saveWidthsVersioned,
-	weightsFingerprint
-} from './components/colWidths.svelte.js';
-export type { SortState, SortDir } from './components/sorting';
+export { toPercents, DEFAULT_WEIGHT } from './components/colWidths.svelte.js';
+export { resolvePercents, parseWidth, parseBound, REFERENCE_WIDTH_PX } from './components/colWidths.svelte.js';
+export type { WidthSpec, WidthInput } from './components/colWidths.svelte.js';
+export type { TocItem, TocLevel } from './components/toc.js';
+export { collectToc, activeTocId } from './components/toc.js';
+export type { SortState, SortDir, SortAccessor } from './components/sorting';
+export { toggleSort, compareValues, sorted } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
 export type { Theme, HueRole, HueMap } from './components/themeStore.svelte.js';
 export type { PageDir } from './components/pageDirStore.svelte.js';

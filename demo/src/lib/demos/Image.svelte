@@ -48,8 +48,8 @@
 </Row>`;
 </script>
 
-<Page title="Image 图片" description="图片展示：懒加载、失败兜底、点击放大预览">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Image 图片" description="图片展示：懒加载、失败兜底、点击放大预览">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <Row>
       <Image src={ok} alt="渐变示例图" width="240px" height="150px" rounded />
       <Image src={ok} alt="contain" width="240px" height="150px" fit="contain" rounded />
@@ -57,7 +57,7 @@
     <p class="note">点击图片放大预览，Esc 或点击遮罩关闭。</p>
   </CodePreview>
 
-  <CodePreview title="加载失败兜底" code={fallbackSource}>
+  <CodePreview anchor="fallback" anchorLevel={2} title="加载失败兜底" code={fallbackSource}>
     <Row>
       <Image src="/definitely-missing.png" alt="缺失图片" width="200px" height="120px" onerror={() => {}} />
       <Image src="/definitely-missing.png" alt="自定义兜底" width="200px" height="120px">
@@ -69,7 +69,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

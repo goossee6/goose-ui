@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, Page, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
+  import { NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
   import House from "@lucide/svelte/icons/house";
   import BookOpen from "@lucide/svelte/icons/book-open";
   import LayoutGrid from "@lucide/svelte/icons/layout-grid";
@@ -10,62 +10,7 @@
   import Wrench from "@lucide/svelte/icons/wrench";
   import Monitor from "@lucide/svelte/icons/monitor";
   import Settings from "@lucide/svelte/icons/settings";
-
-  import Skill from "./lib/demos/Skill.svelte";
-  import Home from "./lib/demos/Home.svelte";
-  import Title from "./lib/demos/Title.svelte";
-  import ButtonDemo from "./lib/demos/Button.svelte";
-  import PageDemo from "./lib/demos/PageDemo.svelte";
-  import SeparatorDemo from "./lib/demos/Separator.svelte";
-  import AvatarDemo from "./lib/demos/Avatar.svelte";
-  import RatingDemo from "./lib/demos/Rating.svelte";
-  import PINInputDemo from "./lib/demos/PINInput.svelte";
-  import MeterDemo from "./lib/demos/Meter.svelte";
-  import ScrollAreaDemo from "./lib/demos/ScrollArea.svelte";
-  import NavigationMenuDemo from "./lib/demos/NavigationMenu.svelte";
-  import ToolbarDemo from "./lib/demos/Toolbar.svelte";
-  import SliderDemo from "./lib/demos/Slider.svelte";
-  import PopoverDemo from "./lib/demos/Popover.svelte";
-  import CommandDemo from "./lib/demos/Command.svelte";
-  import LinkPreviewDemo from "./lib/demos/LinkPreview.svelte";
-  import DateFieldDemo from "./lib/demos/DateField.svelte";
-  import IconDemo from "./lib/demos/Icon.svelte";
-  import Tag from "./lib/demos/Tag.svelte";
-  import Cursor from "./lib/demos/Cursor.svelte";
-  import CodeBlock from "./lib/demos/CodeBlock.svelte";
-  import Background from "./lib/demos/Background.svelte";
-  import Footer from "./lib/demos/Footer.svelte";
-  import InputDemo from "./lib/demos/Input.svelte";
-  import ToggleDemo from "./lib/demos/Toggle.svelte";
-  import SelectDemo from "./lib/demos/Select.svelte";
-  import DatePicker from "./lib/demos/DatePicker.svelte";
-  import TimePicker from "./lib/demos/TimePicker.svelte";
-  import ChoiceDemo from "./lib/demos/Choice.svelte";
-  import Form from "./lib/demos/Form.svelte";
-  import NotificationDemo from "./lib/demos/Notification.svelte";
-  import ModalDemo from "./lib/demos/Modal.svelte";
-  import Drawer from "./lib/demos/Drawer.svelte";
-  import LoadingDemo from "./lib/demos/Loading.svelte";
-  import Tooltip from "./lib/demos/Tooltip.svelte";
-  import ProgressDemo from "./lib/demos/Progress.svelte";
-  import Skeleton from "./lib/demos/Skeleton.svelte";
-  import BackTop from "./lib/demos/BackTop.svelte";
-  import CardDemo from "./lib/demos/Card.svelte";
-  import Collapse from "./lib/demos/Collapse.svelte";
-  import TabsDemo from "./lib/demos/Tabs.svelte";
-  import TableDemo from "./lib/demos/Table.svelte";
-  import Pagination from "./lib/demos/Pagination.svelte";
-  import TypewriterDemo from "./lib/demos/Typewriter.svelte";
-  import ImageDemo from "./lib/demos/Image.svelte";
-  import Carousel from "./lib/demos/Carousel.svelte";
-  import Time from "./lib/demos/Time.svelte";
-  import Countdown from "./lib/demos/Countdown.svelte";
-  import HeaderDemo from "./lib/demos/Header.svelte";
-  import DropZoneDemo from "./lib/demos/DropZone.svelte";
-  import TitleBarDemo from "./lib/demos/TitleBar.svelte";
-  import LayoutDemo from "./lib/demos/Layout.svelte";
-  import SettingsDemo from "./lib/demos/Settings.svelte";
-  import GettingStarted from "./lib/demos/GettingStarted.svelte";
+  import { demoLoaders } from "./lib/demos/registry";
 
   const groups: SidebarEntry[] = [
     { value: "home", label: "首页", icon: House },
@@ -132,7 +77,8 @@
         { value: "card", label: "Card 卡片" },
         { value: "collapse", label: "Collapse 折叠面板" },
         { value: "tabs", label: "Tabs 标签页" },
-        { value: "table", label: "Table/List 表格与列表" },
+        { value: "tabledata", label: "DataTable 数据表格" },
+        { value: "tablelist", label: "DataList 列表" },
         { value: "pagination", label: "Pagination 分页" },
         { value: "progress", label: "Progress 进度条" },
         { value: "meter", label: "Meter 度量条" },
@@ -196,6 +142,40 @@
   let sidebarMode = $state<"float" | "flat">("float");
   let sidebarCollapsed = $state(false);
 
+  /**
+   * 当前页签的组件，按需加载。
+   *
+   * 每切一次页签就发起一次动态 import；已经加载过的模块浏览器会走缓存，
+   * 同时用 loaded 表跳过重复的 Promise 往返。
+   *
+   * 加载期间 PageView 仍是上一页的组件 —— 这是有意的：页面切换本来就有
+   * 入场过渡，闪一下空白反而更突兀。首屏（默认页签）会在第一次 $effect
+   * 里立刻加载，用户看到的就是正常页面。
+   */
+  type PageComp = import('svelte').Component<any>;
+  const loaded = new Map<string, PageComp>();
+  let PageView = $state<PageComp | null>(null);
+  let loadSeq = 0;
+
+  $effect(() => {
+    const tab = activeTab;
+    const cached = loaded.get(tab);
+    if (cached) {
+      PageView = cached;
+      return;
+    }
+    const loader = demoLoaders[tab];
+    if (!loader) return;
+    // 序号守卫：连点两个页签时，先发的那次可能后回，不能覆盖后点的结果
+    const seq = ++loadSeq;
+    loader().then((mod) => {
+      loaded.set(tab, mod.default);
+      if (seq === loadSeq) PageView = mod.default;
+    }).catch((e) => {
+      console.error(`加载 ${tab} 页失败`, e);
+    });
+  });
+
   $effect(() => {
     const next = `#/${activeTab}`;
     if (location.hash !== next) location.hash = next;
@@ -253,116 +233,8 @@
     </Sidebar>
   {/snippet}
 
-  {#if activeTab === "home"}
-    <Home />
-  {:else if activeTab === "getstarted"}
-    <GettingStarted />
-  {:else if activeTab === "skill"}
-    <Skill />
-  {:else if activeTab === "title"}
-    <Title />
-  {:else if activeTab === "button"}
-    <ButtonDemo />
-  {:else if activeTab === "page"}
-    <PageDemo />
-  {:else if activeTab === "separator"}
-    <SeparatorDemo />
-  {:else if activeTab === "avatar"}
-    <AvatarDemo />
-  {:else if activeTab === "scrollarea"}
-    <ScrollAreaDemo />
-  {:else if activeTab === "rating"}
-    <RatingDemo />
-  {:else if activeTab === "pininput"}
-    <PINInputDemo />
-  {:else if activeTab === "slider"}
-    <SliderDemo />
-  {:else if activeTab === "popover"}
-    <PopoverDemo />
-  {:else if activeTab === "command"}
-    <CommandDemo />
-  {:else if activeTab === "linkpreview"}
-    <LinkPreviewDemo />
-  {:else if activeTab === "datefield"}
-    <DateFieldDemo />
-  {:else if activeTab === "meter"}
-    <MeterDemo />
-  {:else if activeTab === "toolbar"}
-    <ToolbarDemo />
-  {:else if activeTab === "navmenu"}
-    <NavigationMenuDemo />
-  {:else if activeTab === "icon"}
-    <IconDemo />
-  {:else if activeTab === "tag"}
-    <Tag />
-  {:else if activeTab === "cursor"}
-    <Cursor />
-  {:else if activeTab === "codeblock"}
-    <CodeBlock />
-  {:else if activeTab === "background"}
-    <Background />
-  {:else if activeTab === "footer"}
-    <Footer />
-  {:else if activeTab === "input"}
-    <InputDemo />
-  {:else if activeTab === "switch"}
-    <ToggleDemo />
-  {:else if activeTab === "select"}
-    <SelectDemo />
-  {:else if activeTab === "datepicker"}
-    <DatePicker />
-  {:else if activeTab === "timepicker"}
-    <TimePicker />
-  {:else if activeTab === "choice"}
-    <ChoiceDemo />
-  {:else if activeTab === "form"}
-    <Form />
-  {:else if activeTab === "notification"}
-    <NotificationDemo />
-  {:else if activeTab === "modal"}
-    <ModalDemo />
-  {:else if activeTab === "drawer"}
-    <Drawer />
-  {:else if activeTab === "loading"}
-    <LoadingDemo />
-  {:else if activeTab === "tooltip"}
-    <Tooltip />
-  {:else if activeTab === "progress"}
-    <ProgressDemo />
-  {:else if activeTab === "skeleton"}
-    <Skeleton />
-  {:else if activeTab === "backtop"}
-    <BackTop />
-  {:else if activeTab === "card"}
-    <CardDemo />
-  {:else if activeTab === "collapse"}
-    <Collapse />
-  {:else if activeTab === "tabs"}
-    <TabsDemo />
-  {:else if activeTab === "table"}
-    <TableDemo />
-  {:else if activeTab === "pagination"}
-    <Pagination />
-  {:else if activeTab === "typewriter"}
-    <TypewriterDemo />
-  {:else if activeTab === "image"}
-    <ImageDemo />
-  {:else if activeTab === "carousel"}
-    <Carousel />
-  {:else if activeTab === "time"}
-    <Time />
-  {:else if activeTab === "countdown"}
-    <Countdown />
-  {:else if activeTab === "header"}
-    <HeaderDemo />
-  {:else if activeTab === "dropzone"}
-    <DropZoneDemo />
-  {:else if activeTab === "titlebar"}
-    <TitleBarDemo />
-  {:else if activeTab === "layout"}
-    <LayoutDemo />
-  {:else if activeTab === "settings"}
-    <SettingsDemo />
+  {#if PageView}
+    <PageView />
   {/if}
 </Layout>
 
@@ -375,5 +247,22 @@
   .footer-version {
     font-size: 11px;
     color: var(--text-muted);
+  }
+  /* Props 卡片与 CodePreview 卡片同宽并居中。
+     51 个 demo 页面都是 <Card><PropsTable/></Card>，只收窄表格会让外层
+     Card 继续撑满整行；这里按「卡片里装的是属性表」选中它，与 .cp-card
+     共用 --cp-max-w（定义见 CodePreview.svelte 的 :root）。
+     :has() 在现代浏览器均可用；不支持时退化为原来的全宽，不会出错。 */
+  :global(.page-body .card:has(.props-table)) {
+    width: 100%;
+    max-width: var(--cp-max-w, 1080px);
+    margin-inline: auto;
+  }
+  /* 目录锚点用的是元素 id，不是类名（见 toc.ts 的 HEADING_SELECTOR）。
+     锚点挂在 CodePreview / PropsTable / Card 上，给它们让出吸顶页头的高度。
+     三者各有自己的 scroll-margin-top 也保留着，这里是兜底 —— 例如
+     PageDemo 里用 <p data-toc-title> 顶替的纯文字小标题。 */
+  :global(.page-body [data-toc-title][id]) {
+    scroll-margin-top: var(--toc-anchor, 72px);
   }
 </style>

@@ -94,11 +94,10 @@
 <\/script>
 
 <Row>
-  <Button {loading} onclick={simulateLoading}>
+  <Button {loading} icon={Zap} onclick={simulateLoading}>
     {loading ? "处理中…" : "点击加载"}
   </Button>
   <Button loading={true}>持续加载中</Button>
-  <Button loading={true} icon={Zap}>带图标加载中</Button>
 </Row>`;
 
   const disabledSource = `<script lang="ts">
@@ -121,8 +120,8 @@
 </Row>`;
 </script>
 
-<Page title="按钮 Button" description="五种变体、多种尺寸、loading 状态、左右图标" >
-  <CodePreview title="变体 Variants" code={variantSource}>
+<Page toc title="按钮 Button" description="五种变体、多种尺寸、loading 状态、左右图标">
+  <CodePreview anchor="variants-sizes" anchorLevel={2} title="变体 Variants" code={variantSource}>
     <Row>
       <Button variant="primary" onclick={() => Notification.success("Primary 被点击")}>Primary 主要</Button>
       <Button onclick={() => Notification.success("Default 被点击")}>Default 默认</Button>
@@ -132,7 +131,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="尺寸 Sizes" code={sizeSource}>
+  <CodePreview anchor="sizes" anchorLevel={3} title="尺寸 Sizes" code={sizeSource}>
     <Row>
       <Button size="small" onclick={() => Notification.success("small 按钮被点击")}>small</Button>
       <Button onclick={() => Notification.success("middle 按钮被点击")}>middle (默认)</Button>
@@ -141,7 +140,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="图标按钮 Icon Buttons" code={iconOnlySource}>
+  <CodePreview anchor="icons" anchorLevel={2} title="图标按钮 Icon Buttons" code={iconOnlySource}>
     <Row>
       <Button size="icon-sm" icon={Heart} ariaLabel="icon-sm" onclick={() => Notification.success("icon-sm 被点击")} />
       <Button size="icon" icon={Heart} ariaLabel="icon" onclick={() => Notification.success("icon 被点击")} />
@@ -149,7 +148,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="带图标 With Icons" code={iconSource}>
+  <CodePreview anchor="with-icons" anchorLevel={3} title="带图标 With Icons" code={iconSource}>
     <Row>
       <Button icon={Zap} onclick={() => Notification.success("左侧图标被点击")}>左侧图标</Button>
       <Button iconRight={ExternalLink} onclick={() => Notification.success("右侧图标被点击")}>右侧图标</Button>
@@ -157,18 +156,17 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="Loading 加载状态" code={loadingSource}>
+  <CodePreview anchor="states" anchorLevel={2} title="Loading 加载状态" code={loadingSource}>
     <Row>
-      <Button {loading} onclick={simulateLoading}>
+      <Button {loading} icon={Zap} onclick={simulateLoading}>
         {loading ? "处理中…" : "点击加载"}
       </Button>
       <Button loading={true}>持续加载中</Button>
-      <Button loading={true} icon={Zap}>带图标加载中</Button>
     </Row>
     <p class="hint">loading 状态最少显示 1000ms，避免快速闪烁。</p>
   </CodePreview>
 
-  <CodePreview title="Disabled 禁用" code={disabledSource}>
+  <CodePreview anchor="disabled" anchorLevel={3} title="Disabled 禁用" code={disabledSource}>
     <Row>
       <Button disabled>Primary 禁用</Button>
       <Button disabled>Default 禁用</Button>
@@ -177,13 +175,13 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="主题切换" code={themeSource}>
+  <CodePreview anchor="theme" anchorLevel={2} title="主题切换" code={themeSource}>
     <Row>
       <ThemeToggle />
     </Row>
   </CodePreview>
   <Card title="Props">
-    <PropsTable items={buttonProps} />
+    <PropsTable anchor="props" items={buttonProps} />
   </Card>
 </Page>
 

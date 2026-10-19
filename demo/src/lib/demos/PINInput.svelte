@@ -42,8 +42,8 @@
 <PINInput length={4} disabled bind:value={v4} placeholder="—" />`;
 </script>
 
-<Page title="PIN Input 验证码输入" description="分格验证码输入，支持自动跳格、粘贴与退格回跳">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="PIN Input 验证码输入" description="分格验证码输入，支持自动跳格、粘贴与退格回跳">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:20px">
       <div>
         <div class="pin-label">4 位数字（填满提示）</div>
@@ -72,7 +72,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

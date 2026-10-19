@@ -196,8 +196,8 @@ import "goose-ui/styles/theme.css";
 
 | 组件           | 说明                                     |
 | -------------- | ---------------------------------------- |
-| DataTable      | 数据表格，支持排序、高亮、右键菜单、可拖拽列宽；表头圆角，行 hover 为滑动 pill |
-| DataList       | 数据列表，带空状态；行 hover 同样走滑动 pill |
+| DataTable      | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill |
+| DataList       | 数据列表，带空状态与可选的内置 header（直接复用 `Header` 组件：`title`/`header`/`headerCenter`/`headerRight`/`headerClass`/`headerStyle`/`headerSticky` 原样透传；`dataTableHeader` 用于独立成块时补齐内边距）；行 hover 同样走滑动 pill |
 | Tabs           | 标签页（分段/下划线/垂直模式 + 键盘导航）      |
 | TabsPanel      | 标签页内容面板（value 匹配选中项时渲染）      |
 | PillTrack      | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制 |
@@ -324,6 +324,27 @@ import "goose-ui/styles/theme.css";
 
 - 自绘外壳（非 `Layout`）若自带内容区 padding，在外壳上写 `--page-pad: 0` 归零即可
 - `Page` 默认 body 不滚（`scroll` 关闭）：局部滚动区由页面内部处理；整页滚动给 `Page` 加 `scroll`
+
+### 页内目录（`Page` 的 `toc`）
+
+内容较长的页面加 `toc`，`Page` 会在右侧生成目录列并自动摘取页面里的
+`h2[id]` / `h3[id]` 作条目：
+
+```svelte
+<Page title="防火墙" toc>
+  <h2 id="rules">规则列表</h2>
+  …
+  <h2 id="props">Props</h2>
+  …
+</Page>
+```
+
+- 只认**带 `id`** 的 `h2`/`h3`：没有 id 的标题会被跳过（`href="#undefined"` 会把页面弹回顶部），所以写标题时顺手给 id
+- `h3` 会作为上一级 `h2` 的子项缩进显示；`[data-toc-skip]` 内的标题不收录
+- 滚动高亮按「标题顶边越过页头下沿」判定，纯 `IntersectionObserver` 无法表达「正在读哪一节」
+- 跳转用 `scrollIntoView` 而非改 hash（很多应用用 hash 路由，改 hash 会顶掉当前页签）；锚点让位由 `scroll-margin-top: var(--toc-anchor)` 统一处理
+- 目录列宽 `--toc-width`（默认 `220px`）、最大高度 `--toc-max-h`、每级缩进 `--toc-indent`
+- 宽度 ≥ 1100px 时才显示目录列，窄屏自动隐藏
 
 ### 页面切换过渡（方向感知，Page 统一处理）
 

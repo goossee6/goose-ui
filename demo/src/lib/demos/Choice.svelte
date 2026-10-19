@@ -50,7 +50,7 @@
   let multi = $state<string[]>(['bold']);
 </script>
 
-<Page title="选择控件 单选 / 多选" description="按选择模式分组：单选（pill 分段轨道）与多选（方形复选 / pill 分段）">
+<Page toc title="选择控件 单选 / 多选" description="按选择模式分组：单选（pill 分段轨道）与多选（方形复选 / pill 分段）">
   <!-- ═══════════════════ 单选 ═══════════════════ -->
   <Card title="单选">
     <div class="section">
@@ -164,7 +164,7 @@
 
   <!-- ═══════════════════ Props ═══════════════════ -->
   <Card title="Props — RadioGroup">
-    <PropsTable items={groupProps} />
+    <PropsTable anchor="props" items={groupProps} />
   </Card>
   <Card title="Props — Checkbox">
     <PropsTable items={checkboxProps} />

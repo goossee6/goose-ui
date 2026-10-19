@@ -32,19 +32,19 @@
 <Pagination bind:page total={520} pageSize={10} siblingCount={2} />`;
 </script>
 
-<Page title="Pagination 分页" description="分页导航，自动折叠长页码列表">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Pagination 分页" description="分页导航，自动折叠长页码列表">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <Pagination bind:page total={87} pageSize={10} onchange={(p) => (page = p)} />
     <p class="note">当前页：{page}</p>
   </CodePreview>
 
-  <CodePreview title="长列表折叠（total=520, siblingCount=2）" code={collapseSource}>
+  <CodePreview anchor="total-520-siblingcount-2" anchorLevel={2} title="长列表折叠（total=520, siblingCount=2）" code={collapseSource}>
     <Pagination bind:page={page2} total={520} pageSize={10} siblingCount={2} />
     <p class="note">当前页：{page2}</p>
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

@@ -63,8 +63,8 @@
 </div>`;
 </script>
 
-<Page title="Carousel 轮播图" description="手动/自动切换，悬停暂停，首尾循环">
-  <CodePreview title="纯色卡片 + 自动播放" code={autoplaySource}>
+<Page toc title="Carousel 轮播图" description="手动/自动切换，悬停暂停，首尾循环">
+  <CodePreview anchor="autoplay" anchorLevel={2} title="纯色卡片 + 自动播放" code={autoplaySource}>
     <Row>
       <Button size="small" variant={autoplay ? "primary" : "default"} onclick={() => (autoplay = !autoplay)}>
         {autoplay ? "停止自动播放" : "开始自动播放"}
@@ -76,7 +76,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="图片模式（不可用时浏览器回退提示）" code={imageSource}>
+  <CodePreview anchor="image" anchorLevel={2} title="图片模式（不可用时浏览器回退提示）" code={imageSource}>
     <div style="max-width:520px">
       <Carousel
         items={[
@@ -99,7 +99,7 @@
     />
   </Card>
   <Card title="Props — Carousel">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

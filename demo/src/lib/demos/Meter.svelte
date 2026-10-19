@@ -41,8 +41,8 @@
 <Row><span style="width:120px">critical (= 100%)</span><Meter value={100} style="max-width:240px" /></Row>`;
 </script>
 
-<Page title="Meter 度量条" description="带阈值状态的水平度量条（区别于 ProgressBar 的进度语义）">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Meter 度量条" description="带阈值状态的水平度量条（区别于 ProgressBar 的进度语义）">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Meter value={usage} label="网络流量" format={(n) => `${n}%`} />
       <Meter value={mem} label="内存占用" format={(n) => `${n}%`} />
@@ -52,7 +52,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="状态演示" code={stateSource}>
+  <CodePreview anchor="state" anchorLevel={2} title="状态演示" code={stateSource}>
     <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text-muted)">
       <Row><span style="width:120px">normal (&lt; 80%)</span><Meter value={50} style="max-width:240px" /></Row>
       <Row><span style="width:120px">high (≥ 80%)</span><Meter value={85} style="max-width:240px" /></Row>
@@ -61,6 +61,6 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>

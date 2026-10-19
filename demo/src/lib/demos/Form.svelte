@@ -99,8 +99,8 @@
 </Form>`;
 </script>
 
-<Page title="Form 表单" description="Form 提供布局 context，FormItem 消费 label/必填/错误状态">
-  <CodePreview title="横向布局 + 校验" code={horizontalSource}>
+<Page toc title="Form 表单" description="Form 提供布局 context，FormItem 消费 label/必填/错误状态">
+  <CodePreview anchor="horizontal-form" anchorLevel={2} title="横向布局 + 校验" code={horizontalSource}>
     <Form layout="horizontal" labelWidth="80px" onsubmit={submit}>
       <FormItem label="姓名" required error={errors.name} htmlFor="f-name">
         <Input id="f-name" bind:value={name} placeholder="请输入姓名" />
@@ -117,7 +117,7 @@
     </Form>
   </CodePreview>
 
-  <CodePreview title="纵向布局" code={verticalSource}>
+  <CodePreview anchor="vertical-form" anchorLevel={2} title="纵向布局" code={verticalSource}>
     <Form>
       <FormItem label="项目名称" required>
         <Input placeholder="纵向布局（默认）" />
@@ -132,7 +132,7 @@
   </CodePreview>
 
   <Card title="Props — Form">
-    <PropsTable items={formProps} />
+    <PropsTable anchor="props" items={formProps} />
   </Card>
   <Card title="Props — FormItem">
     <PropsTable items={itemProps} />

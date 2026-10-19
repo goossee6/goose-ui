@@ -23,6 +23,18 @@ export function cellMenuAttrs(menu: string, data: Record<string, string>): Recor
   return { 'data-menu-name': menu, 'data-menu-data': encodeBase64(JSON.stringify(data)) };
 }
 
+/**
+ * 与 cellMenuAttrs 等价，但直接返回可以塞进标签属性位置的字符串。
+ *
+ * 给每行每格都要挂菜单的表格用：`{...attrs}` 展开每次更新都要逐键 diff，
+ * 而这里只有两个固定键，拼一次字符串即可。
+ */
+export function cellMenuAttrString(menu: string, data: Record<string, string>): string {
+  if (!menu) return '';
+  const b64 = encodeBase64(JSON.stringify(data));
+  return `data-menu-name="${menu}" data-menu-data="${b64}"`;
+}
+
 export function openMenuAt(x: number, y: number, name: string, data: Record<string, string>): void {
   menuStore.x = x; menuStore.y = y; menuStore.name = name; menuStore.data = data; menuStore.visible = true;
 }

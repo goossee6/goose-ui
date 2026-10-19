@@ -72,8 +72,8 @@
 </div>`;
 </script>
 
-<Page title="Skeleton 骨架屏" description="内容加载占位，shimmer 微光动画">
-  <CodePreview title="形状" code={shapeSource}>
+<Page toc title="Skeleton 骨架屏" description="内容加载占位，shimmer 微光动画">
+  <CodePreview anchor="shape" anchorLevel={2} title="形状" code={shapeSource}>
     <div style="display:flex;align-items:center;gap:24px">
       <Skeleton shape="circle" width="48px" height="48px" />
       <Skeleton shape="rect" width="160px" height="96px" />
@@ -81,7 +81,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="卡片骨架 / 列表骨架" code={cardSource}>
+  <CodePreview anchor="card" anchorLevel={2} title="卡片骨架 / 列表骨架" code={cardSource}>
     <div style="display:flex;gap:24px;flex-wrap:wrap">
       <div style="width:240px;border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
         <Skeleton shape="rect" height="120px" />
@@ -98,7 +98,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="加载 → 内容切换" code={loadingSource}>
+  <CodePreview anchor="switch" anchorLevel={2} title="加载 → 内容切换" code={loadingSource}>
     <Row>
       <Button onclick={() => { loading = true; }}>
         重新加载（2.5s 后显示内容）
@@ -114,7 +114,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

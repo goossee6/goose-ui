@@ -521,7 +521,10 @@
 		padding: 0 8px;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
-		background: var(--surface-2, var(--surface));
+		/* 常态透明：搜索框是标题栏的浮层控件，不参与标题栏的分块排版。
+		   边框 + 放大镜 + 占位文字已经说清「这里能点」，再压一块 --surface-2
+		   只会让 42px 高的标题栏凭空多出一个灰块。 */
+		background: transparent;
 		color: var(--text-muted);
 		/* 这里绝对不能写 overflow:hidden。
 		   .titlebar-search-list 是本元素的绝对定位子元素，而本元素 position:relative
@@ -541,17 +544,20 @@
 	}
 	/* hover：底色提亮到 --hover，边框收到 --border-strong，文字转强。
 	   不用 transform 放大 —— 标题栏是固定 42px 高的刚体，缩放会让
-	   36px 的搜索框在视觉上顶破上下 3px 余量。 */
+	   36px 的搜索框在视觉上顶破上下 3px 余量。
+	   底色是「从透明浮起来」的第一个台阶：常态 invisible → hover 浅灰 →
+	   聚焦仅剩主色边框与辉光（见下），互相区分得开。 */
 	.titlebar-search:hover {
 		background: var(--hover);
 		border-color: var(--border-strong);
 		color: var(--text-strong);
 	}
-	/* 聚焦：边框换主色 + 一圈柔和辉光（用 color-mix 让辉光跟着主题色走）。
-	   与 :focus-within 合并到同一条，hover 的底色在聚焦时继续保持。 */
+	/* 聚焦：底色回到透明，只靠主色边框 + 一圈柔和辉光表态。
+	   刻意不再用 hover 的 --hover 底色：hover 与聚焦同时成立时两者同色，
+	   用户就看不出「已聚焦、正在输入」。辉光用 color-mix 跟着主题色走。 */
 	.titlebar-search:focus-within {
 		border-color: var(--primary);
-		background: var(--hover);
+		background: transparent;
 		color: var(--text-strong);
 		box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent);
 	}
@@ -601,7 +607,12 @@
 		flex: 1 1 auto;
 		min-width: 0;
 		border: none;
-		background: none;
+		/* 输入框自身永远透明，底色全交给外层 .titlebar-search（上面的三态规则）。
+		   这里额外覆盖 -webkit-autofill：Chrome 自动填充会给输入框塞一层
+		   #e8f0fe 的浅蓝底，且优先级高于 background，靠 background 改不掉。
+		   官方绕法是给一个超长内阴影把填充层盖住，配合 -webkit-text-fill-color
+		   让自动填充的文字仍用 --text。 */
+		background: transparent;
 		outline: none;
 		color: var(--text);
 		font-size: 12px;
@@ -611,6 +622,13 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+	.titlebar-search-input:-webkit-autofill,
+	.titlebar-search-input:-webkit-autofill:hover,
+	.titlebar-search-input:-webkit-autofill:focus {
+		-webkit-box-shadow: 0 0 0 1000px transparent inset;
+		-webkit-text-fill-color: var(--text);
+		transition: background-color 100000s ease-in-out 0s;
 	}
 	.titlebar-search-input::placeholder {
 		color: var(--text-muted);

@@ -42,8 +42,8 @@
 <Rating max={10} bind:value={basic} />`;
 </script>
 
-<Page title="Rating 评分" description="星级评分，支持半星、只读与键盘操作">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Rating 评分" description="星级评分，支持半星、只读与键盘操作">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Row
         ><span class="rating-label">基础：</span>
@@ -73,7 +73,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

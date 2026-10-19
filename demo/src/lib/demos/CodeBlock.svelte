@@ -54,20 +54,20 @@ export function greet(name: string): string {
 <CodeBlock code={'just plain text\\n第二行'} language="" showHeader={false} />`;
 </script>
 
-<Page title="CodeBlock 代码高亮" description="语言标签 + 一键复制 + 三类轻量高亮（注释/字符串/关键字）">
-  <CodePreview title="Svelte 示例" code={svelteSource}>
+<Page toc title="CodeBlock 代码高亮" description="语言标签 + 一键复制 + 三类轻量高亮（注释/字符串/关键字）">
+  <CodePreview anchor="svelte" anchorLevel={2} title="Svelte 示例" code={svelteSource}>
     <CodeBlock code={svelte} language="svelte" oncopy={(ok) => ok && Notification.success("已复制到剪贴板")} />
   </CodePreview>
 
-  <CodePreview title="TypeScript 示例 + 限高滚动" code={tsSource}>
+  <CodePreview anchor="typescript" anchorLevel={2} title="TypeScript 示例 + 限高滚动" code={tsSource}>
     <CodeBlock code={ts} language="ts" maxHeight="200px" />
   </CodePreview>
 
-  <CodePreview title="无头部 / 不可复制" code={plainSource}>
+  <CodePreview anchor="plain" anchorLevel={2} title="无头部 / 不可复制" code={plainSource}>
     <CodeBlock code={'just plain text\n第二行'} language="" showHeader={false} />
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>

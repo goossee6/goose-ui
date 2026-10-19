@@ -234,8 +234,8 @@
 </Button>`;
 </script>
 
-<Page title="通知 Notification" description="4 种类型、6 个位置、sonner 风格牌堆：超出自动收起、悬停/Alt+T 展开、拖拽滑除" >
-  <CodePreview title="标题 + 描述" code={titleDescSource}>
+<Page toc title="通知 Notification" description="4 种类型、6 个位置、sonner 风格牌堆：超出自动收起、悬停/Alt+T 展开、拖拽滑除">
+  <CodePreview anchor="basics-types" anchorLevel={2} title="标题 + 描述" code={titleDescSource}>
     <Row>
       <Button variant="primary" onclick={() => Notification.success({ title: '操作成功', description: '你的数据已保存到服务器，可以在列表中查看。' })}>带描述 Success</Button>
       <Button onclick={() => Notification.info({ title: '系统通知', description: '系统将于今晚 22:00 进行维护，预计持续 30 分钟。' })}>带描述 Info</Button>
@@ -244,7 +244,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="类型 Types" code={typesSource}>
+  <CodePreview anchor="types" anchorLevel={3} title="类型 Types" code={typesSource}>
     <Row>
       <Button variant="primary" onclick={() => Notification.success('操作成功！')}>Success</Button>
       <Button onclick={() => Notification.info('这是一条消息')}>Info</Button>
@@ -253,7 +253,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="位置 Positions" code={positionsSource}>
+  <CodePreview anchor="position-duration" anchorLevel={2} title="位置 Positions" code={positionsSource}>
     <Row>
       <Button onclick={() => Notification.success({ title: '左上通知', position: 'top-left' })}>左上</Button>
       <Button onclick={() => Notification.success({ title: '顶部居中', position: 'top' })}>顶部居中</Button>
@@ -266,7 +266,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="自定义 Duration" code={durationSource}>
+  <CodePreview anchor="custom-look" anchorLevel={2} title="自定义 Duration" code={durationSource}>
     <Row>
       <Button onclick={() => Notification.info({ title: '3 秒后关闭',showProgress: true, duration: 3000 })}>3 秒</Button>
       <Button onclick={() => Notification.info({ title: '10 秒后关闭',showProgress: true, duration: 10000 })}>10 秒</Button>
@@ -275,7 +275,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="自定义图标 icon" code={iconSource}>
+  <CodePreview anchor="icon" anchorLevel={3} title="自定义图标 icon" code={iconSource}>
     <Row>
       <Button onclick={() => Notification.success({ title: '收藏成功', icon: Star })}>Star 图标</Button>
       <Button onclick={() => Notification.info({ title: '已添加到书签', icon: Bookmark })}>Bookmark 图标</Button>
@@ -284,7 +284,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="按 key 更新/关闭" code={keySource}>
+  <CodePreview anchor="key" anchorLevel={3} title="按 key 更新/关闭" code={keySource}>
     <Row>
       <Button
         variant="primary"
@@ -303,33 +303,33 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="点击回调 onClick" code={onClickSource}>
+  <CodePreview anchor="callbacks" anchorLevel={2} title="点击回调 onClick" code={onClickSource}>
     <Row>
       <Button onclick={() => Notification.info({ title: '点击这条通知', onClick: () => Notification.success('通知被点击了！') })}>点击通知触发回调</Button>
     </Row>
   </CodePreview>
 
-  <CodePreview title="关闭回调 onClose" code={onCloseSource}>
+  <CodePreview anchor="onclose" anchorLevel={3} title="关闭回调 onClose" code={onCloseSource}>
     <Row>
       <Button onclick={() => Notification.info({ title: '关闭后触发回调', duration: 3000, onClose: () => Notification.success('通知已关闭！') })}>关闭时触发回调</Button>
     </Row>
   </CodePreview>
 
-  <CodePreview title="自定义关闭图标 closeIcon" code={closeIconSource}>
+  <CodePreview anchor="closeicon" anchorLevel={3} title="自定义关闭图标 closeIcon" code={closeIconSource}>
     <Row>
       <Button onclick={() => Notification.info({ title: 'Bookmark 关闭图标', closeIcon: Bookmark, duration: 0 })}>Bookmark 关闭</Button>
       <Button onclick={() => Notification.warning({ title: 'Heart 关闭图标', closeIcon: Heart, duration: 0 })}>Heart 关闭</Button>
     </Row>
   </CodePreview>
 
-  <CodePreview title="悬停暂停 pauseOnHover" code={pauseOnHoverSource}>
+  <CodePreview anchor="pauseonhover" anchorLevel={3} title="悬停暂停 pauseOnHover" code={pauseOnHoverSource}>
     <Row>
       <Button onclick={() => Notification.info({ title: '悬停暂停计时', description: '鼠标悬停时暂停自动关闭，移开后继续倒计时', duration: 8000, showProgress: true, pauseOnHover: true })}>悬停暂停（默认开启）</Button>
       <Button onclick={() => Notification.warning({ title: '悬停不暂停', description: '即使悬停也会自动关闭', duration: 8000, showProgress: true, pauseOnHover: false })}>悬停不暂停</Button>
     </Row>
   </CodePreview>
 
-  <CodePreview title="进度条 showProgress" code={progressSource}>
+  <CodePreview anchor="advanced" anchorLevel={2} title="进度条 showProgress" code={progressSource}>
     <Row>
       <Button onclick={() => Notification.success({ title: '带进度条', description: '底部显示自动关闭进度', duration: 6000, showProgress: true })}>Success + 进度条</Button>
       <Button onclick={() => Notification.info({ title: '带进度条', description: '底部显示自动关闭进度', duration: 6000, showProgress: true })}>Info + 进度条</Button>
@@ -338,7 +338,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="连续弹出" code={stackSource}>
+  <CodePreview anchor="stack" anchorLevel={3} title="连续弹出" code={stackSource}>
     <Row>
       <Button
         variant="primary"
@@ -374,7 +374,7 @@
     </p>
   </CodePreview>
 
-  <CodePreview title="多个 Provider 相互独立" code={multiProviderSource}>
+  <CodePreview anchor="provider" anchorLevel={3} title="多个 Provider 相互独立" code={multiProviderSource}>
     <p class="api-note">
       默认情况下所有 <code>&lt;NotificationProvider /&gt;</code> 渲染同一份全局 store（配合 <code>Notification.xxx()</code>）。
       需要独立容器时：用 <code>createNotificationStore()</code> 各建一份，分别传给 Provider 的 <code>store</code> prop
@@ -415,7 +415,7 @@
       <code>offset</code>（位置微调样式片段，默认空；多 Provider 同挂载时用来错开浮层）。
       每个 Provider 各自持有独立 store，互不共享。
     </p>
-    <PropsTable items={notificationProps} />
+    <PropsTable anchor="props" items={notificationProps} />
   </Card>
 </Page>
 

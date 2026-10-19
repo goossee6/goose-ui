@@ -89,8 +89,8 @@
 </div>`;
 </script>
 
-<Page title="开关 Toggle" description="带弹性动画的切换开关" >
-  <CodePreview title="Toggle 尺寸 Sizes" code={basicSource}>
+<Page toc title="开关 Toggle" description="带弹性动画的切换开关">
+  <CodePreview anchor="toggle-sizes" anchorLevel={2} title="Toggle 尺寸 Sizes" code={basicSource}>
     <Row>
       <div class="demo-item">
         <Label>small</Label>
@@ -107,7 +107,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="Toggle 状态 States" code={statesSource}>
+  <CodePreview anchor="toggle-states" anchorLevel={2} title="Toggle 状态 States" code={statesSource}>
     <Row>
       <div class="demo-item">
         <Label>关闭</Label>
@@ -121,7 +121,7 @@
     <p class="demo-val">t1 = {t1}, t2 = {t2}</p>
   </CodePreview>
 
-  <CodePreview title="Toggle 禁用 Disabled" code={disabledSource}>
+  <CodePreview anchor="toggle-disabled" anchorLevel={2} title="Toggle 禁用 Disabled" code={disabledSource}>
     <Row>
       <div class="demo-item">
         <Label>禁用关闭</Label>
@@ -134,7 +134,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview title="实际场景：设置项" code={settingsSource}>
+  <CodePreview anchor="settings-item" anchorLevel={2} title="实际场景：设置项" code={settingsSource}>
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="setting-row">
         <div>
@@ -167,7 +167,7 @@
     </div>
   </CodePreview>
   <Card title="Toggle Props">
-    <PropsTable items={toggleProps} />
+    <PropsTable anchor="props" items={toggleProps} />
   </Card>
 
   <Card title="Label Props">

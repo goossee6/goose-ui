@@ -1,184 +1,163 @@
 /**
- * 列宽状态：权重归一化、像素增量换算、localStorage 持久化。
+ * 列宽：把「占比 + 可选的最小/最大约束」解成一组合法的百分比。
  *
- * 设计要点：表格用 `table-layout: fixed`，各列宽度以**相对权重**存储，
- * 渲染时换算成百分比（`weight / total * 100%`）。这样：
- *  - 列宽之和恒为 100%，容器怎么缩放都不会溢出，无需监听 resize；
- *  - 拖拽只改权重，不必维护「各列之和 = 容器宽」的等式。
+ * 表格用 `table-layout: fixed`，各列宽度最终都要落成百分比，
+ * 且**各列之和必须恒为 100%**，否则 fixed 布局会等比放大（见文末「为什么不存像素」）。
  *
- * 为什么不存像素：实测 `<col style="width:200px">` 在 fixed 布局下，
- * 当各列之和小于表格宽度时浏览器会**等比放大**（200/140/80 → 285/200/114），
- * 像素值并非最终渲染值；百分比没有这个问题。
+ * 使用方可以按任一方式声明宽度，也可以混用：
+ *  - 什么都不写            → 占 1 份
+ *  - `2`                   → 占 2 份（相对比例，不是像素）
+ *  - `'20%'`               → 要 20%（百分比）
+ *  - `'200px'`             → 要 200px（换算成占容器的百分比）
+ *  - `minWidth` / `maxWidth` → 约束，写法同上，`'minWidth: 120'` 按 120px 处理
+ *
+ * 约束优先于占比：先按占比分一遍，把越界的列夹到约束上，
+ * 再把差额按占比分摊给还有余量的列，迭代到稳定为止。
+ * 这样 `[{width: 3}, {width: 1, maxWidth: '15%'}]` 会得到 85% / 15%，
+ * 而不是溢出后被浏览器等比缩成 75% / 25%。
  */
-
-/** 单列最小像素宽：再窄就连表头文字都放不下，且拖到 0 会让手柄抓不回来。 */
-export const MIN_COL_PX = 56;
 
 /** 默认权重。未配置 width 的列一律 1，视觉上均分。 */
 export const DEFAULT_WEIGHT = 1;
 
-/** localStorage 键前缀，与主题键（goose-ui-theme）保持同一命名风格。 */
-const STORAGE_PREFIX = 'goose-ui:table-widths:';
-
-/** 权重数组 → 百分比宽度字符串数组，供 `<col style="width:...">` 使用。 */
-export function toPercents(weights: number[]): string[] {
-	const total = weights.reduce((a, b) => a + (Number.isFinite(b) && b > 0 ? b : 0), 0);
-	if (!(total > 0)) return weights.map(() => `${100 / Math.max(1, weights.length)}%`);
-	return weights.map((w) => {
-		const safe = Number.isFinite(w) && w > 0 ? w : 0;
-		return `${((safe / total) * 100).toFixed(4)}%`;
-	});
-}
-
 /**
- * 把一次拖拽的像素位移换算成新的权重数组，并从相邻列扣补。
+ * 像素约束换算成百分比时的参考宽度。
  *
- * @param weights      当前权重
- * @param index        被拖拽的列下标
- * @param dxPx         本轮相对拖拽起点的像素增量（向右为正）
- * @param containerPx  表格容器当前像素宽，用于 px ↔ 权重换算
- * @param minPx        每列最小像素宽（默认 MIN_COL_PX）
- * @param maxPx        被拖拽列的最大像素宽（可选）
- * @param direction    'right' 表示手柄在该列右边缘（增大列 = 从右邻扣）；
- *                     'left' 表示手柄在左边缘（增大列 = 从左邻扣）
- * @returns 新权重数组；未发生有效变化时返回原数组
+ * 列宽与容器宽度相关，但求解发生在渲染前的纯函数里、拿不到真实宽度，
+ * 所以像素写法（`'200px'` / `120`）按这个基准换算。需要精确控制时用百分比。
  */
-export function resizeWeights(
-	weights: number[],
-	index: number,
-	dxPx: number,
-	containerPx: number,
-	minPx = MIN_COL_PX,
-	maxPx?: number,
-	direction: 'right' | 'left' = 'right'
-): number[] {
-	if (index < 0 || index >= weights.length || !(containerPx > 0)) return weights;
+export const REFERENCE_WIDTH_PX = 1000;
 
-	const neighbor = direction === 'right' ? index + 1 : index - 1;
-	if (neighbor < 0 || neighbor >= weights.length) return weights;
+/** 一条宽度声明。`number` 是份数，`string` 是 `'20%'` / `'200px'` 这类带单位的值。 */
+export type WidthSpec = number | string | null | undefined;
 
-	const total = weights.reduce((a, b) => a + (b > 0 ? b : 0), 0);
-	if (!(total > 0)) return weights;
-
-	// 1 像素对应多少权重
-	const perPx = total / containerPx;
-
-	const ownPx = (weights[index] / total) * containerPx;
-	const neighborPx = (weights[neighbor] / total) * containerPx;
-
-	const rawTarget = ownPx + (direction === 'right' ? dxPx : -dxPx);
-
-	// 两侧都要守住最小宽度：自己不能小于 minPx，邻居也不能
-	const upper = neighborPx - minPx; // 自己最多能长到多少
-	const lower = minPx; // 自己最少要留多少
-	const ceiling = maxPx != null ? Math.min(upper, maxPx) : upper;
-
-	const target = Math.min(Math.max(rawTarget, lower), Math.max(lower, ceiling));
-	const applied = target - ownPx; // 实际生效的像素增量（自身方向）
-
-	if (Math.abs(applied) < 0.5) return weights;
-
-	const next = [...weights];
-	next[index] = weights[index] + applied * perPx;
-	next[neighbor] = weights[neighbor] - applied * perPx;
-
-	// 浮点误差兜底：权重必须为正
-	if (!(next[index] > 0) || !(next[neighbor] > 0)) return weights;
-
-	return next;
+/** 已解析的宽度声明：`frac` 是份数，`pct` 是绝对百分比，两者有且只有一个有值。 */
+export interface ParsedWidth {
+  frac: number | null;
+  pct: number | null;
 }
 
-/** 读取已保存的列宽权重；不含该键、损坏或长度不符时返回 null。 */
-export function loadWidths(key: string, expectedLength: number): number[] | null {
-	if (typeof window === 'undefined' || !key) return null;
-	try {
-		const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
-		if (!raw) return null;
-		const parsed = JSON.parse(raw);
-		if (!Array.isArray(parsed) || parsed.length !== expectedLength) return null;
-		if (!parsed.every((v) => typeof v === 'number' && Number.isFinite(v) && v > 0)) return null;
-		return parsed as number[];
-	} catch {
-		return null;
-	}
+/** 把一条宽度声明解析成「份数」或「百分比」。无法识别时返回 null。 */
+export function parseWidth(v: WidthSpec, reference = REFERENCE_WIDTH_PX): ParsedWidth | null {
+  if (v == null) return null;
+  if (typeof v === 'number') {
+    return Number.isFinite(v) && v > 0 ? { frac: v, pct: null } : null;
+  }
+  const s = v.trim();
+  if (!s) return null;
+  const m = /^([+-]?(?:\d+\.?\d*|\.\d+))\s*(%|px)?$/i.exec(s);
+  if (!m) return null;
+  const n = Number.parseFloat(m[1]);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const unit = (m[2] ?? '').toLowerCase();
+  if (unit === '%') return { frac: null, pct: n };
+  // 纯数字字符串按份数处理，带 px 的按参考宽度换算成百分比
+  if (unit === 'px') return { frac: null, pct: (n / (reference > 0 ? reference : 1)) * 100 };
+  return { frac: n, pct: null };
 }
 
-/**
- * 配置指纹：把各列的默认权重拼成一个短字符串。
- *
- * 用途是让「列配置变了」时旧存档自动失效。否则使用者调整了 columns 里的
- * width，用户本地早先拖动留下的记录会一直覆盖新配置，改代码等于没改。
- * 用权重而不是列 id：仅改 width 正是需要失效的场景。
+/** 解析一条约束（min/max）。纯数字按「份数」理解没有意义，故一律当像素处理。 */
+export function parseBound(v: WidthSpec, reference = REFERENCE_WIDTH_PX): number | null {
+  if (v == null) return null;
+  if (typeof v === 'number') return Number.isFinite(v) && v > 0 ? v : null;
+  const s = v.trim();
+  if (!s) return null;
+  const m = /^([+-]?(?:\d+\.?\d*|\.\d+))\s*(%|px)?$/i.exec(s);
+  if (!m) return null;
+  const n = Number.parseFloat(m[1]);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const unit = (m[2] ?? '').toLowerCase();
+  if (unit === '%') return n;
+  // 无单位和 px 都按像素 → 换算成百分比
+  return (n / (reference > 0 ? reference : 1)) * 100;
+}
+
+export interface WidthInput {
+  /** 列宽声明 */
+  width?: WidthSpec;
+  /** 最小宽度：百分比或像素 */
+  minWidth?: WidthSpec;
+  /** 最大宽度：百分比或像素 */
+  maxWidth?: WidthSpec;
+}
+
+/** 求解结果：每列的百分比（总和恒为 100）。 */
+export function resolvePercents(cols: WidthInput[], reference = REFERENCE_WIDTH_PX): number[] {
+  const n = cols.length;
+  if (n === 0) return [];
+
+  const fracs: number[] = [];
+  const wants: (number | null)[] = []; // 显式声明的绝对百分比
+  const mins: (number | null)[] = [];
+  const maxs: (number | null)[] = [];
+
+  for (const c of cols) {
+    const w = parseWidth(c.width, reference);
+    fracs.push(w?.frac ?? (w?.pct != null ? 0 : DEFAULT_WEIGHT));
+    wants.push(w?.pct ?? null);
+    mins.push(parseBound(c.minWidth, reference));
+    maxs.push(parseBound(c.maxWidth, reference));
+  }
+
+  // 1. 先算一次「名义占比」：显式给了百分比的按百分比，否则按份数分摊剩余
+  const explicitSum = wants.reduce<number>((a, b) => a + (b ?? 0), 0);
+  const fracSum = fracs.reduce((a, b) => a + b, 0);
+  const remaining = Math.max(0, 100 - explicitSum);
+
+  let out = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    out[i] = wants[i] ?? (fracSum > 0 ? (fracs[i] / fracSum) * remaining : remaining / n);
+  }
+
+  // 2. 迭代把越界列夹到约束上，差额分摊给还有余量的列
+  const clamped = new Array<boolean>(n).fill(false);
+  for (let iter = 0; iter < 8; iter++) {
+    let delta = 0;
+    let changed = false;
+
+    for (let i = 0; i < n; i++) {
+      if (clamped[i]) continue;
+      const lo = mins[i];
+      const hi = maxs[i];
+      const v = out[i];
+      let target = v;
+      if (lo != null && v < lo) target = lo;
+      else if (hi != null && v > hi) target = hi;
+      if (target !== v) {
+        delta += target - v;
+        out[i] = target;
+        clamped[i] = true;
+        changed = true;
+      }
+    }
+    if (!changed) break;
+
+    // 把差额按「未夹列」的当前占比分摊；没有可分摊的列就到此为止
+    const free = [];
+    for (let i = 0; i < n; i++) if (!clamped[i]) free.push(i);
+    if (free.length === 0) break;
+
+    const freeSum = free.reduce((a, i) => a + out[i], 0);
+    for (const i of free) {
+      const share = freeSum > 0 ? out[i] / freeSum : 1 / free.length;
+      out[i] = Math.max(0, out[i] - delta * share);
+    }
+  }
+
+  // 3. 归一化，杜绝浮点误差导致总和不是 100
+  const total = out.reduce((a, b) => a + (b > 0 ? b : 0), 0);
+  if (total > 0) out = out.map((v) => (v > 0 ? (v / total) * 100 : 0));
+
+  return out;
+}
+
+/** 百分比数组 → `<col style="width:...">` 用的字符串数组。 */
+export function toPercents(pcts: number[]): string[] {
+  return pcts.map((v) => `${(Number.isFinite(v) && v > 0 ? v : 0).toFixed(4)}%`);
+}
+
+/*
+ * 为什么不存像素：实测 `<col style="width:200px">` 在 fixed 布局下，
+ * 当各列之和小于表格宽度时浏览器会**等比放大**（200/140/80 → 285/200/114），
+ * 像素值并非最终渲染值；百分比没有这个问题。
  */
-export function weightsFingerprint(weights: number[]): string {
-	return weights.map((w) => (Number.isFinite(w) && w > 0 ? w : 0)).join(',');
-}
-
-/** 读取列宽存档。存档的配置指纹与当前配置不一致时视为过期，返回 null。 */
-export function loadWidthsVersioned(
-	key: string,
-	expectedLength: number,
-	fingerprint: string
-): number[] | null {
-	if (typeof window === 'undefined' || !key) return null;
-	try {
-		const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
-		if (!raw) return null;
-		const parsed = JSON.parse(raw);
-		// 兼容旧格式（裸数组）：视为过期，回落到配置默认值。
-		if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
-		if (parsed.fp !== fingerprint) return null;
-		const weights = parsed.w;
-		if (!Array.isArray(weights) || weights.length !== expectedLength) return null;
-		if (!weights.every((v: unknown) => typeof v === 'number' && Number.isFinite(v) && v > 0)) {
-			return null;
-		}
-		return weights as number[];
-	} catch {
-		return null;
-	}
-}
-
-/** 写入列宽权重。localStorage 不可用时静默忽略，仅内存生效。 */
-export function saveWidths(key: string, weights: number[]): void {
-	if (typeof window === 'undefined' || !key) return;
-	try {
-		window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(weights));
-	} catch {
-		/* localStorage 不可用（隐私模式 / 配额满）时仅内存生效 */
-	}
-}
-
-/** 写入列宽权重，同时记录配置指纹。 */
-export function saveWidthsVersioned(key: string, weights: number[], fingerprint: string): void {
-	if (typeof window === 'undefined' || !key) return;
-	try {
-		window.localStorage.setItem(
-			STORAGE_PREFIX + key,
-			JSON.stringify({ fp: fingerprint, w: weights })
-		);
-	} catch {
-		/* localStorage 不可用（隐私模式 / 配额满）时仅内存生效 */
-	}
-}
-
-/** 清除某张表的列宽记录，下次加载回到默认均分。 */
-export function clearWidths(key: string): void {
-	if (typeof window === 'undefined' || !key) return;
-	try {
-		window.localStorage.removeItem(STORAGE_PREFIX + key);
-	} catch {
-		/* ignore */
-	}
-}
-
-let autoKeySeq = 0;
-
-/**
- * 生成自动持久化键。同一页面内每张表拿到不同的键；
- * 使用方最好显式传 persistKey，这样跨路由/重挂载也能对应上。
- */
-export function nextAutoKey(): string {
-	autoKeySeq += 1;
-	return `auto-${autoKeySeq}`;
-}

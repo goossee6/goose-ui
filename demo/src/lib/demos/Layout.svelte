@@ -31,8 +31,8 @@
 </Layout>`;
 </script>
 
-<Page title="Layout 布局" description="Wails3 桌面应用完整外壳布局，包含标题栏、侧边栏和主内容区" >
-  <CodePreview title="布局结构" code={structureSource}>
+<Page toc title="Layout 布局" description="Wails3 桌面应用完整外壳布局，包含标题栏、侧边栏和主内容区">
+  <CodePreview anchor="structure" anchorLevel={2} title="布局结构" code={structureSource}>
     <div class="layout-diagram">
       <div class="diagram-titlebar">TitleBar 标题栏</div>
       <div class="diagram-body">
@@ -47,7 +47,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={layoutProps} />
+    <PropsTable anchor="props" items={layoutProps} />
   </Card>
 
   <Card title="说明">

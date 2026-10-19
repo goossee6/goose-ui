@@ -1,16 +1,5 @@
 <script lang="ts">
-  import {
-    Button,
-    Card,
-    Tag,
-    Avatar,
-    Toggle,
-    ProgressBar,
-    TitleBar,
-    type WindowController,
-    themeStore,
-    toggleThemeFromEvent,
-  } from "goose-ui";
+  import { Button, Card, Tag, Avatar, Toggle, ProgressBar, TitleBar, type WindowController, themeStore, toggleThemeFromEvent } from "goose-ui";
   import Rocket from "@lucide/svelte/icons/rocket";
   import BookOpen from "@lucide/svelte/icons/book-open";
   import Sparkles from "@lucide/svelte/icons/sparkles";
@@ -135,200 +124,179 @@
 </script>
 
 <div class="hp-page">
-<div class="hp-inner">
-<!-- ── Hero ───────────────────────────────────────────── -->
-<section class="hp-hero">
-  <div class="hp-hero-glow" aria-hidden="true"></div>
-  <div class="hp-hero-tags">
-    <Tag variant="primary" dot>Svelte 5 Runes</Tag>
-    <Tag variant="success" dot>零依赖</Tag>
-    <Tag variant="info" dot>Wails3</Tag>
-    <Tag>MIT</Tag>
-  </div>
-
-  <h1 class="hp-hero-title">goose-ui</h1>
-  <p class="hp-hero-sub">
-    零第三方依赖的 Svelte 5 纯 CSS 组件库 ——
-    为桌面与后台应用准备的 <em>50+ 组件</em>、单文件主题，以及开箱即用的
-    <em>Wails3 应用外壳</em>。
-  </p>
-
-  <div class="hp-hero-actions">
-    <Button variant="primary" size="large" onclick={() => go("#/getstarted")}>
-      开始使用 →
-    </Button>
-    <Button variant="default" size="large" onclick={() => go("#/button")}>
-      浏览组件
-    </Button>
-  </div>
-
-  <div class="hp-hero-stats">
-    {#each stats as s (s.label)}
-      <div class="hp-stat">
-        <span class="hp-stat-value">{s.value}</span>
-        <span class="hp-stat-label">{s.label}</span>
+  <div class="hp-inner">
+    <!-- ── Hero ───────────────────────────────────────────── -->
+    <section class="hp-hero">
+      <div class="hp-hero-glow" aria-hidden="true"></div>
+      <div class="hp-hero-tags">
+        <Tag variant="primary" dot>Svelte 5 Runes</Tag>
+        <Tag variant="success" dot>零依赖</Tag>
+        <Tag variant="info" dot>Wails3</Tag>
+        <Tag>MIT</Tag>
       </div>
-    {/each}
-  </div>
-</section>
 
-<!-- ── 模拟 Wails3 桌面应用 ─────────────────────────────── -->
-<section class="hp-showcase">
-  <div class="hp-showcase-head">
-    <h2 class="hp-h2">在浏览器里，跑一个桌面应用</h2>
-    <p class="hp-lead">
-      下面是一个用 goose-ui 真实组件搭出来的「模拟 Wails3 应用」—— 标题栏、窗口三键、主题切换全是库里的真东西。
-      试着点右上角的 <strong>最小化 / 最大化 / 关闭</strong>。
-    </p>
-  </div>
+      <h1 class="hp-hero-title">Goose-ui</h1>
+      <p class="hp-hero-sub">
+        零第三方依赖的 Svelte 5 纯 CSS 组件库 —— 为桌面与后台应用准备的 <em>50+ 组件</em>、单文件主题，以及开箱即用的
+        <em>Wails3 应用外壳</em>。
+      </p>
 
-  <div class="hp-desk">
-    {#if !winClosed}
-      <div class="hp-win" class:hp-win--max={winMax && !winMin}>
-        <TitleBar
-          logo={Box}
-          title="Goose Studio"
-          subtitle="组件实验室"
-          theme={themeStore.theme}
-          onThemeToggle={toggleThemeFromEvent}
-          windowApi={mockApi}
-        />
+      <div class="hp-hero-actions">
+        <Button variant="primary" size="large" onclick={() => go("#/getstarted")}>开始使用 →</Button>
+        <Button variant="default" size="large" onclick={() => go("#/button")}>浏览组件</Button>
+      </div>
 
-        {#if !winMin}
-          <div class="hp-win-body">
-            <nav class="hp-rail" aria-label="侧边导航">
-              {#each rail as r (r.label)}
-                <button
-                  type="button"
-                  class="hp-rail-btn"
-                  class:active={r.active}
-                  title={r.label}
-                  aria-label={r.label}
-                >
-                  <r.icon size={20} />
-                </button>
-              {/each}
-            </nav>
+      <div class="hp-hero-stats">
+        {#each stats as s (s.label)}
+          <div class="hp-stat">
+            <span class="hp-stat-value">{s.value}</span>
+            <span class="hp-stat-label">{s.label}</span>
+          </div>
+        {/each}
+      </div>
+    </section>
 
-            <div class="hp-main">
-              <Card>
-                <div class="hp-welcome">
-                  <Avatar name="Goose Dev" status="online" size="large" />
-                  <div class="hp-welcome-text">
-                    <div class="hp-welcome-name">欢迎回来，开发者</div>
-                    <div class="hp-welcome-sub">Goose Studio · 已连接</div>
+    <!-- ── 模拟 Wails3 桌面应用 ─────────────────────────────── -->
+    <section class="hp-showcase">
+      <div class="hp-showcase-head">
+        <h2 class="hp-h2">在浏览器里，跑一个桌面应用</h2>
+        <p class="hp-lead">
+          下面是一个用 goose-ui 真实组件搭出来的「模拟 Wails3 应用」—— 标题栏、窗口三键、主题切换全是库里的真东西。 试着点右上角的 <strong>最小化 / 最大化 / 关闭</strong>。
+        </p>
+      </div>
+
+      <div class="hp-desk">
+        {#if !winClosed}
+          <div class="hp-win" class:hp-win--max={winMax && !winMin}>
+            <TitleBar logo={Box} title="Goose Studio" subtitle="组件实验室" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent} windowApi={mockApi} />
+
+            {#if !winMin}
+              <div class="hp-win-body">
+                <nav class="hp-rail" aria-label="侧边导航">
+                  {#each rail as r (r.label)}
+                    <button type="button" class="hp-rail-btn" class:active={r.active} title={r.label} aria-label={r.label}>
+                      <r.icon size={20} />
+                    </button>
+                  {/each}
+                </nav>
+
+                <div class="hp-main">
+                  <Card>
+                    <div class="hp-welcome">
+                      <Avatar name="Goose Dev" status="online" size="large" />
+                      <div class="hp-welcome-text">
+                        <div class="hp-welcome-name">欢迎回来，开发者</div>
+                        <div class="hp-welcome-sub">Goose Studio · 已连接</div>
+                      </div>
+                      <Tag variant="success" dot>在线</Tag>
+                    </div>
+                  </Card>
+
+                  <Card title="系统状态">
+                    <div class="hp-metric">
+                      <span class="hp-metric-label">CPU</span>
+                      <ProgressBar percent={cpu} />
+                      <em class="hp-metric-val">{cpu}%</em>
+                    </div>
+                    <div class="hp-metric">
+                      <span class="hp-metric-label">内存</span>
+                      <ProgressBar percent={mem} />
+                      <em class="hp-metric-val">{mem}%</em>
+                    </div>
+                    <div class="hp-metric">
+                      <span class="hp-metric-label">磁盘</span>
+                      <ProgressBar percent={disk} />
+                      <em class="hp-metric-val">{disk}%</em>
+                    </div>
+                  </Card>
+
+                  <div class="hp-cols">
+                    <Card title="运行时">
+                      <label class="hp-switch">
+                        <Toggle bind:checked={autoUpdate} />
+                        <span>自动更新</span>
+                      </label>
+                      <label class="hp-switch">
+                        <Toggle bind:checked={followSystem} />
+                        <span>深色跟随系统</span>
+                      </label>
+                    </Card>
+                    <Card title="已安装技能">
+                      <div class="hp-tags">
+                        <Tag variant="primary">Svelte 5</Tag>
+                        <Tag variant="info">零依赖</Tag>
+                        <Tag variant="success" dot>Wails3 Ready</Tag>
+                        <Tag>MIT</Tag>
+                      </div>
+                    </Card>
                   </div>
-                  <Tag variant="success" dot>在线</Tag>
-                </div>
-              </Card>
 
-              <Card title="系统状态">
-                <div class="hp-metric">
-                  <span class="hp-metric-label">CPU</span>
-                  <ProgressBar percent={cpu} />
-                  <em class="hp-metric-val">{cpu}%</em>
-                </div>
-                <div class="hp-metric">
-                  <span class="hp-metric-label">内存</span>
-                  <ProgressBar percent={mem} />
-                  <em class="hp-metric-val">{mem}%</em>
-                </div>
-                <div class="hp-metric">
-                  <span class="hp-metric-label">磁盘</span>
-                  <ProgressBar percent={disk} />
-                  <em class="hp-metric-val">{disk}%</em>
-                </div>
-              </Card>
-
-              <div class="hp-cols">
-                <Card title="运行时">
-                  <label class="hp-switch">
-                    <Toggle bind:checked={autoUpdate} />
-                    <span>自动更新</span>
-                  </label>
-                  <label class="hp-switch">
-                    <Toggle bind:checked={followSystem} />
-                    <span>深色跟随系统</span>
-                  </label>
-                </Card>
-                <Card title="已安装技能">
-                  <div class="hp-tags">
-                    <Tag variant="primary">Svelte 5</Tag>
-                    <Tag variant="info">零依赖</Tag>
-                    <Tag variant="success" dot>Wails3 Ready</Tag>
-                    <Tag>MIT</Tag>
+                  <div class="hp-actions">
+                    <Button variant="primary" icon={Rocket}>新建项目</Button>
+                    <Button variant="default" icon={Settings}>打开设置</Button>
+                    <Button variant="ghost" icon={Bell}>通知</Button>
                   </div>
-                </Card>
+                </div>
               </div>
+            {:else}
+              <div class="hp-win-min">已最小化 —— 点击下方任务栏恢复</div>
+            {/if}
+          </div>
 
-              <div class="hp-actions">
-                <Button variant="primary" icon={Rocket}>新建项目</Button>
-                <Button variant="default" icon={Settings}>打开设置</Button>
-                <Button variant="ghost" icon={Bell}>通知</Button>
-              </div>
+          {#if winMin}
+            <button type="button" class="hp-dock" onclick={restoreWin} title="点击恢复">
+              <Box size={16} />
+              <span>Goose Studio · 已最小化</span>
+            </button>
+          {/if}
+        {:else}
+          <div class="hp-closed">
+            <div class="hp-closed-card">
+              <Box size={30} />
+              <div class="hp-closed-title">应用已关闭</div>
+              <div class="hp-closed-sub">这是一个运行在浏览器中的模拟窗口</div>
+              <Button variant="primary" onclick={reopenWin}>重新打开</Button>
             </div>
           </div>
-        {:else}
-          <div class="hp-win-min">已最小化 —— 点击下方任务栏恢复</div>
         {/if}
+        <!-- ── 特性（与模拟应用同级，共享渐变背景） ── -->
+        <section class="hp-feat-grid" class:hp-hidden={winMax && !winMin}>
+          {#each features as f (f.title)}
+            <div class="hp-feat">
+              <div class="hp-feat-icon"><f.icon size={18} /></div>
+              <div>
+                <div class="hp-feat-title">{f.title}</div>
+                <p class="hp-feat-desc">{f.desc}</p>
+              </div>
+            </div>
+          {/each}
+        </section>
+
+        <!-- ── 入口 ── -->
+        <section class="hp-entry-grid" class:hp-hidden={winMax && !winMin}>
+          {#each entries as e (e.title)}
+            <button type="button" class="hp-entry" onclick={() => go(e.href)}>
+              <span class="hp-entry-tag">{e.tag}</span>
+              <span class="hp-entry-title">{e.title} →</span>
+              <span class="hp-entry-desc">{e.desc}</span>
+            </button>
+          {/each}
+        </section>
       </div>
 
-      {#if winMin}
-        <button type="button" class="hp-dock" onclick={restoreWin} title="点击恢复">
-          <Box size={16} />
-          <span>Goose Studio · 已最小化</span>
-        </button>
-      {/if}
-    {:else}
-      <div class="hp-closed">
-        <div class="hp-closed-card">
-          <Box size={30} />
-          <div class="hp-closed-title">应用已关闭</div>
-          <div class="hp-closed-sub">这是一个运行在浏览器中的模拟窗口</div>
-          <Button variant="primary" onclick={reopenWin}>重新打开</Button>
-        </div>
-      </div>
-    {/if}
-    <!-- ── 特性（与模拟应用同级，共享渐变背景） ── -->
-    <section class="hp-feat-grid" class:hp-hidden={winMax && !winMin}>
-      {#each features as f (f.title)}
-        <div class="hp-feat">
-          <div class="hp-feat-icon"><f.icon size={18} /></div>
-          <div>
-            <div class="hp-feat-title">{f.title}</div>
-            <p class="hp-feat-desc">{f.desc}</p>
-          </div>
-        </div>
-      {/each}
-    </section>
-
-    <!-- ── 入口 ── -->
-    <section class="hp-entry-grid" class:hp-hidden={winMax && !winMin}>
-      {#each entries as e (e.title)}
-        <button type="button" class="hp-entry" onclick={() => go(e.href)}>
-          <span class="hp-entry-tag">{e.tag}</span>
-          <span class="hp-entry-title">{e.title} →</span>
-          <span class="hp-entry-desc">{e.desc}</span>
-        </button>
-      {/each}
+      <p class="hp-caption">
+        窗口控制通过 <code>windowApi</code> 注入：浏览器里最小化 / 关闭是模拟行为；打包进 Wails3 只需把
+        <code>windowApi</code> 换成 <code>@wailsio/runtime</code> 适配器，库本身零桌面依赖。
+      </p>
     </section>
   </div>
-
-  <p class="hp-caption">
-    窗口控制通过 <code>windowApi</code> 注入：浏览器里最小化 / 关闭是模拟行为；打包进 Wails3 只需把
-    <code>windowApi</code> 换成 <code>@wailsio/runtime</code> 适配器，库本身零桌面依赖。
-  </p>
-</section>
-</div>
 </div>
 
 <style>
   /* ── 页面级渐变背景：提升到整窗（.layout--home），铺满视口 ── */
   :global(.layout--home.layout) {
-    background:
-      radial-gradient(900px 420px at 18% -10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
-      radial-gradient(720px 520px at 92% 110%, color-mix(in srgb, var(--complement) 18%, transparent), transparent 60%),
-      var(--bg) !important;
+    background: radial-gradient(900px 420px at 18% -10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
+      radial-gradient(720px 520px at 92% 110%, color-mix(in srgb, var(--complement) 18%, transparent), transparent 60%), var(--bg) !important;
   }
   :global(.layout--home .layout-content) {
     margin: 0 !important;
@@ -365,8 +333,7 @@
     position: absolute;
     inset: -40% 0 auto 0;
     height: 320px;
-    background:
-      radial-gradient(900px 280px at 50% 0%, var(--accent-sub), transparent 70%);
+    background: radial-gradient(900px 280px at 50% 0%, var(--accent-sub), transparent 70%);
     pointer-events: none;
   }
   .hp-hero-tags {
@@ -378,6 +345,7 @@
     margin-bottom: 22px;
   }
   .hp-hero-title {
+    padding: 10px;
     position: relative;
     margin: 0;
     font-size: 52px;
@@ -529,7 +497,9 @@
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s;
   }
   .hp-rail-btn:hover {
     background: var(--hover);
@@ -764,7 +734,9 @@
     background: var(--surface);
     cursor: pointer;
     text-align: left;
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
   }
   .hp-entry:hover {
     transform: translateY(-2px);

@@ -72,8 +72,8 @@
   };
 </script>
 
-<Page title="设置 Settings" description="主题色配置：只调色相，明度与彩度按亮暗主题自动派生">
-  <CodePreview title="主题色配置（全局生效）" code={cssSource}>
+<Page toc title="设置 Settings" description="主题色配置：只调色相，明度与彩度按亮暗主题自动派生">
+  <CodePreview anchor="theme-color" anchorLevel={2} title="主题色配置（全局生效）" code={cssSource}>
     <div class="hue-list">
       {#each HUE_ROLES as role (role)}
         {@const meta = ROLE_META[role]}
@@ -151,7 +151,7 @@
   </Card>
 
   <Card title="HueRole 参数">
-    <PropsTable items={hueProps} />
+    <PropsTable anchor="props" items={hueProps} />
     <p class="hue-note">
       默认值：{HUE_ROLES.map((r) => `${r}=${DEFAULT_HUES[r]}`).join("、")}
     </p>

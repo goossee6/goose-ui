@@ -50,8 +50,8 @@
 </Row>`;
 </script>
 
-<Page title="Countdown 倒计时" description="duration / target 双模式，可暂停，归零回调">
-  <CodePreview title="固定时长 + 暂停控制" code={durationSource}>
+<Page toc title="Countdown 倒计时" description="duration / target 双模式，可暂停，归零回调">
+  <CodePreview anchor="countdown" anchorLevel={2} title="固定时长 + 暂停控制" code={durationSource}>
     <Row>
       <Countdown duration={1000 * 60 * 5 + 32000} bind:paused />
       <Button variant={paused ? "primary" : "default"} onclick={() => (paused = !paused)}>
@@ -61,12 +61,12 @@
     <p class="note">5 分 32 秒起始；paused 为双向绑定 prop。</p>
   </CodePreview>
 
-  <CodePreview title="目标时间（26 小时后）" code={targetSource}>
+  <CodePreview anchor="26" anchorLevel={2} title="目标时间（26 小时后）" code={targetSource}>
     <Countdown {target} onfinish={() => Notification.info("倒计时结束：target 已到点")} />
     <p class="note">超过一天自动拆出「DD」段；归零时触发 onfinish。</p>
   </CodePreview>
 
-  <CodePreview title="自定义分隔 / 不显示天" code={separatorSource}>
+  <CodePreview anchor="separator" anchorLevel={2} title="自定义分隔 / 不显示天" code={separatorSource}>
     <Row>
       <Countdown duration={1000 * 60 * 60 * 30} separator="-" />
       <Countdown duration={1000 * 60 * 60 * 30} showDays={false} />
@@ -74,7 +74,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

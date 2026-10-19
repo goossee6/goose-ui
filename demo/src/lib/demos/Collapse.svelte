@@ -115,8 +115,8 @@
   <p style="margin:0">第三项内容。</p>
 {/snippet}
 
-<Page title="Collapse 折叠面板" description="Collapsible 折叠容器与 Accordion 手风琴（共用底层）">
-  <CodePreview title="Collapsible 折叠容器" code={collapsibleSource}>
+<Page toc title="Collapse 折叠面板" description="Collapsible 折叠容器与 Accordion 手风琴（共用底层）">
+  <CodePreview anchor="collapsible" anchorLevel={2} title="Collapsible 折叠容器" code={collapsibleSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <Collapsible open={open1} onchange={(o) => (open1 = o)}>
         {#snippet trigger()}
@@ -133,7 +133,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="Accordion 手风琴（单开）" code={accordionSource}>
+  <CodePreview anchor="accordion" anchorLevel={2} title="Accordion 手风琴（单开）" code={accordionSource}>
     <Accordion
       items={[
         { value: 'a', label: '什么是 Collapsible？', content: accA },
@@ -145,7 +145,7 @@
     <p class="note">value = [{accValue.join(', ')}]</p>
   </CodePreview>
 
-  <CodePreview title="Accordion（多开 multiple）" code={multipleSource}>
+  <CodePreview anchor="accordion-multiple" anchorLevel={2} title="Accordion（多开 multiple）" code={multipleSource}>
     <Accordion
       items={[
         { value: 'x', label: '支持多开（multiple）', content: multiX },
@@ -159,7 +159,7 @@
   </CodePreview>
 
   <Card title="Props — Collapsible">
-    <PropsTable items={collapsibleProps} />
+    <PropsTable anchor="props" items={collapsibleProps} />
   </Card>
   <Card title="Props — Accordion">
     <PropsTable items={accordionProps} />

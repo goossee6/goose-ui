@@ -357,7 +357,9 @@
 		font-size: 12px;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
-		background: var(--surface-2);
+		/* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
+		background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+		backdrop-filter: blur(12px);
 	}
 	.combobox-option {
 		position: relative;

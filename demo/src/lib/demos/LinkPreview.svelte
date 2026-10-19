@@ -42,8 +42,8 @@
 </LinkPreview>`;
 </script>
 
-<Page title="Link Preview 链接预览" description="悬停链接浮出预览卡片（延迟触发、自动翻转、Esc 关闭）">
-  <CodePreview title="基础用法" code={basicSource}>
+<Page toc title="Link Preview 链接预览" description="悬停链接浮出预览卡片（延迟触发、自动翻转、Esc 关闭）">
+  <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <p class="line">
       参考
       <LinkPreview
@@ -67,7 +67,7 @@
     </p>
   </CodePreview>
 
-  <CodePreview title="禁用" code={disabledSource}>
+  <CodePreview anchor="disabled" anchorLevel={2} title="禁用" code={disabledSource}>
     <p class="line">
       <LinkPreview href="https://example.com" title="不会显示" description="disabled 后不触发预览" disabled>
         禁用的链接
@@ -76,7 +76,7 @@
   </CodePreview>
 
   <Card title="Props">
-    <PropsTable items={props} />
+    <PropsTable anchor="props" items={props} />
   </Card>
 </Page>
 

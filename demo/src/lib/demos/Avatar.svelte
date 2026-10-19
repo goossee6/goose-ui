@@ -64,8 +64,8 @@
 </Row>`;
 </script>
 
-<Page title="Avatar 头像 / AspectRatio 比例框" description="头像展示与固定宽高比容器">
-  <CodePreview title="头像 Avatar" code={avatarSource}>
+<Page toc title="Avatar 头像 / AspectRatio 比例框" description="头像展示与固定宽高比容器">
+  <CodePreview anchor="avatar" anchorLevel={2} title="头像 Avatar" code={avatarSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <Row>
         <Avatar size="small" name="Goose UI" />
@@ -86,7 +86,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview title="比例框 AspectRatio" code={ratioSource}>
+  <CodePreview anchor="aspectratio" anchorLevel={2} title="比例框 AspectRatio" code={ratioSource}>
     <Row>
       <div style="width:220px">
         <AspectRatio ratio="16 / 9">
@@ -107,7 +107,7 @@
   </CodePreview>
 
   <Card title="Props — Avatar">
-    <PropsTable items={avatarProps} />
+    <PropsTable anchor="props" items={avatarProps} />
   </Card>
   <Card title="Props — AspectRatio">
     <PropsTable items={ratioProps} />
