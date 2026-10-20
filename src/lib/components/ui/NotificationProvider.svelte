@@ -500,7 +500,7 @@
 					onpointercancel={handlePointerCancel}
 				>
 					<div class="ni">
-						<NotificationItem toast={item} store={store} />
+						<NotificationItem toast={item} store={store} drop={pos.startsWith('top')} />
 					</div>
 				</div>
 			{/each}
@@ -529,7 +529,19 @@
 	/* 卡片外壳：flip/in/out 占用 transform */
 	.ns {
 		will-change: transform, opacity;
+		/* 入场/退场/flip 都在 ~400ms 内结束，揭幕层最晚 320+720ms 收尾。
+		   有限时长的 will-change 会让整张卡（含覆盖层）常驻合成层，覆盖层
+		   那个逐帧改高度的动画才不用每帧重新分层 → 否则就会表现为掉帧、
+		   「一顿一顿」。超时后自动撤销，不会像常驻 will-change 那样长期
+		   占显存（历史实测：常驻 will-change 让 hover 整体慢 42%）。 */
+		animation: ns-will-change 1100ms linear forwards;
 		--notif-bg: #fefefe;
+	}
+	@keyframes ns-will-change {
+		from,
+		to {
+			will-change: transform, opacity;
+		}
 	}
 	.nc > .ns:last-child {
 		--notif-bg: #ffffff;

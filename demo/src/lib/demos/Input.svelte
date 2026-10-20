@@ -244,6 +244,8 @@
         <Textarea placeholder="最多 100 字" maxlength={100} bind:value={limited} />
         <span class="demo-val">{limited.length}/100</span>
       </div>
+    </Row>
+    <Row>
       <div class="demo-col" style="max-width:360px">
         <Textarea status="error" placeholder="错误状态" value="字数超出限制" />
       </div>

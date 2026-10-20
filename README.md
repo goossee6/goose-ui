@@ -651,46 +651,53 @@ initTheme(); // 幂等：应用持久化/系统偏好 + 主题色（ThemeToggle 
 
 ### 主题色 API
 
-主题色只暴露**色相**一个自由度，明度与彩度由系统按亮/暗主题各自派生，因此不会配出对比度崩掉的主题。
+颜色本身是 **hex**：主题里每个角色都有一份可直接读改的默认值（亮/暗各一套），用户设置的颜色也以 hex 存。色相（`--hue-*`）只剩一个用途——给需要「取邻近色」的渐变/动画做偏移计算（如 TitleBar 品牌渐变），不参与任何颜色的默认值。
 
 ```ts
-import { setHue, setHues, resetHues, getHues, hueStore, DEFAULT_HUES } from "goose-ui";
+import { setColor, setColors, resetColors, getColors, colorStore, formatHex, normalizeHex, parseColor, DEFAULT_COLORS } from "goose-ui";
 
-setHue("accent", 25); // 单改：把强调色转成橙色
-setHues({ accent: 25, info: 30 }); // 批量
-resetHues(); // 恢复默认并清除持久化
-getHues(); // { accent: 25, complement: 160, ... }
-hueStore.hues; // 响应式，设置界面可直接绑定
+setColor("accent", "#1850ec"); // 单改，接受 #rgb / #rrggbb / oklch(...) / {l,c,h}
+setColors({ accent: "#1850ec", info: "#3c82f6" }); // 批量
+setColor("accent", null); // 清除自定义，回到主题默认
+getColors(); // { accent: "#1850ec", ... }（只含被自定义的角色）
+normalizeHex("#48f"); // "#4488ff"（非 hex 返回 null）
+formatHex({ l: 0.6, c: 0.2, h: 264 }); // "#6a5fd8"
+parseColor("#48f"); // { l, c, h }
+DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 ```
 
-- 色相写入 `<html>` 内联样式，**全局生效**（含浮层、portal 出去的元素），并持久化到 `localStorage`
-- 六个角色：`accent` / `complement` / `danger` / `success` / `warning` / `info`
-- 默认值见 `DEFAULT_HUES`；`HUE_ROLES` 为角色顺序数组
-- **纯 CSS 也能配**，无需任何 JS：
+> 传进去的就是 hex 时会被**原样保留**，不经过 oklch 往返——否则 `#0ea5e9` 转一圈会掉成 `#0aa5e9`（浮点取整丢 1 bit）。只有 `oklch(...)` 串和 `{l,c,h}` 对象才需要折算。
+
+- 颜色写入 `<html>` 内联样式（`--c-<角色>`），**全局生效**（含浮层、portal 出去的元素），并持久化到 `localStorage`
+- 六个角色（顺序即列表顺序）：`accent`（主色）/ `complement`（互补色），以及五个信息色 `success`（完成）/ `info`（信息）/ `warning`（警告）/ `danger`（危险）
+- **纯 CSS 也能配**，无需任何 JS——直接覆盖角色变量：
 
 ```css
 :root {
-  --hue-accent: 25; /* 强调色 */
-  --hue-complement: 230; /* 互补色 */
-  --hue-info: 30; /* 信息 */
-  --hue-danger: 25; /* 危险 */
-  --hue-success: 145; /* 完成 */
-  --hue-warning: 75; /* 警告 */
+  --accent: #1850ec; /* 主色 */
+  --complement: #009145; /* 互补色 */
+  --success: #1ec55f; /* 完成 */
+  --info: #3c82f6; /* 信息 */
+  --warning: #f59e0a; /* 警告 */
+  --danger: #dc2627; /* 危险 */
 }
 ```
+
+- 只想改**色相**（让依赖色相偏移的渐变/动画跟着走）时仍可用 `setHue(role, hue)` / `--hue-<角色>`；它不影响上面的 hex 默认值。
+- 默认值常量：`DEFAULT_COLORS`（六个角色的亮色默认 hex），可直接读来展示或做「是否已改动」的比较。
 
 #### 色彩角色对照
 
 | 角色 | 变量 | 用途 |
 | --- | --- | --- |
-| 强调色 | `--accent` / `--accent-hover` / `--accent-text` | 激活项、主按钮、选中态 |
-| 副强调色 | `--accent-sub` | 低透明度强调色：hover 底、轻淡染 |
+| 主色 | `--accent` / `--accent-hover` / `--accent-text` | 激活项、主按钮、选中态 |
+| 副强调色 | `--accent-sub` | 低透明度主色：hover 底、轻淡染 |
 | 焦点环 / 选中强调 | `--accent-ring` / `--accent-strong` | 焦点外圈 / 更重的选中底色 |
-| 互补色 | `--complement` / `--complement-hover` / `--complement-sub` | 与强调色形成对比的位置、进度渐变终点 |
+| 互补色 | `--complement` / `--complement-hover` / `--complement-sub` | 与主色形成对比的位置、进度渐变终点 |
 | 中性黑/灰 | `--neutral-bg` / `--neutral-surface` / `--neutral-surface-2` / `--neutral-border` | 大面积背景填充（无彩色，不参与色相配置） |
-| 危险 / 完成 / 警告 / 信息 | `--danger` / `--success` / `--warning` / `--info`（各带 `-hover` `-soft` `-text` `-border`） | 状态语义 |
+| 完成 / 信息 / 警告 / 危险 | `--success` / `--info` / `--warning` / `--danger`（各带 `-hover` `-soft` `-text` `-border`） | 状态语义 |
 
-> demo 侧栏「设置」页提供可视化调节：6 个色相滑块 + 7 套预设 + 实时预览 + 恢复默认。
+> demo 侧栏「设置」页提供可视化调节：6 个角色（主色 + 互补色 + 完成/信息/警告/危险）+ 7 套预设 + 实时预览 + 恢复默认。
 
 ### 右键菜单 API
 
@@ -712,19 +719,34 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ## 主题定制
 
-### 优先用色相旋钮（推荐）
+### 改颜色：直接覆盖 hex
 
-不用写任何颜色值，改色相即可得到亮/暗两套协调配色：
+每个角色在亮色、暗色主题里各有一份 hex 默认值，改哪个覆盖哪个即可：
 
 ```css
 :root {
-  --hue-accent: 25; /* 换成橙色主题 */
-  --hue-complement: 230;
+  --accent: #1850ec; /* 主色 */
+  --complement: #009145; /* 互补色 */
+}
+
+.dark {
+  --accent: #3b76ff; /* 暗色主题单独给一份 */
 }
 ```
 
-系统会据此派生 `--accent` / `--accent-sub` / 焦点环 / 互补色等全部变量，并分别为亮色与暗色选择
-合适的明度与彩度。**这是推荐方式** —— 你不必（也不应该）逐个手写颜色。
+`-hover` / `-soft` / `-text` / `-border` 由 `--accent` 用 `color-mix()` 派生，改主色即可连带生效；
+需要单独调时再覆盖同名变量。**这是推荐方式**——比按色相派生更好读、更好接手。
+
+### 需要按色相联动时
+
+`--hue-*` 仍然存在，但它现在只服务于「需要取邻近色相」的渐变与动画（当前只有 TitleBar 品牌渐变
+用 `calc(var(--hue-accent) + 40)` 取主色的相邻色相）。改它不会动上面那些 hex 默认值。
+
+```css
+:root {
+  --hue-accent: 25; /* 只影响依赖色相的计算 */
+}
+```
 
 ### 需要完全自定义时
 
@@ -732,15 +754,15 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ```css
 :root {
-  /* 强调色（也可只改上面的 --hue-accent） */
-  --accent: oklch(0.51 0.24 264);
+  /* 主色 */
+  --accent: #1850ec;
   --accent-sub: color-mix(in srgb, var(--accent) 15%, transparent);
 
   /* 状态色 */
-  --danger: #dc2626;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --info: #3b82f6;
+  --danger: #dc2627;
+  --success: #1ec55f;
+  --warning: #f59e0a;
+  --info: #3c82f6;
 
   /* 中性面与文字 */
   --bg: #f5f5f5;

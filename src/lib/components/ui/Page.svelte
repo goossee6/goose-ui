@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import PageHeader from './PageHeader.svelte';
-	import Separator from './Separator.svelte';
 	import { activeTocId, collectToc, type TocItem } from '../toc.js';
 	import {
 		pageInConfig,
@@ -28,6 +27,7 @@
 		title = '',
 		description = '',
 		maxWidth,
+		transparent = false,
 		right,
 		active = undefined,
 		transition = true,
@@ -42,6 +42,8 @@
 		description?: string;
 		/** 内容限宽，如 '800px' */
 		maxWidth?: string;
+		/** 自身与滚动区底色透明，露出下层整页背景（配合 Background fixed 使用） */
+		transparent?: boolean;
 		right?: Snippet;
 		/**
 		 * keep-alive 模式：由该 prop 控制显隐与进入/离开过渡，页面常驻不卸载。
@@ -255,6 +257,7 @@
 <div
 	bind:this={root}
 	class="page {cls}"
+	class:page--transparent={transparent}
 	style={maxWidth ? `max-width: ${maxWidth}; ${style}` : style}
 	in:pageIn
 	out:pageOut
@@ -268,7 +271,6 @@
 						{#if right}{@render right()}{/if}
 					{/snippet}
 				</PageHeader>
-				<Separator />
 			</div>
 		{/if}
 
@@ -327,6 +329,15 @@
 		padding: var(--page-pad);
 	}
 
+	/* transparent：让页面自身底色让位，露出下层的整页背景（Background fixed）。
+	   fixed + z-index:-1 的背景绘制在整棵不透明底色链的后面，Page 与 Layout
+	   的内容区都必须让位，否则背景完全看不见。只在需要时打开 —— 常规页面
+	   依赖 .page-body 的不透明底色遮挡下方固定层。 */
+	.page.page--transparent,
+	.page.page--transparent .page-body {
+		background-color: transparent;
+	}
+
 	/* ══ 滚动区 ════════════════════════════════════════════════════════════ */
 
 	.page-body {
@@ -354,9 +365,16 @@
 	}
 
 	/* ══ 吸顶页头 ══════════════════════════════════════════════════════════
-	   并入滚动区成为首个子项。负 margin-right + 同值 padding-right 让磨砂底
-	   铺到滚动条贴边处。半透明底 + 弱模糊，与 Header / 表格表头 / 下拉 /
-	   侧栏同一套视觉。 */
+	   并入滚动区成为首个子项。左右留白就是 .page-body 自己的，页头不再向外
+	   负 margin 外扩 —— 外扩会撑破滚动容器的内容盒，把 .page-body 顶出滚动条，
+	   页头因此比正文宽出一截（实测右侧多 10px）。
+	   自成一圈圆角 + 一圈投影，是让它在滚动口顶端不像一条被切断的带子：
+	   没有分割线之后，靠投影划出「浮在内容之上」的层次。
+	   投影用两段：小半径压出贴边的一圈，大半径铺开柔和的落影。
+	   有了底色和圆角，就必须自己带内边距 —— 否则标题、描述、右侧操作会直接
+	   压在磨砂块的边线上。左右取 --sp-lg（16px），与 Card 头部同一档；
+	   上取 --sp-md、下取 --sp-lg，让页头比卡片头略扁一点。
+	   半透明底 + 弱模糊，与 Header / 表格表头 / 下拉 / 侧栏同一套视觉。 */
 	.page-head {
 		position: sticky;
 		top: 0;
@@ -364,11 +382,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--page-gap);
-		margin-right: calc(-1 * var(--page-pad-r));
 		margin-bottom: var(--page-gap);
-		padding-right: var(--page-pad-r);
+		padding: var(--sp-md) var(--sp-lg) var(--sp-lg);
+		border-radius: var(--radius-lg);
 		background-color: color-mix(in srgb, var(--surface) 80%, transparent);
 		backdrop-filter: blur(12px);
+		box-shadow:
+			0 2px 8px color-mix(in srgb, #000 8%, transparent),
+			0 12px 32px -12px color-mix(in srgb, #000 18%, transparent);
 	}
 
 	/* ══ 页内目录 ══════════════════════════════════════════════════════════

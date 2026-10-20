@@ -373,6 +373,8 @@
       <div class="demo-col">
         <Select options={options} bind:value={placementTop} onchange={(v) => Notification.success(`已选择「${options.find(o => o.value === v)?.label ?? v}」`)} placement="top" placeholder="top" />
       </div>
+    </Row>
+    <Row>
       <div class="demo-col">
         <Select options={options} bind:value={placementLeft} onchange={(v) => Notification.success(`已选择「${options.find(o => o.value === v)?.label ?? v}」`)} placement="left" placeholder="left" />
       </div>

@@ -43,6 +43,7 @@
   const vars = [
     { name: '--page-pad', desc: '页面内边距（Layout 内容区为 20px 24px）', type: 'length', default: '16px' },
     { name: '--page-pad-r', desc: '内容区右留白 / 滚动条贴边补偿；改动 --page-pad 右值时需同步', type: 'length', default: '跟随 --layout-pad-x，否则 16px' },
+    { name: '--page-pad-l', desc: '页头磨砂带向左铺满到容器边缘的补偿量，与 --page-pad-r 对应', type: 'length', default: '跟随 --layout-pad-x，否则 16px' },
     { name: '--page-gap', desc: '页头/内容/卡片垂直节奏', type: 'length', default: '16px' },
     { name: '--ph-gap', desc: '独立使用 PageHeader 时的下间距', type: 'length', default: '32px' },
     { name: '--header-height', desc: '全站吸顶锚点（theme.css :root）。目录、页头的 sticky top 与锚点偏移都用它，不要再写死像素', type: 'length', default: '0px' },

@@ -234,6 +234,12 @@
        注意：给 cp-card 加 isolated 之类的层叠上下文只会让情况更糟，
        这里要的是「不裁剪」，不是「盖住」。 */
     overflow: visible;
+    /* 一枚很轻的落影，把卡片从页面底色上托起来。两段：小半径压边、
+       大半径铺开，和 .page-head 同一套写法，避免卡片看起来像贴在纸上。
+       不能太重 —— 卡片底色几乎等于页面底色，阴影一重就变成一块厚板。 */
+    box-shadow:
+      0 1px 2px color-mix(in srgb, #000 4%, transparent),
+      0 8px 24px -12px color-mix(in srgb, #000 14%, transparent);
   }
   .cp-topline {
     display: flex;

@@ -2,17 +2,17 @@
 
 /* ── CSS Property Registration ─────────────────────────────────────────────── */
 
-/* ── 色相旋钮（用户唯一需要配置的东西） ───────────────────────────────────────
-   只配色相，明度/彩度由系统按亮暗主题派生 —— 这样不可能配出对比度崩掉的主题。
-   覆盖方式：CSS `:root { --hue-accent: 25 }`，或 JS `setHue('accent', 25)`（写内联 style）。
+/* ── 色相变量（仅当需要「基于某个角色色相取邻近色」时使用）────────────────────
+   颜色本身已统一改为 hex（见下方 --accent 等），这里只保留数值色相，
+   供 TitleBar 品牌渐变这类需要 ±偏移的场景计算。不参与任何颜色的默认值。
    中性灰刻意不给旋钮：大面积背景不该被染色。 */
 :root {
-	--hue-accent: 264;      /* 强调色 */
+	--hue-accent: 264;      /* 主色 */
 	--hue-complement: 160;  /* 互补色 */
-	--hue-danger: 27;       /* 危险 */
 	--hue-success: 150;     /* 完成 */
-	--hue-warning: 70;      /* 警告 */
 	--hue-info: 260;        /* 信息 */
+	--hue-warning: 70;      /* 警告 */
+	--hue-danger: 27;       /* 危险 */
 }
 
 /* TitleBar logo 品牌渐变：主色 → 主色相邻色相（+40°）。
@@ -50,24 +50,24 @@
 	--text-strong: #1a1a1e;
 	--text-muted: #8e8e93;
 
-	/* ── 强调色（激活项、按钮等） ──
-	   注意：明度/彩度与原始 --primary: oklch(0.51 0.24 264) 保持一致，
-	   只把色相抽成旋钮，保证默认可视效果与改动前完全相同。 */
-	--accent: oklch(0.51 0.24 var(--hue-accent));
-	--accent-hover: oklch(0.45 0.24 var(--hue-accent));
+	/* ── 主色（激活项、按钮等）──
+	   默认值是 hex，直接可读可改；用户自定义时写 --c-<角色>（也是 hex）覆盖。
+	   oklch 只保留在下面「需要按色相取邻近色」的渐变里。 */
+	--accent: var(--c-accent, #1850ec);
+	--accent-hover: var(--c-accent-hover, var(--c-accent, #063ad7));
 	--accent-text: #ffffff;
 
-	/* ── 副强调色：低透明度强调色，专用于 hover 底/淡染（仅此 1 档） ── */
+	/* ── 副强调色：低透明度主色，专用于 hover 底/淡染（仅此 1 档） ── */
 	--accent-sub: color-mix(in srgb, var(--accent) 15%, transparent);
 	/* 同一色相的另外两档：焦点环 / 选中强调（非「副强调色」，按用途命名） */
 	--accent-ring: color-mix(in srgb, var(--accent) 20%, transparent);
 	--accent-strong: color-mix(in srgb, var(--accent) 30%, transparent);
 
-	/* ── 互补色（强调位/对比位；默认接管原写死的青色渐变） ── */
-	--complement: oklch(0.55 0.2 var(--hue-complement));
-	--complement-hover: oklch(0.49 0.2 var(--hue-complement));
+	/* ── 互补色（强调位/对比位；默认青绿，与主色形成对比） ── */
+	--complement: var(--c-complement, #009145);
+	--complement-hover: var(--c-complement-hover, var(--c-complement, #007f34));
 	--complement-sub: color-mix(in srgb, var(--complement) 15%, transparent);
-	--complement-text: var(--complement);
+	--complement-text: var(--c-complement-text, var(--c-complement, var(--complement)));
 
 	/* ── 中性黑/灰（大面积背景填充；无彩色，不参与色相配置） ── */
 	--neutral-bg: var(--bg);
@@ -81,32 +81,32 @@
 	--secondary-soft: #f3f4f6;
 	--secondary-text: #3a3a3c;
 
-	/* 危险色（默认色相 27 时 ≈ 原 #dc2626） */
-	--danger: oklch(0.577 0.215 var(--hue-danger));
-	--danger-hover: oklch(0.505 0.19 var(--hue-danger));
+	/* 危险色（红） */
+	--danger: var(--c-danger, #dc2627);
+	--danger-hover: var(--c-danger-hover, var(--c-danger, #b91c1e));
 	--danger-soft: color-mix(in srgb, var(--danger) 14%, transparent);
-	--danger-text: var(--danger);
+	--danger-text: var(--c-danger-text, var(--c-danger, #dc2627));
 	--danger-border: color-mix(in srgb, var(--danger) 40%, transparent);
 
-	/* 警告色（默认色相 70 时 ≈ 原 #f59e0b） */
-	--warning: oklch(0.769 0.165 var(--hue-warning));
-	--warning-hover: oklch(0.705 0.165 var(--hue-warning));
+	/* 警告色（黄） */
+	--warning: var(--c-warning, #f59e0a);
+	--warning-hover: var(--c-warning-hover, var(--c-warning, #e08a00));
 	--warning-soft: color-mix(in srgb, var(--warning) 18%, transparent);
-	--warning-text: oklch(0.55 0.14 var(--hue-warning));
+	--warning-text: var(--c-warning-text, var(--c-warning, #a45f00));
 	--warning-border: color-mix(in srgb, var(--warning) 40%, transparent);
 
-	/* 成功色（默认色相 150 时 ≈ 原 #22c55e） */
-	--success: oklch(0.723 0.192 var(--hue-success));
-	--success-hover: oklch(0.648 0.175 var(--hue-success));
+	/* 完成色（绿） */
+	--success: var(--c-success, #1ec55f);
+	--success-hover: var(--c-success-hover, var(--c-success, #0fab50));
 	--success-soft: color-mix(in srgb, var(--success) 14%, transparent);
-	--success-text: oklch(0.55 0.15 var(--hue-success));
+	--success-text: var(--c-success-text, var(--c-success, #05893e));
 	--success-border: color-mix(in srgb, var(--success) 40%, transparent);
 
-	/* 信息色（默认色相 260 时 ≈ 原 #3b82f6；独立色相，不再与强调色重复） */
-	--info: oklch(0.623 0.188 var(--hue-info));
-	--info-hover: oklch(0.546 0.2 var(--hue-info));
+	/* 信息色（蓝，不再与主色重复） */
+	--info: var(--c-info, #3c82f6);
+	--info-hover: var(--c-info-hover, var(--c-info, #1b68e2));
 	--info-soft: color-mix(in srgb, var(--info) 14%, transparent);
-	--info-text: var(--info);
+	--info-text: var(--c-info-text, var(--c-info, var(--info)));
 	--info-border: color-mix(in srgb, var(--info) 40%, transparent);
 
 	/* 间距（3 档） */
@@ -137,6 +137,7 @@
 	--page-pad: 16px;
 	--page-gap: 16px;
 	--page-pad-r: var(--layout-pad-x);
+	--page-pad-l: var(--layout-pad-x);
 	--ph-gap: 32px;
 	--notif-width: 360px;
 	/* 全站吸顶锚点：任何 sticky 元素要给固定顶栏让位时都用它，
@@ -204,19 +205,19 @@
 	--text-strong: #ffffff;
 	--text-muted: #8e8e93;
 
-	/* 强调色：同色相，提亮降饱和 */
-	--accent: oklch(0.61 0.22 var(--hue-accent));
-	--accent-hover: oklch(0.67 0.22 var(--hue-accent));
+	/* 主色：暗色下提亮，仍是 hex */
+	--accent: var(--c-accent, #3b76ff);
+	--accent-hover: var(--c-accent-hover, var(--c-accent, #4d8aff));
 	--accent-text: #ffffff;
 	--accent-sub: color-mix(in srgb, var(--accent) 18%, transparent);
 	--accent-ring: color-mix(in srgb, var(--accent) 20%, transparent);
 	--accent-strong: color-mix(in srgb, var(--accent) 30%, transparent);
 
-	/* 互补色 */
-	--complement: oklch(0.65 0.18 var(--hue-complement));
-	--complement-hover: oklch(0.71 0.18 var(--hue-complement));
+	/* 互补色（暗色下提亮） */
+	--complement: var(--c-complement, #00af67);
+	--complement-hover: var(--c-complement-hover, var(--c-complement, #00c279));
 	--complement-sub: color-mix(in srgb, var(--complement) 18%, transparent);
-	--complement-text: var(--complement);
+	--complement-text: var(--c-complement-text, var(--c-complement, var(--complement)));
 
 	/* 中性黑/灰（暗色侧同样是无彩色） */
 	--neutral-bg: var(--bg);
@@ -228,28 +229,28 @@
 	--secondary-hover: #353538;
 	--secondary-text: #d1d1d6;
 
-	--danger: oklch(0.711 0.166 var(--hue-danger));
-	--danger-hover: oklch(0.637 0.2 var(--hue-danger));
+	--danger: var(--c-danger, #f87367);
+	--danger-hover: var(--c-danger-hover, var(--c-danger, #ec4a42));
 	--danger-soft: color-mix(in srgb, var(--danger) 18%, transparent);
-	--danger-text: var(--danger);
+	--danger-text: var(--c-danger-text, var(--c-danger, var(--danger)));
 	--danger-border: color-mix(in srgb, var(--danger) 40%, transparent);
 
-	--warning: oklch(0.837 0.164 var(--hue-warning));
-	--warning-hover: oklch(0.769 0.165 var(--hue-warning));
+	--warning: var(--c-warning, #ffb439);
+	--warning-hover: var(--c-warning-hover, var(--c-warning, #f59e0a));
 	--warning-soft: color-mix(in srgb, var(--warning) 18%, transparent);
-	--warning-text: var(--warning);
+	--warning-text: var(--c-warning-text, var(--c-warning, var(--warning)));
 	--warning-border: color-mix(in srgb, var(--warning) 40%, transparent);
 
-	--success: oklch(0.8 0.182 var(--hue-success));
-	--success-hover: oklch(0.723 0.192 var(--hue-success));
+	--success: var(--c-success, #52dd7c);
+	--success-hover: var(--c-success-hover, var(--c-success, #1ec55f));
 	--success-soft: color-mix(in srgb, var(--success) 18%, transparent);
-	--success-text: var(--success);
+	--success-text: var(--c-success-text, var(--c-success, var(--success)));
 	--success-border: color-mix(in srgb, var(--success) 40%, transparent);
 
-	--info: oklch(0.714 0.143 var(--hue-info));
-	--info-hover: oklch(0.623 0.188 var(--hue-info));
+	--info: var(--c-info, #6ca2fb);
+	--info-hover: var(--c-info-hover, var(--c-info, #3c82f6));
 	--info-soft: color-mix(in srgb, var(--info) 18%, transparent);
-	--info-text: var(--info);
+	--info-text: var(--c-info-text, var(--c-info, var(--info)));
 	--info-border: color-mix(in srgb, var(--info) 40%, transparent);
 
 	--scrollbar: rgba(255, 255, 255, 0.1);

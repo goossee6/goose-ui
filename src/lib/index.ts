@@ -23,7 +23,7 @@ export {
   setTheme,
   toggleTheme,
   toggleThemeFromEvent,
-  // 主题色（色相旋钮）：只配色相，明度/彩度按亮暗主题派生
+  // 主题色（色相变量）：只留给需要按色相取邻近色的渐变/动画
   hueStore,
   setHue,
   setHues,
@@ -32,6 +32,24 @@ export {
   initHues,
   HUE_ROLES,
   DEFAULT_HUES,
+  // 主题色（完整颜色）：对外统一 hex，含纯白/纯黑
+  colorStore,
+  setColor,
+  setColors,
+  resetColors,
+  getColors,
+  hasColor,
+  initColors,
+  formatHex,
+  parseColor,
+  normalizeHex,
+  DEFAULT_COLORS,
+  formatOklch,
+  parseOklch,
+  hexToOklch,
+  oklchToRgb,
+  oklchToHex,
+  oklchFromHsl,
 } from './components/themeStore.svelte.js';
 export { pageDirStore } from './components/pageDirStore.svelte.js';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
@@ -49,7 +67,7 @@ export { collectToc, activeTocId } from './components/toc.js';
 export type { SortState, SortDir, SortAccessor } from './components/sorting';
 export { toggleSort, compareValues, sorted } from './components/sorting';
 export type { ErrorEntry } from './components/errors';
-export type { Theme, HueRole, HueMap } from './components/themeStore.svelte.js';
+export type { Theme, HueRole, HueMap, OklchColor, ColorMap } from './components/themeStore.svelte.js';
 export type { PageDir } from './components/pageDirStore.svelte.js';
 export type { SidebarTabGroup, SidebarTabItem, SidebarEntry } from './components/ui/Sidebar.svelte';
 export type { WindowController, TitleBarSearchItem } from './components/ui/TitleBar.svelte';
