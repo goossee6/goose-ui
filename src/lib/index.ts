@@ -49,6 +49,7 @@ export {
   hexToOklch,
   oklchToRgb,
   oklchToHex,
+  maxChroma,
   oklchFromHsl,
 } from './components/themeStore.svelte.js';
 export { pageDirStore } from './components/pageDirStore.svelte.js';

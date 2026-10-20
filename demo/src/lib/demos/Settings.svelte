@@ -1,17 +1,6 @@
 <script lang="ts">
   import { Card, Page, Separator, Button, Notification, Row, CodeBlock } from "goose-ui";
-  import {
-    HUE_ROLES,
-    colorStore,
-    setColor,
-    parseColor,
-    formatHex,
-    normalizeHex,
-    setColors,
-    DEFAULT_COLORS,
-    type HueRole,
-    type OklchColor,
-  } from "goose-ui";
+  import { HUE_ROLES, colorStore, setColor, parseColor, formatHex, normalizeHex, maxChroma, setColors, DEFAULT_COLORS, type HueRole, type OklchColor } from "goose-ui";
   import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
   import CodePreview from "../CodePreview.svelte";
@@ -47,7 +36,7 @@
   class="plane"
   style="background: linear-gradient(#0000, #000),
          linear-gradient(90deg, #fff, hsl(0 100% 50%))"
-  onpointerdown={(e) => pick(e)}
+  onpointerdown={pick}
 />
 
 <!-- 色条：一个渐变按钮，指针位置换色相 -->
@@ -63,9 +52,9 @@
 <input value={\${hex}} onchange={(e) => commit(e.currentTarget.value)} />
 
 <script lang="ts">
-  import { setColor, parseColor } from "goose-ui";
+  import { setColor, parseColor, normalizeHex, maxChroma } from "goose-ui";
 
-  // 横轴给色相、纵轴给明度；彩度保持不变，纯白纯黑时自然收敛到 0
+  // 横轴给色相、纵轴给明度；彩度沿用当前值，只在色域边界被夹
   const pick = (e: PointerEvent) => {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width;
@@ -75,9 +64,12 @@
   const pickHue = (e: PointerEvent) =>
     setColor("accent", { ...color, h: hueAt(e) });
   const commit = (raw: string) => {
-    const c = parseColor(raw); // "#48f" / "#4488ff" / "oklch(0.6 0.2 264)"
-    if (c) setColor("accent", c);
+    // hex 原样落盘：走 oklch 往返会掉 1 bit（#0ea5e9 → #0aa5e9）
+    setColor("accent", normalizeHex(raw) ?? parseColor(raw) ?? "#1850ec");
   };
+  // 饱和度滑条以「该明度+色相下的色域上限」为满值，
+  // 否则拉到 100% 会被截断，滑条自己弹回来
+  const satMax = () => maxChroma(color.l, color.h);
 <\/script>`;
   const colorProps: PropsTableItem[] = [
     { name: "role", desc: "色彩角色", type: "'accent' | 'complement' | 'success' | 'info' | 'warning' | 'danger'" },
@@ -92,6 +84,7 @@
     { name: "hasColor(role)", desc: "该角色是否被自定义颜色覆盖", type: "boolean" },
     { name: "formatHex(color)", desc: "{l,c,h} → #rrggbb", type: "string" },
     { name: "normalizeHex(str)", desc: "hex 规范化（'#48f' → '#4488ff'），非 hex 返回 null", type: "string | null" },
+    { name: "maxChroma(l, h)", desc: "该明度/色相在 sRGB 内的彩度上限（饱和度滑条满值）", type: "number" },
     { name: "parseColor(str)", desc: "#rgb / #rrggbb / oklch(...) → {l,c,h}", type: "OklchColor | null" },
     { name: "hexToOklch(hex)", desc: "#rgb / #rrggbb 转 oklch 分量", type: "OklchColor | null" },
     { name: "colorStore.colors", desc: "响应式颜色状态（存 hex）", type: "Partial<ColorMap>" },
@@ -185,15 +178,55 @@
   });
 
   const normHue = (h: number): number => ((Math.round(h) % 360) + 360) % 360;
+  const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
-  /** 当前角色在配色盘上的颜色：草稿里改过就用它，否则从主题默认 hex 反解 */
-  const paletteColor = $derived.by(() => {
+  /* ── 配色盘的状态 ────────────────────────────────────────────────────────────
+     权威状态是 OKLCH 三元组 + 一个精确的 hex 字符串，**不是**从 hex 反解出来的 oklch。
+     原因有两个，都会让界面「自己跳」：
+      1. 黑色 #000000 里没有色相信息，纯灰里没有彩度。滑条拖到端点再拖回来，
+         若从 hex 反解就只剩 h=0 / c=0，颜色回不到原样。
+      2. hex → oklch → hex 是浮点往返，会掉 1 bit（#0ea5e9 → #0aa5e9）。
+     所以：hex 只用来「显示」和「存盘」，l/c/h 由这里持有；
+     只有外部改色（输入框、色票、预设）才重新反解一次。 */
+  let planeHex = $state("");
+  /** c 存的是「用户想要的彩度」，可能超出 sRGB 色域；写 hex 时才按色域上限夹住 */
+  let planeOklch = $state<OklchColor>({ l: 0.6, c: 0.2, h: 264 });
+
+  /** 草稿被别人改了（切角色、点色票、套预设、手输 hex）就重新对齐 */
+  $effect(() => {
     const hex = draft.colors[paletteRole] ?? DEFAULT_COLORS[paletteRole];
-    return parseColor(hex) ?? { l: 0.6, c: 0.2, h: 264 };
+    if (hex !== planeHex) {
+      planeHex = hex;
+      planeOklch = parseColor(hex) ?? { l: 0.6, c: 0.2, h: 264 };
+    }
   });
 
-  const paletteHue = $derived(paletteColor.h);
-  const paletteHex = $derived(formatHex(paletteColor));
+  /** 实际写进 hex 的彩度：先按「明度两端收敛」衰减，再按 sRGB 色域上限夹住。
+   *  这个值只用于算 hex，绝不回写进 planeOklch —— 否则拖到黑色（衰减成 0）
+   *  再拖回来就只剩灰色，色板会把用户选的彩度弄丢。 */
+  function effectiveChroma(l: number, h: number, want: number): number {
+    const falloff = Math.min(1, Math.min(l, 1 - l) * 4);
+    return Math.min(want * falloff, maxChroma(l, h));
+  }
+
+  /** 写入配色盘：planeOklch 永远保留「用户想要的彩度」，planeHex 落实际算出的颜色。
+   *  不夹彩度直接落 hex 的话，超域值会被逐通道截断，存回去的 c 变小，
+   *  滑条会自己弹回来（拖到 100% 只剩 45%）。 */
+  function writePlane(next: OklchColor): void {
+    const l = clamp01(next.l);
+    const h = normHue(next.h);
+    const want = Math.max(0, next.c);
+    planeOklch = { l, c: want, h };
+    planeHex = formatHex({ l, c: effectiveChroma(l, h, want), h });
+    draftSetColor(paletteRole, planeHex);
+  }
+
+  const paletteHue = $derived(planeOklch.h);
+  const paletteL = $derived(planeOklch.l);
+  const paletteHex = $derived(planeHex);
+  /** 当前明度 + 色相下 sRGB 的彩度上限；饱和度滑条以它为满值 */
+  const chromaLimit = $derived(Math.max(0.0001, maxChroma(planeOklch.l, planeOklch.h)));
+  const satRatio = $derived(Math.min(1, planeOklch.c / chromaLimit));
   /** 该角色在草稿里是否已有完整颜色 */
   const paletteCustom = $derived(draft.colors[paletteRole] !== undefined);
 
@@ -206,9 +239,7 @@
   });
 
   /** 当前草稿对应哪套预设 */
-  const draftPreset = $derived(
-    PRESETS.find((p) => HUE_ROLES.every((r) => (draft.colors[r] ?? DEFAULT_COLORS[r]) === p.colors[r]))?.name ?? "",
-  );
+  const draftPreset = $derived(PRESETS.find((p) => HUE_ROLES.every((r) => (draft.colors[r] ?? DEFAULT_COLORS[r]) === p.colors[r]))?.name ?? "");
 
   /** 手写输入的十六进制，失焦或回车才落地，避免半截输入被当成颜色 */
   let hexInput = $state("");
@@ -218,102 +249,100 @@
 
   /* ---------- 取色：拖动时按 rAF 合并，一帧最多落地一次 ---------- */
 
-  // 拖动期间缓存指针所在的矩形，避免每次 pointermove 都触发一次强制布局
-  let dragRect: DOMRect | null = null;
-  let pending: { x: number; y: number } | null = null;
+  /** 拖动中的元素。**不缓存矩形**：按下时按钮刚拿到焦点，浏览器会把它滚进视口，
+   *  缓存的矩形立刻过时 —— 实测差 18px，等于明度差 10%，指针下面那块颜色会跳。
+   *  改成每帧在 rAF 里量一次：一帧最多一次强制布局，坐标永远是对的。 */
+  let dragEl: HTMLElement | null = null;
+  let pending: { cx: number; cy: number } | null = null;
+  /** 待执行的下标换算（色板和色条各用一个入口） */
+  let pendingApply: ((r: { x: number; y: number }) => void) | null = null;
   let rafId = 0;
 
-  const ratio = (e: PointerEvent, rect: DOMRect): { x: number; y: number } => ({
-    x: Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)),
-    y: Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height)),
+  const ratio = (cx: number, cy: number, rect: DOMRect): { x: number; y: number } => ({
+    x: Math.min(1, Math.max(0, (cx - rect.left) / rect.width)),
+    y: Math.min(1, Math.max(0, (cy - rect.top) / rect.height)),
   });
 
-  /** 色板：横轴 = 色相，纵轴 = 明度（上亮下暗），点哪算哪 */
-  function pickSv(e: PointerEvent): void {
-    const el = e.currentTarget as HTMLElement;
-    // 只在落下时量一次，拖动过程复用
-    if (!dragRect) dragRect = el.getBoundingClientRect();
-    applySv(ratio(e, dragRect));
-  }
-
+  /** 色板：横轴 = 色相，纵轴 = 明度（上亮下暗），点哪算哪。
+   *  彩度沿用已记住的值，由 effectiveChroma 在两端收敛。 */
   function applySv({ x, y }: { x: number; y: number }): void {
-    // 纵向：顶端 L=1（纯白），底端 L=0（纯黑）
-    const l = 1 - y;
-    // 彩度随明度两端收敛到 0，这样拉到底就是真正无彩色的白/黑
-    const c = paletteColor.c * Math.min(1, Math.min(l, 1 - l) * 4);
-    draftSetColor(paletteRole, { l, c: l <= 0.001 || l >= 0.999 ? 0 : c, h: normHue(x * 360) });
+    writePlane({ l: 1 - y, c: planeOklch.c, h: normHue(x * 360) });
   }
 
-  /** 色条：直接改色相 */
-  function pickHue(e: PointerEvent): void {
-    const el = e.currentTarget as HTMLElement;
-    if (!dragRect) dragRect = el.getBoundingClientRect();
-    const { x } = ratio(e, dragRect);
-    draftSetColor(paletteRole, { ...paletteColor, h: normHue(x * 360) });
+  /** 色条：只改色相，明度与彩度原样保留 */
+  function applyHue({ x }: { x: number }): void {
+    writePlane({ ...planeOklch, h: normHue(x * 360) });
   }
 
-  /** 队列化：同一帧内的多次 pointermove 只保留最后一次，落地也合并到 rAF 之后 */
-  function queueSv(x: number, y: number): void {
-    pending = { x, y };
+  /** 立刻量一次并落地（按下那一刻与抬起收尾用） */
+  function pickNow(el: HTMLElement, cx: number, cy: number, apply: (r: { x: number; y: number }) => void): void {
+    apply(ratio(cx, cy, el.getBoundingClientRect()));
+  }
+
+  /** 队列化：同一帧内的多次 pointermove 只保留最后一次，
+   *  等到 rAF 才量矩形 + 落地（合批，且量的是最新布局） */
+  function queuePick(cx: number, cy: number, apply: (r: { x: number; y: number }) => void): void {
+    pending = { cx, cy };
+    pendingApply = apply;
     if (rafId) return;
     rafId = requestAnimationFrame(() => {
       rafId = 0;
-      if (!pending) return;
       const p = pending;
+      const fn = pendingApply;
       pending = null;
-      applySv(p);
+      if (!p || !fn || !dragEl) return;
+      fn(ratio(p.cx, p.cy, dragEl.getBoundingClientRect()));
     });
   }
 
   function endDrag(): void {
-    dragRect = null;
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = 0;
     }
-    if (pending) {
-      const p = pending;
-      pending = null;
-      applySv(p);
-    }
+    // 收尾：把最后一帧还没落地的位置补上，再清状态
+    const p = pending;
+    const fn = pendingApply;
+    pending = null;
+    pendingApply = null;
+    if (p && fn && dragEl) fn(ratio(p.cx, p.cy, dragEl.getBoundingClientRect()));
+    dragEl = null;
   }
 
-  /** 色板指针事件入口：落下立即生效（点击要即时反馈），拖动走队列 */
   function onSvPointerDown(e: PointerEvent): void {
     const el = e.currentTarget as HTMLElement;
     el.setPointerCapture?.(e.pointerId);
-    dragRect = el.getBoundingClientRect();
-    applySv(ratio(e, dragRect));
+    dragEl = el;
+    pickNow(el, e.clientX, e.clientY, applySv);
   }
 
   function onSvPointerMove(e: PointerEvent): void {
-    if (!dragRect) return;
-    const { x, y } = ratio(e, dragRect);
-    queueSv(x, y);
+    if (!dragEl) return;
+    queuePick(e.clientX, e.clientY, applySv);
   }
 
   function onHuePointerDown(e: PointerEvent): void {
     const el = e.currentTarget as HTMLElement;
     el.setPointerCapture?.(e.pointerId);
-    dragRect = el.getBoundingClientRect();
-    pickHue(e);
+    dragEl = el;
+    pickNow(el, e.clientX, e.clientY, applyHue);
   }
 
   function onHuePointerMove(e: PointerEvent): void {
-    if (!dragRect) return;
-    pickHue(e);
+    if (!dragEl) return;
+    queuePick(e.clientX, e.clientY, applyHue);
   }
 
-  /** 饱和度：0 → 灰，1 → 当前色相的最大彩度；拉到 0（以及明度到两端）就是纯中性色 */
+  /** 饱和度：0 → 灰，1 → 该明度/色相下 sRGB 能表示的最大彩度 */
   function setSaturation(v: number): void {
-    draftSetColor(paletteRole, { ...paletteColor, c: 0.4 * Math.min(1, Math.max(0, v)) });
+    const t = Math.min(1, Math.max(0, v));
+    writePlane({ l: planeOklch.l, c: t * chromaLimit, h: planeOklch.h });
   }
 
-  /** 明度：0 → 纯黑，1 → 纯白。到端点时彩度归零，避免"0.0004 彩度的假白" */
+  /** 明度：0 → 纯黑，1 → 纯白。彩度保持用户选的值（可能暂时超出色域），
+   *  拖回中间时颜色原样回来，不会变成灰 */
   function setLightness(v: number): void {
-    const l = Math.min(1, Math.max(0, v));
-    const c = l <= 0.001 || l >= 0.999 ? 0 : paletteColor.c;
-    draftSetColor(paletteRole, { ...paletteColor, l, c });
+    writePlane({ ...planeOklch, l: Math.min(1, Math.max(0, v)) });
   }
 
   /** 输入框落地：#rgb / #rrggbb / oklch(...) 都能进，失败回滚。
@@ -378,12 +407,7 @@
   ];
 </script>
 
-<Page
-  toc
-  class="settings-page"
-  title="设置 Settings"
-  description="主题色配置：六个角色各一个 hex，可选预设或直接手写"
->
+<Page toc class="settings-page" title="设置 Settings" description="主题色配置：六个角色各一个 hex，可选预设或直接手写">
   <CodePreview anchor="theme-color" anchorLevel={2} title="主题色配置（全局生效）" code={cssSource}>
     <div class="hue-list">
       {#each HUE_ROLES as role (role)}
@@ -393,13 +417,7 @@
         <div class="hue-row">
           <div class="hue-head">
             <!-- 色块兼作跳转按钮：点一下把下面的完整调色盘切到这个角色 -->
-            <button
-              class="hue-swatch"
-              style:background={draftHex(role)}
-              title={`在调色盘里编辑${meta.label}`}
-              aria-label={`在调色盘里编辑${meta.label}`}
-              onclick={() => openPicker(role)}
-            ></button>
+            <button class="hue-swatch" style:background={draftHex(role)} title={`在调色盘里编辑${meta.label}`} aria-label={`在调色盘里编辑${meta.label}`} onclick={() => openPicker(role)}></button>
             <span class="hue-name">{meta.label}</span>
             <code class="hue-token">{draft.colors[role] ? `--c-${role}` : `--${role}`}</code>
             {#if !inSafe}
@@ -408,13 +426,7 @@
           </div>
           <div class="hue-controls">
             <!-- 色票按钮就是入口：点它弹出下面的完整调色盘，不再在行内塞滑块 -->
-            <button
-              class="hue-pick"
-              style:background={draftHex(role)}
-              title="点击打开调色盘"
-              aria-label={`为${meta.label}打开调色盘`}
-              onclick={() => openPicker(role)}
-            >
+            <button class="hue-pick" style:background={draftHex(role)} title="点击打开调色盘" aria-label={`为${meta.label}打开调色盘`} onclick={() => openPicker(role)}>
               <span class="hue-pick-label">{draftHex(role)}</span>
             </button>
             <input
@@ -426,8 +438,7 @@
               onkeydown={(e) => {
                 if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
               }}
-              onchange={(e) => commitRow(role, e.currentTarget.value, e.currentTarget)}
-            />
+              onchange={(e) => commitRow(role, e.currentTarget.value, e.currentTarget)} />
           </div>
           <span class="hue-desc">{meta.desc}</span>
         </div>
@@ -439,11 +450,7 @@
     <Row style="align-items:center;gap:8px;flex-wrap:wrap">
       <span class="hue-desc">预设：</span>
       {#each PRESETS as p (p.name)}
-        <Button
-          size="small"
-          variant={draftPreset === p.name ? "primary" : "default"}
-          onclick={() => applyPreset(p.colors)}
-        >
+        <Button size="small" variant={draftPreset === p.name ? "primary" : "default"} onclick={() => applyPreset(p.colors)}>
           {p.name}
         </Button>
       {/each}
@@ -455,8 +462,7 @@
         onclick={() => {
           // 只把草稿清成默认值，点保存才会真正生效
           draft = { colors: {} };
-        }}
-      >
+        }}>
         恢复默认
       </Button>
       <span class="hue-preset-state">
@@ -476,15 +482,13 @@
         <span class="draft-dot draft-dot--warning"></span>
         <span class="draft-dot draft-dot--danger"></span>
         <span class="draft-dot draft-dot--info"></span>
-        
       </span>
       <Button size="small" variant="default" disabled={!dirty} onclick={discardDraft}>放弃</Button>
       <Button size="small" variant="primary" disabled={!dirty} onclick={saveDraft}>保存</Button>
     </div>
 
     <p class="hue-note">
-      改动先落进草稿，点「保存」才全局生效（按钮、激活项、焦点环、进度条、通知等一并跟随），
-      并持久化到 <code>localStorage</code>。颜色一律以 hex 保存，直接覆盖主题里的默认值。
+      改动先落进草稿，点「保存」才全局生效（按钮、激活项、焦点环、进度条、通知等一并跟随）， 并持久化到 <code>localStorage</code>。颜色一律以 hex 保存，直接覆盖主题里的默认值。
       标「对比度提示」的角色表示当前颜色在该用途下文字对比度可能偏低。
     </p>
 
@@ -503,7 +507,6 @@
         <span class="draft-chip draft-chip--warning">警告</span>
         <span class="draft-chip draft-chip--danger">错误</span>
         <span class="draft-chip draft-chip--info">信息</span>
-        
       </div>
     </div>
 
@@ -513,13 +516,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview
-    anchor="theme-wheel"
-    anchorLevel={2}
-    title="配色盘（完整调色）"
-    code={paletteSource}
-    flush
-  >
+  <CodePreview anchor="theme-wheel" anchorLevel={2} title="配色盘（完整调色）" code={paletteSource} flush>
     <div class="palette" style={previewVars}>
       <div class="palette-main">
         <div
@@ -530,7 +527,7 @@
           aria-valuemin="0"
           aria-valuemax="359"
           aria-valuenow={paletteHue}
-          aria-valuetext={`色相 ${paletteHue}°，明度 ${Math.round(paletteColor.l * 100)}%`}
+          aria-valuetext={`色相 ${paletteHue}°，明度 ${Math.round(paletteL * 100)}%`}
           style:--plane-hue={paletteHex}
           onpointerdown={onSvPointerDown}
           onpointermove={onSvPointerMove}
@@ -538,36 +535,20 @@
           onpointercancel={endDrag}
           onkeydown={(e) => {
             const step = e.shiftKey ? 10 : 1;
-            if (e.key === "ArrowRight") draftSetColor(paletteRole, { ...paletteColor, h: normHue(paletteHue + step) });
-            else if (e.key === "ArrowLeft") draftSetColor(paletteRole, { ...paletteColor, h: normHue(paletteHue - step) });
-            else if (e.key === "ArrowUp")
-              draftSetColor(paletteRole, { ...paletteColor, l: Math.min(1, paletteColor.l + step / 100) });
-            else if (e.key === "ArrowDown")
-              draftSetColor(paletteRole, { ...paletteColor, l: Math.max(0, paletteColor.l - step / 100) });
+            if (e.key === "ArrowRight") writePlane({ ...planeOklch, h: normHue(paletteHue + step) });
+            else if (e.key === "ArrowLeft") writePlane({ ...planeOklch, h: normHue(paletteHue - step) });
+            else if (e.key === "ArrowUp") writePlane({ ...planeOklch, l: clamp01(paletteL + step / 100) });
+            else if (e.key === "ArrowDown") writePlane({ ...planeOklch, l: clamp01(paletteL - step / 100) });
             else return;
             e.preventDefault();
-          }}
-        >
-          <span
-            class="palette-cursor"
-            style:left={`${(paletteHue / 360) * 100}%`}
-            style:top={`${(1 - paletteColor.l) * 100}%`}
-            style:background={paletteHex}
-          ></span>
+          }}>
+          <span class="palette-cursor" style:left={`${(paletteHue / 360) * 100}%`} style:top={`${(1 - paletteL) * 100}%`} style:background={paletteHex}></span>
         </div>
 
         <div class="palette-strip">
           <!-- 色条不用原生 range：range 的轨道样式在各个浏览器里不好统一，
                这里用一条渐变按钮 + 指针坐标换算，点击与拖动行为一致 -->
-          <button
-            class="palette-slider"
-            type="button"
-            aria-label="色相"
-            onpointerdown={onHuePointerDown}
-            onpointermove={onHuePointerMove}
-            onpointerup={endDrag}
-            onpointercancel={endDrag}
-          >
+          <button class="palette-slider" type="button" aria-label="色相" onpointerdown={onHuePointerDown} onpointermove={onHuePointerMove} onpointerup={endDrag} onpointercancel={endDrag}>
             <span class="palette-slider-thumb" style:left={`${(paletteHue / 360) * 100}%`}></span>
           </button>
         </div>
@@ -576,31 +557,13 @@
         <div class="palette-axes">
           <label class="palette-axis">
             <span class="palette-axis-label">明度</span>
-            <input
-              class="palette-axis-range"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={paletteColor.l}
-              oninput={(e) => setLightness(Number(e.currentTarget.value))}
-              aria-label="明度"
-            />
-            <span class="palette-axis-val">{Math.round(paletteColor.l * 100)}%</span>
+            <input class="palette-axis-range" type="range" min="0" max="1" step="0.01" value={paletteL} oninput={(e) => setLightness(Number(e.currentTarget.value))} aria-label="明度" />
+            <span class="palette-axis-val">{Math.round(paletteL * 100)}%</span>
           </label>
           <label class="palette-axis">
             <span class="palette-axis-label">饱和度</span>
-            <input
-              class="palette-axis-range"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={paletteColor.c / 0.4}
-              oninput={(e) => setSaturation(Number(e.currentTarget.value))}
-              aria-label="饱和度"
-            />
-            <span class="palette-axis-val">{Math.round((paletteColor.c / 0.4) * 100)}%</span>
+            <input class="palette-axis-range" type="range" min="0" max="1" step="0.01" value={satRatio} oninput={(e) => setSaturation(Number(e.currentTarget.value))} aria-label="饱和度" />
+            <span class="palette-axis-val">{Math.round(satRatio * 100)}%</span>
           </label>
         </div>
 
@@ -617,8 +580,7 @@
             onchange={(e) => commitColor((e.currentTarget as HTMLInputElement).value, e.currentTarget)}
             onkeydown={(e) => {
               if (e.key === "Enter") commitColor((e.currentTarget as HTMLInputElement).value, e.currentTarget);
-            }}
-          />
+            }} />
           <span class="palette-hueval">H {paletteHue}°</span>
         </div>
 
@@ -630,10 +592,9 @@
               title="{sw.name}（{sw.hex}）"
               aria-label="使用{sw.name}"
               onclick={() => {
-                const c = parseColor(sw.hex);
-                if (c) draftSetColor(paletteRole, c);
-              }}
-            ></button>
+                // 直接落原 hex：走 parseColor→formatHex 会掉 1 bit（#ef4444 → #ef4445）
+                draftSetColor(paletteRole, sw.hex);
+              }}></button>
           {/each}
         </div>
       </div>
@@ -642,12 +603,7 @@
         <span class="palette-side-title">调整的角色</span>
         <div class="palette-roles">
           {#each HUE_ROLES as r (r)}
-            <button
-              class="palette-role"
-              class:is-active={paletteRole === r}
-              class:is-custom={draft.colors[r] !== undefined}
-              onclick={() => (paletteRole = r)}
-            >
+            <button class="palette-role" class:is-active={paletteRole === r} class:is-custom={draft.colors[r] !== undefined} onclick={() => (paletteRole = r)}>
               <span class="palette-role-dot" style:background={draftHex(r)}></span>
               {ROLE_META[r].label}
               <code>{draftHex(r)}</code>
@@ -655,22 +611,23 @@
           {/each}
         </div>
         <p class="palette-note">
-          {ROLE_META[paletteRole].desc}。色板横轴是色相、纵轴是明度，两条滑块精确微调；
-          纯白、纯黑直接把明度拉到底即可。选中的颜色会写成 hex 存进 <code>{`--c-${paletteRole}`}</code>，
-          保存后覆盖主题里的默认色。
+          {ROLE_META[paletteRole].desc}。色板横轴是色相、纵轴是明度，两条滑块精确微调； 纯白、纯黑直接把明度拉到底即可。选中的颜色会写成 hex 存进 <code>{`--c-${paletteRole}`}</code>， 保存后覆盖主题里的默认色。
         </p>
-        {#if paletteCustom}
+        <!-- 按钮始终占位，只用 visibility 隐藏：第一次改色时它若凭空出现，
+             会让整个 .palette 高 36px，而 .cp-body 是 place-content:center，
+             内容重新居中 → 取色板在拖动过程中上移 18px，指针下面的颜色就跳了。
+             外面套一层 div 是因为 <Button> 是库组件，本文件的作用域样式到不了它。 -->
+        <div class="palette-reset" style:visibility={paletteCustom ? "visible" : "hidden"}>
           <Button
             variant="ghost"
             onclick={() => {
               draftSetColor(paletteRole, null);
               Notification.success("已恢复为默认色");
-            }}
-          >
+            }}>
             <RotateCcw size={14} />
             恢复为默认色
           </Button>
-        {/if}
+        </div>
       </div>
     </div>
   </CodePreview>
@@ -925,9 +882,7 @@
     border: 1px solid var(--border);
     cursor: crosshair;
     touch-action: none;
-    background:
-      linear-gradient(to bottom, transparent, #000),
-      linear-gradient(to right, #fff 0%, var(--plane-hue) 100%);
+    background: linear-gradient(to bottom, transparent, #000), linear-gradient(to right, #fff 0%, var(--plane-hue) 100%);
   }
   .palette-plane:focus-visible {
     outline: 2px solid var(--primary);
@@ -982,18 +937,7 @@
     appearance: none;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: linear-gradient(
-      to right,
-      rgb(255, 79, 79),
-      rgb(255, 208, 79),
-      rgb(176, 255, 79),
-      rgb(79, 255, 172),
-      rgb(79, 208, 255),
-      rgb(79, 79, 255),
-      rgb(176, 79, 255),
-      rgb(255, 79, 172),
-      rgb(255, 79, 79)
-    );
+    background: linear-gradient(to right, rgb(255, 79, 79), rgb(255, 208, 79), rgb(176, 255, 79), rgb(79, 255, 172), rgb(79, 208, 255), rgb(79, 79, 255), rgb(176, 79, 255), rgb(255, 79, 172), rgb(255, 79, 79));
     cursor: pointer;
     touch-action: none;
   }
@@ -1071,6 +1015,10 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+  /* 始终占位（visibility 隐藏），避免首次改色时高度突变把取色板顶上移 */
+  .palette-reset {
+    align-self: flex-start;
   }
   .palette-side-title {
     font-size: 12px;
