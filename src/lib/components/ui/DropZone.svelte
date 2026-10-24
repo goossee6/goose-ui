@@ -166,6 +166,7 @@
 		width: 100%;
 		max-height: 64px;
 		overflow-y: auto;
+		scrollbar-gutter: stable;
 		margin: 0;
 		padding: 0;
 		list-style: none;

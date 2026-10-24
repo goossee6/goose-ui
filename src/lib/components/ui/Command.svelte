@@ -275,6 +275,7 @@
 		margin: 0;
 		padding: var(--sp-sm);
 		overflow-y: auto;
+		scrollbar-gutter: stable;
 	}
 	.command-group {
 		padding: var(--sp-sm) var(--sp-lg) 2px;

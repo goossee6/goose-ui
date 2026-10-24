@@ -23,7 +23,7 @@
   }: {
     variant?: "primary" | "default" | "ghost" | "danger" | "link";
     /** 枚举档位；number 时为任意高度（紧凑按钮） */
-    size?: "small" | "middle" | "large" | "icon" | "icon-sm" | "icon-xs" | "icon-lg" | number;
+    size?: "small" | "middle" | "large" | "icon" | "icon-sm" | "icon-md" | "icon-lg" | number;
     disabled?: boolean;
     loading?: boolean;
     type?: "button" | "submit";
@@ -258,7 +258,7 @@
   .btn-large { height: var(--height-lg); padding: var(--padding-lg); font-size: var(--font-lg); }
   .btn-icon { width: var(--height-md); height: var(--height-md); padding: 0; }
   .btn-icon-sm { width: var(--height-sm); height: var(--height-sm); padding: 0; border-radius: min(var(--radius-md), 12px); }
-  .btn-icon-xs { width: 24px; height: 24px; padding: 0; border-radius: min(var(--radius-md), 10px); }
+  .btn-icon-md { width: 24px; height: 24px; padding: 0; border-radius: min(var(--radius-md), 10px); }
   .btn-icon-lg { width: var(--height-lg); height: var(--height-lg); padding: 0; }
   /* variants */
   .btn-primary { background-color: var(--primary); color: var(--primary-text); }

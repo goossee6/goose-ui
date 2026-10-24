@@ -18,7 +18,7 @@
 
   const buttonProps: PropsTableItem[] = [
     { name: "variant", desc: "按钮风格变体", type: "'primary' | 'default' | 'ghost' | 'danger' | 'link'", default: "'default'" },
-    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | 'icon' | 'icon-sm' | 'icon-xs' | 'icon-lg' | number", default: "'middle'" },
+    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | 'icon' | 'icon-sm' | 'icon-md' | 'icon-lg' | number", default: "'middle'" },
     { name: "disabled", desc: "禁用状态", type: "boolean", default: "false" },
     { name: "loading", desc: "加载中：显示 spinner 并阻止点击", type: "boolean", default: "false" },
     { name: "type", desc: "原生 button 类型", type: "'button' | 'submit'", default: "'button'" },

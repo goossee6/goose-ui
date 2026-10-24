@@ -403,8 +403,9 @@
 			const target = e.target as HTMLElement | null;
 			const item = target?.closest?.<HTMLElement>(sel) ?? null;
 			if (!item || !c.contains(item)) {
-				// 分割线：保持上一个 pill（跨分割线移动不断档），仅真正离开容器才隐藏
-				if (target?.closest?.('[role="separator"]')) return;
+				// 行间距 / 分隔线 / 容器空白：保持当前 pill，直接滑到下一个项。
+				// 只有真正离开容器、或移到 header 等非列表内容上时才隐藏。
+				if (!target || target === c || target.closest?.('[role="separator"]')) return;
 				hovered = null;
 				setHover(false);
 				return;
@@ -417,8 +418,9 @@
 				setHover(false);
 				return;
 			}
-			// 停放恢复：当帧不播位移过渡，避免从左上角飞过来
-			const wasParked = !hoverOn && hoverGeom === PARKED;
+			// 停放恢复：当帧不播位移/高度过渡，避免从左上角飞过来、或从 0 高度展开。
+			// 首次 hover 时 hoverGeom 还是空串（等价于落在 0,0,0,0），一并按停放处理。
+			const wasParked = !hoverOn && (!hoverGeom || hoverGeom === PARKED);
 			const box = cachedBox(item);
 			if (box) {
 				hoverGeom = boxStyle(box);
@@ -574,19 +576,22 @@
 	/* hover：维持原手感（0.22s ease-out）+ 背景色 0.15s 缓动。
 	   位移过渡的是 transform 而不是 left/top —— 前者走合成器，不触发重排。
 
-	   尺寸（width/height）刻意【不】过渡：它们是布局属性，和 transform 放在同一条
-	   transition 里会让 Chrome 无法把 pill 提升为独立合成层，于是动画的每一帧都要
-	   重新走 Paint → Layerize → Commit（实测单帧 Layerize 可达 32~37ms，主线程直接
-	   满载）。宽高改为瞬时对齐：pill 跳到新行时先落尺寸、再滑过去，观感上仍是从
-	   一行移动到另一行，但整段动画退化为纯合成器插值，不再碰主线程。 */
+	   width 仍然瞬时对齐：它是布局属性，和 transform 放在同一条 transition 里会让
+	   Chrome 无法把 pill 提升为独立合成层，于是每帧都要重新走
+	   Paint → Layerize → Commit（实测单帧 Layerize 可达 32~37ms，主线程满载）。
+
+	   但 height 必须过渡：列表项高度并不总是一致（多行文本、缩略图、行内标签等），
+	   瞬时切换会让 pill 在两项之间「弹」一下。高度只作用在这个绝对定位的 pill 上，
+	   不会引起兄弟节点重排，代价可控，所以单独给 height 同一条缓动。 */
 	.pill-track--hover {
 		transition:
 			transform 0.22s ease-out,
+			height 0.22s ease-out,
 			background-color 0.15s,
 			opacity 0.15s;
 	}
 	/* 选中：位移 back-out 过冲回弹 + 距离自适应时长。
-	   尺寸同样不参与过渡，理由见上（insetX/line 变体也因此不会越界）。 */
+	   尺寸不参与过渡：选中标记切换频率低，且 width 还会随列宽变化（理由见上）。 */
 	.pill-track--sel {
 		transition:
 			transform var(--pill-dur, 0.26s) cubic-bezier(0.34, 1.4, 0.64, 1),

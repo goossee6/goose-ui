@@ -130,14 +130,73 @@
 	--padding-md: 0 12px;
 	--padding-lg: 0 16px;
 
+	/* 组件档位尺寸（small | middle | large）
+	   档位值只写在这一段；组件里的 .xxx--small/--middle/--large 每个属性直接引用
+	   单个 token，token 里只放具体值 —— 不要再套 var()，否则改一处要追两层。 */
+	/* 标签 */
+	--tag-font-sm: 11px;
+	--tag-font-md: 12px;
+	--tag-font-lg: 13px;
+	--tag-pad-sm: 3px 6px;
+	--tag-pad-md: 4px 9px;
+	--tag-pad-lg: 6px 12px;
+	/* 勾选框 */
+	--checkbox-sm: 14px;
+	--checkbox-md: 18px;
+	--checkbox-lg: 22px;
+	--checkbox-mark-sm: 10px;
+	--checkbox-mark-md: 12px;
+	--checkbox-mark-lg: 14px;
+	/* 单选钮 */
+	--radio-sm: 14px;
+	--radio-md: 16px;
+	--radio-lg: 18px;
+	--radio-dot-sm: 5px;
+	--radio-dot-md: 6px;
+	--radio-dot-lg: 7px;
+	/* 开关 */
+	--toggle-w-sm: 36px;
+	--toggle-w-md: 44px;
+	--toggle-w-lg: 52px;
+	--toggle-h-sm: 20px;
+	--toggle-h-md: 24px;
+	--toggle-h-lg: 28px;
+	--toggle-thumb-sm: 14px;
+	--toggle-thumb-md: 18px;
+	--toggle-thumb-lg: 22px;
+	--toggle-spin-sm: 8px;
+	--toggle-spin-md: 10px;
+	--toggle-spin-lg: 12px;
+	/* 分段按钮组 */
+	--togglegroup-font-sm: 12px;
+	--togglegroup-font-md: 13px;
+	--togglegroup-font-lg: 14px;
+	--togglegroup-pad-sm: 2px 16px;
+	--togglegroup-pad-md: 8px 16px;
+	--togglegroup-pad-lg: 16px 16px;
+	/* 标签页（三种模式各自的内边距 + 字号） */
+	--tab-font-sm: 12px;
+	--tab-font-md: 14px;
+	--tab-font-lg: 16px;
+	--tab-col-font-md: 13px;
+	--tab-seg-pad-sm: 4px 12px;
+	--tab-seg-pad-md: 6px 16px;
+	--tab-seg-pad-lg: 8px 20px;
+	--tab-line-pad-sm: 8px 12px;
+	--tab-line-pad-md: 12px 16px;
+	--tab-line-pad-lg: 16px 20px;
+	--tab-col-pad-sm: 6px 10px;
+	--tab-col-pad-md: 8px 12px;
+	--tab-col-pad-lg: 12px 16px;
+
 	/* 组件尺寸默认值（覆盖：在父级设置同名变量） */
 	--titlebar-h: 42px;
 	--layout-pad-x: 24px;
 	--layout-pad-y: 0px;
+	/* 页面左右留白；约定为单个长度值 —— Page 与消费方会拿它做
+	   calc(-1 * var(--page-pad)) 反向抵消，写成简写会让声明整条失效。 */
 	--page-pad: 16px;
 	--page-gap: 16px;
-	--page-pad-r: var(--layout-pad-x);
-	--page-pad-l: var(--layout-pad-x);
 	--ph-gap: 32px;
 	--notif-width: 360px;
 	/* 全站吸顶锚点：任何 sticky 元素要给固定顶栏让位时都用它，

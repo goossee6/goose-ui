@@ -32,6 +32,7 @@
 <style>
 	.scroll-area {
 		overflow: auto;
+		scrollbar-gutter: stable;
 		overscroll-behavior: contain;
 		scrollbar-width: thin;
 		scrollbar-color: var(--scrollbar) transparent;
@@ -39,6 +40,7 @@
 	.scroll-area--vertical {
 		overflow-x: hidden;
 		overflow-y: auto;
+		scrollbar-gutter: stable;
 	}
 	.scroll-area--horizontal {
 		overflow-x: auto;

@@ -5,6 +5,10 @@ export interface MenuItemDef {
   id: string;
   label: string;
   icon?: Component<{ size?: number; class?: string }>;
+  /** 禁用项：可见但不可点，也不参与键盘导航 */
+  disabled?: boolean;
+  /** 分隔线：忽略 id/label */
+  separator?: boolean;
 }
 
 export interface MenuActionData {

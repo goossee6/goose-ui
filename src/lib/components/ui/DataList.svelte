@@ -17,7 +17,8 @@
    * 1. 塞进已有卡片 / 面板（外层已有内边距）——保持默认即可，
    *    `.list-container` 是唯一的滚动容器，header 在里面吸顶。
    * 2. 独立成块（列表外面没有内边距）——传 dataTableHeader={true}，
-   *    容器自己补齐两侧内边距，看起来就像表格的表头。
+   *    行盒向两侧各缩 16px（inset 可调，与 hover pill 同宽），每项自带边框；
+   *    表头底色与分隔线仍铺到容器边缘。
    *
    * 不想显示 header 时不给 title / header / headerCenter / headerRight 即可，
    * 组件一像素都不会多出来。
@@ -37,6 +38,7 @@
     headerStyle = '',
     headerSticky = true,
     dataTableHeader = false,
+    inset = dataTableHeader ? 16 : 0,
     maxHeight = '70vh',
     class: cls = '',
     style = '',
@@ -63,10 +65,12 @@
     /** header 滚动时是否吸顶，默认 true */
     headerSticky?: boolean;
     /**
-     * 「像表格表头那样」使用：容器自带两侧内边距，
-     * header 的磨砂与分隔线也一直铺到容器边缘。默认 false（适配已有内边距的卡片）。
+     * 「像表格表头那样」使用：行盒两侧各缩 inset px（与 hover pill 同宽），
+     * header 的磨砂与分隔线仍铺到容器边缘。默认 false（适配已有内边距的卡片）。
      */
     dataTableHeader?: boolean;
+    /** 行盒（以及 hover pill）两侧的横向内缩像素；默认 dataTableHeader 下 16，否则 0 */
+    inset?: number;
     /**
      * 容器最大高度，超出即由列表自己滚动（内置 header 是吸顶的）。
      * 默认 '70vh'：外面不给高度时行数一多也不会把整页撑长；传 'none' 关闭。
@@ -88,14 +92,16 @@
 
   const hasHeader = $derived(!!(header || headerCenter || headerRight || title));
 
-  /** 行两侧内边距：独立成块时 16px（与 DataTable 的单元格左右内边距一致），否则 0 */
-  const rowPad = $derived(dataTableHeader ? '16px' : '0px');
+  /** 行盒横向内缩：dataTableHeader 下取 inset（默认 16px），与 hover pill 同宽 */
+  const rowPad = $derived(`${inset}px`);
 
   /* Header 自带 title / left / center / right / sticky / id 与吸顶磨砂，
-     这里只把它的几何调成「列表里的一条」：高度交给内容、外边距清零、
-     左右内边距与行内容对齐。其余特性一律原样保留。 */
+     这里只把它的几何调成「列表里的一条」：高度 64px、外边距清零、
+     左右内边距对齐行的内容起点（行盒内缩 + 行内边距）。其余特性一律原样保留。
+     高度走 Header 的 height prop；headerStyle 排在后面，传
+     headerStyle="--header-h:56px" 仍可覆盖。 */
   const headerFitStyle = $derived(
-    ['--header-h:auto', 'margin:0', `padding:0 ${rowPad}`, headerStyle].filter(Boolean).join(';'),
+    ['margin:0', `padding:0 calc(${rowPad} + var(--sp-lg))`, headerStyle].filter(Boolean).join(';'),
   );
 
   /* 行的 key 只在「确实提供了 rowKey」时才走函数分支。
@@ -106,13 +112,12 @@
     return rows.map((row, i) => ({ key: rowKey!(row, i), row }));
   }
 
-  /** hover 的 pill 底宽与行内容对齐：独立成块时两侧各缩 16px */
-  const pillInset = $derived(dataTableHeader ? 16 : 0);
+  /** 行盒的横向内缩量：与 pill 的 insetX 保持同一个值 */
+  const pillInset = $derived(inset);
 </script>
 
 <div
   class="list-container {cls}"
-  class:bleed={dataTableHeader}
   class:with-header={hasHeader}
   style="--list-pad:{rowPad};--dl-max-h:{maxHeight};{style}"
   bind:this={listEl}
@@ -120,6 +125,7 @@
   {#if hasHeader}
     <Header
       {title}
+      height="64px"
       left={header}
       center={headerCenter}
       right={headerRight}
@@ -135,8 +141,8 @@
   {:else}
     <!-- hover 底色由 pill 绘制（跨行滑动的圆角带），故行本身不再变色。
          容器就是列表自身：clientWidth 已扣掉滚动条，pill 才能与行等宽。
-         注意 pill 的坐标参照容器内容区，行若有自定义内边距，
-         pill 会贴到内容区宽而不是行宽——需要整行铺满时别给行加横向 padding。 -->
+         注意 pill 的坐标参照容器内容区，行盒的横向内缩必须用 margin 而不是
+         padding，否则 pill 会贴到内容区宽而不是行盒宽。 -->
     <PillTrack
       container={listEl}
       itemSelector={pillSelector}
@@ -179,21 +185,27 @@
     height: 100%;
     max-height: max(var(--dl-max-h), 0px);
     overflow: auto;
+    scrollbar-gutter: stable;
     min-width: 0;
   }
 
-  /* 独立成块：两侧补齐内边距，header 与行共用同一套左右缩进 */
-  .bleed { padding-inline: 16px; }
-  .with-header .list-row { padding-left: var(--list-pad); padding-right: var(--list-pad); }
+  /* 独立成块：行盒用 margin 让出两侧的 --list-pad（dataTableHeader 默认 16px，
+     inset prop 可调），因此与 hover pill 的盒子完全重合；内边距只负责内容和
+     边框之间的呼吸空间。容器不加 padding —— 那会再叠一层，把行盒和 pill 的
+     对齐一起推歪。 */
 
   .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
-  /* z-index 只用于压住 pill 之上的内容层，容器本身不设 z-index，pill 才能照常显示 */
+  /* 每项自带边框（方框 + 圆角与 pill 一致），不再用 border-bottom 画行间分隔线。
+     z-index 只用于压住 pill 之上的内容层，容器本身不设 z-index，pill 才能照常显示 */
   .list-row {
     position: relative;
     z-index: 0;
-    padding: var(--sp-lg) var(--list-pad, 0px);
-    border-bottom: 1px solid var(--border);
+    padding: var(--sp-lg);
+    margin: 0 var(--list-pad, 0px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
   }
-  .list-row:last-child { border-bottom: none; }
+  /* 相邻项之间留一条缝，边框才不会连成一条线（相邻 margin 会合并，不会翻倍） */
+  .list-row + .list-row { margin-top: var(--sp-md); }
 </style>

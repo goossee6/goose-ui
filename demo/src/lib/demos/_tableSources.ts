@@ -270,7 +270,8 @@
   {#snippet children(row)}<span>{row.name}</span>{/snippet}
 </DataList>
 
-<!-- ③ Header 的全部样式特性依旧可用：--header-h 改高、headerStyle 透传 -->
+<!-- ③ 内置 header 默认 64px 高；要改就透传 headerStyle，
+        其余样式（底色、对齐）也一并走它 -->
 <DataList
   rows={users}
   title="成员"
@@ -279,8 +280,8 @@
   {#snippet children(row)}<span>{row.name}</span>{/snippet}
 </DataList>
 
-<!-- ④ 独立成块（外面没有内边距）：dataTableHeader 自带两侧内边距，
-        磨砂 header 铺到边缘，观感与表格表头一致 -->
+<!-- ④ 独立成块（外面没有内边距）：dataTableHeader 让行盒两侧各缩 16px
+        （与 hover pill 同宽）、每项自带边框；吸顶 header 与分隔线铺到边缘 -->
 <div class="panel" style="height:420px">
   <DataList rows={users} title="成员" dataTableHeader>
     {#snippet children(row)}<span>{row.name}</span>{/snippet}
@@ -290,7 +291,7 @@
 <!-- ⑤ 表格自己的表头：与 Header 吸在一起需要共用一个外层滚动容器，
         headerBleed 让表头磨砂铺到左右边缘 -->
 <div class="panel" style="height:420px;overflow:auto">
-  <Header title="成员" style="--header-h:auto;margin:0;padding:0 16px" />
+  <Header title="成员" height="auto" style="margin:0;padding:0 16px" />
   <DataTable rows={users} columns={columns} headerBleed={16} />
 </div>
 

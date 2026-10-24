@@ -41,9 +41,7 @@
   ];
 
   const vars = [
-    { name: '--page-pad', desc: '页面内边距（Layout 内容区为 20px 24px）', type: 'length', default: '16px' },
-    { name: '--page-pad-r', desc: '内容区右留白 / 滚动条贴边补偿；改动 --page-pad 右值时需同步', type: 'length', default: '跟随 --layout-pad-x，否则 16px' },
-    { name: '--page-pad-l', desc: '页头磨砂带向左铺满到容器边缘的补偿量，与 --page-pad-r 对应', type: 'length', default: '跟随 --layout-pad-x，否则 16px' },
+    { name: '--page-pad', desc: '页面左右留白；必须是单个长度值，Page 和消费方会用它做 calc() 反向抵消', type: 'length', default: '16px' },
     { name: '--page-gap', desc: '页头/内容/卡片垂直节奏', type: 'length', default: '16px' },
     { name: '--ph-gap', desc: '独立使用 PageHeader 时的下间距', type: 'length', default: '32px' },
     { name: '--header-height', desc: '全站吸顶锚点（theme.css :root）。目录、页头的 sticky top 与锚点偏移都用它，不要再写死像素', type: 'length', default: '0px' },
@@ -58,9 +56,10 @@
   description="新项目页面标准结构：根布局 + 页头 + 内容区间距一次到位，零样式模板"
   toc>
   <p class="intro">
-    <code>Page</code> 通过 CSS 变量与外壳沟通：裸壳项目自动获得 16px 内边距；
-    在 <code>Layout</code> 内使用时自动归零（不双重）。垂直间距由
-    <code>--page-gap</code> 统一接管，含页头与内容之间。
+    <code>Page</code> 通过 CSS 变量与外壳沟通：<strong>左右</strong>留白由
+    <code>--page-pad</code> 给（裸壳 16px，<code>Layout</code> 内为 24px）；
+    上下固定为 0 —— 内容从滚动口顶端开始、到底端结束，不在列表下方压出空档。
+    垂直节奏由 <code>--page-gap</code> 统一接管，含页头与内容之间。
   </p>
 
   <div class="preview-frame">
@@ -113,6 +112,8 @@
   }
   .preview-frame {
     --page-pad: 16px;
+    /* Page 上下内边距恒为 0，演示框自己补一点，免得页头贴着虚线边 */
+    padding: 8px 0;
     height: 480px;
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius-lg);

@@ -136,6 +136,7 @@
 		margin: 0;
 		padding: var(--sp-lg);
 		overflow: auto;
+		scrollbar-gutter: stable;
 		font-family: var(--font-mono);
 		font-size: 12.5px;
 		line-height: 1.6;

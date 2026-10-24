@@ -27,7 +27,7 @@
   const variants = ["gradient", "grid", "dots", "noise"] as const;
   let variant = $state<(typeof variants)[number]>("gradient");
   let animated = $state(true);
-  let opacity = $state(1);
+  let opacity = $state(0.5);
 
   // 页面级背景：常驻实例（opacity 归零即不可见），避免开关时重建元素。
   // 默认就打开 —— 这页的演示对象是「整页背景」，一进来就该看得见。

@@ -15,6 +15,8 @@
     mask: maskProp = 'dark',
     blur = true,
     modeless = false,
+    offsetTop,
+    bodyPadding = '32px 40px',
     disableClose = false,
     typewriter = false,
     typewriterDuration = 1500,
@@ -40,6 +42,10 @@
     mask?: 'dark' | 'light';
     blur?: boolean;
     modeless?: boolean;
+    /** 遮罩顶部留白：遮罩从该位置开始（数字按 px），用于避开标题栏 */
+    offsetTop?: number | string;
+    /** 内容区内边距，默认 '32px 40px'；列表类弹窗可调小 */
+    bodyPadding?: string;
     disableClose?: boolean;
     typewriter?: boolean;
     typewriterDuration?: number;
@@ -153,6 +159,7 @@
   <div
     class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}{blur ? '' : ' modal-no-blur'}{modeless ? ' modal-overlay-modeless' : ''}"
     role="presentation"
+    style:top={offsetTop == null ? undefined : typeof offsetTop === 'number' ? `${offsetTop}px` : offsetTop}
     onclick={handleMaskClick}
     onkeydown={handleKeydown}
     transition:fade={{ duration: 150 }}
@@ -185,7 +192,7 @@
           {/if}
         </div>
       {/if}
-      <div class="modal-body" bind:this={bodyEl}>
+      <div class="modal-body" style:padding={bodyPadding} bind:this={bodyEl}>
         {#if typewriter}
           <div class="tw-source" style="display:none">{@render children?.()}</div>
           <div class="tw-output">{@html twHtml}</div>

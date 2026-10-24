@@ -22,12 +22,16 @@
   const toggleProps: PropsTableItem[] = [
     { name: "checked", desc: "是否选中（可双向绑定）", type: "boolean", default: "false" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "loading", desc: "加载中：滑块换成 spinner 并阻止交互", type: "boolean", default: "false" },
     { name: "size", desc: "尺寸档", type: "'small' | 'middle' | 'large'", default: "'middle'" },
     { name: "onclick", desc: "点击回调", type: "(e: MouseEvent) => void" },
     { name: "ariaLabel", desc: "无障碍标签", type: "string", default: "''" },
     { name: "title", desc: "提示标题", type: "string", default: "''" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
+    { name: "onStyle", desc: "开启态轨道的内联样式（覆盖背景/边框色等）", type: "string", default: "''" },
+    { name: "offStyle", desc: "关闭态轨道的内联样式", type: "string", default: "''" },
+    { name: "thumbStyle", desc: "滑块的内联样式（两态共用）", type: "string", default: "''" },
   ];
 
   const labelProps: PropsTableItem[] = [
@@ -68,6 +72,33 @@
 <Row>
   <Toggle checked={false} disabled ariaLabel="禁用关闭" />
   <Toggle checked={true} disabled ariaLabel="禁用开启" />
+</Row>`;
+
+  const customStyleSource = `<script lang="ts">
+  import { Toggle, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Toggle
+    checked={false}
+    ariaLabel="关闭态自定义"
+    offStyle="background-color: var(--accent); border-color: var(--accent)"
+  />
+  <Toggle
+    checked={true}
+    ariaLabel="开启态自定义"
+    onStyle="background-color: var(--warning); border-color: var(--warning)"
+    thumbStyle="background-color: #fff"
+  />
+</Row>`;
+
+  const loadingSource = `<script lang="ts">
+  import { Toggle, Row } from "goose-ui";
+<\/script>
+
+<Row>
+  <Toggle checked={false} loading ariaLabel="加载中（关闭态）" />
+  <Toggle checked={true} loading ariaLabel="加载中（开启态）" />
 </Row>`;
 
   const settingsSource = `<script lang="ts">
@@ -119,6 +150,41 @@
       </div>
     </Row>
     <p class="demo-val">t1 = {t1}, t2 = {t2}</p>
+  </CodePreview>
+
+  <CodePreview anchor="toggle-custom-style" anchorLevel={2} title="Toggle 自定义状态样式 Custom state styles" code={customStyleSource}>
+    <Row>
+      <div class="demo-item">
+        <Label>关闭态（蓝）</Label>
+        <Toggle
+          checked={false}
+          ariaLabel="关闭态自定义"
+          offStyle="background-color: var(--accent); border-color: var(--accent)"
+        />
+      </div>
+      <div class="demo-item">
+        <Label>开启态（橙）</Label>
+        <Toggle
+          checked={true}
+          ariaLabel="开启态自定义"
+          onStyle="background-color: var(--warning); border-color: var(--warning)"
+          thumbStyle="background-color: #fff"
+        />
+      </div>
+    </Row>
+  </CodePreview>
+
+  <CodePreview anchor="toggle-loading" anchorLevel={2} title="Toggle 加载中 Loading" code={loadingSource}>
+    <Row>
+      <div class="demo-item">
+        <Label>关闭态加载中</Label>
+        <Toggle checked={false} loading ariaLabel="加载中（关闭态）" />
+      </div>
+      <div class="demo-item">
+        <Label>开启态加载中</Label>
+        <Toggle checked={true} loading ariaLabel="加载中（开启态）" />
+      </div>
+    </Row>
   </CodePreview>
 
   <CodePreview anchor="toggle-disabled" anchorLevel={2} title="Toggle 禁用 Disabled" code={disabledSource}>

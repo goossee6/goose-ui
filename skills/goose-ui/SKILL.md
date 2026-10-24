@@ -47,8 +47,9 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
 7. **双向绑定**：受控值用 `$bindable`（`bind:value`）；Tabs 语义是「先写 value 再回调」。
 8. **浮层定位**：统一走 `floatingPosition()`（视口钳位 + 翻转），不要手写 getBoundingClientRect 拼样式。
 9. **z-index**：用 `--z-overlay/--z-dropdown/--z-popover/--z-dialog/--z-notification` 阶梯，勿写魔法数字。
-10. **Wails3 外壳**：`Layout` 组装标题栏+侧栏+内容区；`theme={themeStore.theme}` +
-    `onThemeToggle={toggleThemeFromEvent}` 获得圆形扩散的主题切换。
+10. **Wails3 外壳**：`Layout` 只提供 `titlebar` / `aside` / `children` 三个插槽，不内置组件；
+    用 `titlebar` 放 `TitleBar`、`aside` 放 `Sidebar`（或省略改用 `Drawer`）。
+    `theme={themeStore.theme}` + `onThemeToggle={toggleThemeFromEvent}` 获得圆形扩散的主题切换。
 11. **标题栏搜索**：`TitleBar` 传 `searchable` + `searchItems` 开内联搜索（`↑↓`/`Enter`/`Esc`）。
     宽度**自适应且没有可配的 prop**：上限为标题栏可用空间的 40%（`max-width: 40cqw`），
     窄到标题栏 450px 以下整体隐藏。`cqw` 只能参照 `.titlebar`，别把 `.titlebar-search-wrap`

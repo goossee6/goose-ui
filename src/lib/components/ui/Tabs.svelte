@@ -171,12 +171,12 @@
 		border-bottom: 1px solid var(--border);
 		background-color: var(--surface);
 	}
-	.tabs-root--small .tabs-mode--segmented { padding: 4px 12px; font-size: var(--font-sm); }
-	.tabs-root--small .tabs-mode--underline { padding: 8px 12px; font-size: var(--font-sm); }
-	.tabs-root--small .tabs-mode--vertical { padding: 6px 10px; font-size: var(--font-sm); }
-	.tabs-root--large .tabs-mode--segmented { padding: 8px 20px; font-size: var(--font-lg); }
-	.tabs-root--large .tabs-mode--underline { padding: 16px 20px; font-size: var(--font-lg); }
-	.tabs-root--large .tabs-mode--vertical { padding: 12px 16px; font-size: var(--font-lg); }
+	.tabs-root--small .tabs-mode--segmented { padding: var(--tab-seg-pad-sm); font-size: var(--tab-font-sm); }
+	.tabs-root--small .tabs-mode--underline { padding: var(--tab-line-pad-sm); font-size: var(--tab-font-sm); }
+	.tabs-root--small .tabs-mode--vertical { padding: var(--tab-col-pad-sm); font-size: var(--tab-font-sm); }
+	.tabs-root--large .tabs-mode--segmented { padding: var(--tab-seg-pad-lg); font-size: var(--tab-font-lg); }
+	.tabs-root--large .tabs-mode--underline { padding: var(--tab-line-pad-lg); font-size: var(--tab-font-lg); }
+	.tabs-root--large .tabs-mode--vertical { padding: var(--tab-col-pad-lg); font-size: var(--tab-font-lg); }
 	.tabs-group {
 		display: flex;
 		position: relative;
@@ -221,9 +221,9 @@
 	}
 	.tab:disabled { opacity: 0.5; cursor: not-allowed; }
 	.tabs-mode--segmented {
-		padding: 6px 16px;
+		padding: var(--tab-seg-pad-md);
 		border-radius: var(--radius-md);
-		font-size: 14px;
+		font-size: var(--tab-font-md);
 	}
 	.tabs-mode--segmented.tab-active { color: var(--primary-text); }
 	.tabs-mode--segmented:not(.tab-active) { color: var(--text-muted); }
@@ -231,8 +231,8 @@
 	.tabs-mode--underline {
 		flex: 1;
 		text-align: center;
-		padding: 12px 16px;
-		font-size: 14px;
+		padding: var(--tab-line-pad-md);
+		font-size: var(--tab-font-md);
 	}
 	.tabs-mode--underline.tab-active { color: var(--primary); }
 	.tabs-mode--underline:not(.tab-active) { color: var(--text-muted); }
@@ -240,9 +240,9 @@
 	.tabs-mode--vertical {
 		width: 100%;
 		text-align: left;
-		padding: 8px 12px;
+		padding: var(--tab-col-pad-md);
 		border-radius: var(--radius-md);
-		font-size: 13px;
+		font-size: var(--tab-col-font-md);
 		display: flex;
 		align-items: center;
 		gap: 8px;
