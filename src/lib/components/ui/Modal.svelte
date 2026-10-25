@@ -1,3 +1,39 @@
+<script lang="ts" module>
+  /* 弹层层级管理：Esc 只关最上面那层，滚动锁按引用计数叠加。
+     这两个状态必须放在组件外，多个 Modal 实例才能互相看见。 */
+  let modalSeq = 0;
+  const openStack: number[] = [];
+  let scrollLocks = 0;
+  let savedOverflow = '';
+
+  let instanceSeq = 0;
+  function nextInstanceId(): number {
+    return ++instanceSeq;
+  }
+
+  function registerLayer(lockScroll: boolean): number {
+    const id = ++modalSeq;
+    openStack.push(id);
+    if (lockScroll && scrollLocks++ === 0 && typeof document !== 'undefined') {
+      savedOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+    return id;
+  }
+
+  function unregisterLayer(id: number, lockScroll: boolean): void {
+    const i = openStack.indexOf(id);
+    if (i >= 0) openStack.splice(i, 1);
+    if (lockScroll && scrollLocks > 0 && --scrollLocks === 0 && typeof document !== 'undefined') {
+      document.body.style.overflow = savedOverflow;
+    }
+  }
+
+  function isTopLayer(id: number): boolean {
+    return openStack[openStack.length - 1] === id;
+  }
+</script>
+
 <script lang="ts">
   import { fade, scale } from "svelte/transition";
   import { untrack } from "svelte";
@@ -5,6 +41,7 @@
   import X from '@lucide/svelte/icons/x';
   import Icon from './Icon.svelte';
   import Button from './Button.svelte';
+  import { trapTabKey } from './focusTrap';
 
   let {
     open = $bindable(false),
@@ -60,11 +97,38 @@
 
   let okBusy = $state(false);
 
+  const uid = nextInstanceId();
+  const titleId = `goose-modal-title-${uid}`;
+
   let bodyEl: HTMLDivElement | null = $state(null);
+  let dialogEl: HTMLDivElement | null = $state(null);
   let twHtml = $state('');
   let fullHtml = '';
   let twIndex = 0;
   let twTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** 当前层在弹层栈里的 id；0 = 未打开 */
+  let layerId = 0;
+  let lastFocused: HTMLElement | null = null;
+
+  // 打开时登记到弹层栈（非模态不加滚动锁），关闭时摘掉并把焦点还给打开前的元素
+  $effect(() => {
+    if (!open) return;
+    const lockScroll = !modeless;
+    const id = registerLayer(lockScroll);
+    layerId = id;
+    lastFocused = typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
+    // 等面板真正挂到 DOM 上再抢焦点
+    const t = setTimeout(() => dialogEl?.focus?.(), 0);
+    return () => {
+      clearTimeout(t);
+      unregisterLayer(id, lockScroll);
+      layerId = 0;
+      // 打开它的按钮可能已被移除，focus 前先确认还在文档里
+      if (lastFocused?.isConnected) lastFocused.focus();
+      lastFocused = null;
+    };
+  });
 
   $effect(() => {
     const shouldType = open && typewriter;
@@ -133,16 +197,28 @@
     }
   }
 
-  function handleMaskClick() {
+  function handleMaskClick(e: MouseEvent) {
     if (disableClose) return;
+    // 只认遮罩自身：面板内部冒泡上来的点击不关窗。
+    // 用 target 判断而不是给面板挂 stopPropagation，少一个无意义的交互处理器。
+    if (e.target !== e.currentTarget) return;
     if (maskClosable) doCancel();
+  }
+
+  /** Tab 在面板内循环：面板外没有可聚焦元素时把焦点抢回来 */
+  function trapTab(e: KeyboardEvent) {
+    trapTabKey(e, dialogEl);
   }
 
   function handleKeydown(e: KeyboardEvent) {
     if (!open || disableClose) return;
+    // 多层弹窗叠加时只有最上面那层响应，否则一次 Esc 会把整摞全关掉
+    if (!isTopLayer(layerId)) return;
     if (e.key === "Escape") {
       e.stopPropagation();
       doCancel();
+    } else if (e.key === "Tab") {
+      trapTab(e);
     }
   }
 </script>
@@ -150,26 +226,28 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
+  <!-- 键盘只由上面的 window 监听统一处理：面板内冒泡上来的 Tab/Esc 也走它，
+       若这里再挂一份 onkeydown，同一事件会被处理两次（Tab 会连跳两格） -->
   <div
     class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}{blur ? '' : ' modal-no-blur'}{modeless ? ' modal-overlay-modeless' : ''}"
     role="presentation"
     onclick={handleMaskClick}
-    onkeydown={handleKeydown}
     transition:fade={{ duration: 150 }}
   >
     <div
       class="modal {cls}"
       style="width: {typeof width === 'number' ? `${width}px` : width}; {style}"
       role="dialog"
+      aria-modal={modeless ? undefined : 'true'}
+      aria-labelledby={title ? titleId : undefined}
       tabindex="-1"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={handleKeydown}
+      bind:this={dialogEl}
       transition:scale={{ duration: 180, start: 0.92 }}
     >
       {#if title}
         <div class="modal-header">
           <div class="modal-heading">
-            <span class="modal-title">
+            <span class="modal-title" id={titleId}>
               {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
             </span>
             {#if subtitle}

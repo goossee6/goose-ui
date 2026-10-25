@@ -86,6 +86,9 @@
 
 <style>
 	.radio {
+		/* 必须定位：隐藏的 input 是 absolute，没有定位祖先时会跑出 label 很远的距离，
+		   键盘/点击聚焦时浏览器会滚动到那个位置 → 页面跳动 */
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		gap: var(--sp-md);
@@ -101,6 +104,8 @@
 	}
 	.radio-input {
 		position: absolute;
+		top: 0;
+		left: 0;
 		opacity: 0;
 		width: 1px;
 		height: 1px;

@@ -20,13 +20,16 @@ function readSaved(): Theme | null {
 export function initTheme(): void {
   if (initialized || typeof window === 'undefined') return;
   initialized = true;
-  // 主题色相与亮暗主题一起恢复（initHues 自身幂等）
-  initHues();
+  // 先落定亮暗，再恢复主题色：色的 hover/text 派生要按当前主题算（见 applyColors）
   const initial =
     readSaved() ??
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   themeStore.theme = initial;
   document.documentElement.classList.toggle('dark', initial === 'dark');
+  // 主题色相与完整颜色一起恢复（initHues 自身幂等）
+  initHues();
+  // 若颜色在此之前已被别处初始化过（例如先调了 setHue），这里按最终主题再派生一次
+  applyColors();
   // 跟随系统主题变化：用户手动设置过（存储非空）则不再覆盖
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
   mq.addEventListener('change', () => {
@@ -34,6 +37,8 @@ export function initTheme(): void {
     const t = mq.matches ? 'dark' : 'light';
     themeStore.theme = t;
     document.documentElement.classList.toggle('dark', t === 'dark');
+    // 系统的亮暗变了，自定义色的 hover/text 派生方向也要跟着变
+    applyColors();
   });
 }
 
@@ -43,6 +48,8 @@ export function setTheme(theme: Theme): void {
   themeStore.theme = theme;
   if (typeof window === 'undefined') return;
   document.documentElement.classList.toggle('dark', theme === 'dark');
+  // 亮暗切换后 hover/text 的派生方向变了，重算一遍自定义色的派生变量
+  applyColors();
   try {
     window.localStorage.setItem(STORAGE_KEY, theme);
   } catch {
@@ -124,14 +131,15 @@ export const HUE_ROLES: HueRole[] = [
   'danger',
 ];
 
-/** 默认色相（与 theme.css 中 :root 的初始值一致） */
+/** 默认色相（**必须**与 theme.css 中 :root 的 --hue-* 初始值逐项一致，
+ *  否则「恢复默认」会写回一套和首次启动不同的色相） */
 export const DEFAULT_HUES: HueMap = {
   accent: 264,
   complement: 160,
-  success: 145,
-  info: 250,
-  warning: 75,
-  danger: 25,
+  success: 150,
+  info: 260,
+  warning: 70,
+  danger: 27,
 };
 
 /** 默认颜色（与 theme.css 中 :root 的初始值一致；亮色主题那一套）。
@@ -156,6 +164,8 @@ export const hueStore = $state<{ hues: HueMap }>({ hues: { ...DEFAULT_HUES } });
 export const colorStore = $state<{ colors: Partial<ColorMap> }>({ colors: {} });
 
 let huesInitialized = false;
+/** 完整颜色只从 localStorage 读一次（见 initColors 的幂等说明） */
+let colorsInitialized = false;
 
 /** 规范化：任意数值折到 [0,360) */
 function normHue(h: number): number {
@@ -205,11 +215,18 @@ export function formatOklch({ l, c, h }: OklchColor): string {
   return `oklch(${clamp(l, 0, 1).toFixed(4)} ${clamp(c, 0, 0.4).toFixed(4)} ${normHue(h)})`;
 }
 
-/** 解析 oklch(...) 字符串；不是合法 oklch 就返回 null */
+/** 解析 oklch(...) 字符串；不是合法 oklch 就返回 null。
+ *  支持 CSS 的百分比写法：L 的 100% = 1，C 的 100% = 0.4（CSS Color 4 的参考范围） */
 export function parseOklch(s: string): OklchColor | null {
-  const m = /^oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)(?:deg)?\s*\)$/i.exec(s.trim());
+  const m = /^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)(%?)\s+([\d.]+)(?:deg)?\s*\)$/i.exec(s.trim());
   if (!m) return null;
-  return { l: clamp(Number(m[1]), 0, 1), c: clamp(Number(m[2]), 0, 0.4), h: normHue(Number(m[3])) };
+  const l = m[2] ? Number(m[1]) / 100 : Number(m[1]);
+  const c = m[4] ? (Number(m[3]) / 100) * 0.4 : Number(m[3]);
+  return {
+    l: clamp(l, 0, 1),
+    c: clamp(c, 0, 0.4),
+    h: normHue(Number(m[5])),
+  };
 }
 
 /** oklch → sRGB 三个 0–255 整数的线性 sRGB 反解（超出色域的通道直接夹住） */
@@ -310,21 +327,50 @@ function applyHues(): void {
 
 /**
  * 只写发生变化的那一个角色。
- * 拖动取色时每帧都会调用，全量遍历 7 个角色会连续触发 7 次样式失效；
- * 这里用 prev 做差，正常拖动每帧只碰 1 个自定义属性。
- * 另外比对内联样式里已有的值：同一个字符串重复 set 仍会让浏览器重新解析整张样式表，
+ * 拖动取色时每帧都会调用，全量遍历会连续触发多次样式失效；
+ * 这里比对内联样式里已有的值，同一个字符串重复 set 仍会让浏览器重新解析整张样式表，
  * 而拖动时指针不动的那几帧（rAF 合并后）算出来的值是一样的。
  */
-function applyColors(prev?: Partial<ColorMap>): void {
+function setStyleVar(name: string, value: string | undefined): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
+  const cur = root.style.getPropertyValue(name);
+  if (value ? cur === value : cur === '') return;
+  if (value) root.style.setProperty(name, value);
+  else root.style.removeProperty(name);
+}
+
+/**
+ * 由基色派生 hover / text 两档。
+ *
+ * 为什么需要：theme.css 里 `--accent-hover: var(--c-accent-hover, var(--c-accent, #063ad7))`
+ * 这种回退链在「只写了 --c-accent」时会把 -hover 也解析成基色本身 —— 自定义主色后
+ * 按钮悬停毫无变化；语义色的 -text 同理退化成基色，浅色底上的文字对比度掉一档。
+ * 因此写基色时把这两档一并算好：方向按当前亮暗走（亮色压暗、暗色提亮）。
+ */
+function deriveVariants(hex: string, dark: boolean): { hover: string; text?: string } {
+  const base = parseColor(hex);
+  if (!base) return { hover: hex };
+  const at = (l: number) => formatHex({ l: clamp(l, 0, 1), c: base.c, h: base.h });
+  // 已经贴到纯黑/纯白附近时反向走，避免 hover 与基色贴死或整块跳成灰
+  const hoverL = dark
+    ? (base.l > 0.9 ? base.l - 0.08 : base.l + 0.06)
+    : (base.l < 0.18 ? base.l + 0.08 : base.l - 0.07);
+  // text 只有亮色需要单独压暗；基色本身已经够暗就交给 CSS 回退（= 基色）
+  const text = base.l > 0.34 ? at(base.l - 0.14) : undefined;
+  return dark ? { hover: at(hoverL) } : { hover: at(hoverL), text };
+}
+
+function applyColors(): void {
+  if (typeof document === 'undefined') return;
+  const dark = themeStore.theme === 'dark';
   for (const role of HUE_ROLES) {
     const v = colorStore.colors[role];
-    if (prev && v === prev[role]) continue;
-    const cur = root.style.getPropertyValue(`--c-${role}`);
-    if (v ? cur === v : cur === '') continue;
-    if (v) root.style.setProperty(`--c-${role}`, v);
-    else root.style.removeProperty(`--c-${role}`);
+    setStyleVar(`--c-${role}`, v);
+    const derived = v ? deriveVariants(v, dark) : null;
+    setStyleVar(`--c-${role}-hover`, derived?.hover);
+    // 暗色主题下 -text 本就等于基色，交给 CSS 回退，不写内联
+    setStyleVar(`--c-${role}-text`, dark ? undefined : derived?.text);
   }
 }
 
@@ -460,6 +506,11 @@ export function resetHues(): void {
   hueStore.hues = { ...DEFAULT_HUES };
   applyHues();
   if (typeof window !== 'undefined') {
+    // 先掐掉攒着的那次落盘，否则 200ms 后会把默认值又写回 localStorage
+    if (hueSaveTimer !== null) {
+      clearTimeout(hueSaveTimer);
+      hueSaveTimer = null;
+    }
     try {
       window.localStorage.removeItem(HUE_STORAGE_KEY);
     } catch {
@@ -470,9 +521,16 @@ export function resetHues(): void {
 
 /* ── 完整颜色 API ─────────────────────────────────────────────────────────── */
 
-/** 幂等：读取持久化颜色并应用；initHues() 会一并调用 */
+/**
+ * 幂等：读取持久化颜色并应用；initHues() 会一并调用。
+ *
+ * 必须幂等：这个函数会被 setColor / setColors 在每次写入时调用，而落盘是 200ms 防抖的。
+ * 若不幂等，紧接着的第二次 setColor 会从 localStorage 读回**上一次**的快照，
+ * 把 200ms 窗口内刚改过的其他角色整片覆盖掉（表现为「改了两个色，只生效一个」）。
+ */
 export function initColors(): void {
-  if (typeof document === 'undefined') return;
+  if (colorsInitialized || typeof document === 'undefined') return;
+  colorsInitialized = true;
   const saved = readSavedColors();
   if (saved) colorStore.colors = saved;
   applyColors();
@@ -518,7 +576,7 @@ export function setColor(role: HueRole, value: string | OklchColor | null): void
   // 同一角色连续拖动时值几乎每帧都变，这一步省不掉
   if (next[role] === prev[role]) return;
   colorStore.colors = next;
-  applyColors(prev);
+  applyColors();
   saveColors();
 }
 
@@ -545,7 +603,7 @@ export function setColors(next: Partial<Record<HueRole, string | OklchColor | nu
     if (hex) merged[role] = hex;
   }
   colorStore.colors = merged;
-  applyColors(prev);
+  applyColors();
   saveColors();
 }
 

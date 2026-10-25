@@ -47,13 +47,16 @@
 
 <style>
 	.checkbox-label {
+		/* 必须定位：隐藏的 input 是 absolute，没有定位祖先时会逃到更外层的定位元素处，
+		   点 label 让 input 聚焦时浏览器会把那个（页面下方的）位置滚进视口 → 整页跳动 */
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
 	}
 	.checkbox-label.disabled { opacity: 0.5; pointer-events: none; }
-	.checkbox-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+	.checkbox-input { position: absolute; top: 0; left: 0; margin: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 	.checkbox-box {
 		display: flex;
 		align-items: center;

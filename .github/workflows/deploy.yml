@@ -27,6 +27,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # 类型检查与单测必须在构建之前失败，否则带类型错误的组件照样会被部署上线
+      - run: pnpm check
+      - run: pnpm test
       - run: pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:

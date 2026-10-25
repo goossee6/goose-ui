@@ -12,8 +12,7 @@
      * of JS in `.svelte` files.
      */
     "allowJs": true,
-    "checkJs": true,
-    "isolatedModules": true
+    "checkJs": true
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "bindings"],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "bindings", "../src/**/*.ts", "../src/**/*.svelte"],
 }

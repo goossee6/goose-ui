@@ -32,7 +32,17 @@ export function cellMenuAttrs(menu: string, data: Record<string, string>): Recor
 export function cellMenuAttrString(menu: string, data: Record<string, string>): string {
   if (!menu) return '';
   const b64 = encodeBase64(JSON.stringify(data));
-  return `data-menu-name="${menu}" data-menu-data="${b64}"`;
+  // menu 名拼进的是 HTML 属性位置，含引号/尖括号会直接把标签拆坏；base64 本身只含
+  // A–Z a–z 0–9 + / =，放在双引号里安全
+  return `data-menu-name="${escapeAttr(menu)}" data-menu-data="${b64}"`;
+}
+
+function escapeAttr(v: string): string {
+  return v
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 export function openMenuAt(x: number, y: number, name: string, data: Record<string, string>): void {

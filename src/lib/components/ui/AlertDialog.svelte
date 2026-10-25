@@ -1,6 +1,15 @@
+<script lang="ts" module>
+	/** 同页可能同时挂多个 AlertDialog，id 必须唯一，否则 aria-labelledby 会指到别人身上 */
+	let alertSeq = 0;
+	function nextAlertId(): number {
+		return ++alertSeq;
+	}
+</script>
+
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
+	import { trapTabKey } from './focusTrap';
 
 	let {
 		open = $bindable(false),
@@ -32,6 +41,9 @@
 
 	let panelEl = $state<HTMLElement | null>(null);
 	let cancelBtn = $state<HTMLButtonElement | null>(null);
+	const uid = nextAlertId();
+	const titleId = `goose-alert-title-${uid}`;
+	const descId = `goose-alert-desc-${uid}`;
 
 	function cancel() {
 		if (loading) return;
@@ -46,27 +58,22 @@
 
 	$effect(() => {
 		if (!open) return;
+		const opener = document.activeElement as HTMLElement | null;
 		requestAnimationFrame(() => cancelBtn?.focus());
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
 				e.stopPropagation();
 				cancel();
-			} else if (e.key === 'Tab' && panelEl) {
-				const focusables = panelEl.querySelectorAll<HTMLElement>('button:not(:disabled)');
-				if (!focusables.length) return;
-				const first = focusables[0];
-				const last = focusables[focusables.length - 1];
-				if (e.shiftKey && document.activeElement === first) {
-					e.preventDefault();
-					last.focus();
-				} else if (!e.shiftKey && document.activeElement === last) {
-					e.preventDefault();
-					first.focus();
-				}
+			} else if (e.key === 'Tab') {
+				trapTabKey(e, panelEl);
 			}
 		};
 		document.addEventListener('keydown', onKey, true);
-		return () => document.removeEventListener('keydown', onKey, true);
+		return () => {
+			document.removeEventListener('keydown', onKey, true);
+			// 关闭后把焦点还给打开它的按钮，键盘用户不会掉回 document.body
+			if (opener?.isConnected) opener.focus();
+		};
 	});
 </script>
 
@@ -78,16 +85,16 @@
 			role="alertdialog"
 			tabindex="-1"
 			aria-modal="true"
-			aria-labelledby="alert-dialog-title"
-			aria-describedby={description || undefined}
+			aria-labelledby={titleId}
+			aria-describedby={description ? descId : undefined}
 			bind:this={panelEl}
 			transition:scale={{ duration: 150, start: 0.95 }}
 			style={style}
 			onkeydown={(e) => e.stopPropagation()}
 		>
-			<h2 class="alert-title" id="alert-dialog-title">{title}</h2>
+			<h2 class="alert-title" id={titleId}>{title}</h2>
 			{#if description}
-				<p class="alert-desc">{description}</p>
+				<p class="alert-desc" id={descId}>{description}</p>
 			{/if}
 			{#if content}
 				<div class="alert-content">{@render content()}</div>

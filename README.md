@@ -1,11 +1,11 @@
 # goose-ui
 
-零第三方依赖的 Svelte 5 纯 CSS 组件库，支持 Wails3 桌面应用开发。
+零 CSS 框架依赖的 Svelte 5 纯 CSS 组件库，支持 Wails3 桌面应用开发。
 
 ## 特性
 
-- **零依赖** — 仅需 `clsx`（~200B）+ `@lucide/svelte`（图标）
-- **纯 CSS** — 所有组件使用 scoped `<style>` + CSS 自定义属性，不依赖任何 CSS 框架
+- **零 CSS 框架** — 不依赖 Tailwind 之类的任何样式框架；唯一的运行时依赖是图标库 `@lucide/svelte`（peer 依赖，必装）
+- **纯 CSS** — 所有组件使用 scoped `<style>` + CSS 自定义属性
 - **Svelte 5 Runes** — 全面使用 `$props()`、`$state`、`$derived`、`$effect`
 - **Tree-shakeable** — 支持按需导入，未使用的组件不会打包
 - **暗色主题** — 内置 light/dark 主题切换，通过 CSS 变量实现
@@ -24,13 +24,47 @@ pnpm dev
 ## 安装
 
 ```bash
-npm install goose-ui
+npm install goose-ui @lucide/svelte
 ```
 
 或使用 pnpm：
 
 ```bash
-pnpm add goose-ui
+pnpm add goose-ui @lucide/svelte
+```
+
+> `@lucide/svelte` 是 **peer 依赖且必装**：十几个组件（Button / Modal / Select …）
+> 在模块顶层直接引用了它的图标，barrel import 会把它们一起拉进来，缺了它构建会直接报
+> `Cannot find package '@lucide/svelte'`。
+
+### 接入注意（Vite）
+
+本包以 **源码形态** 发布（`exports` 直指 `src/lib` 下的 `.ts` / `.svelte`），
+Vite 需要放弃对这些文件做依赖预打包，否则 `.svelte` 会被当成普通 JS 处理：
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  plugins: [svelte()],
+  optimizeDeps: { exclude: ['goose-ui'] },
+});
+```
+
+### 接入注意（深色首屏）
+
+`theme.css` 默认是亮色，深色用户会先看到一帧白再切黑。在 `index.html` 的 `<head>` 里、
+业务 JS 之前补一小段（键名与 `themeStore` 的存储键一致）：
+
+```html
+<script>
+  try {
+    var t = localStorage.getItem('goose-ui-theme');
+    if (t !== 'dark' && t !== 'light') {
+      t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    if (t === 'dark') document.documentElement.classList.add('dark');
+  } catch (e) {}
+</script>
 ```
 
 ## 快速开始
@@ -165,6 +199,7 @@ import "goose-ui/styles/theme.css";
 | MultiSelect     | 多选下拉，支持 badge 标签与分组吸顶（组头）、Escape/方向键/Enter 键盘操作                                                                         |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源；搜索框 role=combobox，选项列表 role=listbox                                                                |
 | Checkbox        | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）                                                                            |
+| Radio           | 单个单选项（一般直接用下面的 RadioGroup，单独用时需自管选中态）                                                                                    |
 | RadioGroup      | 单选组（pill 分段轨道，context 注入）                                                                                                             |
 | Toggle          | iOS 风格开关，带弹性动画                                                                                                                          |
 | ToggleGroup     | 单选/多选切换组，default/outline 变体                                                                                                             |
@@ -672,6 +707,7 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 > 自己做取色器时用得上 `maxChroma(l, h)`：超出 sRGB 的彩度在转 hex 时会被逐通道截断，存回去的 `c` 变小，滑条就会出现「拖到 100% 只剩 45%」的弹回。
 
 - 颜色写入 `<html>` 内联样式（`--c-<角色>`），**全局生效**（含浮层、portal 出去的元素），并持久化到 `localStorage`
+- 同时会自动派生并写入 `--c-<角色>-hover`（亮色压暗、暗色提亮）和 `--c-<角色>-text`（仅亮色，再压暗一档）——否则 `theme.css` 的回退链会让 hover 退化成基色、语义色文字掉对比度。切换亮暗主题时会按新主题重算这两档
 - 六个角色（顺序即列表顺序）：`accent`（主色）/ `complement`（互补色），以及五个信息色 `success`（完成）/ `info`（信息）/ `warning`（警告）/ `danger`（危险）
 - **纯 CSS 也能配**，无需任何 JS——直接覆盖角色变量：
 

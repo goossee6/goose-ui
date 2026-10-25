@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>goose-ui 组件演示</title>
+    <script>
+      // 首屏前定主题：theme.css 默认是亮色，深色用户会先看到一帧白再切黑。
+      // 这里在读业务 JS 之前就把 .dark 挂上（键名与 themeStore 的 STORAGE_KEY 一致）。
+      try {
+        var saved = localStorage.getItem('goose-ui-theme');
+        if (saved !== 'dark' && saved !== 'light') {
+          saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (saved === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) {
+        /* 隐私模式下 localStorage 不可用，交给 initTheme() 兜底 */
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>

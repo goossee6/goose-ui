@@ -215,7 +215,12 @@
 		align-items: center;
 		gap: var(--sp-md);
 		min-width: 160px;
-		padding: var(--sp-md) var(--sp-md) var(--sp-md) var(--sp-lg);
+		/* 定高：空状态渲染的是 CJK 占位文案，回退字体的行高比等宽数字大，
+		   靠 padding 撑高会让空/非空状态差 1~3px（矮的那个还会跟 Input 对不齐）。
+		   锁死高度并显式给 line-height，行盒就不再受字体度量影响 */
+		height: var(--height-md);
+		line-height: 1.2;
+		padding: 0 var(--sp-md) 0 var(--sp-lg);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
@@ -243,13 +248,21 @@
 	}
 	.tp-value {
 		flex: 1;
+		min-width: 0;
 		text-align: left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.tp-placeholder {
 		flex: 1;
+		min-width: 0;
 		text-align: left;
 		color: var(--text-muted);
 		font-family: inherit;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.tp-actions {
 		display: inline-flex;

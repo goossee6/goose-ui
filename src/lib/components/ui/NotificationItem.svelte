@@ -127,18 +127,32 @@
 	function handleClick() {
 		toast.onClick?.();
 	}
+
+	/** 带 onClick 的通知条本身才是可操作目标，给它补上键盘等价路径（Enter / 空格） */
+	function handleKeydown(e: KeyboardEvent) {
+		if (!toast.onClick) return;
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handleClick();
+		}
+	}
 </script>
 
-<!-- 通知条是 role="alert" 的非交互容器：点击转发 toast.onClick，鼠标进出暂停倒计时 -->
-<!-- 键盘等价路径由 toast.btn / notification-close 按钮提供 -->
-<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions -->
+<!-- 通知条是 role="alert" 的容器：点击转发 toast.onClick，鼠标进出暂停倒计时。
+     带 onClick 时额外获得 tabindex + Enter/空格，键盘用户也能触发； -->
+<!-- 没有 onClick 的纯展示通知不进入 Tab 序列，键盘路径由 toast.btn / 关闭按钮提供 -->
+<!-- tabindex 这条是有意为之：容器只因 onClick 才可聚焦，改成 role="button" 反而会把
+     内部的关闭按钮 / btn 嵌进 button 语义里（无效嵌套） -->
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions, a11y_no_noninteractive_tabindex -->
 <div
 	class="notification notification-{toast.type} {cls}"
 	style={style}
 	bind:this={rootEl}
 	role="alert"
 	aria-live="polite"
+	tabindex={toast.onClick ? 0 : undefined}
 	onclick={handleClick}
+	onkeydown={handleKeydown}
 	onmouseenter={handleMouseEnter}
 	onmouseleave={handleMouseLeave}
 >
@@ -204,6 +218,12 @@
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
 		cursor: pointer;
 		overflow: hidden;
+	}
+
+	/* 带 onClick 的通知条会成为 Tab 站，键盘聚焦时必须看得见 */
+	.notification:focus-visible {
+		outline: 2px solid var(--accent-ring);
+		outline-offset: 2px;
 	}
 
 	/* 图标容器统一中性色：类型由揭幕层的彩色一眼表达，图标区不必再抢色 */

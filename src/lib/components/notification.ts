@@ -79,15 +79,28 @@ export function createNotificationStore() {
 
   function resumeAllItems() {
     (Object.keys(containers) as NotificationPosition[]).forEach((p) => {
+      const expired: number[] = [];
       containers[p].update((list) =>
         list.map((n) => {
-          if (!n._paused || n._timer || !n._remaining || n._remaining <= 0) return n;
-          const remaining = n._remaining;
+          if (!n._paused || n._timer) return n;
+          // 暂停期间正好走完的条目 remaining 为 0：不再续计，收集起来直接收掉
+          const remaining = n._remaining ?? 0;
+          if (remaining <= 0) {
+            expired.push(n.id);
+            return n;
+          }
           const timer = setTimeout(() => remove(p, n.id), remaining);
           return { ...n, _timer: timer, _startedAt: Date.now(), _paused: false };
         })
       );
+      removeLater(p, expired);
     });
+  }
+
+  /** 在 update 的 set 之外移除：update 回调里再 update 会被外层 set 覆盖 */
+  function removeLater(position: NotificationPosition, ids: number[]) {
+    if (!ids.length) return;
+    setTimeout(() => ids.forEach((id) => remove(position, id)), 0);
   }
 
   function applySuspend() {
@@ -103,8 +116,10 @@ export function createNotificationStore() {
     applySuspend();
   }
 
+  // 页面隐藏时暂停全部计时（切回来再续）；dispose() 负责摘掉，避免反复创建 store 时监听器堆积
+  const onVisibilityChange = () => setSuspend('hidden', document.hidden);
   if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', () => setSuspend('hidden', document.hidden));
+    document.addEventListener('visibilitychange', onVisibilityChange);
   }
 
   function open(opts: NotificationOptions): number {
@@ -216,14 +231,21 @@ export function createNotificationStore() {
 
   function resume(position: NotificationPosition, id: number) {
     if (suspended) return;
+    const expired: number[] = [];
     containers[position].update((list) =>
       list.map((n) => {
-        if (n.id !== id || n._timer || !n._remaining || n._remaining <= 0) return n;
-        const remaining = n._remaining;
+        if (n.id !== id || n._timer || !n._paused) return n;
+        // remaining 为 0 说明暂停期间正好到点；不处理的话鼠标一移开它就永远停在那
+        const remaining = n._remaining ?? 0;
+        if (remaining <= 0) {
+          expired.push(id);
+          return n;
+        }
         const timer = setTimeout(() => remove(position, id), remaining);
         return { ...n, _timer: timer, _remaining: remaining, _startedAt: Date.now(), _paused: false };
       })
     );
+    removeLater(position, expired);
   }
 
   function remove(position: NotificationPosition, id: number) {
@@ -276,6 +298,15 @@ export function createNotificationStore() {
     return containers[position].subscribe(cb);
   }
 
+  /** 摘掉 visibilitychange 监听并清空所有条目；仅为「临时创建 store」的场景准备，
+   *  默认单例不需要调用 */
+  function dispose() {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    }
+    destroyAll();
+  }
+
   return {
     open,
     remove,
@@ -285,6 +316,7 @@ export function createNotificationStore() {
     destroyAll,
     subscribe,
     setSuspend,
+    dispose,
   };
 }
 
