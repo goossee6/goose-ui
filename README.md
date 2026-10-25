@@ -4,11 +4,14 @@
 
 ## 特性
 
-- **零 CSS 框架** — 不依赖 Tailwind 之类的任何样式框架；唯一的运行时依赖是图标库 `@lucide/svelte`（peer 依赖，必装）
-- **纯 CSS** — 所有组件使用 scoped `<style>` + CSS 自定义属性
+- **零 CSS 框架** — 不依赖 Tailwind 之类的任何样式框架；`dependencies` 为空，运行时只有图标库 `@lucide/svelte` 一个 peer 依赖（必装）
+- **纯 CSS** — 所有组件使用 scoped `<style>` + CSS 自定义属性，主题集中在 `theme.css` 一个文件
 - **Svelte 5 Runes** — 全面使用 `$props()`、`$state`、`$derived`、`$effect`
-- **Tree-shakeable** — 支持按需导入，未使用的组件不会打包
-- **暗色主题** — 内置 light/dark 主题切换，通过 CSS 变量实现
+- **规模** — `src/lib/components/ui` 下 86 个单文件组件（含少量内部件），另有主题 / 通知 / 错误 / 右键菜单等模块
+- **Tree-shakeable** — 支持按需导入（`import { Button } from "goose-ui"` 或 `goose-ui/button`），未使用的组件不会打包
+- **主题** — light/dark 切换 + 色相旋钮（`setHue` / `setHues`）：只调 accent / danger / success 等 6 个色相，明暗与彩度由主题派生
+- **可访问性** — 弹层带焦点陷阱与 `aria-modal`，多层叠加时 Esc 只关最上层；表单控件保留原生 `input`，键盘可完成全部操作
+- **质量门槛** — `svelte-check --fail-on-warnings`（0 错误 0 警告）+ `node --test` 单测，CI 在构建前强制执行
 
 ## 预览 Demo
 
@@ -838,12 +841,12 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ## Peer Dependencies
 
-| 包                        | 必需 | 说明                              |
-| ------------------------- | ---- | --------------------------------- |
-| `svelte` ^5.0.0           | ✅   | 框架                              |
-| `@lucide/svelte` >=1.43.0 | 可选 | 图标库（Icon 组件及内置图标依赖） |
+| 包                        | 必需 | 说明                                                    |
+| ------------------------- | ---- | ------------------------------------------------------- |
+| `svelte` ^5.0.0           | ✅   | 框架                                                    |
+| `@lucide/svelte` >=1.43.0 | ✅   | 图标库；十几个组件在模块顶层直接 import，缺了无法构建   |
 
-> `clsx` 作为 dependencies 随包自动安装，无需手动引入。
+> 本包 `dependencies` 为空：没有 clsx 之类的 class 拼接库，也没有样式运行时。
 >
 > **Wails3 桌面应用**：goose-ui 不依赖 `@wailsio/runtime`。窗口控制通过
 > `TitleBar` 的 `windowApi` prop 注入（实现 `WindowController` 接口，包一层
@@ -854,9 +857,13 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ```bash
 pnpm dev            # 起 demo（Vite）
-pnpm check          # svelte-check 类型检查
+pnpm check          # svelte-check 类型检查（带 --fail-on-warnings）
+pnpm test           # 单元测试（node --test，tests/*.test.ts）
 pnpm build          # 生产构建
 ```
+
+CI（`.github/workflows/deploy.yml`）在构建 demo 前会先跑 `pnpm check` 与 `pnpm test`，
+任何类型错误、a11y 警告或单测失败都会挡住部署。
 
 ## License
 

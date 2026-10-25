@@ -5,11 +5,13 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
 
 # goose-ui 组件库使用技能
 
-零第三方依赖的 Svelte 5 组件库（Runes），支持 Wails3 桌面应用。所有组件消费 CSS 自定义属性，主题单文件。
+Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components/ui` 下 86 个单文件组件，
+运行时只有 `@lucide/svelte` 一个 peer 依赖（**必装**，十几个组件在模块顶层直接 import）。
+所有组件消费 CSS 自定义属性，主题单文件。
 
 ## 环境前置
 
-- Svelte 5（runes 模式）；可选 `@lucide/svelte` 提供图标
+- Svelte 5（runes 模式）+ `@lucide/svelte`（图标，必装；`dependencies` 为空，没有 clsx 之类）
 - 应用入口引入一次主题：`import "goose-ui/styles/theme.css";`
 - 通知/确认/错误弹窗需在 App 顶层挂载对应容器：`<NotificationProvider />`、`<ConfirmDialog />`、`<ErrorDialog />`
 
@@ -22,10 +24,12 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
 | 演示卡片（效果/源码切换） | demo 内部 `CodePreview`，**不导出**，不要用在业务代码 |
 | 输入 / 多行 | `Input` / `Textarea`（clearable、status、prefix/suffix snippet） |
 | 下拉单选 / 多选 / 可新建 / 可过滤 | `Select` / `MultiSelect` / `CreatableSelect` / `Combobox` |
-| 开关 / 单选组 / 多选组 | `Toggle` / `RadioGroup` / `ToggleGroup` |
+| 开关 / 单选组 / 多选组 | `Toggle`（`loading` 转 spinner；`onStyle`/`offStyle`/`thumbStyle` 自定义轨道色）/ `RadioGroup` / `ToggleGroup` |
+| 复选框 / 单选框 | `Checkbox`（small/middle/large + `indeterminate`）/ `Radio` / `RadioGroup` |
+| 折叠 | `Collapsible`（单块展开收起，`variant`: card/plain）/ `Accordion`（多面板，`value` 数组 + `multiple`） |
 | 日期 / 时间 | `DatePicker` / `DateRangePicker` / `TimePicker`（惯性滚轮）/ `Calendar` / `RangeCalendar` |
 | 分段字段 | `DateField` / `TimeField` / `DateRangeField` / `TimeRangeField`（基于 `SegmentField`） |
-| 弹层 | `Modal` / `Drawer`（4 方向）/ `Popover` / `Tooltip` / `AlertDialog` / `Command`(Ctrl+K) |
+| 弹层 | `Modal` / `Drawer`（4 方向）/ `Popover` / `Tooltip` / `AlertDialog` / `Command`(Ctrl+K)；`Drawer` 另支持 `resizable`+`snapPoints` 拖拽吸附、`container` 挂到指定元素、`backgroundSelector` 指定景深宿主 |
 | 通知 | `Notification.success/info/warning/error(...)`（需 Provider） |
 | 表格 / 列表 | `DataTable`（排序+高亮+右键菜单）/ `DataList` |
 | 反馈 | `Progress系列` / `UsageBar` / `Meter` / `Skeleton` / `Loading` / `Empty` |
@@ -57,6 +61,14 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
     `group` 分组、`keywords` 让中文标签也能用英文搜。
 12. **布局：唯一弹性段**：标题栏三段布局中，只有中段搜索是弹性的，左右（logo / 窗口键）
     必须 `flex: 0 0 auto`。改任何一段的宽度行为前，先确认另外两段不会被挤压。
+13. **视觉隐藏的原生 input 必须落在 label 内**：用 `position: absolute` 隐藏 input 时，承载它的
+    `label` 必须带 `position: relative`；否则 input 会跑到最近的定位祖先处（可能离控件几千像素），
+    点 label 让它聚焦时浏览器会把那个位置滚进视口 → 整页跳动。另外 Chrome 给 checkbox 的
+    UA margin 是 `3px 3px 3px 4px`，记得 `margin: 0`（Checkbox / Radio 都踩过）。
+14. **控件高度别靠 padding 撑**：定高控件直接 `height: var(--height-md)` + 显式 `line-height`。
+    空状态是 CJK 占位文案、有值是等宽数字，两者命中不同的回退字体，行盒高度差 1~3px，
+    控件就会时高时矮（DatePicker / TimePicker / DateRangePicker 都踩过）；定高后长文本用
+    `min-width: 0` + `overflow: hidden` + `text-overflow: ellipsis` 截断，别让它换行撑高。
 
 ## 常见组合
 
@@ -84,7 +96,8 @@ description: Svelte 5 纯 CSS 组件库使用技能。当用户要求用 goose-u
 改动后跑（在仓库根目录）：
 
 ```bash
-pnpm check                             # svelte-check 类型检查
+pnpm check                             # svelte-check 类型检查（带 --fail-on-warnings）
+pnpm test                              # 单元测试（node --test，tests/*.test.ts）
 pnpm build                             # 确认能构建
 ```
 
