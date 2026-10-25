@@ -52,7 +52,7 @@
 		subtitle?: string;
 		theme?: 'light' | 'dark';
 		onThemeToggle?: (e: MouseEvent) => void;
-		/** 自定义按钮区 snippet（渲染在窗口控制键之前，与默认键共存） */
+		/** 自定义按钮区 snippet（渲染在主题键之前，与默认键共存） */
 		controls?: Snippet;
 		/** false 不渲染默认窗口三键（如浏览器环境） */
 		windowControls?: boolean;
@@ -300,13 +300,13 @@
 		</div>
 	{/if}
 	<div class="titlebar-controls">
+		{#if controls}
+			{@render controls()}
+		{/if}
 		{#if onThemeToggle}
 			<button type="button" class="win-btn" onclick={onThemeToggle} title={theme === 'dark' ? '浅色模式' : '深色模式'}>
 				<Icon icon={theme === 'dark' ? Sun : Moon} size={14} />
 			</button>
-		{/if}
-		{#if controls}
-			{@render controls()}
 		{/if}
 		{#if windowControls}
 			<button type="button" class="win-btn" onclick={handleMinimise} aria-label="最小化">
@@ -674,6 +674,7 @@
 		padding: var(--sp-sm);
 		list-style: none;
 		overflow-y: auto;
+		scrollbar-gutter: stable;
 		background: var(--surface-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);

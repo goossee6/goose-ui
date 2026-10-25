@@ -94,12 +94,12 @@ import "goose-ui/styles/theme.css";
 
 ### 3. 需要完整应用外壳时（Wails3 / 后台应用）
 
-`Layout` 把「标题栏 + 侧边导航 + 内容卡片」三区一次组装好，开箱即用：
+`Layout` 只提供「顶栏 / 可选侧栏 / 内容卡片」三个区域，不内置 TitleBar、Sidebar 等组件——用 `titlebar` / `aside` 插槽按需组合：
 
 ```svelte
 <script lang="ts">
   import {
-    Layout, Sidebar, Page, NotificationProvider,
+    Layout, TitleBar, Sidebar, Page, NotificationProvider,
     themeStore, toggleThemeFromEvent,
     type SidebarEntry,
   } from "goose-ui";
@@ -114,12 +114,15 @@ import "goose-ui/styles/theme.css";
 
 <NotificationProvider />
 
-<Layout
-  title="我的应用"
-  theme={themeStore.theme}
-  onThemeToggle={toggleThemeFromEvent}
->
-  {#snippet tabs()}
+<Layout>
+  {#snippet titlebar()}
+    <TitleBar
+      title="我的应用"
+      theme={themeStore.theme}
+      onThemeToggle={toggleThemeFromEvent}
+    />
+  {/snippet}
+  {#snippet aside()}
     <Sidebar {groups} bind:activeTab={active} embedded shadow={false} />
   {/snippet}
 
@@ -232,7 +235,7 @@ import "goose-ui/styles/theme.css";
 | 组件            | 说明                                                                                                                                                                                                                                     |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | DataTable       | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill                                                                                                                                |
-| DataList        | 数据列表，带空状态与可选的内置 header（直接复用 `Header` 组件：`title`/`header`/`headerCenter`/`headerRight`/`headerClass`/`headerStyle`/`headerSticky` 原样透传；`dataTableHeader` 用于独立成块时补齐内边距）；行 hover 同样走滑动 pill |
+| DataList        | 数据列表，带空状态与可选的内置 header（直接复用 `Header` 组件：`title`/`header`/`headerCenter`/`headerRight`/`headerClass`/`headerStyle`/`headerSticky` 原样透传；内置 header 默认高 **64px**，传 `headerStyle="--header-h:56px"` 覆盖；`dataTableHeader` 用于独立成块时补齐内边距）；行 hover 同样走滑动 pill |
 | Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                                                                                |
 | TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                                                                                 |
 | PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制                                                                                                   |
@@ -261,7 +264,7 @@ import "goose-ui/styles/theme.css";
 | Menubar        | 菜单栏（横向方向键：焦点在触发器间 roving，已展开时自动切换菜单；复用 DropdownMenu） |
 | DropdownMenu   | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                        |
 | Toolbar        | 工具栏（role=toolbar + roving 方向键）                                               |
-| Layout         | Wails3 应用整体布局（TitleBar + 侧栏 tabs + 内容区）                                 |
+| Layout         | 应用外壳纯布局（顶栏 / 可选侧栏 / 内容区插槽，不内置组件，自行组合 TitleBar、Sidebar 或 Drawer） |
 | BackTop        | 返回顶部（超过阈值淡入 + easeOutCubic 平滑回顶）                                     |
 | Cursor         | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                            |
 | Background     | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）            |
@@ -271,7 +274,7 @@ import "goose-ui/styles/theme.css";
 | 组件                 | 说明                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------- |
 | Modal                | 模态弹窗（fade+scale 转场、backdrop blur）                                            |
-| Drawer               | 抽屉弹窗（4 方向 + 景深效果 + portal）                                                |
+| Drawer               | 抽屉弹窗（4 方向 + 景深 + 可拖动吸附尺寸 / 拖到底关闭 + portal）                     |
 | Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭；placement 支持 bottom/top × start/end 对齐） |
 | AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                                      |
 | Command              | 命令面板（Ctrl/Cmd+K、分组、键盘导航）                                                |
@@ -294,21 +297,23 @@ import "goose-ui/styles/theme.css";
 
 ## 新项目接入
 
-应用外壳用 `Layout`（标题栏 + 侧边栏 + 内容卡片三区一体，开箱即用）：
+应用外壳用 `Layout`（纯布局：顶栏 / 可选侧栏 / 内容卡片，组件由你组合）：
 
 ```svelte
 <script lang="ts">
-  import { Layout, Sidebar, themeStore, toggleThemeFromEvent } from "goose-ui";
+  import { Layout, TitleBar, Sidebar, Page, themeStore, toggleThemeFromEvent } from "goose-ui";
 </script>
 
-<Layout
-  title="我的应用"
-  subtitle="副标题"
-  theme={themeStore.theme}
-  onThemeToggle={toggleThemeFromEvent}
-  resize
->
-  {#snippet tabs()}
+<Layout resize>
+  {#snippet titlebar()}
+    <TitleBar
+      title="我的应用"
+      subtitle="副标题"
+      theme={themeStore.theme}
+      onThemeToggle={toggleThemeFromEvent}
+    />
+  {/snippet}
+  {#snippet aside()}
     <Sidebar
       groups={groups}
       activeTab={active}
@@ -323,9 +328,10 @@ import "goose-ui/styles/theme.css";
 </Layout>
 ```
 
-- 层级：`Layout`（窗口背景色；标题栏透明 → 与窗口同色）→ 42px 标题栏 + body 左 `tabs` 侧栏槽 / 右内容卡片（边框圆角；空隙经 `--page-pad: 20px 24px` 由 `Page` 承担，外壳自身 padding 为 0）
+- 层级：`Layout`（窗口背景色；标题栏透明 → 与窗口同色）→ 42px 标题栏 + body 左 `aside` 侧栏槽 / 右内容卡片（边框圆角；空隙经 `--page-pad: 20px 24px` 由 `Page` 承担，外壳自身 padding 为 0）
+- `titlebar` / `aside` 都是可选插槽：不传 `aside` 时内容区占满整宽，导航可改用 `Drawer`
 - `resize`：Wails 窗口（四角手柄 + 全域拖拽调整），浏览器省略
-- `windowControls={false}`：隐藏默认窗口三键（浏览器环境）；`controls` snippet 可在键区附加自定义按钮
+- `windowControls={false}`：写在 `TitleBar` 上，隐藏默认窗口三键（浏览器环境）；`controls` snippet 可在键区附加自定义按钮
 - `scroll`（默认 `true`）：内容卡片整页滚；`false` = 框架不滚、页内滚动区自理
 
 页面结构用 `Page`，不要再手写「根 div + 页头 + padding/gap」样板：
@@ -352,10 +358,10 @@ import "goose-ui/styles/theme.css";
 
 | 变量               | 作用                                                                                                                          | 默认            |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| `--page-pad`       | `Page` 内边距——页面空隙的**唯一责任方**；裸壳默认 `16px`，`Layout` 内容区传 `20px 24px`，任何容器（含 absolute 覆盖）都不影响 | `16px`          |
+| `--page-pad`       | `Page` 内边距——页面空隙的**唯一责任方**；裸壳默认 `16px`，`Layout` 内容区传 `20px 24px`，任何容器（含 absolute 覆盖）都不影响。**上下两半会被 `padding-block: 0` 清零，实际只有左右生效** | `16px`          |
 | `--page-gap`       | 页头 ↔ 内容 ↔ 卡片的统一垂直节奏                                                                                              | `16px`          |
 | `--ph-gap`         | 独立使用 `PageHeader` 时的下间距（`Page` 内自动为 `0`，交给 `--page-gap`）                                                    | `32px`          |
-| `--layout-pad-x/y` | `--page-pad` 在 `Layout` 内的镜像（`Header` 吸顶用它反向贴满内缘）                                                            | `24px` / `20px` |
+| `--layout-pad-x/y` | `--page-pad` 在 `Layout` 内的镜像（`Header` 吸顶用它反向贴满内缘）。`y` 必须与 `Page` 的清零保持一致（`0px`），否则 Header 的负 margin 会把吸顶条拽出滚动口 | `24px` / `0px`  |
 
 - 自绘外壳（非 `Layout`）若自带内容区 padding，在外壳上写 `--page-pad: 0` 归零即可
 - `Page` 默认 body 不滚（`scroll` 关闭）：局部滚动区由页面内部处理；整页滚动给 `Page` 加 `scroll`
@@ -612,7 +618,7 @@ Notification.error("连接失败");
 ```
 
 - 类型：`success` / `info` / `warning` / `error`
-- `position`：`top-left` / `top` / `top-right` / `bottom-left` / `bottom` / `bottom-right`
+- `position`：`top-left` / `top` / `top-right` / `bottom-left` / `bottom` / `bottom-right`，默认 `bottom-right`
 - 需先在应用顶层挂载 `<NotificationProvider />`
 - 通知宽度固定为 360px，可通过 `--notif-width` 变量覆盖；`max-width: calc(100vw - 48px)` 视口护栏仍生效
 - 错误消息提取可用 `errorToString(e)`：字符串原样返回，取 `message` 字段（兼容 `Error` 与序列化对象），否则 `String(e)`

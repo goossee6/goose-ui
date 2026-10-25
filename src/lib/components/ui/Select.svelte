@@ -46,6 +46,7 @@
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
 	let wrapperEl: HTMLElement;
+	let dropdownEl = $state<HTMLElement | null>(null);
 	let scrollEl = $state<HTMLElement | null>(null);
 
 	// combobox/listbox 的 ARIA 关联 id（每个实例唯一，供 aria-controls / aria-activedescendant 使用）
@@ -85,6 +86,24 @@
 		else if (e.key === 'ArrowDown') { e.preventDefault(); if (options.length) activeIdx = activeIdx < 0 ? 0 : (activeIdx + 1) % options.length; }
 		else if (e.key === 'ArrowUp') { e.preventDefault(); if (options.length) activeIdx = activeIdx < 0 ? options.length - 1 : (activeIdx - 1 + options.length) % options.length; }
 		else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0 && options[activeIdx]) choose(options[activeIdx]); }
+	}
+
+	/**
+	 * 把面板挂到 body。
+	 *
+	 * 面板是 position:fixed，但只要它还在触发器所在的 DOM 子树里，就会受
+	 * 那棵树的包含块影响：祖先元素上的 backdrop-filter / transform / filter
+	 * 会创建新的包含块，fixed 坐标随之相对它计算——放在 DataList 吸顶表头
+	 * （有磨砂 backdrop-filter）里的下拉框会因此弹到错误位置。
+	 * 挂到 body 后 fixed 才真正相对视口。
+	 */
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			},
+		};
 	}
 
 	function position() {
@@ -134,7 +153,10 @@
 	});
 
 	function handleOutsideClick(e: MouseEvent) {
-		if (wrapperEl && !wrapperEl.contains(e.target as Node)) { open = false; mounted = false; }
+		const t = e.target as Node;
+		// 面板已 portal 到 body，不再是 wrapperEl 的后代，必须单独判断，
+		// 否则点选项会先被这里判成「外部点击」直接关掉。
+		if (wrapperEl && !wrapperEl.contains(t) && !dropdownEl?.contains(t)) { open = false; mounted = false; }
 	}
 
 	onMount(() => {
@@ -165,7 +187,7 @@
 	</button>
 
 	{#if open && mounted}
-		<div class="select-dropdown" style={dropdownStyle} role="listbox" id={listId}>
+		<div class="select-dropdown" bind:this={dropdownEl} use:portal style={dropdownStyle} role="listbox" id={listId}>
 			<div class="select-scroll" bind:this={scrollEl}>
 				<PillTrack
 					container={scrollEl}

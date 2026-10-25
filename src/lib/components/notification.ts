@@ -123,7 +123,7 @@ export function createNotificationStore() {
   }
 
   function open(opts: NotificationOptions): number {
-    const position = opts.position ?? 'top';
+    const position = opts.position ?? 'bottom-right';
 
     // key-based update: if key exists, replace the item
     if (opts.key) {

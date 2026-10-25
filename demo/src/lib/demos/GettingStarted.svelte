@@ -31,7 +31,7 @@ initTheme(); // 应用持久化的亮/暗主题与主题色`;
 
   const shellSource = `<script lang="ts">
   import {
-    Layout, Sidebar, Page, themeStore, toggleThemeFromEvent,
+    Layout, TitleBar, Sidebar, Page, themeStore, toggleThemeFromEvent,
     type SidebarEntry,
   } from "goose-ui";
 
@@ -41,8 +41,15 @@ initTheme(); // 应用持久化的亮/暗主题与主题色`;
   let active = $state("home");
 <\/script>
 
-<Layout title="我的应用" theme={themeStore.theme} onThemeToggle={toggleThemeFromEvent}>
-  {#snippet tabs()}
+<Layout>
+  {#snippet titlebar()}
+    <TitleBar
+      title="我的应用"
+      theme={themeStore.theme}
+      onThemeToggle={toggleThemeFromEvent}
+    />
+  {/snippet}
+  {#snippet aside()}
     <Sidebar {groups} bind:activeTab={active} embedded />
   {/snippet}
 
@@ -98,7 +105,8 @@ npx skills add goossee6/goose-ui        # Claude Code / Codex / Cursor 通用`;
 
   <Card anchor="app-shell" title="5. 完整应用外壳（可选）">
     <p class="note">
-      <code>Layout</code> 把「标题栏 + 侧边导航 + 内容区」一次组装好，适合 Wails3 桌面应用或后台系统。
+      <code>Layout</code> 只提供「顶栏 / 侧栏 / 内容区」三个区域，不内置任何组件；
+      用 <code>titlebar</code> 和 <code>aside</code> 插槽自行组合 TitleBar、Sidebar 等，适合 Wails3 桌面应用或后台系统。
     </p>
     <CodeBlock code={shellSource} language="svelte" maxHeight="320px" />
   </Card>

@@ -482,7 +482,7 @@
      写成 max(var(--dt-max-h), 0px) 而不是直接 `max-height: var(--dt-max-h)`：
      自定义属性取到 'none' 时整条声明会被判为无效而整条丢弃，外层的高度约束也就
      一并失效；max() 里非长度值只会让这一项失效并回落初始值 none，高度约束照常生效。 */
-  .table-container { width: 100%; height: 100%; max-height: max(var(--dt-max-h), 0px); overflow: auto; min-width: 0; }
+  .table-container { width: 100%; height: 100%; max-height: max(var(--dt-max-h), 0px); overflow: auto; scrollbar-gutter: stable; min-width: 0; }
   .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
   /* 列宽固定：按 colgroup 指定的百分比分配，不再由内容反推宽度，

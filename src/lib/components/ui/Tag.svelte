@@ -68,16 +68,16 @@
 		vertical-align: middle;
 	}
 	.tag--small {
-		padding: 3px 6px;
-		font-size: 11px;
+		padding: var(--tag-pad-sm);
+		font-size: var(--tag-font-sm);
 	}
 	.tag--middle {
-		padding: 4px 9px;
-		font-size: 12px;
+		padding: var(--tag-pad-md);
+		font-size: var(--tag-font-md);
 	}
 	.tag--large {
-		padding: 6px 12px;
-		font-size: 13px;
+		padding: var(--tag-pad-lg);
+		font-size: var(--tag-font-lg);
 	}
 	.tag.disabled {
 		opacity: 0.5;

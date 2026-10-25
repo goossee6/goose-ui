@@ -1,47 +1,21 @@
 <script lang="ts">
-	import type { Component, Snippet } from 'svelte';
-	import TitleBar, { type WindowController, type TitleBarSearchItem } from './TitleBar.svelte';
+	import type { Snippet } from 'svelte';
 
+	/* 纯布局外壳：只提供「顶栏 / 可选侧栏 / 内容卡片」三个区域，
+	   不内置 TitleBar、Sidebar 等组件，由使用方自行组合。 */
 	let {
-		title = '',
-		logo,
-		subtitle,
-		theme = 'light',
-		onThemeToggle,
-		controls,
-		windowControls = true,
-		windowApi,
-		searchable = false,
-		searchItems = [],
-		searchPlaceholder = '搜索…',
-		onSearchSelect,
-		tabs,
+		titlebar,
+		aside,
 		children,
 		scroll = true,
 		resize = false,
 		class: cls = '',
 		style = '',
 	}: {
-		title?: string;
-		logo?: string | Component<{ size?: number; class?: string }>;
-		subtitle?: string;
-		theme?: 'light' | 'dark';
-		onThemeToggle?: (e: MouseEvent) => void;
-		/** 透传给 TitleBar 的自定义按钮区（与默认窗口键共存，用 windowControls 控制默认键） */
-		controls?: Snippet;
-		/** 透传给 TitleBar：false 不渲染默认窗口三键（如浏览器环境） */
-		windowControls?: boolean;
-		/** 透传给 TitleBar：窗口控制实现。未传时三键点击无副作用；Wails3 使用者注入适配器 */
-		windowApi?: WindowController;
-		/** 透传给 TitleBar：显示内联搜索框（默认 false 不显示） */
-		searchable?: boolean;
-		/** 透传给 TitleBar：搜索候选项 */
-		searchItems?: TitleBarSearchItem[];
-		searchPlaceholder?: string;
-		/** 透传给 TitleBar：选中回调 */
-		onSearchSelect?: (item: TitleBarSearchItem) => void;
-		/** 左侧侧边栏内容（通常放 Sidebar） */
-		tabs?: Snippet;
+		/** 顶部区域（通常放 TitleBar） */
+		titlebar?: Snippet;
+		/** 左侧区域（通常放 Sidebar；省略则不渲染，内容区占满整宽） */
+		aside?: Snippet;
 		/** 内容区 */
 		children?: Snippet;
 		/** 内容卡片整页滚动；false = 框架不滚、页内滚动区自理 */
@@ -54,26 +28,15 @@
 </script>
 
 <div class="layout {cls}" class:layout--resize={resize} style={style}>
-	<div class="layout-titlebar">
-		<TitleBar
-			{title}
-			{logo}
-			{subtitle}
-			{theme}
-			{onThemeToggle}
-			{controls}
-			{windowControls}
-			{windowApi}
-			{searchable}
-			{searchItems}
-			{searchPlaceholder}
-			{onSearchSelect}
-		/>
-	</div>
+	{#if titlebar}
+		<div class="layout-titlebar">
+			{@render titlebar()}
+		</div>
+	{/if}
 	<div class="layout-body">
-		{#if tabs}
-			<aside class="layout-tabs">
-				{@render tabs()}
+		{#if aside}
+			<aside class="layout-aside">
+				{@render aside()}
 			</aside>
 		{/if}
 		<main class="layout-content" class:layout-content--fixed={!scroll}>
@@ -113,7 +76,7 @@
 		padding: 0 8px 8px;
 		min-height: 0;
 	}
-	.layout-tabs {
+	.layout-aside {
 		flex-shrink: 0;
 		display: flex;
 		flex-direction: column;
@@ -124,8 +87,11 @@
 		overflow-x: hidden;
 	}
 	.layout-content {
-		--page-pad: 20px 24px;
-		--layout-pad-y: 20px;
+		/* 页面只留左右留白：上下由 Page 自己清零（padding-block: 0），
+		   所以镜像给 Header 的 --layout-pad-y 也必须是 0 —— 否则 Header 的
+		   负 margin 会把吸顶条往上拽出滚动口，顶部被裁掉一截。 */
+		--page-pad: var(--layout-pad-x);
+		--layout-pad-y: 0px;
 		--layout-pad-x: 24px;
 		position: relative;
 		flex: 1;
@@ -171,6 +137,6 @@
 		bottom: 0;
 		right: 0;
 		--wails-resize: bottom-right;
-		cursor: nwse-resize;
+		cursor: nesw-resize;
 	}
 </style>

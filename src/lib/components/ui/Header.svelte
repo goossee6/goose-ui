@@ -29,12 +29,14 @@
 </script>
 
 <!-- 不吸顶时由 .no-sticky 把 position 换成 relative 并让 z-index 归零，避免一条静态 header 压在别的内容之上 -->
+<!-- --header-h 直接拼进 style 属性（而不是用 style: 指令）：同一属性里后写的声明获胜，
+     调用方传 style="--header-h:56px" 才能真正覆盖 height prop。用指令时它总在属性之后生效，
+     覆盖永远无效。 -->
 <header
   class="header {cls}"
   class:no-sticky={!sticky}
   {id}
-  style:--header-h={height}
-  {style}
+  style="--header-h:{height};{style}"
 >
   <div class="header-left">
     {#if left}

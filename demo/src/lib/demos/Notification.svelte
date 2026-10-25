@@ -23,7 +23,7 @@
     { name: "title", desc: "标题（必填；传字符串时为快捷用法）", type: "string" },
     { name: "description", desc: "描述文本", type: "string" },
     { name: "type", desc: "类型（由 success/info/warning/error 自动设置）", type: "'success' | 'info' | 'warning' | 'error'", default: "'info'" },
-    { name: "position", desc: "弹出位置", type: "'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right'", default: "'top'" },
+    { name: "position", desc: "弹出位置", type: "'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right'", default: "'bottom-right'" },
     { name: "duration", desc: "自动关闭时间(ms)，0 表示不自动关闭", type: "number", default: "4500" },
     { name: "closable", desc: "显示关闭按钮", type: "boolean", default: "true" },
     { name: "pauseOnHover", desc: "悬停时暂停倒计时", type: "boolean", default: "true" },
@@ -66,7 +66,7 @@
   import { Notification, Button } from "goose-ui";
 <\/script>
 
-<!-- 可选值：top-left | top | top-right | bottom-left | bottom | bottom-right -->
+<!-- 可选值：top-left | top | top-right | bottom-left | bottom | bottom-right（默认右下） -->
 <Button onclick={() => Notification.success({ title: "左上通知", position: "top-left" })}>左上</Button>
 <Button onclick={() => Notification.success({ title: "顶部居中", position: "top" })}>顶部居中</Button>
 <Button onclick={() => Notification.success({ title: "右上通知", position: "top-right" })}>右上</Button>

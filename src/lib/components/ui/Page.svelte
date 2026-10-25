@@ -326,7 +326,11 @@
 		   裸壳父级不定高时 100% 退化 auto，由 100dvh 接管（Layout 内该项永不生效） */
 		height: 100%;
 		max-height: 100dvh;
-		padding: var(--page-pad);
+		/* 只留左右：上下**不留白** —— 内容从滚动口顶端开始、到底端结束，
+		   不给列表页在底部压出一截空档。
+		   --page-pad 约定为单个长度值：既能直接给左右 padding，也能让
+		   .page-body 与消费方安全地做 calc(-1 * var(--page-pad))。 */
+		padding: 0 var(--page-pad);
 	}
 
 	/* transparent：让页面自身底色让位，露出下层的整页背景（Background fixed）。
@@ -351,12 +355,19 @@
 		overflow: auto;
 		min-width: 0;
 		overscroll-behavior: contain;
-		padding-block: var(--page-gap);
-		/* 滚动条贴容器右缘：负边距吃掉页面右 padding，内容右留白由 padding-right 补回 */
-		margin-right: calc(-1 * var(--page-pad-r));
-		padding-right: var(--page-pad-r);
+		/* 上下不留内边距：滚动区从滚动口顶端开始、到底端结束。
+		   子项之间的节奏仍由 gap 给，这里只去掉与滚动口贴边的空隙 ——
+		   有页头时页头直接贴顶（sticky 也才贴得准），无页头时首个卡片贴顶。
+		   底部同样清零，否则「滚到底」时列表下方会多出一截空档。 */
+		padding-block: 0;
+		/* 左右对称外扩：负边距吃掉 .page 的左右 padding，内容留白再由
+		   padding-inline 补回。右侧是为了让滚动条贴容器边缘；左侧必须一起做，
+		   否则子项用负 margin 贴左边缘时会被 overflow 裁掉，而右侧因为有
+		   margin-right 外扩不会被裁（列表 hover 的左圆角就是这么丢的）。 */
+		margin-inline: calc(-1 * var(--page-pad));
+		padding-inline: var(--page-pad);
 	}
-	/* 有页头：顶部内边距清零，页头才能贴到滚动口顶边（sticky 受内容盒约束） */
+	/* 有页头时顶部内边距本来就是 0，保留这条以免将来 padding-block 改动后失效 */
 	.page-body--titled {
 		padding-top: 0;
 	}
@@ -461,6 +472,7 @@
 		min-height: 0;
 		overflow-y: auto;
 		overscroll-behavior: contain;
+		scrollbar-gutter: stable;
 		scrollbar-width: thin;
 	}
 

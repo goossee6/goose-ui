@@ -78,6 +78,23 @@
 		});
 	}
 
+	/**
+	 * 把菜单挂到 body。
+	 *
+	 * 菜单虽然 position:fixed，但只要它还在触发器所在的 DOM 子树里，就受那棵树的
+	 * 层叠上下文约束。DataList 的 .list-row 设了 position:relative + z-index:0，
+	 * 每行自成一个上下文：菜单 z-index 再高也只在那一行内部有效，后面渲染的行
+	 * 会盖住它。挂到 body 才真正脱离。
+	 */
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			},
+		};
+	}
+
 	function close(focusTrigger = false) {
 		if (open) onOpenChange?.(false);
 		open = false;
@@ -139,7 +156,10 @@
 	$effect(() => {
 		if (!open) return;
 		const onDocDown = (e: MouseEvent) => {
-			if (rootEl && !rootEl.contains(e.target as Node)) close();
+			const t = e.target as Node;
+			// 菜单已 portal 到 body，不再是 rootEl 的后代，必须单独判一次，
+			// 否则点菜单项时 mousedown 先关菜单、click 永远不触发。
+			if (rootEl && !rootEl.contains(t) && !menuEl?.contains(t)) close();
 		};
 		const onScroll = () => measure();
 		const onResize = () => measure();
@@ -197,6 +217,7 @@
 			role="menu"
 			tabindex="-1"
 			bind:this={menuEl}
+			use:portal
 			onkeydown={onMenuKeydown}
 			transition:dropdownFade={{ up: flipUp }}
 			style="left:{pos.left}px;top:{pos.top}px"

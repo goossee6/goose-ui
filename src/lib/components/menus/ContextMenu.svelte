@@ -36,28 +36,45 @@
     dispatchMenuAction({ menu: name, action: item.id, data });
   }
 
-  function focusItem(i: number) {
-    const btns = menuEl?.querySelectorAll<HTMLElement>(".ctxmenu-item");
-    if (!btns?.length) return;
-    const n = btns.length;
-    const idx = ((i % n) + n) % n;
-    activeIdx = idx;
-    btns[idx].focus();
+  /** 可聚焦项（分隔线与禁用项跳过）。 */
+  function enabledIndices(): number[] {
+    return items
+      .map((it, i) => ({ it, i }))
+      .filter(({ it }) => !it.separator && !it.disabled)
+      .map(({ i }) => i);
+  }
+
+  function focusIndex(i: number) {
+    activeIdx = i;
+    menuEl?.querySelector<HTMLElement>(`.ctxmenu-item[data-idx="${i}"]`)?.focus();
+  }
+
+  function focusStep(dir: 1 | -1) {
+    const ids = enabledIndices();
+    if (!ids.length) return;
+    const at = ids.indexOf(activeIdx);
+    const next = at < 0 ? (dir > 0 ? ids[0] : ids[ids.length - 1]) : ids[(at + dir + ids.length) % ids.length];
+    focusIndex(next);
+  }
+
+  function focusEdge(last: boolean) {
+    const ids = enabledIndices();
+    if (ids.length) focusIndex(last ? ids[ids.length - 1] : ids[0]);
   }
 
   function onMenuKeydown(e: KeyboardEvent) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      focusItem(activeIdx + 1);
+      focusStep(1);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      focusItem(activeIdx - 1);
+      focusStep(-1);
     } else if (e.key === "Home") {
       e.preventDefault();
-      focusItem(0);
+      focusEdge(false);
     } else if (e.key === "End") {
       e.preventDefault();
-      focusItem(items.length - 1);
+      focusEdge(true);
     } else if (e.key === "Escape") {
       e.stopPropagation();
       closeMenu();
@@ -83,7 +100,7 @@
     if (!menuStore.visible || !menuEl) return;
     if (activeIdx === -1) {
       requestAnimationFrame(() => {
-        if (menuEl) focusItem(0);
+        if (menuEl) focusEdge(false);
       });
     }
   });
@@ -109,11 +126,23 @@
       hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
       radius="var(--radius-md)"
     />
-    {#each items as item, i (item.id)}
-      <button type="button" class="ctxmenu-item" role="menuitem" tabindex={activeIdx === i ? 0 : -1} onfocus={() => (activeIdx = i)} onclick={() => pick(item)}>
-        {#if item.icon}<Icon icon={item.icon} size={14} class="ctxmenu-item-icon" />{/if}
-        {item.label}
-      </button>
+    {#each items as item, i (i)}
+      {#if item.separator}
+        <div class="ctxmenu-separator" role="separator"></div>
+      {:else}
+        <button
+          type="button"
+          class="ctxmenu-item"
+          role="menuitem"
+          data-idx={i}
+          tabindex={activeIdx === i ? 0 : -1}
+          disabled={item.disabled}
+          onfocus={() => (activeIdx = i)}
+          onclick={() => pick(item)}>
+          {#if item.icon}<Icon icon={item.icon} size={14} class="ctxmenu-item-icon" />{/if}
+          {item.label}
+        </button>
+      {/if}
     {/each}
   </div>
 {/if}
@@ -124,4 +153,6 @@
   .ctxmenu-item:hover { color: var(--text-strong); }
   .ctxmenu-item :global(.ctxmenu-item-icon) { color: var(--text-muted); flex-shrink: 0; }
   .ctxmenu-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .ctxmenu-item:disabled { color: var(--text-muted); cursor: default; opacity: 0.6; }
+  .ctxmenu-separator { height: 1px; margin: var(--sp-sm) var(--sp-md); background: var(--border); }
 </style>

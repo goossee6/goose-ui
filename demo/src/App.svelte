@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
+  import { NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, TitleBar, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
   import House from "@lucide/svelte/icons/house";
   import BookOpen from "@lucide/svelte/icons/book-open";
   import LayoutGrid from "@lucide/svelte/icons/layout-grid";
@@ -211,19 +211,22 @@
 <ContextMenu />
 <ConfirmDialog />
 
-<Layout
-  title="Goose-ui"
-  subtitle="Svelte 5 组件库"
-  theme={themeStore.theme}
-  onThemeToggle={toggleThemeFromEvent}
-  {windowApi}
-  searchable
-  {searchItems}
-  searchPlaceholder="搜索组件…"
-  {onSearchSelect}
-  class={activeTab === "home" ? "layout--home" : ""}
->
-  {#snippet tabs()}
+<Layout class={activeTab === "home" ? "layout--home" : ""}>
+  {#snippet titlebar()}
+    <TitleBar
+      title="Goose-ui"
+      subtitle="Svelte 5 组件库"
+      theme={themeStore.theme}
+      onThemeToggle={toggleThemeFromEvent}
+      {windowApi}
+      searchable
+      {searchItems}
+      searchPlaceholder="搜索组件…"
+      {onSearchSelect}
+    />
+  {/snippet}
+
+  {#snippet aside()}
     <Sidebar {groups} bind:activeTab bind:collapsed={sidebarCollapsed} {endItems} mode={sidebarMode} embedded shadow={false}>
       {#snippet footer()}
         <div class="sidebar-footer-inner">

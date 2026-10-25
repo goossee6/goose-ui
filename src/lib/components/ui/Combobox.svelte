@@ -337,6 +337,7 @@
 		flex: 1 1 auto;
 		min-height: 0;
 		overflow-y: auto;
+		scrollbar-gutter: stable;
 		margin: 0;
 		list-style: none;
 		scrollbar-width: none;
