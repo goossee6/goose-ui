@@ -388,18 +388,103 @@
 		const c = container;
 		const sel = itemSelector;
 		if (!c || !sel) return;
+		// 收窄后的别名：TS 不把 `if (!c)` 的收窄结果带进下面这些函数声明里
+		const host = c;
+		const matcher = sel;
 		const root = scrollParent(c);
 		let hovered: HTMLElement | null = null;
-		// ResizeObserver 按需创建：几何缓存只在指针真的划过某项后才被写入。
-		// 一页挂十几二十张表时，每实例常驻一个 ResizeObserver 意味着浏览器
-		// 每次布局都要回调所有实例（哪怕它们的缓存还是空的），纯开销。
+		// 指针最后落点：重排之后要靠它重新命中「现在指针下面是哪一行」。
+		// 重排是布局变化，浏览器不会因此补发 pointerover —— 不主动补一次，
+		// pill 会停在旧行的坐标上，直到用户真的动一下鼠标。
+		let pointer: { x: number; y: number } | null = null;
+		// 两个观察者都按需创建：几何缓存只在指针真的划过某项后才被写入。
+		// 一页挂十几二十张表时，每实例常驻观察器意味着浏览器每次布局 /
+		// DOM 变更都要回调所有实例（哪怕它们的缓存还是空的），纯开销。
 		let ro: ResizeObserver | null = null;
-		const ensureRo = () => {
-			if (ro) return;
-			ro = new ResizeObserver(invalidateGeom);
-			ro.observe(c);
-		};
+		let mo: MutationObserver | null = null;
+		let resyncRaf = 0;
+		// 「等行落位」的重试预算：每次布局变化重新计数
+		let settleTries = 0;
+
+		/** 指针位置命中的项（含容器校验）；命中不到返回 null。 */
+		function hitTest(x: number, y: number): HTMLElement | null {
+			const el = document.elementFromPoint(x, y) as HTMLElement | null;
+			const item = el?.closest?.<HTMLElement>(matcher) ?? null;
+			return item && host.contains(item) ? item : null;
+		}
+
+		/**
+		 * 该行的视觉位置是否已经等于它的布局位置。
+		 *
+		 * 行在做位置过渡（`animate:flip` 之类）时被 transform 顶着：命中测试用的是
+		 * 视觉位置，而 pill 落点用的是布局位置（offsetPath），两者对不上 ——
+		 * 此刻重定位会把 pill 甩到别的行上，过渡过程中来回跳几次。
+		 */
+		function visuallySettled(item: HTMLElement): boolean {
+			const off = offsetPath(item);
+			if (!off) return true;
+			const cr = host.getBoundingClientRect();
+			const visualY = item.getBoundingClientRect().top - cr.top + host.scrollTop;
+			return Math.abs(visualY - off.y) < 1;
+		}
+
+		/**
+		 * 布局变了之后，把 pill 挪到「指针当前所在的那一项」。
+		 *
+		 * 排序 / 筛选会整排搬动行节点：光标底下可能已经换了一行，
+		 * 此时正确行为是 pill 跟着滑过去，而不是停在旧坐标上（看起来像串行）。
+		 * 缓存在 onLayoutChange 里已作废，这里读到的是重排后的真实位置。
+		 */
+		function resync() {
+			if (!hoverOn) return;
+			const item = pointer ? hitTest(pointer.x, pointer.y) : null;
+			if (!item) {
+				hovered = null;
+				setHover(false);
+				return;
+			}
+			// 行还在过渡途中：等它落位再算（预算 90 帧 ≈1.5s，兜住动画异常不结束的情况）
+			if (settleTries < 90 && !visuallySettled(item)) {
+				settleTries += 1;
+				resyncRaf = requestAnimationFrame(resync);
+				return;
+			}
+			settleTries = 0;
+			hovered = item;
+			const box = cachedBox(item);
+			if (box) hoverGeom = boxStyle(box);
+			hoverBg = item.dataset.pillBg ?? '';
+		}
+
+		/**
+		 * 布局失效：作废几何缓存；指针还停在列表上时补一次重新命中。
+		 *
+		 * 为什么非要 MutationObserver：几何缓存按「元素 → 位置」记账，而排序、
+		 * 筛选只是把**已有节点**搬了个位置 —— 容器尺寸一点没变，ResizeObserver
+		 * 不会触发；也没有滚动。少这一路信号，缓存里留着的就是重排前的
+		 * offsetTop，下次 hover 时 pill 会落到别的行上（hover A、pill 在 B）。
+		 */
+		function onLayoutChange() {
+			invalidateGeom();
+			if (!hoverOn) return;
+			cancelAnimationFrame(resyncRaf);
+			settleTries = 0;
+			resyncRaf = requestAnimationFrame(resync);
+		}
+
+		function ensureObservers() {
+			if (!ro) {
+				ro = new ResizeObserver(onLayoutChange);
+				ro.observe(host);
+			}
+			if (!mo) {
+				mo = new MutationObserver(onLayoutChange);
+				mo.observe(host, { childList: true, subtree: true });
+			}
+		}
+
 		const onOver = (e: PointerEvent) => {
+			pointer = { x: e.clientX, y: e.clientY };
 			const target = e.target as HTMLElement | null;
 			const item = target?.closest?.<HTMLElement>(sel) ?? null;
 			if (!item || !c.contains(item)) {
@@ -424,8 +509,8 @@
 			const box = cachedBox(item);
 			if (box) {
 				hoverGeom = boxStyle(box);
-				// 缓存已落地，此后布局变化必须让它失效
-				ensureRo();
+				// 缓存已落地，此后布局变化（含排序这种「只搬家不变尺寸」的）必须让它失效
+				ensureObservers();
 			}
 			hoverBg = item.dataset.pillBg ?? '';
 			if (wasParked) {
@@ -436,6 +521,7 @@
 		};
 		const onLeave = () => {
 			hovered = null;
+			pointer = null;
 			setHover(false);
 			hoverBg = '';
 		};
@@ -446,13 +532,15 @@
 		};
 		root.addEventListener('pointerover', onOver);
 		root.addEventListener('pointerleave', onLeave);
-		// 布局变化后缓存的几何会失真：滚动与尺寸变化时作废，下一次划过重新量
+		// 滚动：pill 用内容坐标，滚动不改变它的落点，作废缓存供下次划过重算即可
 		root.addEventListener('scroll', onScroll, { passive: true });
 		return () => {
 			root.removeEventListener('pointerover', onOver);
 			root.removeEventListener('pointerleave', onLeave);
 			root.removeEventListener('scroll', onScroll);
 			ro?.disconnect();
+			mo?.disconnect();
+			cancelAnimationFrame(resyncRaf);
 			invalidateGeom();
 			setHover(false);
 		};

@@ -1,5 +1,7 @@
 <script lang="ts" generics="T">
   import type { Snippet } from 'svelte';
+  import { flip } from 'svelte/animate';
+  import { cubicOut } from 'svelte/easing';
   import PillTrack from './PillTrack.svelte';
   import Header from './Header.svelte';
 
@@ -39,6 +41,7 @@
     headerSticky = true,
     dataTableHeader = false,
     inset = dataTableHeader ? 16 : 0,
+    animateRows = 0,
     maxHeight = '70vh',
     class: cls = '',
     style = '',
@@ -71,6 +74,14 @@
     dataTableHeader?: boolean;
     /** 行盒（以及 hover pill）两侧的横向内缩像素；默认 dataTableHeader 下 16，否则 0 */
     inset?: number;
+    /**
+     * 行重排（排序/过滤改变顺序）时的过渡时长（ms），0 = 不动画（默认）。
+     *
+     * 需要 rowKey 给出稳定的行身份，否则节点会被当成「换了一行」而不是「挪了位置」。
+     * 开启后每次列表更新都会量一遍行的位置（FLIP 的前后两次 rect），
+     * 行数上千且更新频繁的列表建议保持关闭。
+     */
+    animateRows?: number;
     /**
      * 容器最大高度，超出即由列表自己滚动（内置 header 是吸顶的）。
      * 默认 '70vh'：外面不给高度时行数一多也不会把整页撑长；传 'none' 关闭。
@@ -134,6 +145,9 @@
       class="list-header {headerClass}"
       style={headerFitStyle}
     />
+    <!-- 表头与列表之间的留白，高度取 --header-gap（默认 0，等于不加）。
+         必须在 header 与 pill 之间：pill 靠行的 rect 定位，会跟着一起下移。 -->
+    <div class="header-gap" aria-hidden="true"></div>
   {/if}
 
   {#if rows.length === 0}
@@ -156,11 +170,21 @@
       portal
     />
     {#if rowKey}
-      {#each keyed(rows) as entry (entry.key)}
-        <div class="list-row">
-          {@render children(entry.row)}
-        </div>
-      {/each}
+      {#if animateRows > 0}
+        <!-- 排序变化时用 FLIP 把行滑到新位置（否则整列表瞬移，看起来像闪一下）。
+             时长必须显式给：flip 默认按位移开方算（跳一行就 1s 以上），太拖。 -->
+        {#each keyed(rows) as entry (entry.key)}
+          <div class="list-row" animate:flip={{ duration: animateRows, easing: cubicOut }}>
+            {@render children(entry.row)}
+          </div>
+        {/each}
+      {:else}
+        {#each keyed(rows) as entry (entry.key)}
+          <div class="list-row">
+            {@render children(entry.row)}
+          </div>
+        {/each}
+      {/if}
     {:else}
       {#each rows as row, i (i)}
         <div class="list-row">
@@ -208,4 +232,13 @@
   }
   /* 相邻项之间留一条缝，边框才不会连成一条线（相邻 margin 会合并，不会翻倍） */
   .list-row + .list-row { margin-top: var(--sp-md); }
+
+  /* 表头与第一行之间的留白。用 spacer 而不是给行加 margin-top：
+     行的前面还有 PillTrack 的绝对定位层，`header + .list-row` 这类相邻
+     选择器写不出来（:global 不允许出现在选择器中间），而 :first-of-type
+     会把 pill 那一层先数进去。高度由 --header-gap 控制，默认 0。 */
+  .header-gap {
+    height: var(--header-gap, 0px);
+    flex: none;
+  }
 </style>

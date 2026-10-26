@@ -97,18 +97,6 @@
   let lastFocused: HTMLElement | null = null;
   const titleId = `goose-drawer-title-${nextDrawerId()}`;
 
-  // 打开时接管焦点、关闭时还给打开前的元素（与 Modal 一致）
-  $effect(() => {
-    if (!open || typeof document === 'undefined') return;
-    lastFocused = document.activeElement as HTMLElement | null;
-    const t = setTimeout(() => dialogEl?.focus?.(), 0);
-    return () => {
-      clearTimeout(t);
-      if (lastFocused?.isConnected) lastFocused.focus();
-      lastFocused = null;
-    };
-  });
-
   /* pushBackground：把宿主容器整体缩小 + 轻微模糊，做出「抽屉把页面推后一层」的观感。
      这里只在**打开瞬间**快照宿主的原内联样式，关闭/销毁时写回快照 ——
      早先是直接置空，会把宿主自己写的 transform / filter 一并抹掉。 */
@@ -298,28 +286,31 @@
       : [...snaps].reverse().find((p) => p < current - 0.01) ?? snaps[0];
   }
 
-  const slideAmount = $derived.by(() => {
-    const axisPx = resizable
-      ? (axisBase() * (sizePct ?? initialPct())) / 100
-      : flyAxis === 'x'
-        ? (typeof width === 'number' ? width : parseInt(width ?? '') || 378)
-        : (typeof height === 'number' ? height : parseInt(height ?? '') || 300);
-    return flyAxis === 'x'
-      ? (placement === 'left' ? -1 : 1) * axisPx
-      : (placement === 'top' ? -1 : 1) * axisPx;
+  // 打开时接管焦点、关闭时还给打开前的元素（与 Modal 一致）
+  $effect(() => {
+    if (!open || typeof document === 'undefined') return;
+    lastFocused = document.activeElement as HTMLElement | null;
+    // preventScroll：面板刚出现在屏幕外时接管焦点，浏览器会为「让焦点可见」而去滚
+    // 最近的滚动容器（这里是抽屉层），把进场动画的位移抵消掉、看起来就是直接出现。
+    const t = setTimeout(() => dialogEl?.focus?.({ preventScroll: true }), 0);
+    return () => {
+      clearTimeout(t);
+      if (lastFocused?.isConnected) lastFocused.focus();
+      lastFocused = null;
+    };
   });
 
-  /** 纯位移过渡：只改 transform，不透明度不动（Svelte 的 fly 会顺带淡入淡出） */
-  function panelSlide(
-    _node: HTMLElement,
-    params: { amount: number; duration?: number }
-  ) {
-    const distance = params.amount;
+  /** 退场过渡（进场走同名 keyframes 的 CSS 动画，见样式）。
+      位移用「自身尺寸的 100%」，不测量视口/容器：`height="80%"` / `width={600}` / 拖动后的
+      任意吸附比例，行程都精确等于抽屉自身尺寸。早先按 px 换算（`parseInt('80%')` → 80px）
+      会让百分比尺寸只滑 80px，抽屉一打开就已经在屏幕上。 */
+  function panelSlide(_node: HTMLElement, params: { duration?: number } = {}) {
+    const axis = isVertical ? 'Y' : 'X';
+    const dir = placement === 'left' || placement === 'top' ? -1 : 1;
     return {
       duration: params.duration ?? 360,
       easing: cubicOut,
-      css: (t: number) =>
-        `transform: translate${isVertical ? 'Y' : 'X'}(${(1 - t) * distance}px)`,
+      css: (t: number) => `transform: translate${axis}(${dir * (1 - t) * 100}%)`,
     };
   }
 
@@ -374,7 +365,7 @@
       tabindex="-1"
       bind:this={dialogEl}
       onclick={(e) => e.stopPropagation()}
-      transition:panelSlide={{ amount: slideAmount }}
+      out:panelSlide
     >
       {#if resizable && !isVertical}
         <!-- 侧边抽屉（left/right）：边缘分隔条，指针拖动 + 方向键换档 -->
@@ -439,8 +430,13 @@
     z-index: var(--z-overlay);
     pointer-events: none;
     /* 绝对定位（container / offsetTop）时，滑入位移会计入滚动溢出导致
-       页面出现瞬时滚动条；在根层裁掉即可，视口内视觉不变 */
-    overflow: hidden;
+       页面出现瞬时滚动条；在根层裁掉即可，视口内视觉不变。
+       必须用 clip 而不是 hidden：hidden 会把这个根层变成**可编程滚动容器**，而抽屉
+       打开时要 `dialogEl.focus()`，浏览器为了让焦点元素可见会去滚它（实测 scrollTop
+       一路 665 → 0），滚动量恰好抵消进场动画的位移 —— 表现就是「没有滑入、直接出现」。
+       带 offsetTop 时面板是绝对定位、确实落在根层的滚动区域内，必现；clip 只裁不滚。 */
+    overflow: hidden; /* 老引擎回退（不支持 clip 时仍能裁掉） */
+    overflow: clip;
   }
   /* 传入 container 时整层改为绝对定位，跟随容器而不是视口 */
   .drawer-root--contained,
@@ -466,7 +462,24 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     position: fixed;
     pointer-events: auto;
+    /* 进场：抽屉由 {#if open} 新建，元素一出现就自动跑一次，方向由 placement 决定。
+       位移用自身尺寸的 100%（translate），不测量视口/容器 —— 任意尺寸配置都精确。
+       fill-mode: both —— backwards 让样式解析到动画开始之前就停在滑出位置（首帧不闪），
+       forwards 的终值就是静态的 transform: none，不会残留动画去抢退场。
+       注意：位移必须真能看见，根层的 overflow 不能是 hidden（见 .drawer-root 的说明：
+       hidden 让根层可编程滚动，焦点接管时的滚动会把这段位移抵消掉）。 */
+    animation-duration: 360ms;
+    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+    animation-fill-mode: both;
   }
+  .drawer--left { animation-name: drawer-in-left; }
+  .drawer--right { animation-name: drawer-in-right; }
+  .drawer--top { animation-name: drawer-in-top; }
+  .drawer--bottom { animation-name: drawer-in-bottom; }
+  @keyframes drawer-in-left { from { transform: translateX(-100%); } to { transform: none; } }
+  @keyframes drawer-in-right { from { transform: translateX(100%); } to { transform: none; } }
+  @keyframes drawer-in-top { from { transform: translateY(-100%); } to { transform: none; } }
+  @keyframes drawer-in-bottom { from { transform: translateY(100%); } to { transform: none; } }
   /* 拖动吸附：松手后尺寸平滑过渡，拖动过程中禁用过渡跟手 */
   .drawer--resizable {
     transition:

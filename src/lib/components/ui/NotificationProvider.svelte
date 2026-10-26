@@ -249,10 +249,32 @@
 		};
 	}
 
-	// 退场（sonner 三态）：front 与展开态非 front 均为自身高度 ∓100%（sonner: lift*-100% 相对行程，
-	// 展开态含 offset 基址）+ opacity .4s 截断至 200ms 卸载；收起态非 front 朝屏幕边缘 40%（方向为用户指定，
-	// sonner 恒向下），transform 走 .5s 曲线截 40% 进度，opacity 独立 .2s 精确归零（消除卸载时 0.41 残影）
+	// 退场分两套：
+	//  · 单条（该位置没有层叠）—— 与入场镜像的「原路返回」：同样 400ms / easeSoner，
+	//    从外侧 100% 原方向滑回去并淡出，视觉上「从哪来回哪去」。
+	//  · 层叠态（≥2 张，sonner 三态）—— front 与展开态非 front 均为自身高度 ∓100%
+	//    （sonner: lift*-100% 相对行程，展开态含 offset 基址）+ opacity .4s 截断至 200ms
+	//    卸载；收起态非 front 朝屏幕边缘 40%（方向为用户指定，sonner 恒向下），transform
+	//    走 .5s 曲线截 40% 进度，opacity 独立 .2s 精确归零（消除卸载时 0.41 残影）。
+	//    多张同场退场时动作短一点，彼此不抢。
 	let leavingCount = $state(0);
+
+	// 离场节点 pin 期间把容器锁成塌陷前的尺寸，收尾再解锁（原因见 slideOut 里的 pin 分支）。
+	// 不用 outroend 事件做解锁：Svelte 在动画结束时会先把节点从文档摘掉再派发，
+	// 那时 closest('.nc') 已经是 null。定时器更可靠；触发时若还有别的离场卡，
+	// 就跳过，交给最后一张之后的那次解锁。
+	function lockContainer(nc: HTMLElement, cr: DOMRect, ms: number) {
+		nc.style.setProperty('--pin-w', `${cr.width}px`);
+		nc.style.setProperty('--pin-h', `${cr.height}px`);
+		nc.classList.add('nc-pinning');
+		setTimeout(() => {
+			if (nc.querySelector(':scope > .ns-leaving')) return;
+			nc.classList.remove('nc-pinning');
+			nc.style.removeProperty('--pin-w');
+			nc.style.removeProperty('--pin-h');
+		}, ms);
+	}
+
 	function slideOut(
 		node: Element,
 		{
@@ -274,6 +296,17 @@
 		// 响应式 length 比较，删除中间卡时 length 已减 1，会把倒数第二张误判为 front（走 -100% 行程）。
 		// isFrontItem 走 nextElementSibling 找非离场 .ns，不受 length 变化影响。
 		const reallyFront = node instanceof HTMLElement ? isFrontItem(node) : front;
+		// 栈内唯一一张（没有层叠）：它消失后整摞就空了，不存在与兄弟卡的布局牵连，
+		// 所以给它一条和入场完全镜像的离场 —— 从哪滑进来就从哪滑回去，用同样的
+		// 400ms / easeSoner。层叠态（≥2 张）仍走下面那两档短动效：front 200ms 贴边
+		// 滑出、非 front 朝边缘位移 + 淡出，避免多张卡同场退场时动作互相抢。
+		// 数「非离场兄弟」：outro 播放时节点还没被摘掉，自己也在其中，所以单条时得 1。
+		const ncNow = node instanceof HTMLElement ? node.parentElement : null;
+		const isOnlyCard = ncNow
+			? [...ncNow.querySelectorAll(':scope > .ns')].filter(
+					(el) => !el.classList.contains('ns-leaving')
+				).length === 1
+			: false;
 		// 离场节点 pin 到 absolute + prepend 到 DOM 首位（column-reverse 视觉底部）。
 		// 离场窗口内 :last-child 边距规则立即对剩余兄弟生效（新 front margin-top:0，其余 gap-front-h），
 		// 布局一次到位，由 svelte flip（400ms easeSoner）平滑剩余兄弟位移。
@@ -286,6 +319,14 @@
 			if (nc) {
 				const cr = nc.getBoundingClientRect();
 				const rect = node.getBoundingClientRect();
+				// 必须先把容器锁成塌陷前的尺寸，再钉位。原因：这张 pin 成 absolute 后
+				// 就不在流内了，容器尺寸会立刻缩小（单条时直接塌成 0×0，层叠时少一张的
+				// 高度 + 负 margin 共 ~gap），而卡片用的是「相对容器」的坐标（rect - cr）——
+				// 容器一动，坐标系跟着动：单条时 right 定位的容器 left 会甩到视口右侧外
+				// （卡片「啪」地横跳出屏幕，看起来就是原地消失），层叠时每张退场卡会先
+				// 跳一个 gap 再开始动画。尺寸不变，定位（right/bottom 或 left:50%+translateX）
+				// 就不会挪，钉位才真的钉住。
+				lockContainer(nc, cr, isOnlyCard ? 480 : 280);
 				node.style.position = 'absolute';
 				node.style.top = `${rect.top - cr.top}px`;
 				node.style.left = `${rect.left - cr.left}px`;
@@ -300,6 +341,16 @@
 		// 离场结束后再测一次 front 高度（防止测量落在离场帧）
 		setTimeout(remeasureFronts, 280);
 		if (reducedMotion) return { duration: 0 };
+		// 单条：原路返回。slideIn 的 from 方向原样复用，t 从 1→0 配 (1-t) 即「0 → 贴边外」，
+		// 缓动同样用 easeSoner —— 入场和离场是同一条曲线的正反播放，接得上。
+		if (isOnlyCard) {
+			const back = top ? -100 : 100;
+			return {
+				duration: 400,
+				easing: easeSoner,
+				css: (t: number) => `opacity: ${t}; transform: translateY(${(1 - t) * back}%);`,
+			};
+		}
 		// svelte 5 out 过渡：css 回调收到 t = 1 - easing(p)（反转进度）。
 		// (1-t) 还原为 easing(p)：起点 0、终点 easeSoner(截断值) —— front 行程 ~70%、sliver ~23%，
 		// 与 sonner「.4s/.5s 曲线在 200ms 卸载」的截断视觉一致。
@@ -521,6 +572,13 @@
 		flex-direction: column;
 		pointer-events: none;
 		outline: 0;
+		/* 内容永远贴住容器的锚定边（bottom 系贴底、top 系 column-reverse 后贴顶）。
+		   平时 height 由内容决定、没有余量，这条不生效；只在离场钉位期间
+		   （.nc-pinning 把容器锁成塌陷前尺寸、内容比容器矮）才起作用：
+		   否则余量全堆在锚定边一侧，剩余卡片会先被顶高一个 gap，等解锁那一刻
+		   容器收缩、坐标系归位，整摞再硬跳回来 —— 就是「下方卡退场时上方卡跳一下」。
+		   贴边后锁定窗口内的布局已等于解锁后的最终布局，解锁时零位移。 */
+		justify-content: flex-end;
 	}
 	.nc.top-left, .nc.top, .nc.top-right {
 		flex-direction: column-reverse;
@@ -566,6 +624,14 @@
 	.ns.ns-leaving {
 		position: absolute;
 		transition: none;
+	}
+	/* 离场钉位期间锁定容器尺寸。原因见 slideOut 里的 pin 分支：单条卡 pin 成
+	   absolute 后容器里没有流内子节点，会塌成 0×0，相对容器算出的钉位坐标
+	   跟着跑，卡片会横跳出屏幕。锁成塌陷前的宽高，定位（right/bottom 或
+	   left:50%+translateX）就不会再挪动。 */
+	.nc.nc-pinning {
+		width: var(--pin-w);
+		height: var(--pin-h);
 	}
 
 	/* 内层：承载缩放、swipe 位移与收起高度钳制 */

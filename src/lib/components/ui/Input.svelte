@@ -83,6 +83,7 @@
 <div
 	class="input-wrapper {cls}"
 	class:input--disabled={disabled}
+	class:input--clearable={clearable && !readonly}
 	style={mergedStyle}
 >
 	{#if prefix}
@@ -150,6 +151,20 @@
 	}
 	.input::placeholder { color: var(--text-muted); }
 	.input:disabled { cursor: not-allowed; }
+
+	/* type="search" 时 Chromium（含 WebView2、Electron）会在输入框内再画一个
+	   原生清除按钮，与本组件自己的 .input-clear 并排出现 —— 用户看到两个 ✕。
+	   只要本组件提供了清除按钮（clearable 且非 readonly）就把原生的关掉；
+	   clearable=false / readonly 时不关，避免连唯一的清除入口也一起弄丢。
+	   只针对 search，不影响 text / number 等其它类型。
+	   display 与 appearance 两条都写：appearance 对 UA 内部伪元素的支持
+	   各版本不一，且会被压缩器归并成标准写法；display:none 更直接。 */
+	.input-wrapper.input--clearable .input::-webkit-search-cancel-button,
+	.input-wrapper.input--clearable .input::-webkit-search-decoration {
+		-webkit-appearance: none;
+		appearance: none;
+		display: none;
+	}
 	.input-affix {
 		display: flex;
 		align-items: center;
