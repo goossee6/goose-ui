@@ -71,7 +71,13 @@
       visible = true;
       animState = "entering";
       requestAnimationFrame(() => {
-        calculatePosition();
+        // 定位不了就不进入 visible：那种情况气泡还停在初始的 (0,0)，
+        // 一旦变成 visible（opacity 1）就会直接画在视口左上角。
+        if (!calculatePosition()) {
+          visible = false;
+          animState = "hidden";
+          return;
+        }
         animState = "visible";
       });
     }, delay);
@@ -79,6 +85,17 @@
 
   function hide() {
     clearTimers();
+    // 没真正浮出来过就直接返回，别往下走 "leaving"。
+    //
+    // 这一句是「鼠标快速划过列表时左上角冒出一堆气泡」的根因修复：
+    // 进场有 delay（默认 200ms），指针扫过一行往往在 delay 内就离开了，
+    // show 的 timer 被 clearTimers 清掉，气泡本该无声无息地取消。但 hide()
+    // 原来无条件把 animState 推到 "leaving"，而模板只是 `animState !== "hidden"`，
+    // "leaving" 同样会渲染气泡 —— 于是每行的 mouseleave 都凭空造出一个
+    // 从未 calculatePosition 的气泡，落在初始的 (0,0)（窗口左上角），
+    // 而且 "leaving" 的 opacity 是 1，实打实地画出来 80ms 才收掉。
+    // 扫过几十行，左上角就叠出一堆错位的提示。
+    if (!visible) return;
     leaveTimer = setTimeout(() => {
       animState = "leaving";
       // 存入 leaveTimer：可被 clearTimers 清除，避免卸载/重新 show 后旧 timer 误关
@@ -93,8 +110,10 @@
     if (visible) { hide(); } else { show(); }
   }
 
-  function calculatePosition() {
-    if (!triggerEl || !tooltipEl) return;
+  /** 计算并写入气泡位置。返回是否真的算出来了：false 表示触发器或气泡元素
+   *  当前不在（例如所在行刚被移出列表），调用方不能把气泡当成已定位。 */
+  function calculatePosition(): boolean {
+    if (!triggerEl || !tooltipEl) return false;
 
     const triggerRect = triggerEl.getBoundingClientRect();
     const vw = window.innerWidth;
@@ -157,6 +176,7 @@
     top = Math.max(8, Math.min(top, vh - th - 8));
 
     pos = { left, top };
+    return true;
   }
 
   function onTriggerMouseEnter() { if (trigger === "hover") show(); }

@@ -97,6 +97,9 @@ Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components
       `:global(.xxx-tip){ flex:1 1 auto; min-width:0 }`，内层再做省略。
       组件内部那些 `> *` 结构选择器（`Sidebar` 的 `.sidebar-nav > *`）也要同步挪到触发器上。
     - 默认 200ms 延迟：列表里一行可能挂好几个提示，延迟太小鼠标扫过就弹一片。
+    - `hide()` 会先判「有没有真正浮出来过」，没有就直接返回。改这个组件时别把判断去掉：
+      `"leaving"` 状态同样会渲染气泡，而那时还没跑 `calculatePosition()`，气泡停在
+      初始的 `(0,0)`＝窗口左上角，快速划过列表就会看到左上角闪出一片错位提示。
     - 例外：`DataTable` 的纯文本格仍是原生 `title`（上万个 `<td>` 一格一个组件不划算）。
 
 18. **`title` / `aria-label` 传空串时不要落到 DOM 上**：`title=""` 也会让浏览器把元素当成

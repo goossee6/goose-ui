@@ -707,6 +707,10 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
   `text-overflow: ellipsis` 可能失效，给触发器 `class` 补一条
   `:global(.xxx-tip) { flex: 1 1 auto; min-width: 0 }`，内层再做省略。
 - **默认延迟 200ms**：一屏里可能挂几十个提示，延迟太小、鼠标扫过就弹一片。用 `delay` 覆盖。
+- **没浮出来过就什么都不做**：`hide()` 里先判 `visible`，没真正显示过就直接返回、不推进
+  状态机。别把这句去掉 —— `"leaving"` 同样会渲染气泡，而那时它还没跑过
+  `calculatePosition()`，位置还是初始的 `(0, 0)`，也就是**窗口左上角**。指针在 200ms
+  延迟内划走时每行都会走到这条路径，于是快速划过列表就能看到左上角叠出一片错位的气泡。
 - 内容里的 `\n` 会保留（`white-space: pre-wrap`），长文本用 `maxWidth` 限宽。
 - 例外：`DataTable` 的纯文本单元格仍用原生 `title`（成千上万个格子，一格一个组件不划算）；
   需要气泡就在 `custom` 列的 `cell` snippet 里自己包一层。
