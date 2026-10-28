@@ -18,6 +18,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import Icon from './Icon.svelte';
 	import PillTrack from './PillTrack.svelte';
+	import Tooltip from './Tooltip.svelte';
 
 	/**
 	 * 窗口控制抽象：库不依赖任何桌面 runtime。
@@ -259,11 +260,12 @@
 					<ul class="titlebar-search-list" id="titlebar-search-list" role="listbox" bind:this={searchListEl}>
 						<!-- 只给 activeSelector，不传 itemSelector：行的 onmouseenter 会把
 						     activeIndex 设成该行，sel pill 自己滑过去就完成了 hover 反馈。
-						     再传 itemSelector 会让 hover pill 叠到同一行，同色画两遍 → 双重底色。 -->
+						     再传 itemSelector 会让 hover pill 叠到同一行，同色画两遍 → 双重底色。
+						     单 pill → 主题色实心（与 Select / 下拉菜单同一套）。 -->
 						<PillTrack
 							container={searchListEl}
 							activeSelector=".titlebar-search-item.active"
-							background="var(--accent-sub)"
+							background="var(--primary)"
 							radius="var(--radius-md)"
 						/>
 						{#if !filtered.length}
@@ -304,20 +306,28 @@
 			{@render controls()}
 		{/if}
 		{#if onThemeToggle}
-			<button type="button" class="win-btn" onclick={onThemeToggle} title={theme === 'dark' ? '浅色模式' : '深色模式'}>
-				<Icon icon={theme === 'dark' ? Sun : Moon} size={14} />
-			</button>
+			<Tooltip title={theme === 'dark' ? '浅色模式' : '深色模式'} placement="bottom">
+				<button type="button" class="win-btn" onclick={onThemeToggle} aria-label={theme === 'dark' ? '浅色模式' : '深色模式'}>
+					<Icon icon={theme === 'dark' ? Sun : Moon} size={14} />
+				</button>
+			</Tooltip>
 		{/if}
 		{#if windowControls}
-			<button type="button" class="win-btn" onclick={handleMinimise} aria-label="最小化">
-				<Icon icon={Minus} size={14} />
-			</button>
-			<button type="button" class="win-btn" onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
-				<Icon icon={Square} size={12} />
-			</button>
-			<button type="button" class="win-btn win-btn-close" onclick={handleClose} aria-label="关闭">
-				<Icon icon={X} size={16} />
-			</button>
+			<Tooltip title="最小化" placement="bottom">
+				<button type="button" class="win-btn" onclick={handleMinimise} aria-label="最小化">
+					<Icon icon={Minus} size={14} />
+				</button>
+			</Tooltip>
+			<Tooltip title={isMaximised ? '还原' : '最大化'} placement="bottom">
+				<button type="button" class="win-btn" onclick={handleMaximise} aria-label={isMaximised ? '还原' : '最大化'}>
+					<Icon icon={Square} size={12} />
+				</button>
+			</Tooltip>
+			<Tooltip title="关闭" placement="bottom">
+				<button type="button" class="win-btn win-btn-close" onclick={handleClose} aria-label="关闭">
+					<Icon icon={X} size={16} />
+				</button>
+			</Tooltip>
 		{/if}
 	</div>
 </div>
@@ -372,11 +382,15 @@
 		font-weight: 700;
 		color: var(--text-strong);
 		/*
-		 * 品牌渐变（主色 → 主色相邻色相 +40°）+ 高光条自左上向右下斜扫。
+		 * 品牌渐变（统一为 主色 -30° → +30°，见 theme.css 的 --gradient-accent）
+		 * + 高光条自左上向右下斜扫。
 		 * 两层背景全部被 background-clip:text 裁进笔画（注意：不可加 background-blend-mode，
 		 *   它与 clip:text 同用会让背景整体不渲染——Chromium 已知行为）。
 		 *   第 1 层  高光条：135deg（左上→右下），白 55%→90%→55%，no-repeat
 		 *   第 2 层  品牌渐变：引用 theme.css 预解析的 --titlebar-logo-gradient
+		 *
+		 * 高光条单独提成局部变量 --logo-shine：hover 只换第 2 层，
+		 * 第 1 层的同一串渐变得照抄一遍，改一处忘一处很容易漏。
 		 *
 		 * 斜向扫过的几何（按 logo 约 64×24 计算，改动尺寸需重算这两个数）：
 		 *   135deg 的渐变轴长 = (图宽+图高)×0.707；background-size:250% 时图 160×60 → 轴长 156px。
@@ -387,23 +401,28 @@
 		 * 注意：这里刻意不用 var(--titlebar-logo-gradient, ...) 回退写法 ——
 		 * var() 回退值中出现任何 var()（哪怕一层渐变引用一个自定义属性）都会让
 		 * 整条 background 在计算值阶段失效 → background-image:none → logo 隐形。
-		 * 想换品牌渐变，覆盖 :root 上的 --titlebar-logo-gradient 即可。
+		 * 想换品牌渐变，覆盖 :root 上的 --gradient-accent（或旧名 --titlebar-logo-gradient）即可。
 		 */
-		background-image: linear-gradient(
-				135deg,
-				transparent 40%,
-				rgba(255, 255, 255, 0.55) 47%,
-				rgba(255, 255, 255, 0.9) 50%,
-				rgba(255, 255, 255, 0.55) 53%,
-				transparent 60%
-			),
-			var(--titlebar-logo-gradient);
+		--logo-shine: linear-gradient(
+			135deg,
+			transparent 40%,
+			rgba(255, 255, 255, 0.55) 47%,
+			rgba(255, 255, 255, 0.9) 50%,
+			rgba(255, 255, 255, 0.55) 53%,
+			transparent 60%
+		);
+		background-image: var(--logo-shine), var(--titlebar-logo-gradient);
 		background-repeat: no-repeat, no-repeat;
 		background-size: 250% 250%, 100% 100%;
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
 		animation: titlebar-logo-shine 5s linear infinite;
+	}
+
+	/* hover：整条渐变提亮一档（--gradient-accent-hover，色相不变） */
+	.titlebar:hover .titlebar-logo {
+		background-image: var(--logo-shine), var(--titlebar-logo-gradient-hover);
 	}
 
 	@keyframes titlebar-logo-shine {
@@ -431,6 +450,11 @@
 			background-image: var(--titlebar-logo-gradient);
 			-webkit-background-clip: text;
 			background-clip: text;
+		}
+		/* 这条必须写在媒体查询里：上面 .titlebar:hover 选择器更重，
+		   不覆盖回来时静音模式下 hover 会凭空多出一条静止的白色高光带 */
+		.titlebar:hover .titlebar-logo {
+			background-image: var(--titlebar-logo-gradient-hover);
 		}
 	}
 
@@ -729,10 +753,16 @@
 		white-space: nowrap;
 	}
 	/* 底色交给 PillTrack 的滑动 pill（hover 与键盘 active 共用同一块，会滑动跟随），
-	   这里只管文字强度，避免「鼠标划过」与「方向键移动」出现两种不同强度的反馈。 */
+	   这里只管文字强度，避免「鼠标划过」与「方向键移动」出现两种不同强度的反馈。
+	   pill 是品牌色实心 → 文字与右侧路径一起转白。 */
 	.titlebar-search-item:hover,
 	.titlebar-search-item.active {
-		color: var(--text-strong);
+		color: var(--accent-text);
+	}
+	.titlebar-search-item:hover .titlebar-search-value,
+	.titlebar-search-item.active .titlebar-search-value {
+		color: var(--accent-text);
+		opacity: 0.8;
 	}
 
 	.titlebar-search-value {

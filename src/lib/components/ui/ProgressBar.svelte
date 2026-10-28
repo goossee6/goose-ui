@@ -28,7 +28,8 @@
 	.progress-bar {
 		height: 100%;
 		border-radius: 9999px;
-		background: linear-gradient(90deg, var(--accent), var(--complement));
+		/* 统一强调渐变：主色 -30° → +30°（见 theme.css）。底色不再用 accent→complement */
+		background: var(--gradient-accent);
 		transition: width 0.5s ease-out;
 	}
 </style>

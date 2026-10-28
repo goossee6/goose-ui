@@ -2,10 +2,26 @@
   import { untrack } from "svelte";
   import type { Snippet } from "svelte";
 
+  /**
+   * 气泡提示。
+   *
+   * 定位策略与 Popover / DropdownMenu 一致：气泡 `position: fixed` + 视口坐标，
+   * 并 portal 到 body —— 只要它还留在带 `backdrop-filter` / `transform` /
+   * `filter` 的祖先里，那个祖先就是 fixed 的包含块，left/top 会被解释成
+   * 「相对该祖先」，气泡整体偏移；同时 Modal / Drawer / 列表的 `overflow`
+   * 还会把它裁掉。DataList 的表头有 backdrop-filter、行有进场动画、
+   * 弹窗有滚动容器，三种坑都真实存在。
+   *
+   * 触发器是一个 `span`（inline-flex），不是 `div`：提示最常见的宿主是
+   * 按钮内部的图标（DropdownMenu 的触发器就是 `<button>`），`div` 在
+   * `<button>` / `<p>` 里是非法嵌套，浏览器会擅自改写 DOM。
+   */
+
   let {
     title,
     placement: placementProp = "top",
     trigger = "hover",
+    delay = 200,
     maxWidth,
     children,
     class: cls = '',
@@ -14,6 +30,10 @@
     title: string | Snippet;
     placement?: "top" | "top-start" | "top-end" | "bottom" | "bottom-start" | "bottom-end" | "left" | "left-start" | "left-end" | "right" | "right-start" | "right-end";
     trigger?: "hover" | "focus" | "click";
+    /** hover/focus 的悬停延迟（ms），默认 200。
+     *  别调得太小：列表里每行可能挂好几个提示，鼠标纵向扫过时 50ms
+     *  就弹一大片气泡，比原生 title 还吵。 */
+    delay?: number;
     maxWidth?: number | string;
     children: Snippet;
     class?: string;
@@ -54,7 +74,7 @@
         calculatePosition();
         animState = "visible";
       });
-    }, 50);
+    }, delay);
   }
 
   function hide() {
@@ -77,12 +97,14 @@
     if (!triggerEl || !tooltipEl) return;
 
     const triggerRect = triggerEl.getBoundingClientRect();
-    const tooltipRect = tooltipEl.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    const tw = tooltipRect.width;
-    const th = tooltipRect.height;
+    // 量 offsetWidth/offsetHeight，不用 getBoundingClientRect：
+    // 进场动画期间气泡还带着 scale(0.92)，rect 拿到的是缩小后的尺寸，
+    // 于是「按真实宽度居中」会算成偏右一截（ContextMenu 踩过同一个坑）。
+    const tw = tooltipEl.offsetWidth;
+    const th = tooltipEl.offsetHeight;
 
     let placement = placementProp;
 
@@ -142,7 +164,10 @@
   function onTriggerFocusIn() { if (trigger === "focus") show(); }
   function onTriggerFocusOut() { if (trigger === "focus") hide(); }
   function onTriggerClick(e: MouseEvent) {
-    if (trigger === "click") { e.stopPropagation(); toggle(); }
+    if (trigger === "click") { e.stopPropagation(); toggle(); return; }
+    // 点下去就说明已经知道它是什么了，提示先收掉——否则打开下拉菜单后
+    // 气泡还压在新弹出的菜单上。不 stopPropagation：点击要继续冒泡给真正的按钮。
+    if (visible) hide();
   }
 
   function onDocClick() { if (trigger === "click" && visible) hide(); }
@@ -152,6 +177,19 @@
       e.stopPropagation();
       hide();
     }
+  }
+
+  /**
+   * 气泡挂到 body。挂在触发器旁边时，`position: fixed` 会被祖先的
+   * backdrop-filter / transform 变成「相对祖先」定位（见文件头说明）。
+   */
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return {
+      destroy() {
+        node.remove();
+      },
+    };
   }
 
   $effect(() => {
@@ -172,10 +210,14 @@
 
   $effect(() => () => clearTimers());
 
+  function prefersReducedMotion(): boolean {
+    return typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
+  }
+
   function getTooltipStyle(): string {
     if (animState === "hidden") return "display:none";
-    const entering = animState === "entering";
-    const opacity = entering ? 0 : 1;
+    const entering = animState === "entering" && !prefersReducedMotion();
+    const opacity = animState === "entering" ? 0 : 1;
     const scale = entering ? 0.92 : 1;
     let tx = 0;
     let ty = 0;
@@ -190,9 +232,10 @@
   }
 </script>
 
-<!-- 触发器需包裹任意 children，不能强行改成 button；click 模式下由子元素自身承担键盘可达性 -->
+<!-- 触发器只能包一层元素，不能强行改成 button（会多出一个按钮、也会抢走
+     子元素自己的点击语义）；click 模式下的键盘可达性由子元素自身承担。 -->
 <!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
-<div
+<span
   class="tooltip-trigger {cls}"
   style={style}
   bind:this={triggerEl}
@@ -203,12 +246,13 @@
   onclick={onTriggerClick}
 >
   {@render children()}
-</div>
+</span>
 
 {#if animState !== "hidden"}
   <div
     class="tooltip tooltip-{finalPlacement}"
     bind:this={tooltipEl}
+    use:portal
     role="tooltip"
     style={getTooltipStyle()}
   >
@@ -224,22 +268,27 @@
 
   .tooltip {
     position: fixed;
-    z-index: var(--z-dialog);
+    /* 比弹窗高一档：气泡常常长在 Modal / Drawer 里面，z-index 若与弹窗相同，
+       先后顺序就取决于 DOM 插入时机，会出现「有时被遮住」。 */
+    z-index: var(--z-max);
     pointer-events: none;
     transition: opacity 0.12s ease, transform 0.12s ease;
     max-width: 280px;
     word-wrap: break-word;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip { transition: opacity 0.1s ease; }
+  }
 
   .tooltip-content {
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--text, #1d2129);
-    background-color: var(--surface, #fff);
-    border: 1px solid var(--border, #e5e6eb);
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    color: var(--text);
+    background-color: var(--popup-surface, var(--surface));
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md, 6px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
     white-space: pre-wrap;
   }
 
@@ -247,10 +296,11 @@
     position: absolute;
     width: 8px;
     height: 8px;
-    background-color: var(--surface, #fff);
-    border: 1px solid var(--border, #e5e6eb);
+    background-color: var(--popup-surface, var(--surface));
+    border: 1px solid var(--border-strong);
     transform: rotate(45deg);
   }
+  :global(.dark) .tooltip-content { color: var(--text); }
 
   .tooltip-top .tooltip-arrow,
   .tooltip-top-start .tooltip-arrow,
@@ -299,7 +349,4 @@
   }
   .tooltip-right-start .tooltip-arrow { top: 14px; }
   .tooltip-right-end .tooltip-arrow { top: auto; bottom: 14px; }
-
-  :global(.dark) .tooltip-content { background-color: var(--surface-2, #2a2a2a); color: var(--text, #e5e6eb); border-color: var(--border-strong, #444); }
-  :global(.dark) .tooltip-arrow { background-color: var(--surface-2, #2a2a2a); border-color: var(--border-strong, #444); }
 </style>

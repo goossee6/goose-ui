@@ -107,6 +107,16 @@
 	.layout-content--fixed {
 		overflow: hidden;
 	}
+	/* 内容区装的是 Page 时，外框不再承担滚动：Page 的 .page-body 才是滚动区，
+	   它的溢出全部落在自己身上，外框这一层滚不到任何东西。
+	   反过来留着 auto 会出事：页面切换的 fly 过渡把整页上下平移 24px，平移后
+	   盒子的底边伸到外框之外，外框就会为这 24px 临时长出一条滚动条，过渡结束
+	   再收回去 —— 表现是「切换页面时闪出第二条滚动条，然后消失，页面横跳」。
+	   实测（真实 Chrome）：外框 gutter 2px → 12px → 2px，正文宽度跟着变 10px。
+	   用 :global 是因为 .page 属于 Page 组件，不在 Layout 的样式作用域内。 */
+	.layout-content:has(> :global(.page)) {
+		overflow: hidden;
+	}
 
 	/* ── Wails 四角 resize 手柄 ─────────────────────────────────────────── */
 	.layout-handle {

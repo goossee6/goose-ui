@@ -164,7 +164,7 @@
       disabledMatch=""
       showSelected={false}
       background=""
-      hoverBackground="var(--surface-3)"
+      hoverBackground="var(--hover)"
       radius="var(--radius-md)"
       insetX={pillInset}
       portal

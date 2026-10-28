@@ -196,6 +196,10 @@
    * title 只在长文本时加：原生 title 让浏览器为每个元素维护 tooltip 命中判定，
    * 一页几张表就是上万个带 title 的 <td>，指针每次移动都要参与一遍。
    * 短文本本来不会被截断，tooltip 也对不出新信息 —— 省掉它几乎不影响可用性。
+   *
+   * 这是全库唯一保留原生 title 的地方（气泡提示统一走 Tooltip 组件）：
+   * 纯文本格是拼 HTML 字符串渲染的，一个格一个 Tooltip 组件在上万格的量级上
+   * 不划算。需要气泡提示就在 custom 列的 cell snippet 里自己包一层 Tooltip。
    */
   function tdAttrs(col: Column<T>, row: T, text: string): string {
     let s = text.length > TITLE_MIN ? ` title="${escapeAttr(text)}"` : '';
@@ -439,7 +443,7 @@
           disabledMatch=""
           showSelected={false}
           background=""
-          hoverBackground="var(--surface-3)"
+          hoverBackground="var(--hover)"
           radius="var(--radius-md)"
           portal
         />

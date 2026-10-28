@@ -13,6 +13,7 @@
 	import ScrollZones from './ScrollZones.svelte';
 	import Check from '@lucide/svelte/icons/check';
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 	import { rowsHeight } from './rowHeight';
 
 	let {
@@ -45,6 +46,7 @@
 	let query = $state('');
 	let activeIndex = $state(0);
 	let dropdownStyle = $state('');
+	let flipUp = $state(false);
 
 	const selectedLabel = $derived(options.find((o) => o.value === value)?.label ?? '');
 
@@ -70,6 +72,7 @@
 		const panelH = rowsHeight(filtered, 8).height + 2;
 		const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH, gap: 4 });
 		dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+		flipUp = r.flipUp;
 	}
 
 	function openMenu() {
@@ -197,15 +200,16 @@
 	</div>
 
 	{#if open}
-		<div class="combobox-panel" style={dropdownStyle}>
+		<div class="combobox-panel" style={dropdownStyle} in:menuIn={{ up: flipUp }} out:menuOut={{ up: flipUp }}>
 			{#if filtered.length > 0}
 				<span class="combobox-count">{filtered.length} 项</span>
 			{/if}
 			<div class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
+				<!-- 单 pill → 主题色实心（见 Select 里的说明） -->
 				<PillTrack
 					container={listEl}
 					activeSelector=".combobox-option.active:not(.selected)"
-					background="var(--accent-sub)"
+					background="var(--primary)"
 					radius="var(--radius-md)"
 				/>
 				{#if !filtered.length}
@@ -376,8 +380,10 @@
 		cursor: pointer;
 		transition: color 0.1s, background-color 0.1s;
 	}
-	.combobox-option.active {
-		color: var(--text-strong);
+	/* 落点行 pill 是实心主题色 → 文字转白（--accent-text）；选中行不在此列 */
+	.combobox-option.active:not(.selected),
+	.combobox-option:hover:not(.selected) {
+		color: var(--accent-text);
 	}
 	.combobox-option.selected {
 		background-color: var(--primary-soft);

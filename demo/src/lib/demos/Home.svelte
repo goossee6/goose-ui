@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Card, Tag, Avatar, Toggle, ProgressBar, TitleBar, type WindowController, themeStore, toggleThemeFromEvent } from "goose-ui";
+  import { Button, Card, Tag, Avatar, Toggle, ProgressBar, TitleBar, Tooltip, type WindowController, themeStore, toggleThemeFromEvent } from "goose-ui";
   import Rocket from "@lucide/svelte/icons/rocket";
   import BookOpen from "@lucide/svelte/icons/book-open";
   import Sparkles from "@lucide/svelte/icons/sparkles";
@@ -174,9 +174,11 @@
               <div class="hp-win-body">
                 <nav class="hp-rail" aria-label="侧边导航">
                   {#each rail as r (r.label)}
-                    <button type="button" class="hp-rail-btn" class:active={r.active} title={r.label} aria-label={r.label}>
-                      <r.icon size={20} />
-                    </button>
+                    <Tooltip title={r.label} placement="right">
+                      <button type="button" class="hp-rail-btn" class:active={r.active} aria-label={r.label}>
+                        <r.icon size={20} />
+                      </button>
+                    </Tooltip>
                   {/each}
                 </nav>
 
@@ -244,10 +246,12 @@
           </div>
 
           {#if winMin}
-            <button type="button" class="hp-dock" onclick={restoreWin} title="点击恢复">
-              <Box size={16} />
-              <span>Goose Studio · 已最小化</span>
-            </button>
+            <Tooltip title="点击恢复" placement="top">
+              <button type="button" class="hp-dock" onclick={restoreWin}>
+                <Box size={16} />
+                <span>Goose Studio · 已最小化</span>
+              </button>
+            </Tooltip>
           {/if}
         {:else}
           <div class="hp-closed">

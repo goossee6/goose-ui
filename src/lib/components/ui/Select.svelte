@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends string | number">
 	import { onMount, tick } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 	import { rowsHeight } from './rowHeight';
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
@@ -45,6 +46,8 @@
 	let mounted = $state(false);
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
+	// 面板是否翻到触发器上方：进出场位移方向与缩放锚边都靠它决定
+	let flipUp = $state(false);
 	let wrapperEl: HTMLElement;
 	let dropdownEl = $state<HTMLElement | null>(null);
 	let scrollEl = $state<HTMLElement | null>(null);
@@ -120,6 +123,7 @@
 			side: placement === 'left' || placement === 'right' ? placement : undefined,
 		});
 		dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+		flipUp = r.flipUp;
 		mounted = true;
 	}
 
@@ -187,12 +191,24 @@
 	</button>
 
 	{#if open && mounted}
-		<div class="select-dropdown" bind:this={dropdownEl} use:portal style={dropdownStyle} role="listbox" id={listId}>
+		<div
+			class="select-dropdown"
+			bind:this={dropdownEl}
+			use:portal
+			style={dropdownStyle}
+			role="listbox"
+			id={listId}
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
+		>
 			<div class="select-scroll" bind:this={scrollEl}>
+				<!-- 单 pill：列表里只有「指针/方向键落点」这一个高亮，没有第二个选中 pill。
+				     单 pill 一律用主题色实心（与侧栏的激活项同一套配色），文字转 --accent-text；
+				     选中行不归它管 —— 那行有勾 + 淡染底，是常驻状态，不是 pill。 -->
 				<PillTrack
 					container={scrollEl}
 					activeSelector=".select-option--active:not(.select-option--selected)"
-					background="var(--accent-sub)"
+					background="var(--primary)"
 					radius="var(--radius-md)"
 				/>
 				{#if options.length === 0}
@@ -267,7 +283,7 @@
 		padding: var(--sp-sm);
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
-		background-color: var(--surface);
+		background-color: var(--popup-surface);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 		color: var(--text);
 	}
@@ -294,7 +310,7 @@
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
 		/* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
-		background-color: color-mix(in srgb, var(--surface) 80%, transparent);
+		background-color: color-mix(in srgb, var(--popup-surface) 80%, transparent);
 		backdrop-filter: blur(12px);
 	}
 	.select-empty { padding: var(--sp-lg) var(--sp-lg); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
@@ -315,8 +331,10 @@
 		cursor: pointer;
 		transition: color 0.1s, background-color 0.1s;
 	}
-	.select-option:hover { color: var(--text-strong); }
-	.select-option--active { color: var(--text-strong); }
+	/* 落点行的 pill 是实心主题色，文字必须转成 --accent-text（白），
+	   否则深色字压在品牌色上看不清。选中行不在此列：它靠勾 + 淡染底表达状态。 */
+	.select-option:hover:not(.select-option--selected) { color: var(--accent-text); }
+	.select-option--active:not(.select-option--selected) { color: var(--accent-text); }
 	.select-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
 	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
 	.select-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
@@ -331,10 +349,8 @@
 	.select-meta--good { background-color: var(--success-soft); color: var(--success-text); }
 	.select-meta--medium { background-color: #fef3c7; color: #d97706; }
 	.select-meta--bad { background-color: var(--danger-soft); color: var(--danger-text); }
-	:global(.dark) .select-dropdown { background-color: var(--surface); color: var(--text); }
-	:global(.dark) .select-group { background-color: var(--surface); }
+	:global(.dark) .select-dropdown { background-color: var(--popup-surface); color: var(--text); }
+	:global(.dark) .select-group { background-color: var(--popup-surface); }
 	:global(.dark) .select-option { color: var(--text); }
-	:global(.dark) .select-option:hover,
-	:global(.dark) .select-option--active,
 	:global(.dark) .select-option--selected { color: var(--text-strong); }
 </style>

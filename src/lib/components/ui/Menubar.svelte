@@ -86,6 +86,8 @@
 			items={menu.items}
 			disabled={menu.disabled}
 			triggerMenu={menu.value}
+			triggerVariant="ghost"
+			triggerSize={34}
 			onOpenChange={(o) => (o ? openMenu(menu.value) : closeMenu())}
 			onselect={handleSelect(menu.value)}
 		>
@@ -115,19 +117,9 @@
 	.menubar :global(.dropdown-root) {
 		display: inline-block;
 	}
-	.menubar :global(.dropdown-trigger) {
-		border: none;
-		background: none;
-		padding: var(--sp-md) var(--sp-lg);
-		border-radius: var(--radius-md);
-	}
-	.menubar :global(.dropdown-trigger:hover) {
-		background-color: var(--hover);
-	}
-	.menubar :global(.dropdown-trigger[aria-expanded='true']) {
-		background-color: var(--hover);
-		color: var(--text-strong);
-	}
+	/* 触发器外观交给 Button（ghost + 34px 紧凑高度，见上面的 trigger* props）：
+	   展开态的底色由 Button 的 .btn-ghost[aria-expanded='true'] 负责，
+	   这里不再覆写任何 .dropdown-trigger 样式。 */
 	.menubar-trigger {
 		display: inline-flex;
 		align-items: center;

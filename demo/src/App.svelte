@@ -248,7 +248,7 @@
     justify-content: space-between;
   }
   .footer-version {
-    font-size: 11px;
+    /* 字号交给 Sidebar 的 --sb-font-label：页脚不该自带一套 11px */
     color: var(--text-muted);
   }
   /* Props 卡片与 CodePreview 卡片同宽并居中。

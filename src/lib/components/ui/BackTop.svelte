@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Tooltip from './Tooltip.svelte';
+
 	let {
 		visibilityHeight = 200,
 		duration = 300,
@@ -86,11 +88,15 @@
 
 <span class="back-top-root" bind:this={rootEl}>
 	{#if visible}
-		<button type="button" class="back-top {cls}" style={style} aria-label={label} title={label} onclick={backTop}>
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-				<path d="m18 15-6-6-6 6" />
-			</svg>
-		</button>
+		<!-- 纯图标按钮，提示走 Tooltip：原生 title 的样式与主题无关，
+		     暗色下会弹出一块系统浅色方块。 -->
+		<Tooltip title={label} placement="left">
+			<button type="button" class="back-top {cls}" style={style} aria-label={label} onclick={backTop}>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="m18 15-6-6-6 6" />
+				</svg>
+			</button>
+		</Tooltip>
 	{/if}
 </span>
 

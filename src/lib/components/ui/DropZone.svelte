@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import Button from './Button.svelte';
+	import Tooltip from './Tooltip.svelte';
 	import { formatBytes } from '../../utils/format';
 
 	let {
@@ -95,7 +96,10 @@
 		<ul class="drop-zone-files">
 			{#each zoneFiles as f (f.name + ':' + f.size)}
 				<li class="drop-zone-file">
-					<span class="drop-zone-file-name" title={f.name}>{f.name}</span>
+					<!-- 文件名单行省略，完整名走 Tooltip（原生 title 与主题无关） -->
+					<Tooltip title={f.name} class="dz-name-tip" maxWidth={420}>
+						<span class="drop-zone-file-name">{f.name}</span>
+					</Tooltip>
 					<span class="drop-zone-file-size">{formatBytes(f.size)}</span>
 				</li>
 			{/each}
@@ -185,6 +189,12 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		text-align: left;
+		min-width: 0;
+	}
+	/* 文件名的 Tooltip 触发器才是 li 的 flex 项：吃掉「文件大小」之外的宽度，
+	   内层 span 才有确定宽度做省略。 */
+	.drop-zone-file :global(.dz-name-tip) {
+		flex: 1 1 auto;
 		min-width: 0;
 	}
 	.drop-zone-file-size {

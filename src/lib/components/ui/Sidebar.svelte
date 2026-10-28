@@ -2,6 +2,7 @@
   import { untrack } from 'svelte';
   import type { Component, Snippet } from 'svelte';
   import Icon from './Icon.svelte';
+  import { menuIn, menuOut } from './menuTransition';
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
@@ -9,6 +10,7 @@
   import PillTrack from './PillTrack.svelte';
   import Collapsible from './Collapsible.svelte';
   import ThemeToggle from './ThemeToggle.svelte';
+  import Tooltip from './Tooltip.svelte';
 
   export interface SidebarTabItem {
     value: string;
@@ -184,6 +186,30 @@
 
   let navEl = $state<HTMLElement | null>(null);
 
+  /**
+   * 滚动条实测宽度，写进 nav 的 --sb-scroll。
+   *
+   * 宽度不该写死：全局 `* { scrollbar-width: thin }` 让各平台的滚动条宽度各不相同
+   * （Windows 约 10px，macOS 的覆盖式滚动条是 0）。猜错的后果很具体——右侧留白
+   * 比左侧多或少几像素。实测一次就够，但折叠/展开会切滚动条槽（收起态没有槽），
+   * 所以跟着 collapsed 重测。
+   */
+  let scrollbarW = $state(0);
+
+  $effect(() => {
+    const nav = navEl;
+    void collapsed; // 折叠态没有滚动条槽，重测
+    if (!nav) return;
+    const measure = () => {
+      const w = nav.offsetWidth - nav.clientWidth;
+      if (w !== scrollbarW) scrollbarW = w;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(nav);
+    return () => ro.disconnect();
+  });
+
   function scrollActiveIntoView() {
     const item = navEl?.querySelector<HTMLElement>('.nav-item--active');
     item?.scrollIntoView({ block: 'nearest' });
@@ -289,7 +315,7 @@
   class:sidebar--embedded={embedded}
   class:sidebar--shadow={shadow}
   class:sidebar--radius={radius}
-  style="{widthStyle}{style}"
+  style="{widthStyle}{style}--sb-scroll:{scrollbarW}px;"
   role="navigation"
 >
   <div class="sidebar-header">
@@ -314,17 +340,19 @@
     {#each groups as entry, gi}
       {#if isItem(entry)}
         {#if collapsed}
-          <button
-            type="button"
-            class="group-icon-btn"
-            class:group-icon-btn--active={activeTab === itemValue(entry)}
-            onclick={() => selectTab(itemValue(entry))}
-            title={itemLabel(entry)}
-          >
-            {#if entry.icon}
-              <Icon icon={entry.icon} size={18} />
-            {/if}
-          </button>
+          <!-- 折叠态只剩图标，标签走 Tooltip（原来靠原生 title，样式与主题无关）。 -->
+          <Tooltip title={itemLabel(entry)} placement="right" class="sb-tip">
+            <button
+              type="button"
+              class="group-icon-btn"
+              class:group-icon-btn--active={activeTab === itemValue(entry)}
+              onclick={() => selectTab(itemValue(entry))}
+            >
+              {#if entry.icon}
+                <Icon icon={entry.icon} size={16} />
+              {/if}
+            </button>
+          </Tooltip>
         {:else}
           <button
             type="button"
@@ -333,7 +361,7 @@
             onclick={() => selectTab(itemValue(entry))}
           >
             {#if entry.icon}
-              <Icon icon={entry.icon} size={16} class="nav-item-icon" />
+              <Icon icon={entry.icon} size={14} class="nav-item-icon" />
             {/if}
             <span class="nav-item-label">{itemLabel(entry)}</span>
           </button>
@@ -341,16 +369,19 @@
       {/if}
       {#if isGroup(entry)}
         {#if collapsed}
+          <!-- 分组按钮不套 Tooltip、也不再挂原生 title：悬停本来就会弹出分组浮层
+               （hoverShow），标题已经在浮层里显示；再叠一层系统 tooltip 既是
+               重复提示，也是这套界面里唯一不跟主题走的文字块。 -->
           <button
             type="button"
             class="group-icon-btn"
             class:group-icon-btn--active={hasActiveItem(entry)}
             onmouseenter={(e) => hoverShow(gi, e)}
             onmouseleave={hoverHide}
-            title={groupTitle(entry)}
+            aria-label={groupTitle(entry)}
           >
             {#if groupIcon(entry)}
-              <Icon icon={groupIcon(entry)!} size={18} />
+              <Icon icon={groupIcon(entry)!} size={16} />
             {/if}
           </button>
         {:else}
@@ -363,7 +394,7 @@
               >
                 {#snippet trigger()}
                   {#if entry.icon}
-                    <span class="group-icon"><Icon icon={entry.icon} size={16} /></span>
+                    <span class="group-icon"><Icon icon={entry.icon} size={12} /></span>
                   {/if}
                   <span class="group-title">{title}</span>
                   <span
@@ -381,7 +412,7 @@
                     onclick={() => selectTab(item.value)}
                   >
                     {#if item.icon}
-                      <Icon icon={item.icon} size={16} class="nav-item-icon" />
+                      <Icon icon={item.icon} size={14} class="nav-item-icon" />
                     {/if}
                     <span class="nav-item-label">{item.label}</span>
                   </button>
@@ -397,7 +428,7 @@
                     onclick={() => selectTab(item.value)}
                   >
                     {#if item.icon}
-                      <Icon icon={item.icon} size={16} class="nav-item-icon" />
+                      <Icon icon={item.icon} size={14} class="nav-item-icon" />
                     {/if}
                     <span class="nav-item-label">{item.label}</span>
                   </button>
@@ -411,18 +442,18 @@
     {#if endItems?.length}
       {#each endItems as item, i}
         {#if collapsed}
-          <button
-            type="button"
-            class="group-icon-btn group-icon-btn--end"
-            class:end-first={i === 0}
-            class:group-icon-btn--active={activeTab === item.value}
-            onclick={() => selectTab(item.value)}
-            title={itemLabel(item)}
-          >
-            {#if item.icon}
-              <Icon icon={item.icon} size={18} />
-            {/if}
-          </button>
+          <Tooltip title={itemLabel(item)} placement="right" class={`sb-tip ${i === 0 ? 'end-first' : ''}`}>
+            <button
+              type="button"
+              class="group-icon-btn group-icon-btn--end"
+              class:group-icon-btn--active={activeTab === item.value}
+              onclick={() => selectTab(item.value)}
+            >
+              {#if item.icon}
+                <Icon icon={item.icon} size={16} />
+              {/if}
+            </button>
+          </Tooltip>
         {:else}
           <button
             type="button"
@@ -432,7 +463,7 @@
             onclick={() => selectTab(item.value)}
           >
             {#if item.icon}
-              <Icon icon={item.icon} size={16} class="nav-item-icon" />
+              <Icon icon={item.icon} size={14} class="nav-item-icon" />
             {/if}
             <span class="nav-item-label">{itemLabel(item)}</span>
           </button>
@@ -444,7 +475,7 @@
       itemSelector=".nav-item, .collapsible-trigger"
       activeSelector={activeSel}
       background="var(--primary)"
-      hoverBackground="var(--accent-sub)"
+      hoverBackground="var(--hover)"
       radius="var(--radius-md)"
       zIndex={-1}
     />
@@ -467,12 +498,14 @@
   <div
     class="sidebar-popover"
     style={popoverStyle}
+    in:menuIn
+    out:menuOut
     onmouseenter={hoverCancelHide}
     onmouseleave={hoverHide}
   >
     {#if popoverEntry && groupIcon(popoverEntry)}
       <div class="popover-header">
-        <Icon icon={groupIcon(popoverEntry)!} size={14} />
+        <Icon icon={groupIcon(popoverEntry)!} size={12} />
         <span>{groupTitle(popoverEntry)}</span>
       </div>
     {/if}
@@ -493,6 +526,44 @@
 {/if}
 
 <style>
+  /* ── 度量 ──────────────────────────────────────────────────────────────────
+     侧栏里所有行、组头、页脚、折叠弹层的尺寸都从这一组变量派生，改一处全跟着走。
+     折叠弹层是 <aside> 的**兄弟节点**，继承不到 aside 上的自定义属性，
+     所以下面这条选择器把它也算进来。
+
+     横向只有两条规则，别的都从它们推：
+       · --sb-inset（10）  块（行 / 组头 / hover 药丸）的边缘到侧栏边；
+       · --sb-pad（10）    块内左右内边距 → 图标 / 文字左缘 = 边缘 + 10。
+    滚动条槽（--sb-scroll，常驻一条滚动条的宽度）必须算进去，否则它一出现就把内容整体左移、
+     右侧留白比左侧少一条滚动条的宽度。于是派生出两个值：
+       · --sb-rail = inset + scroll（16）  滚动区两侧的视觉留白，也是块的边缘；
+       · --sb-edge = rail + pad（26）      文字 / 图标的左缘。
+     header 与 footer 在滚动区之外，直接用这两个值对齐行。
+
+     纵向同理：
+       · --sb-row-h（36）  每行 = 14px 文字 + 上下各 ~8px 留白（点击区 36 高，够按）；
+                          组头用同一个高度，所以「组头 → 第一项」的节奏和「项 → 项」一致。
+       · 组内 2px、组间 16px —— 靠间距本身就分得清组，不用再加分隔线。 */
+  .sidebar,
+  .sidebar-popover {
+    --sb-inset: 10px;
+    --sb-pad: 10px;
+    --sb-scroll: 10px; /* theme.css 的 * { scrollbar-width: thin } 在 Windows 上约 10px；JS 会实测覆盖 */
+    --sb-rail: calc(var(--sb-inset) + var(--sb-scroll));
+    --sb-edge: calc(var(--sb-rail) + var(--sb-pad));
+    --sb-row-h: 36px;
+    --sb-radius: var(--radius-md);
+    --sb-font: 14px; /* 导航项 / 顶层项 / 弹层项 */
+    --sb-font-label: 12px; /* 组头 / 弹层组头 / 页脚（小标签） */
+    --sb-font-logo: 15px;
+    --sb-icon: 14px; /* 行内图标：lucide 的图形在 24 视框内还有 ~3 的内缩，14 的视觉大小略小于 14px 文字 */
+    --sb-icon-lg: 16px; /* 折叠按钮 / 折叠态的图标按钮 */
+    --sb-gap-icon: 8px; /* 图文间距，全侧栏一致 */
+    --sb-gap-row: 2px;
+    --sb-gap-group: 16px;
+    --sb-hit: 32px; /* 图标按钮的最小点击区 */
+  }
+
   /* ── Base ────────────────────────────────────────────────────────────────── */
   .sidebar {
     --sidebar-w: 220px;
@@ -548,13 +619,17 @@
   }
 
   /* ── Header ──────────────────────────────────────────────────────────────── */
+  /* header 在滚动区之外，用派生值手工对齐行：
+     左边 = --sb-edge（内容左缘）→ logo 与组标题、导航项图标同一条竖线；
+     右边 = --sb-rail（块边缘）→ 折叠按钮的悬停底与行的药丸同一条右边界。 */
   .sidebar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 14px 12px;
+    gap: var(--sb-gap-icon);
+    padding: 0 var(--sb-rail) 12px var(--sb-edge);
     border-bottom: 1px solid var(--border);
-    min-height: 32px;
+    min-height: var(--sb-row-h);
   }
   .sidebar--collapsed .sidebar-header {
     justify-content: center;
@@ -562,21 +637,23 @@
   }
   .header-content { display: contents; }
   .logo {
-    font-size: 17px;
+    font-size: var(--sb-font-logo);
     font-weight: 700;
     color: var(--text-strong);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     white-space: nowrap;
   }
+  /* 点击区从 26 提到 32（--sb-hit）：原来的方框比行高矮一截，
+     悬停时还得瞄着点。圆角与行一致，hover 底才像同一套控件。 */
   .collapse-btn {
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: var(--sb-hit);
+    height: var(--sb-hit);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--sb-radius);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
@@ -588,23 +665,51 @@
   }
 
   /* ── Nav ─────────────────────────────────────────────────────────────────── */
+  /* 滚动条是「两侧留白一致」唯一的破坏者：经典滚动条占宽度，一出现就把内容整体左移，
+     药丸的右边缘比左边缘窄一条滚动条的宽度。这里把它算进 padding——
+     左内缩 = rail（inset + scroll），右侧 = inset + 滚动条本身，两边都是 rail。
+     `scrollbar-gutter: stable` 让这条槽位常驻，避免「内容刚够高 → 出现滚动条 → 整列抖一下」。
+
+     宽度也不该写死：theme.css 全局写了 `* { scrollbar-width: thin }`，于是所有滚动条都走
+     原生 thin（Windows 上实测 10px），而 ::-webkit-scrollbar 的宽度在这条生效后是被忽略的。
+     10px 只是首帧兜底，真实值由 JS 实测 offsetWidth - clientWidth 写进 --sb-scroll
+     （见 scrollbarW），任何引擎、任何滚动条宽度下两侧留白都真的相等。 */
   .sidebar-nav {
+    --sb-scroll: 10px;
     position: relative;
     flex: 1;
     min-height: 0;
-    /* auto：未溢出时不占渲染空间（收起态 8 个图标从不溢出 → 无滚动条、无预留槽）。
-       展开态列表超高时才真正分配滚动条，此时 stable 的布局位移已无关紧要 */
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0 8px 8px;
+    scrollbar-gutter: stable;
+    padding: 0 var(--sb-inset) 8px var(--sb-rail);
     display: flex;
     flex-direction: column;
+    /* 组间 16：用 gap 而不是 margin——endItems 的「贴底」靠 margin-top:auto，
+       一旦被更高特异性的 margin 规则覆盖就失效（曾经踩过）。 */
+    gap: var(--sb-gap-group);
+  }
+  /* 折叠态是一列图标、从不溢出，不需要常驻槽位：去掉后左右内缩恢复对称，
+     图标列才能落在 56px 宽的正中间。 */
+  .sidebar--collapsed .sidebar-nav {
+    scrollbar-gutter: auto;
+    padding-inline: var(--sb-inset);
+    gap: 0;
   }
   /* endItems：空间有余量时贴底（auto margin），列表超高时顺次接在末尾 */
   .sidebar-nav > * { flex-shrink: 0; }
   .sidebar-nav > :first-child { margin-top: 8px; }
   .nav-item--end.end-first,
   .group-icon-btn--end.end-first { margin-top: auto; }
+  /* 折叠态的图标按钮外面套了 Tooltip 触发器，它取代按钮成了 .sidebar-nav 的
+     直接子项：上面三条 `> *` 规则（不被压缩 / 首项上边距 / end 项贴底）
+     都命中不到按钮了，得原样落到触发器这一层，否则贴底的项会失去 auto margin。 */
+  .sidebar-nav > :global(.sb-tip) {
+    flex-shrink: 0;
+    width: 100%;
+  }
+  .sidebar-nav > :global(.sb-tip:first-child) { margin-top: 8px; }
+  .sidebar-nav > :global(.sb-tip.end-first) { margin-top: auto; }
 
   /* ── Group header (expanded)：Collapsible 触发区/根覆写（同 Accordion 先例） ── */
   /* 菜单分组不要卡片边框；overflow visible 保住分组头 position:sticky 吸顶 */
@@ -613,23 +718,27 @@
     border-radius: 0;
     overflow: visible;
   }
-  /* 几何与 .nav-item 对齐：同宽（nav content box）、同间隙（两侧 8px）、同高（37px）、同圆角 */
+  /* 几何与 .nav-item 完全同构：同左右边缘（--sb-pad）、同高（--sb-row-h）、同圆角、
+     同图文间距。组头是「标签」不是「项」，所以字号降一档（--sb-font-label），
+     大写 + 字距把它和可点击的导航项区分开。 */
   .sidebar-nav :global(.collapsible-trigger) {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 10px;
+    gap: var(--sb-gap-icon);
     position: sticky;
     top: 0;
-    padding: 9px 14px;
+    height: var(--sb-row-h);
+    padding: 0 var(--sb-pad);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--sb-radius);
     background: transparent;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: var(--sb-font-label);
     font-weight: 600;
+    line-height: 1.2;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     cursor: pointer;
     text-align: left;
     transition: color 0.15s ease, background 0.22s ease-out;
@@ -651,8 +760,13 @@
     /* 同色自背景（= pill hover 色叠 surface，不透明）：与下层 pill 同色叠加无视觉冲突 */
     background: color-mix(in srgb, var(--accent) 15%, var(--surface));
   }
-  /* 菜单分组内容不做卡片式内边距/弱化色/分隔线（Collapsible 内容默认样式覆写） */
+  /* 菜单分组内容不做卡片式内边距/弱化色/分隔线（Collapsible 内容默认样式覆写）。
+     flex + gap 负责「组内 2px」：项与项之间不需要各自写 margin，
+     收起的空内容也不会留下残距。 */
   .sidebar-nav :global(.collapsible-body) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-gap-row);
     padding: 0;
     border-top: none;
     margin-top: 0;
@@ -664,10 +778,15 @@
   .sidebar-nav :global(.collapsible-chevron) {
     display: none;
   }
+  /* 槽宽固定成导航项图标的宽度（--sb-icon），里面放一个更小的图标：
+     组头是 12px 的标签，图标给 12 才符合「图标略小于文字」，
+     但槽宽不变，组标题因此仍与导航项标签落在同一条竖线上。 */
   .group-icon {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    width: var(--sb-icon);
   }
   .group-title {
     white-space: nowrap;
@@ -688,9 +807,9 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 36px;
+    height: var(--sb-row-h);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--sb-radius);
     background: none;
     color: var(--text-muted);
     cursor: pointer;
@@ -705,27 +824,31 @@
   }
 
   /* ── Nav items (expanded) ────────────────────────────────────────────────── */
+  /* 高度写死成 --sb-row-h（不是 padding 撑出来的）：一行 = 文字 + 上下留白，
+     同一套高度让「组头 / 顶层项 / 组内项」的节奏完全一致，点击区也稳定在 36。 */
   .nav-item {
     position: relative;
     z-index: 1;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--sb-gap-icon);
     width: 100%;
-    padding: 9px 14px 9px 20px;
-    scroll-margin-top: 44px;
+    height: var(--sb-row-h);
+    /* 组内项是 2 级：在内边距之上再缩进 10，靠缩进表达层级、不靠字号 */
+    padding: 0 var(--sb-pad) 0 calc(var(--sb-pad) + 10px);
+    scroll-margin-top: calc(var(--sb-row-h) + 8px);
     border: none;
     background: none;
     color: rgba(0, 0, 0, 0.45);
-    font-size: 14px;
+    font-size: var(--sb-font);
     text-align: left;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
-    border-radius: var(--radius-md);
+    border-radius: var(--sb-radius);
   }
-  /* 顶层项与分组标题（1 级）左缘对齐；组内项保持 2 级缩进 */
+  /* 顶层项与组标题（1 级）左缘对齐；组内项保持 2 级缩进 */
   .nav-item--top {
-    padding-left: 14px;
+    padding-left: var(--sb-pad);
   }
   .nav-item:hover {
     color: var(--primary);
@@ -767,14 +890,16 @@
   }
 
   /* ── Footer ──────────────────────────────────────────────────────────────── */
+  /* 左右与 header 同一把尺（--sb-edge），字号用标签档 —— 页脚是附属信息，
+     不该比导航项还大，也不该自成一套 11px。 */
   .sidebar-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 10px 14px 0;
+    gap: var(--sb-gap-icon);
+    padding: 12px var(--sb-rail) 0 var(--sb-edge);
     border-top: 1px solid var(--border);
-    font-size: 11px;
+    font-size: var(--sb-font-label);
     color: var(--text-muted);
     flex-shrink: 0;
   }
@@ -788,53 +913,60 @@
   }
 
   /* ── Popover ─────────────────────────────────────────────────────────────── */
+  /* 与展开态同一套度量：面板圆角 --radius-lg（浮层档）、行圆角 --sb-radius（行档），
+     行高 / 图文间距 / 字号都用侧栏的变量，视觉上就是「侧栏被抽出来一小块」。 */
   .sidebar-popover {
     position: fixed;
     z-index: var(--z-dropdown);
     min-width: 140px;
     max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-gap-row);
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(12px);
-    padding: 6px;
-    animation: popover-in 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @keyframes popover-in {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    padding: 8px;
+    /* 进出场由 menuIn/menuOut 负责（与其它浮层同一曲线）。
+       原来这里是一条 @keyframes，只有进入、没有离开：鼠标移开后面板是「啪」地消失的。 */
   }
   .popover-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sb-gap-icon);
     padding: 4px 8px 6px;
-    font-size: 11px;
+    font-size: var(--sb-font-label);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   .popover-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--sb-gap-icon);
     width: 100%;
-    padding: 6px 10px;
+    /* 32 高：弹层比展开态紧凑，但仍是完整的一行（文字 + 上下留白），
+       比原来的 6px 内边距（约 30 高、且上下不均）更好点 */
+    min-height: var(--sb-hit);
+    padding: 6px 8px;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--sb-radius);
     background: none;
     color: rgba(0, 0, 0, 0.65);
-    font-size: 13px;
+    font-size: var(--sb-font);
     text-align: left;
     cursor: pointer;
     transition: background 0.1s, color 0.1s;
   }
+  /* 折叠态弹层的行 hover：和展开态导航一致，用不透明的 --hover
+     （以前是 --accent-sub，15% 淡染叠在浮层上，深浅底色下浓淡不一） */
   .popover-item:hover {
-    background: var(--accent-sub);
+    background: var(--hover);
     color: var(--primary);
   }
   .popover-item-icon {
@@ -849,7 +981,7 @@
     color: rgba(255, 255, 255, 0.65);
   }
   :global(.dark) .popover-item:hover {
-    background: var(--accent-sub);
+    background: var(--hover);
     color: var(--primary);
   }
   :global(.dark) .popover-item--active {

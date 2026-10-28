@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { Card, Page, Separator, Button, Notification, Row, CodeBlock } from "goose-ui";
+  import { Card, Page, Separator, Button, Notification, Row, CodeBlock, Tooltip, copyToClipboard, themeStore } from "goose-ui";
   import { HUE_ROLES, colorStore, setColor, parseColor, formatHex, normalizeHex, maxChroma, setColors, DEFAULT_COLORS, type HueRole, type OklchColor } from "goose-ui";
+  import { tick } from "svelte";
   import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
   import CodePreview from "../CodePreview.svelte";
@@ -405,9 +406,290 @@
     { name: "石板灰", hex: "#64748b" },
     { name: "灰", hex: "#6b7280" },
   ];
+
+  /* ── 全部颜色变量 ────────────────────────────────────────────────────────────
+     上面两块管的是「能改的颜色」，这一段管「一共定义了哪些颜色」：
+     清单直接对着 theme.css 抄 —— 基础面、描边遮罩、文字、六个语义色系、
+     中性面、滚动条，再加两组合法别名。改主题文件时这张表要一起改。
+
+     色块只负责显示，值让浏览器算：color-mix()、var() 别名、以及暗色块里
+     没有重定义而落回 :root 的项，都只有「算出来」的才是真的。
+     所以渲染后统一量一次 computed background-color，存进 resolved。 */
+  type TokenDef = { name: string; note?: string };
+  /** gradient: 该组的 token 值是「整条渐变」而不是一个颜色 —— 不能量
+   *  backgroundColor（永远是 transparent），要改量 background-image 里的色相。 */
+  type TokenGroup = { title: string; note?: string; gradient?: boolean; tokens: TokenDef[] };
+
+  const TOKEN_GROUPS: TokenGroup[] = [
+    {
+      title: "基础面",
+      note: "大面积底色，全部为中性灰（R=G≈B），不带暖色偏移",
+      tokens: [
+        { name: "--bg", note: "页面底色" },
+        { name: "--surface", note: "卡片 / 输入框面" },
+        { name: "--surface-2", note: "次级面（表头、内嵌块）" },
+        { name: "--surface-3", note: "三级面（悬停行、块分隔）" },
+        { name: "--hover", note: "hover 底色（不透明；双 pill 场景用，单 pill 取 --primary）" },
+        { name: "--hover-line", note: "下划线 tab 的 hover 条（比 --hover 深/浅一档）" },
+        { name: "--popup-surface", note: "浮层底色（菜单 / 气泡；亮=纯白、暗=纯黑）" },
+      ],
+    },
+    {
+      title: "描边与遮罩",
+      note: "分割线、控件描边、弹层遮罩",
+      tokens: [
+        { name: "--border", note: "常规分割线" },
+        { name: "--border-strong", note: "控件描边 / 强分割" },
+        { name: "--overlay", note: "弹窗遮罩" },
+        { name: "--overlay-light", note: "轻遮罩（抽屉、浮层背后）" },
+      ],
+    },
+    {
+      title: "文字",
+      note: "三档灰度；语义色另有各自的 *-text",
+      tokens: [
+        { name: "--text", note: "正文" },
+        { name: "--text-strong", note: "标题 / 强调" },
+        { name: "--text-muted", note: "说明、占位符" },
+      ],
+    },
+    {
+      title: "主色 accent",
+      note: "激活项、主按钮、焦点环；可用 --c-accent 覆盖",
+      tokens: [
+        { name: "--accent", note: "主色" },
+        { name: "--accent-hover", note: "hover 加深" },
+        { name: "--accent-text", note: "主色底上的文字" },
+        { name: "--accent-sub", note: "15% 淡染（选中项底，不用于 pill / hover）" },
+        { name: "--accent-ring", note: "20%（焦点环）" },
+        { name: "--accent-strong", note: "30%（选中强调）" },
+      ],
+    },
+    {
+      title: "渐变（全项目统一）",
+      note: "只用这一套：主色色相 -30° → +30°，跨度 60°，中点落在主色上",
+      gradient: true,
+      tokens: [
+        { name: "--gradient-accent", note: "TitleBar logo、进度条 / 仪表 / 滑杆填充" },
+        { name: "--gradient-accent-hover", note: "hover：色相不动，整条提亮一档" },
+        { name: "--titlebar-logo-gradient", note: "旧名 → --gradient-accent" },
+        { name: "--titlebar-logo-gradient-hover", note: "旧名 → --gradient-accent-hover" },
+      ],
+    },
+    {
+      title: "互补色 complement",
+      note: "强调位 / 对比位、进度渐变终点",
+      tokens: [
+        { name: "--complement", note: "互补色" },
+        { name: "--complement-hover", note: "hover 加深" },
+        { name: "--complement-sub", note: "淡染" },
+        { name: "--complement-text", note: "浅底上的文字" },
+      ],
+    },
+    {
+      title: "完成 success",
+      note: "成功、通过、已保存",
+      tokens: [
+        { name: "--success", note: "完成色" },
+        { name: "--success-hover", note: "hover 加深" },
+        { name: "--success-soft", note: "淡底" },
+        { name: "--success-text", note: "浅底上的文字" },
+        { name: "--success-border", note: "淡底描边" },
+      ],
+    },
+    {
+      title: "信息 info",
+      note: "提示、中性通知、说明",
+      tokens: [
+        { name: "--info", note: "信息色" },
+        { name: "--info-hover", note: "hover 加深" },
+        { name: "--info-soft", note: "淡底" },
+        { name: "--info-text", note: "浅底上的文字" },
+        { name: "--info-border", note: "淡底描边" },
+      ],
+    },
+    {
+      title: "警告 warning",
+      note: "注意、风险、待处理",
+      tokens: [
+        { name: "--warning", note: "警告色" },
+        { name: "--warning-hover", note: "hover 加深" },
+        { name: "--warning-soft", note: "淡底" },
+        { name: "--warning-text", note: "浅底上的文字" },
+        { name: "--warning-border", note: "淡底描边" },
+      ],
+    },
+    {
+      title: "危险 danger",
+      note: "删除、错误、失败",
+      tokens: [
+        { name: "--danger", note: "危险色" },
+        { name: "--danger-hover", note: "hover 加深" },
+        { name: "--danger-soft", note: "淡底" },
+        { name: "--danger-text", note: "浅底上的文字" },
+        { name: "--danger-border", note: "淡底描边" },
+      ],
+    },
+    {
+      title: "中性面与次要色",
+      note: "无彩色面；Button variant=default 用的一套",
+      tokens: [
+        { name: "--neutral-bg", note: "→ --bg" },
+        { name: "--neutral-surface", note: "→ --surface" },
+        { name: "--neutral-surface-2", note: "→ --surface-2" },
+        { name: "--neutral-border", note: "→ --border" },
+        { name: "--secondary", note: "次要面" },
+        { name: "--secondary-hover", note: "次要面 hover" },
+        { name: "--secondary-soft", note: "更浅的次要面" },
+        { name: "--secondary-text", note: "次要面文字" },
+      ],
+    },
+    {
+      title: "滚动条",
+      note: "全站细滚动条（6px）",
+      tokens: [
+        { name: "--scrollbar", note: "滑块" },
+        { name: "--scrollbar-hover", note: "滑块 hover" },
+      ],
+    },
+    {
+      title: "兼容别名 · shadcn",
+      note: "全部指向上面某一档，值随目标一起变",
+      tokens: [
+        { name: "--background", note: "→ --bg" },
+        { name: "--foreground", note: "→ --text" },
+        { name: "--card", note: "→ --surface" },
+        { name: "--card-foreground", note: "→ --text" },
+        { name: "--popover", note: "→ --surface" },
+        { name: "--popover-foreground", note: "→ --text" },
+        { name: "--primary-foreground", note: "→ --accent-text" },
+        { name: "--secondary-foreground", note: "→ --secondary-text" },
+        { name: "--muted", note: "→ --surface-2" },
+        { name: "--muted-foreground", note: "→ --text-muted" },
+        { name: "--accent-surface", note: "中性高亮面（shadcn 语义）" },
+        { name: "--accent-foreground", note: "→ --secondary-text" },
+        { name: "--destructive", note: "→ --danger" },
+        { name: "--input", note: "→ --border" },
+        { name: "--ring", note: "→ --accent" },
+      ],
+    },
+    {
+      title: "兼容别名 · 旧名与通知底",
+      note: "--primary* 是 accent 体系的旧名；*-bg 供通知图标底板",
+      tokens: [
+        { name: "--primary", note: "→ --accent" },
+        { name: "--primary-hover", note: "→ --accent-hover" },
+        { name: "--primary-soft", note: "→ --accent-sub" },
+        { name: "--primary-text", note: "→ --accent-text" },
+        { name: "--success-bg", note: "→ --success-soft" },
+        { name: "--info-bg", note: "→ --info-soft" },
+        { name: "--warning-bg", note: "→ --warning-soft" },
+        { name: "--danger-bg", note: "→ --danger-soft" },
+      ],
+    },
+  ];
+
+  const COLOR_TOTAL = TOKEN_GROUPS.filter((g) => !g.gradient).reduce((n, g) => n + g.tokens.length, 0);
+  const GRADIENT_TOTAL = TOKEN_GROUPS.filter((g) => g.gradient).reduce((n, g) => n + g.tokens.length, 0);
+
+  /** 色板预览用的亮暗作用域：默认跟随全局主题，手动点过就不再跟 */
+  let themeView = $state<"light" | "dark">(themeStore.theme);
+  let themePinned = $state(false);
+
+  $effect(() => {
+    const t = themeStore.theme;
+    if (!themePinned) themeView = t;
+  });
+
+  function pickView(t: "light" | "dark"): void {
+    themePinned = true;
+    themeView = t;
+  }
+
+  /** 量值用的作用域根节点 + 量出来的结果（token → 实际颜色） */
+  let scopeEl = $state<HTMLElement>();
+  let resolved = $state<Record<string, string>>({});
+
+  /** rgb() / rgba() / color(srgb …) → #rrggbb；带透明度时补一个百分比。
+   *  color-mix() 有时被序列化成 color(srgb …)（分量是 0~1 的浮点），
+   *  不转就会在格子漏出一长串原始字符串。其它形式原样显示，不猜。 */
+  function describeColor(css: string): string {
+    let p: number[] = [];
+    const legacy = css.match(/^rgba?\(([^)]+)\)$/i);
+    const modern = css.match(/^color\(srgb\s+([^)]+)\)$/i);
+    if (legacy) {
+      p = legacy[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+    } else if (modern) {
+      p = modern[1].split(/[\s/]+/).filter(Boolean).map(Number);
+      p = [...p.slice(0, 3).map((n) => n * 255), ...(p.length > 3 ? [p[3]] : [])];
+    } else {
+      return css;
+    }
+    if (p.length < 3 || p.slice(0, 3).some((n) => Number.isNaN(n))) return css;
+    const hex = "#" + p.slice(0, 3).map((n) => Math.round(n).toString(16).padStart(2, "0")).join("");
+    const a = p.length > 3 ? p[3] : 1;
+    return a >= 0.999 ? hex : `${hex} · ${Math.round(a * 100)}%`;
+  }
+
+  /** 渐变 token 的「值」：把两端色相量出来写成 234° → 294°（跨 60°）。
+   *  渐变没有 backgroundColor 可量，但 computed background-image 里的 oklch
+   *  已经把 calc() 算完了，摘出两个 hue 就是这条渐变真实的起止色相。 */
+  function describeGradient(bgImage: string): string {
+    const hues = [...bgImage.matchAll(/oklch\(([^)]+)\)/gi)]
+      .map((m) => Number.parseFloat(m[1].split(/[\s/]+/).filter(Boolean)[2] ?? ""))
+      .filter((n) => Number.isFinite(n));
+    if (hues.length < 2) return "渐变";
+    const a = hues[0];
+    const b = hues[hues.length - 1];
+    const span = Math.round((((b - a) % 360) + 360) % 360);
+    return `${Math.round(a)}° → ${Math.round(b)}° · 跨 ${span}°`;
+  }
+
+  /** 亮暗切换、全局主题变化、用户改色之后都要重量 —— color-mix 与别名
+   *  的值全在浏览器里，只有量 computed style 才拿得到。 */
+  $effect(() => {
+    void themeView;
+    void themeStore.theme;
+    const custom = colorStore.colors;
+    for (const key of Object.keys(custom)) void custom[key as HueRole];
+    if (!scopeEl) return;
+    tick().then(() => {
+      const root = scopeEl;
+      if (!root) return;
+      const next: Record<string, string> = {};
+      for (const el of root.querySelectorAll<HTMLElement>(".ct-fill[data-token]")) {
+        const cs = getComputedStyle(el);
+        const token = el.dataset.token ?? "";
+        next[token] = el.classList.contains("ct-fill--grad")
+          ? describeGradient(cs.backgroundImage)
+          : describeColor(cs.backgroundColor);
+      }
+      resolved = next;
+    });
+  });
+
+  /** 刚复制的那一项：行内把值换成「已复制」——比每条弹一个通知安静得多，
+   *  连着抄十个 token 时不至于糊一屏 */
+  let copiedToken = $state("");
+  let copyTimer: ReturnType<typeof setTimeout> | null = null;
+
+  async function copyToken(name: string): Promise<void> {
+    const ok = await copyToClipboard(`var(${name})`);
+    if (!ok) {
+      Notification.error("复制失败，请手动选择");
+      return;
+    }
+    copiedToken = name;
+    if (copyTimer) clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => (copiedToken = ""), 1400);
+  }
+
+  $effect(() => () => {
+    if (copyTimer) clearTimeout(copyTimer);
+  });
 </script>
 
-<Page toc class="settings-page" title="设置 Settings" description="主题色配置：六个角色各一个 hex，可选预设或直接手写">
+<Page toc class="settings-page" title="设置 Settings" description="主题色配置：六个角色各一个 hex，可选预设或直接手写；页内附全部颜色变量一览">
   <CodePreview anchor="theme-color" anchorLevel={2} title="主题色配置（全局生效）" code={cssSource}>
     <div class="hue-list">
       {#each HUE_ROLES as role (role)}
@@ -417,18 +699,24 @@
         <div class="hue-row">
           <div class="hue-head">
             <!-- 色块兼作跳转按钮：点一下把下面的完整调色盘切到这个角色 -->
-            <button class="hue-swatch" style:background={draftHex(role)} title={`在调色盘里编辑${meta.label}`} aria-label={`在调色盘里编辑${meta.label}`} onclick={() => openPicker(role)}></button>
+            <Tooltip title={`在调色盘里编辑${meta.label}`} placement="bottom">
+              <button class="hue-swatch" style:background={draftHex(role)} aria-label={`在调色盘里编辑${meta.label}`} onclick={() => openPicker(role)}></button>
+            </Tooltip>
             <span class="hue-name">{meta.label}</span>
             <code class="hue-token">{draft.colors[role] ? `--c-${role}` : `--${role}`}</code>
             {#if !inSafe}
-              <span class="hue-warn" title="该色相在此角色上对比度可能偏低">对比度提示</span>
+              <Tooltip title="该色相在此角色上对比度可能偏低">
+                <span class="hue-warn">对比度提示</span>
+              </Tooltip>
             {/if}
           </div>
           <div class="hue-controls">
             <!-- 色票按钮就是入口：点它弹出下面的完整调色盘，不再在行内塞滑块 -->
-            <button class="hue-pick" style:background={draftHex(role)} title="点击打开调色盘" aria-label={`为${meta.label}打开调色盘`} onclick={() => openPicker(role)}>
-              <span class="hue-pick-label">{draftHex(role)}</span>
-            </button>
+            <Tooltip title="点击打开调色盘" class="hue-pick-tip" placement="bottom">
+              <button class="hue-pick" style:background={draftHex(role)} aria-label={`为${meta.label}打开调色盘`} onclick={() => openPicker(role)}>
+                <span class="hue-pick-label">{draftHex(role)}</span>
+              </button>
+            </Tooltip>
             <input
               class="hue-num"
               type="text"
@@ -586,15 +874,16 @@
 
         <div class="palette-swatches">
           {#each SWATCHES as sw (sw.name)}
-            <button
-              class="palette-swatch"
-              style:background={sw.hex}
-              title="{sw.name}（{sw.hex}）"
-              aria-label="使用{sw.name}"
-              onclick={() => {
-                // 直接落原 hex：走 parseColor→formatHex 会掉 1 bit（#ef4444 → #ef4445）
-                draftSetColor(paletteRole, sw.hex);
-              }}></button>
+            <Tooltip title={`${sw.name}（${sw.hex}）`}>
+              <button
+                class="palette-swatch"
+                style:background={sw.hex}
+                aria-label="使用{sw.name}"
+                onclick={() => {
+                  // 直接落原 hex：走 parseColor→formatHex 会掉 1 bit（#ef4444 → #ef4445）
+                  draftSetColor(paletteRole, sw.hex);
+                }}></button>
+            </Tooltip>
           {/each}
         </div>
       </div>
@@ -631,6 +920,71 @@
       </div>
     </div>
   </CodePreview>
+
+  <Card anchor="color-tokens" title="全部颜色变量（theme.css）">
+    <div class="ct-bar">
+      <span class="ct-bar-label">预览主题</span>
+      <div class="ct-seg">
+        <Button size="small" variant={themeView === "light" ? "primary" : "default"} onclick={() => pickView("light")}>亮色</Button>
+        <Button size="small" variant={themeView === "dark" ? "primary" : "default"} onclick={() => pickView("dark")}>暗色</Button>
+      </div>
+      <span class="ct-count">{COLOR_TOTAL} 个颜色变量 · {GRADIENT_TOTAL} 条渐变</span>
+      <span class="ct-hint">点色块复制 <code>var(--token)</code></span>
+    </div>
+
+    <!-- 这一块自带 light / dark 变量作用域：页面是亮色时也能看到暗色那套值，
+         反之亦然。class 加在容器上，主题变量只在这棵子树里换。 -->
+    <div class="ct-scope {themeView}" bind:this={scopeEl}>
+      {#each TOKEN_GROUPS as g (g.title)}
+        <section class="ct-group">
+          <div class="ct-group-head">
+            <span class="ct-group-title">{g.title}</span>
+            {#if g.note}<span class="ct-group-note">{g.note}</span>{/if}
+            <span class="ct-group-count">{g.tokens.length}</span>
+          </div>
+          {#if g.gradient}
+            <!-- 渐变组：色块换成一条色带，值量的是 background-image 两端的色相 -->
+            <div class="ct-grad-list">
+              {#each g.tokens as t (t.name)}
+                <Tooltip title={`${t.name}${t.note ? ` · ${t.note}` : ""} ｜ ${resolved[t.name] ?? "渐变"}`} delay={320} class="ct-tip">
+                  <button class="ct-item ct-item--grad" type="button" aria-label={`复制 var(${t.name})`} onclick={() => copyToken(t.name)}>
+                    <span class="ct-chip ct-chip--grad"><span class="ct-fill ct-fill--grad" data-token={t.name} style:background={`var(${t.name})`}></span></span>
+                    <span class="ct-text">
+                      <code class="ct-name">{t.name}</code>
+                      <span class="ct-val" class:is-copied={copiedToken === t.name}>{copiedToken === t.name ? "已复制" : (resolved[t.name] ?? "渐变")}</span>
+                    </span>
+                  </button>
+                </Tooltip>
+              {/each}
+            </div>
+          {:else}
+            <div class="ct-grid">
+              {#each g.tokens as t (t.name)}
+                <Tooltip title={`${t.name}${t.note ? ` · ${t.note}` : ""} ｜ ${resolved[t.name] ?? "—"}`} delay={320} class="ct-tip">
+                  <button class="ct-item" type="button" aria-label={`复制 var(${t.name})`} onclick={() => copyToken(t.name)}>
+                    <span class="ct-chip"><span class="ct-fill" data-token={t.name} style:background={`var(${t.name})`}></span></span>
+                    <span class="ct-text">
+                      <code class="ct-name">{t.name}</code>
+                      <span class="ct-val" class:is-copied={copiedToken === t.name}>{copiedToken === t.name ? "已复制" : (resolved[t.name] ?? "—")}</span>
+                    </span>
+                  </button>
+                </Tooltip>
+              {/each}
+            </div>
+          {/if}
+        </section>
+      {/each}
+    </div>
+
+    <p class="ct-note">
+      清单取自 <code>src/lib/styles/theme.css</code>，数值是本页实时算出的实际颜色 —— <code>color-mix()</code> 的淡染、
+      <code>var()</code> 别名都已展开，暗色块里没有重定义而落回 <code>:root</code> 的项（如 <code>--secondary-soft</code>）也如实显示。
+      带透明度的颜色铺在棋盘格上，能看出透出多少。仅 <code>--accent / --complement / --success / --info / --warning / --danger</code>
+      这六个角色可以用 <code>--c-&lt;角色&gt;</code> 覆盖，其余都是按它们或中性面派生的。
+      全项目只有一套渐变：<code>--gradient-accent</code> 取主色色相 <code>-30° → +30°</code>（跨度 60°），
+      <code>--gradient-accent-hover</code> 只提亮不改色相；<code>--titlebar-logo-gradient*</code> 是它的旧名。
+    </p>
+  </Card>
 
   <Card title="JS API（可持久化 / 供设置界面调用）">
     <PropsTable items={apiProps} />
@@ -822,6 +1176,13 @@
     transition:
       border-color 0.15s,
       transform 0.1s;
+  }
+  /* 色票外面套了 Tooltip 触发器：它继承了原来按钮的 flex:1，按钮再靠
+     flex:1 撑满触发器，视觉宽度才和改造前一致。 */
+  .hue-controls :global(.hue-pick-tip) {
+    flex: 1;
+    min-width: 0;
+    display: flex;
   }
   .hue-pick:hover {
     border-color: var(--primary);
@@ -1070,5 +1431,212 @@
     line-height: 1.6;
     color: var(--text-muted);
     border-top: 1px solid var(--border);
+  }
+
+  /* ── 全部颜色变量 ─────────────────────────────────────────────────────────
+     色块本身只声明 `background: var(--token)`，值由下面的 $effect 量出来。
+     预览区自带一套 light / dark 变量作用域，所以两个主题能直接对照。 */
+  .ct-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .ct-bar-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .ct-seg {
+    display: flex;
+    gap: 6px;
+  }
+  .ct-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .ct-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .ct-hint code {
+    padding: 1px 4px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  /* 预览画布：淡入用 --bg，和卡片自己的 --surface 拉开一层，看起来像「另一套主题的纸」。
+     color 也要在这里重设：容器本身继承的是页面那一套 --text，
+     不显式声明的话，没写 color 的后代文字会停在页面的颜色上。 */
+  .ct-scope {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    color: var(--text);
+
+    /* 别名必须在本作用域里重新声明一次。
+       自定义属性的 var() 是在「声明所在的元素」上就替换掉的，所以 :root 上的
+       --primary: var(--accent) 一旦在 html 上算成亮色，就会以那个结果继承下来，
+       嵌套的 .dark 容器怎么改 --accent 都追不回来。
+       重声明 = 让这些 var() 在这个子树里重新求值，暗色那张表才和真实暗色一致。
+       （--secondary-soft 这类具体色值不重声明：它在暗色下本来就没有覆盖，
+       落回 :root 属于真实行为，照原样显示。） */
+    --neutral-bg: var(--bg);
+    --neutral-surface: var(--surface);
+    --neutral-surface-2: var(--surface-2);
+    --neutral-border: var(--border);
+    --background: var(--bg);
+    --foreground: var(--text);
+    --card: var(--surface);
+    --card-foreground: var(--text);
+    --popover: var(--surface);
+    --popover-foreground: var(--text);
+    --primary-foreground: var(--accent-text);
+    --secondary-foreground: var(--secondary-text);
+    --muted: var(--surface-2);
+    --muted-foreground: var(--text-muted);
+    --accent-surface: var(--surface-2);
+    --accent-foreground: var(--secondary-text);
+    --destructive: var(--danger);
+    --input: var(--border);
+    --ring: var(--accent);
+    --primary: var(--accent);
+    --primary-hover: var(--accent-hover);
+    --primary-soft: var(--accent-sub);
+    --primary-text: var(--accent-text);
+    --success-bg: var(--success-soft);
+    --info-bg: var(--info-soft);
+    --warning-bg: var(--warning-soft);
+    --danger-bg: var(--danger-soft);
+  }
+  .ct-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .ct-group-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+  .ct-group-note {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .ct-group-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .ct-grid,
+  .ct-grad-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 2px;
+  }
+  /* 色带比色块宽，一行放不下就自动换行（4 条渐变最多 2 列） */
+  .ct-grad-list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  /* Tooltip 的触发器是组件内部的 span（inline-flex），要撑满格子只有 :global 够得到 */
+  .ct-grid :global(.ct-tip),
+  .ct-grad-list :global(.ct-tip) {
+    display: block;
+    min-width: 0;
+  }
+  .ct-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 5px 6px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.12s;
+  }
+  .ct-item:hover {
+    background: var(--surface-2);
+  }
+  .ct-item:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+  }
+  /* 棋盘格垫底：overlay / *-soft / border 都是半透明的，白底上看不出「透」。
+     格子 6px：8px 时一块 36px 的色块只剩 4×4 大格，半透明色看着像马赛克，
+     反而是格子本身抢了颜色。 */
+  .ct-chip {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    overflow: hidden;
+    background-image: repeating-conic-gradient(var(--surface-3) 0% 25%, var(--surface) 0% 50%);
+    background-size: 6px 6px;
+  }
+  /* 渐变是实色，不垫棋盘格；拉成一条才看得出 -30° → +30° 的走向 */
+  .ct-chip--grad {
+    width: 88px;
+    border-radius: 999px;
+    background-image: none;
+    background-color: var(--surface-2);
+  }
+  .ct-fill {
+    position: absolute;
+    inset: 0;
+  }
+  .ct-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .ct-name {
+    overflow: hidden;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .ct-val {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .ct-val.is-copied {
+    color: var(--accent);
+  }
+  .ct-note {
+    margin: 12px 0 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .ct-note code {
+    padding: 1px 4px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
   }
 </style>

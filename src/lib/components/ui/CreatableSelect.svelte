@@ -2,11 +2,13 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
+	import Tooltip from './Tooltip.svelte';
 
 	interface Props {
 		value?: string;
@@ -48,6 +50,7 @@
 	let creating = $state(false);
 	let activeIdx = $state(-1);
 	let dropdownStyle = $state('');
+	let flipUp = $state(false);
 	let wrapperEl: HTMLElement;
 	let ddEl = $state<HTMLElement | null>(null);
 	let listEl = $state<HTMLElement | null>(null);
@@ -163,6 +166,7 @@
 		const write = (h: number) => {
 			const r = floatingPosition(rect, { panelW: Math.max(240, rect.width), panelH: h, gap: 4 });
 			dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+			flipUp = r.flipUp;
 		};
 		write(estimateHeight());
 		mounted = true;
@@ -242,7 +246,15 @@
 		     role=listbox 下移到真正承载选项的 .cs-list，组合框语义放在搜索框上（它才是键盘焦点所在）。
 		     本 div 只是键盘代理（Esc/上下/回车），因此显式忽略「无 role 的静态元素带 keydown」。 -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="cs-dropdown" bind:this={ddEl} style={dropdownStyle} tabindex="-1" onkeydown={onDropdownKeydown}>
+		<div
+			class="cs-dropdown"
+			bind:this={ddEl}
+			style={dropdownStyle}
+			tabindex="-1"
+			onkeydown={onDropdownKeydown}
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
+		>
 			<div class="cs-header">{title}</div>
 			<div class="cs-search">
 				<Search size={14} class="cs-search-icon" />
@@ -263,10 +275,11 @@
 			</div>
 			<div class="cs-listwrap">
 				<div class="cs-list" bind:this={listEl} role="listbox" id={listId}>
+					<!-- 单 pill → 主题色实心（见 Select 里的说明） -->
 					<PillTrack
 						container={listEl}
 						activeSelector=".cs-option--active:not(.cs-option--selected)"
-						background="var(--accent-sub)"
+						background="var(--primary)"
 						radius="var(--radius-md)"
 					/>
 					{#if loading}
@@ -289,25 +302,28 @@
 						</div>
 					{:else}
 						{#each filtered as item, i (item)}
-							<button
-								type="button"
-								class="cs-option"
-								class:cs-option--active={i === activeIdx}
-								class:cs-option--selected={item === value}
-								onclick={() => choose(item)}
-								onmouseenter={() => activeIdx = i}
-								role="option"
-								id={`${listId}-${i}`}
-								aria-selected={item === value}
-								title={item}
-							>
-								<span class="cs-option-check" aria-hidden="true">
-									{#if item === value}
-										<Check size={14} />
-									{/if}
-								</span>
-								<span class="cs-option-label">{item}</span>
-							</button>
+							<!-- 选项文字会按列宽省略，完整值走 Tooltip。触发器是 span，
+							     必须显式撑满整行（否则 inline-flex 会在块容器里排成一行）。 -->
+							<Tooltip title={item} class="cs-opt-tip" maxWidth={420}>
+								<button
+									type="button"
+									class="cs-option"
+									class:cs-option--active={i === activeIdx}
+									class:cs-option--selected={item === value}
+									onclick={() => choose(item)}
+									onmouseenter={() => activeIdx = i}
+									role="option"
+									id={`${listId}-${i}`}
+									aria-selected={item === value}
+								>
+									<span class="cs-option-check" aria-hidden="true">
+										{#if item === value}
+											<Check size={14} />
+										{/if}
+									</span>
+									<span class="cs-option-label">{item}</span>
+								</button>
+							</Tooltip>
 						{/each}
 					{/if}
 				</div>
@@ -315,16 +331,17 @@
 			</div>
 			{#if onCreateItem}
 				<div class="cs-footer">
-					<button
-						type="button"
-						class="cs-create"
-						onclick={handleCreate}
-						disabled={!canCreate || creating}
-						title={canCreate ? `新建「${query.trim()}」` : '输入新名称后可新建'}
-					>
-						<Plus size={14} />
-						{canCreate ? `${createText}「${query.trim()}」` : createText}
-					</button>
+					<Tooltip title={canCreate ? `新建「${query.trim()}」` : '输入新名称后可新建'} class="cs-create-tip" maxWidth={320}>
+						<button
+							type="button"
+							class="cs-create"
+							onclick={handleCreate}
+							disabled={!canCreate || creating}
+						>
+							<Plus size={14} />
+							{canCreate ? `${createText}「${query.trim()}」` : createText}
+						</button>
+					</Tooltip>
 				</div>
 			{/if}
 		</div>
@@ -365,7 +382,7 @@
 		overflow: hidden;
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
-		background-color: var(--surface);
+		background-color: var(--popup-surface);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 		color: var(--text);
 	}
@@ -423,8 +440,15 @@
 		cursor: pointer;
 		transition: color 0.1s, background-color 0.1s;
 	}
-	.cs-option:hover { color: var(--text-strong); }
-	.cs-option--active { color: var(--text-strong); }
+	/* 落点行 pill 是实心主题色 → 文字转白（--accent-text）；选中行不在此列 */
+	.cs-option:hover:not(.cs-option--selected),
+	.cs-option--active:not(.cs-option--selected) { color: var(--accent-text); }
+	/* 选项的 Tooltip 触发器：显式撑满整行，避免 inline-flex 在块级滚动容器里
+	   把选项排成一行（.cs-list 不是 flex 布局，靠的是每个选项自己 100% 宽）。 */
+	.cs-list :global(.cs-opt-tip) {
+		display: flex;
+		width: 100%;
+	}
 	.cs-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
 	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
 	.cs-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
@@ -432,7 +456,13 @@
 	.cs-footer {
 		padding: var(--sp-sm) var(--sp-lg);
 		border-top: 1px solid var(--border);
-		background-color: var(--surface);
+		background-color: var(--popup-surface);
+	}
+	/* 新建按钮外面套了 Tooltip 触发器：用 flex 撑满，别让它多出一层行盒行高
+	   （.cs-footer 的高度会参与面板高度估算，多几像素就会抖一下）。 */
+	.cs-footer :global(.cs-create-tip) {
+		display: flex;
+		width: 100%;
 	}
 	.cs-create {
 		display: flex;
@@ -449,6 +479,6 @@
 		border-radius: var(--radius-md);
 		transition: background-color 0.1s;
 	}
-	.cs-create:hover:not(:disabled) { background-color: var(--primary-soft); }
+	.cs-create:hover:not(:disabled) { background-color: var(--hover); }
 	.cs-create:disabled { color: var(--text-muted); cursor: not-allowed; }
 </style>

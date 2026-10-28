@@ -6,6 +6,7 @@
 
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 	import Wheel from './Wheel.svelte';
 
 	let {
@@ -187,7 +188,16 @@
 	{/if}
 
 	{#if open}
-		<div class="tp-panel" bind:this={panelEl} style={panelStyle} class:flip-up={flipUp} role="dialog" aria-label="选择时间">
+		<div
+			class="tp-panel"
+			bind:this={panelEl}
+			style={panelStyle}
+			class:flip-up={flipUp}
+			role="dialog"
+			aria-label="选择时间"
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
+		>
 			<div class="tp-columns">
 				<Wheel items={hours} index={hIdx} ariaLabel="小时" onSettle={(i) => onSettle('h', hours[i])} />
 				<span class="tp-sep" aria-hidden="true">:</span>

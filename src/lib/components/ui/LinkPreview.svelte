@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -67,15 +68,6 @@
 		visible = false;
 	}
 
-	function cardFade(node: HTMLElement, params: { up: boolean }) {
-		return {
-			duration: 120,
-			css: (t: number) => {
-				const y = params.up ? 4 : -4;
-				return `opacity: ${t}; transform: translateY(${(1 - t) * y}px);`;
-			},
-		};
-	}
 
 	$effect(() => {
 		if (visible && cardEl) measure();
@@ -121,7 +113,8 @@
 			role="tooltip"
 			bind:this={cardEl}
 			style="left:{pos.left}px;top:{pos.top}px"
-			transition:cardFade={{ up: flipUp }}
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
 		>
 			{#if image}
 				<img class="link-preview-image" src={image} alt="" loading="lazy" />

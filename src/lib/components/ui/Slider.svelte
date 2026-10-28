@@ -166,8 +166,15 @@
 		left: 0;
 		height: 6px;
 		border-radius: 9999px;
-		background: linear-gradient(90deg, var(--accent), var(--complement));
+		/* 统一强调渐变：主色 -30° → +30°（见 theme.css） */
+		background: var(--gradient-accent);
 		pointer-events: none;
+		transition: background 0.18s ease;
+	}
+	/* hover / 拖动时整条提亮一档（色相不变），和外面的 thumb 光环一起给反馈 */
+	.slider-track:hover .slider-fill,
+	.slider-track:focus-visible .slider-fill {
+		background: var(--gradient-accent-hover);
 	}
 	.slider-thumb {
 		position: absolute;

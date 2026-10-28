@@ -30,11 +30,18 @@
 
   const dropdownProps: PropsTableItem[] = [
     { name: "open", desc: "展开状态（双向绑定）", type: "boolean", default: "false" },
-    { name: "items", desc: "菜单项（label/value/disabled/danger/separator/icon）", type: "DropdownMenuItem[]", default: "[]" },
+    { name: "items", desc: "菜单项（label/value/disabled/danger/separator/icon/switch/checked）", type: "DropdownMenuItem[]", default: "[]" },
+    { name: "items[].switch", desc: "该行渲染成开关行（右侧小号开关，点击不关闭菜单）", type: "boolean", default: "false" },
+    { name: "items[].checked", desc: "开关行是否打开", type: "boolean", default: "false" },
     { name: "placement", desc: "弹出方位", type: "'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'", default: "'bottom-start'" },
     { name: "onselect", desc: "选中回调", type: "(item, index) => void", default: "—" },
     { name: "onOpenChange", desc: "开关回调（受控时用）", type: "(open: boolean) => void", default: "—" },
-    { name: "trigger", desc: "触发区（snippet）", type: "Snippet", default: "—" },
+    { name: "triggerVariant", desc: "触发器按钮的 Button 变体", type: "'primary' | 'default' | 'ghost' | 'danger' | 'link'", default: "'default'" },
+    { name: "triggerSize", desc: "触发器按钮的 Button 尺寸（number 为任意高度）", type: "'small' | 'middle' | 'large' | 'icon*' | number", default: "'middle'" },
+    { name: "triggerClass", desc: "追加到触发器按钮的类名", type: "string", default: "''" },
+    { name: "triggerStyle", desc: "触发器的内联样式（与 size 算出的尺寸合并）", type: "string", default: "''" },
+    { name: "triggerAriaLabel", desc: "纯图标触发器时的可读名字", type: "string", default: "''" },
+    { name: "trigger", desc: "触发区内容（snippet，按钮本身由组件渲染）", type: "Snippet", default: "—" },
     { name: "children", desc: "自定义菜单内容（snippet）", type: "Snippet", default: "—" },
   ];
 
@@ -99,6 +106,8 @@
 
   let active = $state('home');
   let controlledOpen = $state(false);
+  /** 开关行的状态由调用方持有：组件只负责画和回调，不自己翻转 */
+  let batchAll = $state(false);
 
   const dropdownItems: DropdownMenuItem[] = [
     { value: 'new', label: '新建文件' },
@@ -110,6 +119,13 @@
     { value: 'delete', label: '删除', danger: true },
   ];
 
+  /** 带开关行的版本：switch 行表达「一项设置」，不是「一次命令」 */
+  const withSwitch = $derived<DropdownMenuItem[]>([
+    ...dropdownItems,
+    { separator: true },
+    { value: 'all', label: '对全部窗口执行同样操作', switch: true, checked: batchAll },
+  ]);
+
   function handleNavSelect(value: string) {
     active = value;
     Notification.info(`导航到：${value}`);
@@ -120,6 +136,11 @@
   }
 
   function handleDropdownSelect(item: DropdownMenuItem) {
+    // 开关行：只翻转状态、菜单不关，也不当成「执行了某个命令」
+    if (item.switch) {
+      batchAll = !batchAll;
+      return;
+    }
     Notification.info(`选中：${item.label ?? item.value}`);
   }
 
@@ -183,6 +204,13 @@
   ];
 
   let open = $state(false);
+  // 开关行的状态由调用方持有（组件只画 + 回调，不自己翻转）
+  let batchAll = $state(false);
+  const withSwitch: DropdownMenuItem[] = [
+    ...items,
+    { separator: true },
+    { value: 'all', label: '对全部窗口执行同样操作', switch: true, checked: batchAll },
+  ];
 <\/script>
 
 <DropdownMenu {items} onselect={(item) => console.log(item)}>
@@ -196,7 +224,25 @@
   {#snippet trigger()}
     <span>受控菜单（{open ? '开' : '关'}）</span>
   {/snippet}
+</DropdownMenu>
+
+<!-- 触发器是标准 Button：外观用 triggerVariant / triggerSize / triggerClass 调 -->
+<DropdownMenu {items} triggerVariant="ghost" triggerSize="small" onselect={(item) => console.log(item)}>
+  {#snippet trigger()}
+    <span>紧凑入口</span>
+  {/snippet}
+</DropdownMenu>
+
+<!-- 开关行（items 里 switch: true）：表达「一项设置」而不是「一次命令」。
+     点击只回调 onselect、不关闭菜单，状态由调用方持有后传回 checked -->
+<DropdownMenu items={withSwitch} onselect={(item) => {
+  if (item.switch) batchAll = !batchAll; else console.log(item);
+}}>
+  {#snippet trigger()}
+    <span>带开关的菜单</span>
+  {/snippet}
 </DropdownMenu>`;
+
 </script>
 
 <Page toc title="NavigationMenu / Menubar / DropdownMenu 导航与菜单" description="导航栏下拉面板、桌面应用式水平菜单栏、按钮触发的浮层菜单">
@@ -220,7 +266,16 @@
           <span>受控菜单（{controlledOpen ? '开' : '关'}）</span>
         {/snippet}
       </DropdownMenu>
-      <span class="note">ArrowDown 打开，Esc 关闭，↑↓ 移动，Tab 收起</span>
+      <DropdownMenu items={dropdownItems} onselect={handleDropdownSelect} triggerVariant="ghost" triggerSize="small">
+        {#snippet trigger()}<span>ghost · small</span>{/snippet}
+      </DropdownMenu>
+      <DropdownMenu items={dropdownItems} onselect={handleDropdownSelect} triggerVariant="primary" triggerSize="large">
+        {#snippet trigger()}<span>primary · large</span>{/snippet}
+      </DropdownMenu>
+      <DropdownMenu items={withSwitch} onselect={handleDropdownSelect}>
+        {#snippet trigger()}<span>带开关的菜单</span>{/snippet}
+      </DropdownMenu>
+      <span class="note">ArrowDown 打开，Esc 关闭，↑↓ 移动，Tab 收起；开关行点击不收起菜单</span>
     </div>
   </CodePreview>
 

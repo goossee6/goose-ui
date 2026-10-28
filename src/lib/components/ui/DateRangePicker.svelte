@@ -1,6 +1,7 @@
 <script lang="ts">
 	import RangeCalendar from './RangeCalendar.svelte';
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 
 	let {
 		start = $bindable(''),
@@ -92,15 +93,6 @@
 		};
 	});
 
-	function panelFade(node: HTMLElement, params: { up: boolean }) {
-		return {
-			duration: 120,
-			css: (t: number) => {
-				const y = params.up ? 4 : -4;
-				return `opacity: ${t}; transform: translateY(${(1 - t) * y}px);`;
-			},
-		};
-	}
 </script>
 
 <div class="drp {cls}" bind:this={rootEl} style={style}>
@@ -132,7 +124,14 @@
 	{/if}
 
 	{#if open}
-		<div class="drp-panel" bind:this={panelEl} style={panelStyle} class:flip-up={flipUp} transition:panelFade={{ up: flipUp }}>
+		<div
+			class="drp-panel"
+			bind:this={panelEl}
+			style={panelStyle}
+			class:flip-up={flipUp}
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
+		>
 			<RangeCalendar bind:start bind:end {min} {max} {disabledDate} onchange={handle} />
 		</div>
 	{/if}

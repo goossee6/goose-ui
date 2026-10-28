@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Calendar from './Calendar.svelte';
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 
 	let {
 		value = $bindable(''),
@@ -87,15 +88,6 @@
 		};
 	});
 
-	function panelFade(node: HTMLElement, params: { up: boolean }) {
-		return {
-			duration: 120,
-			css: (t: number) => {
-				const y = params.up ? 4 : -4;
-				return `opacity: ${t}; transform: translateY(${(1 - t) * y}px);`;
-			},
-		};
-	}
 </script>
 
 <div class="date-picker {cls}" bind:this={rootEl} style={style}>
@@ -127,7 +119,14 @@
 	{/if}
 
 	{#if open}
-		<div class="dp-panel" bind:this={panelEl} style={panelStyle} class:flip-up={flipUp} transition:panelFade={{ up: flipUp }}>
+		<div
+			class="dp-panel"
+			bind:this={panelEl}
+			style={panelStyle}
+			class:flip-up={flipUp}
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
+		>
 			<Calendar bind:value {min} {max} {disabledDate} onchange={handle} />
 		</div>
 	{/if}

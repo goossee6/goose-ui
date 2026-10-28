@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 
 	let {
 		open = $bindable(false),
@@ -64,7 +65,10 @@
 	$effect(() => {
 		if (!open) return;
 		const onDocDown = (e: MouseEvent) => {
-			if (rootEl && !rootEl.contains(e.target as Node)) hide();
+			const t = e.target as Node;
+			// 面板已 portal 到 body，不再是 rootEl 的后代：只判 rootEl 会把
+			// 「点面板里面的下拉」当成点外面，一碰就关。
+			if (rootEl && !rootEl.contains(t) && !popEl?.contains(t)) hide();
 		};
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
@@ -86,15 +90,24 @@
 		};
 	});
 
-	function popFade(node: HTMLElement, params: { up: boolean }) {
+	/**
+	 * 把面板挂到 body。
+	 *
+	 * 面板是 position:fixed + 视口坐标，但只要它还在某个带 backdrop-filter /
+	 * transform / filter 的祖先里，那个祖先就成了 fixed 的包含块：top/left 会被
+	 * 当成「相对该祖先」而不是相对视口，面板整体偏移。DataList 的表头为了磨砂底
+	 * 有 backdrop-filter，筛选项正好长在表头里，弹窗因此偏到右下（实测 +9/+43px）。
+	 * 挂到 body 才真正回到视口坐标。
+	 */
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
 		return {
-			duration: 120,
-			css: (t: number) => {
-				const y = params.up ? 4 : -4;
-				return `opacity: ${t}; transform: translateY(${(1 - t) * y}px);`;
+			destroy() {
+				node.remove();
 			},
 		};
 	}
+
 </script>
 
 <div class="popover-root {cls}" bind:this={rootEl} style={style}>
@@ -120,9 +133,11 @@
 			class:flip-up={flipUp}
 			role="dialog"
 			tabindex="-1"
+			use:portal
 			bind:this={popEl}
 			style="left:{pos.left}px;top:{pos.top}px"
-			transition:popFade={{ up: flipUp }}
+			in:menuIn={{ up: flipUp, align: placement.endsWith('end') ? 'end' : 'start' }}
+			out:menuOut={{ up: flipUp, align: placement.endsWith('end') ? 'end' : 'start' }}
 		>
 			<button type="button" class="popover-close" aria-label="关闭" onclick={hide}>
 				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
@@ -169,7 +184,7 @@
 		min-width: 220px;
 		max-width: min(320px, calc(100vw - 16px));
 		padding: var(--sp-lg);
-		background: var(--surface-2);
+		background: var(--popup-surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);

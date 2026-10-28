@@ -185,7 +185,7 @@
 				container={footerEl}
 				itemSelector=".calendar-today-btn"
 				showSelected={false}
-				hoverBackground="var(--primary-soft)"
+				hoverBackground="var(--hover)"
 				radius="var(--radius-sm)"
 			/>
 			<button type="button" class="calendar-today-btn" disabled={disabled} onclick={goToday}>今天</button>

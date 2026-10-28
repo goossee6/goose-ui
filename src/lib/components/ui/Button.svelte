@@ -13,6 +13,8 @@
     loading = false,
     type = "button",
     class: cls = "",
+    /** 追加的内联样式；与 size 算出的高度/字号/内边距合并（不要在这里重复写 height） */
+    style = "",
     icon,
     iconRight,
     iconSize = 16,
@@ -28,6 +30,7 @@
     loading?: boolean;
     type?: "button" | "submit";
     class?: string;
+    style?: string;
     icon?: Component;
     iconRight?: Component;
     iconSize?: number;
@@ -158,7 +161,7 @@
   {type}
   disabled={disabled || loading}
   class="btn btn-{variant} {sizeClass} {cls}"
-  style={sizeStyle}
+  style={sizeStyle + style}
   {onclick}
   aria-label={ariaLabel}
   onpointerdown={onPointerDown}
@@ -267,6 +270,9 @@
   .btn-default:hover:not(:disabled) { background-color: var(--hover); border-color: var(--primary); }
   .btn-ghost { background-color: transparent; color: var(--text-muted); }
   .btn-ghost:hover:not(:disabled) { background-color: var(--surface-2); color: var(--text-strong); }
+  /* ghost 作为浮层触发器时（DropdownMenu / Menubar 等），展开期间保持「按下」观感：
+     aria-expanded 是这类按钮的标准信号，比让每个调用方各写一条覆盖规则可靠 */
+  .btn-ghost[aria-expanded='true']:not(:disabled) { background-color: var(--hover); color: var(--text-strong); }
   .btn-danger { background-color: var(--danger-soft); color: var(--danger-text); border: 1px solid var(--danger-border); }
   .btn-danger:hover:not(:disabled) { background-color: var(--danger-border); border-color: var(--danger-text); }
   .btn-link { background-color: transparent; color: var(--primary); text-decoration: underline; text-underline-offset: 4px; }

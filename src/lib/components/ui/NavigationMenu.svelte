@@ -10,6 +10,7 @@
 
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
+	import { menuIn, menuOut } from './menuTransition';
 
 	let {
 		items = [],
@@ -27,6 +28,17 @@
 
 	let openValue = $state<string | null>(null);
 	let activeIdx = $state(-1);
+
+	/**
+	 * 当前要展开的那个「带子项」的项。
+	 *
+	 * 单独派生出来是为了把模板里的两层 {#if} 压成一层：
+	 * Svelte 5 里嵌套 {#if} 内层元素**不会播放 in: 过渡**（实测：单层 if 能动画，
+	 * 外面再包一层 if 就整段跳过 intro）。原来的写法是
+	 * `{#if openValue}` → `{#if item?.children?.length}` → 面板，
+	 * 于是面板的进入动画从来没生效过，只有离开是自己写的所以看不出来。
+	 */
+	const openItem = $derived(items.find((i) => i.value === openValue && i.children?.length));
 	let navEl = $state<HTMLElement | null>(null);
 	let panelEl = $state<HTMLElement | null>(null);
 	let panelStyle = $state('');
@@ -162,15 +174,6 @@
 		};
 	});
 
-	function panelFade(node: HTMLElement, params: { up: boolean }) {
-		return {
-			duration: 120,
-			css: (t: number) => {
-				const y = params.up ? 4 : -4;
-				return `opacity: ${t}; transform: translateY(${(1 - t) * y}px);`;
-			},
-		};
-	}
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -214,46 +217,44 @@
 		{/each}
 	</ul>
 
-	{#if openValue}
-		{@const item = items.find((i) => i.value === openValue)}
-		{#if item?.children?.length}
-			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-			<div
-				class="navmenu-panel"
-				class:flip-up={flipUp}
-				role="menu"
-				tabindex="-1"
-				style={panelStyle}
-				bind:this={panelEl}
-				onkeydown={onPanelKeydown}
-				transition:panelFade={{ up: flipUp }}
-			>
-				{#each item.children as child, i (child.value)}
-					<a
-						href={child.href ?? '#/'}
-						class="navmenu-panel-item"
-						class:active={active === child.value}
-						role="menuitem"
-						aria-disabled={child.disabled}
-						data-panel-idx={i}
-						tabindex={activeIdx === i ? 0 : -1}
-						onfocus={() => (activeIdx = i)}
-						onclick={(e) => {
-							if (child.disabled) {
-								e.preventDefault();
-								return;
-							}
-							handleSelect(child.value);
-						}}
-					>
-						<span class="navmenu-panel-label">{child.label}</span>
-						{#if child.description}
-							<span class="navmenu-panel-desc">{child.description}</span>
-						{/if}
-					</a>
-				{/each}
-			</div>
-		{/if}
+	{#if openItem}
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+		<div
+			class="navmenu-panel"
+			class:flip-up={flipUp}
+			role="menu"
+			tabindex="-1"
+			style={panelStyle}
+			bind:this={panelEl}
+			onkeydown={onPanelKeydown}
+			in:menuIn={{ up: flipUp }}
+			out:menuOut={{ up: flipUp }}
+		>
+			{#each openItem.children as child, i (child.value)}
+				<a
+					href={child.href ?? '#/'}
+					class="navmenu-panel-item"
+					class:active={active === child.value}
+					role="menuitem"
+					aria-disabled={child.disabled}
+					data-panel-idx={i}
+					tabindex={activeIdx === i ? 0 : -1}
+					onfocus={() => (activeIdx = i)}
+					onclick={(e) => {
+						if (child.disabled) {
+							e.preventDefault();
+							return;
+						}
+						handleSelect(child.value);
+					}}
+				>
+					<span class="navmenu-panel-label">{child.label}</span>
+					{#if child.description}
+						<span class="navmenu-panel-desc">{child.description}</span>
+					{/if}
+				</a>
+			{/each}
+		</div>
 	{/if}
 </nav>
 
@@ -309,7 +310,7 @@
 		z-index: var(--z-dropdown);
 		max-width: calc(100vw - 16px);
 		padding: var(--sp-sm);
-		background-color: var(--surface-2);
+		background-color: var(--popup-surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);

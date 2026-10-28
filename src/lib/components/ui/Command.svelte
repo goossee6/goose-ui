@@ -155,10 +155,11 @@
 				<kbd class="command-kbd">Esc</kbd>
 			</div>
 			<ul class="command-list" id="command-list" role="listbox" bind:this={listEl}>
+				<!-- 单 pill → 主题色实心（见 Select 里的说明） -->
 				<PillTrack
 					container={listEl}
 					activeSelector=".command-item.active"
-					background="var(--accent-sub)"
+					background="var(--primary)"
 					radius="var(--radius-md)"
 				/>
 				{#if !filtered.length}
@@ -297,8 +298,13 @@
 		color: var(--text);
 		cursor: pointer;
 	}
+	/* 落点行 pill 是实心主题色 → 文字与快捷键一起转白，深字压在品牌色上读不清 */
 	.command-item.active {
-		color: var(--text-strong);
+		color: var(--accent-text);
+	}
+	.command-item.active .command-item-value {
+		color: var(--accent-text);
+		opacity: 0.8;
 	}
 	.command-item-value {
 		font-family: var(--font-mono);

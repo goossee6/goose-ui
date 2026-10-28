@@ -84,6 +84,9 @@
   onDestroy(clearPending);
 </script>
 
+<!-- title 为空时不写这个属性：`title=""` 同样会让浏览器把它当成「有原生提示」
+     的元素参与命中判定，而且会和外面套的 Tooltip 重复。提示统一交给 Tooltip
+     组件（需要原生兜底时由调用方传非空 title）。 -->
 <button
   type="button"
   class="toggle {sizeClass} {cls}"
@@ -91,7 +94,7 @@
   {style}
   class:toggle--disabled={disabled}
   disabled={disabled || loading}
-  {title}
+  title={title || undefined}
   aria-label={ariaLabel || undefined}
   aria-pressed={checked}
   aria-busy={displayLoading}

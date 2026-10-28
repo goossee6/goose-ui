@@ -15,19 +15,37 @@
 	--hue-danger: 27;       /* 危险 */
 }
 
-/* TitleBar logo 品牌渐变：主色 → 主色相邻色相（+40°）。
-   色相偏移用纯数字加法（oklch 的 hue 通道接受 number），并在这里把整条渐变预解析成
-   一个自定义属性，组件直接引用、不做 var() 回退 —— 两个坑都绕开了：
-   1) calc(var(--hue-x) + 40deg) 是 number 与 deg 混算，无效；
-   2) var() 回退值里出现任何 var() 会让整条 background 在计算值阶段失效
-      → background-image:none → logo 隐形。
-   想换品牌渐变，覆盖 :root 上的 --titlebar-logo-gradient 即可。 */
+/* ── 统一强调渐变（全项目唯一一套）───────────────────────────────────────────
+   所有「主色渐变」都只引用这里的 token，不再各自写一条 linear-gradient：
+     TitleBar logo    → --titlebar-logo-gradient（旧名，等于 --gradient-accent）
+     ProgressBar / Meter / Slider 填充 → --gradient-accent
+   色相规则统一为「主色 -30° → 主色 +30°」，两端正好跨 60°，中点落在主色上：
+   换主题色时整条渐变跟着转，且永远只在主色附近 ±30° 内游走，不会像
+   accent→complement 那样在半条轨道里从蓝直接冲到绿（色相跨 100°+，脏且跳）。
+
+   写法沿用验证过的两条约束：
+   1) 色相偏移用纯数字加法（oklch 的 hue 通道接受 number），不要写 -30deg；
+   2) 在这里把整条渐变预解析成一个自定义属性，组件直接引用、不做 var() 回退 ——
+      回退值里再出现任何 var() 会让整条 background 在计算值阶段失效
+      → background-image:none → 元素隐形。
+   明度/彩度固定（0.55 / 0.24）：六个角色色本身在同一明度档，固定 L/C 才能保证
+   两端一直是同一条色带，主色被换成浅色时整条不会跟着发白。 */
 :root {
-	--titlebar-logo-gradient: linear-gradient(
+	--gradient-accent: linear-gradient(
 		90deg,
-		oklch(0.55 0.24 calc(var(--hue-accent) + 0)),
-		oklch(0.55 0.24 calc(var(--hue-accent) + 40))
+		oklch(0.55 0.24 calc(var(--hue-accent) - 30)),
+		oklch(0.55 0.24 calc(var(--hue-accent) + 30))
 	);
+	/* hover 态：色相完全不动，只把整条提亮一档（L 0.55→0.62、C 略降）。
+	   只变亮不变色，hover 时才不会有「换了一套配色」的错位感。 */
+	--gradient-accent-hover: linear-gradient(
+		90deg,
+		oklch(0.62 0.23 calc(var(--hue-accent) - 30)),
+		oklch(0.62 0.23 calc(var(--hue-accent) + 30))
+	);
+	/* 旧名保留为别名：TitleBar 一直用这个名字，外部已有的覆盖写法继续有效 */
+	--titlebar-logo-gradient: var(--gradient-accent);
+	--titlebar-logo-gradient-hover: var(--gradient-accent-hover);
 }
 
 
@@ -43,6 +61,27 @@
 	--surface-2: #eeeef0;
 	--surface-3: #e5e5e8;
 	--hover: #e5e5e8;
+	/* ^ hover 底色的**默认值**，只给「双 pill」场景：有常驻选中 pill、又需要第二块
+	     hover 反馈的组件（侧栏、Tabs、Calendar 日期格、RadioGroup、ToggleGroup、
+	     表格/列表行）。规则是「选中 pill = --primary 实心 + --accent-text 文字，
+	     hover pill = 这块中性灰」。
+	     单 pill 的场景（弹窗列表 / 菜单：Select、Combobox、CreatableSelect、
+	     MultiSelect、Command、DropdownMenu、ContextMenu、TitleBar 搜索）不传它 ——
+	     那里只有「落点」一个状态，pill 直接用 --primary 实心（与侧栏激活项同一套配色），
+	     文字同步转 --accent-text，否则深字压在品牌色上读不清。
+	     刻意不透明：半透明淡染叠在纯白浮层、灰卡片、深色侧栏上浓淡都不一样，
+	     同一个 --accent-sub 在两处就是两种颜色；叠两层还会更深一档，改不回来。
+	     需要带色相的 hover（如菜单里的危险项）请混成实色：
+	     color-mix(in srgb, var(--danger) 12%, var(--popup-surface))。 */
+	/* 下划线 tab 的 hover 条（PillTrack 的 line 变体）。
+	   line 只有 2px、压在 1px 的轨道线上，用 --hover 反而比轨道浅（#e5e5e8 vs #dfdfe3），
+	   盖上去像把线擦掉一段；所以单独给一档更深的灰，仍然不透明。 */
+	--hover-line: #c9c9cf;
+	/* 浮层（菜单 / 气泡 / 下拉列表）底色：主题的纯白 / 纯黑，刻意不用 surface-2。
+	   surface 系是「页面内的面」，灰阶彼此靠得很近；浮层是悬在页面之上的东西，
+	   再套一层灰就成了「灰上加灰」，边界只能靠阴影和细边框撑，很糊。
+	   纯白（亮色）/ 纯黑（暗色）直接把浮层和页面拉开一个层次。 */
+	--popup-surface: #ffffff;
 	--border: #dfdfe3;
 	--border-strong: #d5d5d9;
 	--overlay: rgba(0, 0, 0, 0.45);
@@ -258,6 +297,11 @@
 	--surface-2: #2c2c30;
 	--surface-3: #353538;
 	--hover: #353538;
+	/* 下划线 tab 的 hover 条：比 --hover 浅一档，才压得住暗色下那条 8% 白轨道线 */
+	--hover-line: #4b4b53;
+	/* 浮层底色：暗色下用纯黑（见 :root 里的说明）。亮色是「白得比页面更白」，
+	   暗色反过来是「黑得比页面更黑」——两个方向都是往「更远离页面」走。 */
+	--popup-surface: #000000;
 	--border: rgba(255, 255, 255, 0.08);
 	--border-strong: rgba(255, 255, 255, 0.12);
 	--overlay: rgba(0, 0, 0, 0.6);

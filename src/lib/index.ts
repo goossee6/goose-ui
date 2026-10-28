@@ -55,6 +55,9 @@ export {
 export { pageDirStore } from './components/pageDirStore.svelte.js';
 export { registerMenu, unregisterMenu, openMenuAt, closeMenu, onMenuAction, dispatchMenuAction, cellMenuAttrs } from './components/contextMenu';
 export { confirmStore, showConfirm } from './components/confirm';
+// 浮层统一的进出场动效：自带浮层/下拉时用它，别各抄一份
+export { menuIn, menuOut } from './components/ui/menuTransition';
+export type { MenuPopParams } from './components/ui/menuTransition';
 
 // Types
 export type { NotificationType, NotificationPosition, NotificationOptions, NotificationStore } from './components/notification';

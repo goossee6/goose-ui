@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
+  import { menuIn, menuOut } from "../ui/menuTransition";
   import Icon from "../ui/Icon.svelte";
   import { menuStore } from "../contextMenuStore.svelte.js";
   import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu";
@@ -107,10 +107,13 @@
 
   $effect(() => {
     if (!menuStore.visible || !menuEl) return;
-    const r = menuEl.getBoundingClientRect();
+    // 用 offsetWidth/offsetHeight 而不是 getBoundingClientRect：
+    // 进场动画正在缩放这块面板（0.96 → 1），rect 量到的是缩小后的尺寸，
+    // 贴右边/下边时会少算几个像素，钳位后仍然溢出视口。
+    const w = menuEl.offsetWidth; const h = menuEl.offsetHeight;
     const vw = window.innerWidth; const vh = window.innerHeight;
-    pos.left = menuStore.x + r.width > vw - 8 ? Math.max(8, vw - r.width - 8) : menuStore.x;
-    pos.top = menuStore.y + r.height > vh - 8 ? Math.max(8, vh - r.height - 8) : menuStore.y;
+    pos.left = menuStore.x + w > vw - 8 ? Math.max(8, vw - w - 8) : menuStore.x;
+    pos.top = menuStore.y + h > vh - 8 ? Math.max(8, vh - h - 8) : menuStore.y;
   });
 </script>
 
@@ -118,12 +121,21 @@
 
 {#if menuStore.visible}
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-  <div class="ctxmenu" style="left: {pos.left}px; top: {pos.top}px" transition:fade={{ duration: 90 }} bind:this={menuEl} role="menu" tabindex="-1" onkeydown={onMenuKeydown}>
+  <div
+    class="ctxmenu"
+    style="left: {pos.left}px; top: {pos.top}px"
+    in:menuIn
+    out:menuOut
+    bind:this={menuEl}
+    role="menu"
+    tabindex="-1"
+    onkeydown={onMenuKeydown}>
+    <!-- 单 pill → 主题色实心（与下拉菜单同一套） -->
     <PillTrack
       container={menuEl}
       itemSelector=".ctxmenu-item"
       showSelected={false}
-      hoverBackground="color-mix(in srgb, var(--primary) 15%, transparent)"
+      hoverBackground="var(--primary)"
       radius="var(--radius-md)"
     />
     {#each items as item, i (i)}
@@ -148,9 +160,11 @@
 {/if}
 
 <style>
-  .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-sm); background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+  .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-sm); background-color: var(--popup-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
   .ctxmenu-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-lg) var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
-  .ctxmenu-item:hover { color: var(--text-strong); }
+  /* pill 用品牌色实心 → 文字与图标一起转白，深字压在品牌色上读不清 */
+  .ctxmenu-item:hover:not(:disabled) { color: var(--accent-text); }
+  .ctxmenu-item:hover:not(:disabled) :global(.ctxmenu-item-icon) { color: var(--accent-text); }
   .ctxmenu-item :global(.ctxmenu-item-icon) { color: var(--text-muted); flex-shrink: 0; }
   .ctxmenu-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
   .ctxmenu-item:disabled { color: var(--text-muted); cursor: default; opacity: 0.6; }

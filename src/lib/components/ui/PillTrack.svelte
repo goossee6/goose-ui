@@ -8,12 +8,13 @@
 		variant = 'box',
 		insetX,
 		background = 'transparent',
-		hoverBackground = 'var(--hover)',
+		hoverBackground = '',
 		radius = 'var(--radius-md)',
 		shadow = '',
 		disabled = false,
 		portal = false,
 		zIndex = -1,
+		gapBridge = 12,
 	}: {
 		/** 容器：测量参照 + hover 事件挂载点（通常 bind:this 的定位/滚动容器） */
 		container?: HTMLElement | null;
@@ -31,7 +32,13 @@
 		insetX?: number;
 		/** 选中 pill 底色 */
 		background?: string;
-		/** hover pill 底色 */
+		/**
+		 * hover pill 底色。**一律传不透明颜色**（默认 `var(--hover)`）。
+		 * 半透明值（`--accent-sub`、`color-mix(… transparent)` 之类）在深浅不同的
+		 * 宿主底色上浓淡不一：同一个菜单，压在纯白浮层和压在灰卡片上就是两种颜色；
+		 * 叠两层（行 hover + 分组底色）还会更深一档，没法用「改一个变量」控制。
+		 * 需要带色相的 hover 也请混成实色：`color-mix(in srgb, var(--danger) 12%, var(--popup-surface))`。
+		 */
 		hoverBackground?: string;
 		/** 圆角（line 变体固定 1px，忽略此值） */
 		radius?: string;
@@ -62,6 +69,23 @@
 		 * 1 = 当「覆盖层」用（表格的常驻高亮），任何底色都压不掉它。
 		 */
 		zIndex?: number;
+		/**
+		 * 项间间隙的归属半径（px）：指针落在两项之间的空隙里时，把空隙算作
+		 * **离它最近那一项**的触发区；超出这个距离才认为指针真的离开了列表。
+		 *
+		 * 为什么需要：项与项之间几乎总有 2~10px 的布局间隙（flex `gap`、
+		 * 兄弟项 `margin`、菜单分隔线、分组内边距）。这些空隙属于**容器**而不是项，
+		 * 按 `target.closest(itemSelector)` 判断时命中不到任何项，于是走「隐藏 pill」
+		 * 分支 —— 鼠标扫过列表时，每经过一条缝隙 pill 都会闪一下。
+		 *
+		 * 归属用「就近判定」，而不是简单的「还停在容器里就别动」：指针一过中线，
+		 * pill 就该滑到下一项，否则会一直停在上一项上，体感是「卡住」而不是「跟手」。
+		 *
+		 * 判定要求两侧都有项（次近距离也算在阈值内），所以阈值放大到容器内边距那样
+		 * 也不会把表头上方、列表下方的空白算进来 —— 那里只有一侧有项。
+		 * 传 0 关闭桥接，回到「只有指针真的压在项上才算 hover」。
+		 */
+		gapBridge?: number;
 	} = $props();
 
 	// 几何与可见性分离：几何持久、隐藏只翻 opacity，避免下次显示时从 0,0 飞入。
@@ -73,15 +97,37 @@
 	let hoverBg = $state('');
 	let selectedGeom = $state('');
 	let selectedOn = $state(false);
-	// 选中 pill 移动时长：按位移距离自适应（近快远慢），写入 --pill-dur 供 transition 读取
-	let selectedDur = $state(0.26);
+	/**
+	 * 位移距离 → 移动时长（秒）。选中 pill 与 hover pill **共用这一套映射**。
+	 *
+	 * 两边各写一套参数时，手感会在用户毫无察觉的地方分叉：下拉列表每次只挪一行
+	 * （≈36px，落在下限），一直是「弹」的；侧栏点一次常跨十几项、距离几百像素，
+	 * 按同一公式算就会顶到上限（原来是 0.4s），同一条回弹曲线被拉长，观感就成了
+	 * 「缓」。用户不会归因到「距离自适应」，只会觉得两个 pill 的动画不是一套。
+	 *
+	 * 所以只保留一条曲线、一个上限：
+	 * · 近距（同一行内的小控件、相邻菜单项）→ 0.16s，过冲还看得清，反应也不掉队；
+	 * · 远距（侧栏跨组、日历跨月）→ 封顶 0.28s，再长就不是「弹」而是「飘」了。
+	 * 指针扫过一列时每行都会重新起跳，上限也不能太大，否则 pill 永远追在指针后面。
+	 */
+	function pillDur(d: number): number {
+		return Math.min(0.28, Math.max(0.16, 0.14 + d / 1600));
+	}
+
+	// 选中 pill 移动时长，写入 --pill-dur 供 transition 读取
+	let selectedDur = $state(0.18);
 	let selectedBox: Box | null = null;
+	// hover pill 移动时长，写入 --pill-hover-dur（与选中 pill 同一套映射）
+	let hoverDur = $state(0.18);
+	// 上一格几何：用来算这次位移距离（决定回弹时长）
+	let hoverBox: Box | null = null;
 	// 从停放位恢复：当帧不播位移过渡（否则 pill 会从左上角飞过来）
 	let restoring = $state(false);
 	let hoverRestoring = $state(false);
 
 	const hoverStyle = $derived(
-		`${hoverGeom} opacity: ${hoverOn ? 1 : 0};` + (hoverRestoring ? ' transition: none;' : '')
+		`${hoverGeom} --pill-hover-dur: ${hoverDur}s; opacity: ${hoverOn ? 1 : 0};` +
+			(hoverRestoring ? ' transition: none;' : '')
 	);
 	const selectedStyle = $derived(
 		`${selectedGeom} --pill-dur: ${selectedDur}s; opacity: ${selectedOn ? (disabled ? 0.5 : 1) : 0};` +
@@ -149,8 +195,14 @@
 	}
 
 
+	/** 没显式传 hoverBackground 时按变体取默认：
+	 *  box 用 --hover 铺一整块底；line 只有 2px 的条，压在 1px 的轨道线上，
+	 *  --hover 比轨道还浅（亮色 #e5e5e8 vs #dfdfe3），盖上去像把线「擦掉」一段，
+	 *  所以 line 变体默认取 --hover-line（比 --hover 深一档、仍然不透明）。 */
+	const hoverBgDefault = $derived(variant === 'line' ? 'var(--hover-line)' : 'var(--hover)');
+
 	const hoverBase = $derived(
-		`background: ${hoverBg || hoverBackground};${radiusCss}${parkPos}`
+		`background: ${hoverBg || hoverBackground || hoverBgDefault};${radiusCss}${parkPos}`
 	);
 	// 选中 pill 和 hover 一样是「行底色」，默认沉在文字下面（z-index:-1，见样式表）。
 	// 只有 portal 时才需要内联的 fixed 定位；此时 zIndex 决定它压在哪一层。
@@ -199,9 +251,19 @@
 	 */
 	let geomCache = new WeakMap<HTMLElement, Box>();
 	let geomKey = '';
+	/**
+	 * 项 → 实时矩形（容器内容坐标）的快照，只给「间隙归属」用（见 itemNear）。
+	 *
+	 * 与 geomCache 的分工：geomCache 存的是 pill 的落点几何（按 variant / insetX 变形、
+	 * line 变体还会把 t/h 归零），拿来算距离会把下划线变体的纵向位置全算错；
+	 * 这里存未经变形的矩形，距离才和指针位置同一坐标系。
+	 * 生命周期一致：同一套失效信号（布局变化 / 滚动 / 变体切换）一起清掉。
+	 */
+	let itemRects: { el: HTMLElement; l: number; t: number; w: number; h: number }[] | null = null;
 
 	function invalidateGeom() {
 		geomCache = new WeakMap();
+		itemRects = null;
 	}
 
 	/** 元素与其 offsetParent 链上，相对容器 padding edge 的偏移（不读 rect 之外的信息） */
@@ -271,6 +333,80 @@
 		return `transform: translate(${b.l}px, ${b.t}px); width: ${b.w}px; height: ${b.h}px; ${boxSizeVars(b)}`;
 	}
 
+	/**
+	 * 全部项的矩形快照（容器内容坐标）。
+	 *
+	 * 只在指针真的落进「非项」区域时才建一次，之后复用，直到布局变化 / 滚动 /
+	 * 变体切换把它作废（见 invalidateGeom）。量的是**未经 pill 变形的原始矩形**：
+	 * cachedBox 会按 variant 把 line 的 t/h 归零、按 insetX 改宽度，拿它算距离
+	 * 会把下划线变体的纵向偏差全部算进去。
+	 */
+	function itemsSnapshot(): { el: HTMLElement; l: number; t: number; w: number; h: number }[] {
+		if (itemRects) return itemRects;
+		const c = container;
+		if (!c || !itemSelector) return (itemRects = []);
+		const cr = c.getBoundingClientRect();
+		const cl = c.clientLeft;
+		const ct = c.clientTop;
+		const sl = c.scrollLeft;
+		const st = c.scrollTop;
+		// 内容坐标与滚动无关，所以这里不必按可视区裁剪 —— 裁剪放到 itemNear 里按**当下**的
+		// 滚动位置做（容器自身滚动不冒泡，收不到 scroll 事件，缓存里存不下"当时谁可见"）。
+		// 仍然跳过零尺寸的项：display:none、折叠面板收起的子项都是 0×0，
+		// 它们会在内容起点留下一堆坐标，指针扫过列表边缘时可能"就近"到看不见的项上。
+		itemRects = [];
+		for (const el of c.querySelectorAll<HTMLElement>(itemSelector)) {
+			const r = el.getBoundingClientRect();
+			if (r.width <= 0 || r.height <= 0) continue;
+			itemRects.push({
+				el,
+				l: r.left - cr.left + sl - cl,
+				t: r.top - cr.top + st - ct,
+				w: r.width,
+				h: r.height,
+			});
+		}
+		return itemRects;
+	}
+
+	/**
+	 * 指针落点命中的「最近项」—— 把项间间隙算进相邻两项的触发区。
+	 *
+	 * 判定要求**两侧都有项**：最近项与次近项都在 gapBridge 以内才算数。
+	 * 这一条把「两项之间的缝」和「列表外的空白」区分开了：
+	 * · 行间距 / 列间距 / 菜单分隔线：左右或上下紧挨着两项，两个距离都很小 → 命中；
+	 * · 表头上方、列表下方的内边距：只有一侧有项，次近距离是「整行高度」→ 不命中，
+	 *   否则指针扫过表头底边就会把第一行点亮。
+	 */
+	function itemNear(x: number, y: number): HTMLElement | null {
+		const c = container;
+		if (!c || gapBridge <= 0) return null;
+		const cr = c.getBoundingClientRect();
+		const px = x - cr.left + c.scrollLeft - c.clientLeft;
+		const py = y - cr.top + c.scrollTop - c.clientTop;
+		// 可视窗口（内容坐标）：滚出视口的项不参与，否则会"就近"到一个用户看不见的项上
+		const vl = c.scrollLeft;
+		const vt = c.scrollTop;
+		const vr = vl + c.clientWidth;
+		const vb = vt + c.clientHeight;
+		let best: HTMLElement | null = null;
+		let bestD = Infinity;
+		let secondD = Infinity;
+		for (const it of itemsSnapshot()) {
+			if (it.l + it.w <= vl || it.l >= vr || it.t + it.h <= vt || it.t >= vb) continue;
+			// 点到矩形的欧氏距离；落在矩形内为 0
+			const dx = Math.max(it.l - px, 0, px - (it.l + it.w));
+			const dy = Math.max(it.t - py, 0, py - (it.t + it.h));
+			const d = dx === 0 && dy === 0 ? 0 : Math.hypot(dx, dy);
+			if (d < bestD) {
+				secondD = bestD;
+				bestD = d;
+				best = it.el;
+			} else if (d < secondD) secondD = d;
+		}
+		return bestD <= gapBridge && secondD <= gapBridge ? best : null;
+	}
+
 
 	// 停放几何：绝对定位元素即使 opacity:0 仍撑大容器的 scroll 范围（实测 transform /
 	// contain:layout / visibility:hidden 均无效，只有 display:none 行，但那会打断过渡）。
@@ -319,7 +455,7 @@
 		// box 未变（340ms 补测/重复触发）不重算，否则 d=0 会把时长重置为下限，飞行中途改写 transition
 		if (selectedBox && (box.l !== selectedBox.l || box.t !== selectedBox.t || box.w !== selectedBox.w || box.h !== selectedBox.h)) {
 			const d = wasParked ? 0 : Math.hypot(box.l - selectedBox.l, box.t - selectedBox.t);
-			selectedDur = Math.min(0.4, Math.max(0.18, 0.16 + d / 1200));
+			selectedDur = pillDur(d);
 		}
 		selectedBox = box;
 		selectedGeom = boxStyle(box);
@@ -410,7 +546,11 @@
 		function hitTest(x: number, y: number): HTMLElement | null {
 			const el = document.elementFromPoint(x, y) as HTMLElement | null;
 			const item = el?.closest?.<HTMLElement>(matcher) ?? null;
-			return item && host.contains(item) ? item : null;
+			if (item && host.contains(item)) return item;
+			// 与 onOver 同一套间隙归属：重排后指针正好落在缝里时，
+			// 不能因为「没压在项上」就把 pill 收掉
+			const near = itemNear(x, y);
+			return near && host.contains(near) ? near : null;
 		}
 
 		/**
@@ -452,7 +592,10 @@
 			settleTries = 0;
 			hovered = item;
 			const box = cachedBox(item);
-			if (box) hoverGeom = boxStyle(box);
+			if (box) {
+				hoverGeom = boxStyle(box);
+				hoverBox = box;
+			}
 			hoverBg = item.dataset.pillBg ?? '';
 		}
 
@@ -486,11 +629,12 @@
 		const onOver = (e: PointerEvent) => {
 			pointer = { x: e.clientX, y: e.clientY };
 			const target = e.target as HTMLElement | null;
-			const item = target?.closest?.<HTMLElement>(sel) ?? null;
-			if (!item || !c.contains(item)) {
-				// 行间距 / 分隔线 / 容器空白：保持当前 pill，直接滑到下一个项。
-				// 只有真正离开容器、或移到 header 等非列表内容上时才隐藏。
-				if (!target || target === c || target.closest?.('[role="separator"]')) return;
+			const direct = target?.closest?.<HTMLElement>(sel) ?? null;
+			// 命中不到项时按几何就近归属：项间间隙（flex gap / 兄弟 margin / 分隔线 /
+			// 分组内边距）都属于容器，不做这一步的话指针每扫过一条缝 pill 就会消失一次。
+			// 归属是「就近」，所以指针一过中线 pill 就滑到下一项，不会停在上一项上。
+			const item = direct && c.contains(direct) ? direct : itemNear(e.clientX, e.clientY);
+			if (!item) {
 				hovered = null;
 				setHover(false);
 				return;
@@ -508,6 +652,13 @@
 			const wasParked = !hoverOn && (!hoverGeom || hoverGeom === PARKED);
 			const box = cachedBox(item);
 			if (box) {
+				// 位移距离 → 时长：与选中 pill 同一个 pillDur()，划过项与切换项手感才一致。
+				// 停放恢复那一次不参与计算：它从 (0,0) 出发，距离恒为最大值，
+				// 而且当帧是 transition:none，量出来的时长只会污染下一次。
+				if (hoverBox && !wasParked) {
+					hoverDur = pillDur(Math.hypot(box.l - hoverBox.l, box.t - hoverBox.t));
+				}
+				hoverBox = box;
 				hoverGeom = boxStyle(box);
 				// 缓存已落地，此后布局变化（含排序这种「只搬家不变尺寸」的）必须让它失效
 				ensureObservers();
@@ -620,6 +771,18 @@
 		left: 0;
 		pointer-events: none;
 		transition: opacity 0.15s;
+		/* 回弹曲线：中段 y 超过 1（back-out），位置先冲过落点再落回来 ——
+		   「回弹」就是这一段过冲。选中与 hover 共用同一条曲线、同一套时长映射
+		   （见 pillDur()），所以下拉列表里逐行跟随、侧栏里跨组切换，落点和
+		   冲出去的幅度是同一个手感，只是走的距离不同。
+
+		   过冲幅度取 1.5：接近 Button 的 1.56，但 pill 是整块色块，同样的相对
+		   过冲摊到几十上百像素的宽度上会比按钮缩放显眼，略收一点。
+		   1.4 那种量在 0.19s 的短位移里几乎看不出「弹」，只是「快」。 */
+		--pill-ease: cubic-bezier(0.34, 1.5, 0.64, 1);
+		/* height 用的轻过冲版：高度不是位移，过冲会让人看到 pill 上下「撑一下」，
+		   1.12 只够抹掉硬切感，不至于把上下边缘顶出去太多。 */
+		--pill-ease-soft: cubic-bezier(0.34, 1.12, 0.64, 1);
 		/* 位移已改用 transform，位移本身不再触发布局。
 		   刻意不加 will-change: transform —— 那会让每个 pill 常驻一个合成层，
 		   一页十几张表就是十几层，反而更费显存和合成时间；
@@ -661,7 +824,7 @@
 		z-index: 0;
 	}
 	/* hover 的定位回到内容坐标（见 parkPos）：不再走 portal，也就没有内联的 position:fixed。 */
-	/* hover：维持原手感（0.22s ease-out）+ 背景色 0.15s 缓动。
+	/* hover：与选中 pill 同一条曲线、同一套时长映射（pillDur），只是写进不同的变量。
 	   位移过渡的是 transform 而不是 left/top —— 前者走合成器，不触发重排。
 
 	   width 仍然瞬时对齐：它是布局属性，和 transform 放在同一条 transition 里会让
@@ -673,8 +836,8 @@
 	   不会引起兄弟节点重排，代价可控，所以单独给 height 同一条缓动。 */
 	.pill-track--hover {
 		transition:
-			transform 0.22s ease-out,
-			height 0.22s ease-out,
+			transform var(--pill-hover-dur, 0.18s) var(--pill-ease),
+			height var(--pill-hover-dur, 0.18s) var(--pill-ease-soft),
 			background-color 0.15s,
 			opacity 0.15s;
 	}
@@ -682,7 +845,7 @@
 	   尺寸不参与过渡：选中标记切换频率低，且 width 还会随列宽变化（理由见上）。 */
 	.pill-track--sel {
 		transition:
-			transform var(--pill-dur, 0.26s) cubic-bezier(0.34, 1.4, 0.64, 1),
+			transform var(--pill-dur, 0.18s) var(--pill-ease),
 			opacity 0.15s;
 	}
 	.pill-track--line {
@@ -691,13 +854,33 @@
 		height: 2px;
 		border-radius: 1px;
 	}
+	/* 下划线变体只有横向位移：同样带回弹，否则同一套 Tabs 在两种模式下
+	   一个会弹一个不会，正是这次要修的不一致。 */
 	.pill-track--hover.pill-track--line {
-		transition: transform 0.22s ease-out, opacity 0.15s;
+		transition: transform var(--pill-hover-dur, 0.18s) var(--pill-ease), opacity 0.15s;
 	}
 	.pill-track--sel.pill-track--line {
 		transition:
-			transform var(--pill-dur, 0.26s) cubic-bezier(0.34, 1.4, 0.64, 1),
+			transform var(--pill-dur, 0.18s) var(--pill-ease),
 			opacity 0.15s;
+	}
+	/* 减少动效：过冲全部退回线性缓出，位移照样跟随，只是不再「弹」。
+	   注意这里只换 transition，不要写 transform: none —— 那会把 pill 的位置压回原点。 */
+	@media (prefers-reduced-motion: reduce) {
+		.pill-track--hover,
+		.pill-track--hover.pill-track--line {
+			transition:
+				transform var(--pill-hover-dur, 0.18s) ease-out,
+				height var(--pill-hover-dur, 0.18s) ease-out,
+				background-color 0.15s,
+				opacity 0.15s;
+		}
+		.pill-track--sel,
+		.pill-track--sel.pill-track--line {
+			transition:
+				transform var(--pill-dur, 0.18s) ease-out,
+				opacity 0.15s;
+		}
 	}
 </style>
 

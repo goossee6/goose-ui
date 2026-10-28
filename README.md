@@ -241,7 +241,7 @@ import "goose-ui/styles/theme.css";
 | DataList        | 数据列表，带空状态与可选的内置 header（直接复用 `Header` 组件：`title`/`header`/`headerCenter`/`headerRight`/`headerClass`/`headerStyle`/`headerSticky` 原样透传；内置 header 默认高 **64px**，传 `headerStyle="--header-h:56px"` 覆盖；`dataTableHeader` 用于独立成块时补齐内边距）；行 hover 同样走滑动 pill |
 | Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                                                                                |
 | TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                                                                                 |
-| PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制                                                                                                   |
+| PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制；hover 与选中共用同一条回弹曲线和同一套「距离 → 时长」映射（见「滑动高亮动效」）                                                                                                   |
 | Pagination      | 分页（siblingCount 省略号折叠）                                                                                                                                                                                                          |
 | Collapsible     | 折叠面板（grid-rows 0fr→1fr 过渡）                                                                                                                                                                                                       |
 | Accordion       | 手风琴（单开/多开/collapsible，复用 Collapsible）                                                                                                                                                                                        |
@@ -261,7 +261,7 @@ import "goose-ui/styles/theme.css";
 | -------------- | ------------------------------------------------------------------------------------ |
 | PageHeader     | 页面标题栏（标题 + 描述 + children 附加行 + 右侧操作区，窄屏自动换行）               |
 | Page           | 页面容器（根布局 + 页头 + 内容区间距一次到位）                                       |
-| Sidebar        | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）           |
+| Sidebar        | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）。尺寸全部由组件内的一组 `--sb-*` 变量派生（行高 36 / 组内 2 / 组间 16 / 行圆角 md），改一个值整列跟着走 |
 | Header         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                         |
 | NavigationMenu | 导航菜单（面板定位/翻转，链接 + 描述）                                               |
 | Menubar        | 菜单栏（横向方向键：焦点在触发器间 roving，已展开时自动切换菜单；复用 DropdownMenu） |
@@ -336,6 +336,7 @@ import "goose-ui/styles/theme.css";
 - `resize`：Wails 窗口（四角手柄 + 全域拖拽调整），浏览器省略
 - `windowControls={false}`：写在 `TitleBar` 上，隐藏默认窗口三键（浏览器环境）；`controls` snippet 可在键区附加自定义按钮
 - `scroll`（默认 `true`）：内容卡片整页滚；`false` = 框架不滚、页内滚动区自理
+- 内容区装的是 `Page` 时，内容卡片**自动让出滚动**（`.layout-content:has(> .page)`），滚动只由 `Page` 的 `.page-body` 承担。不这么做的话，页面切换的 24px 位移会临时把卡片撑出一条额外滚动条，过渡结束又收回——表现为切页时闪一下双滚动条、正文横跳一个滚动条宽度
 
 页面结构用 `Page`，不要再手写「根 div + 页头 + padding/gap」样板：
 
@@ -609,6 +610,107 @@ formatBytes(1536); // "1.5 KB"
 await copyToClipboard("text"); // 返回 Promise<boolean>
 ```
 
+### 浮层动效（menuIn / menuOut）
+
+所有自带浮层的组件（DropdownMenu / ContextMenu / Select / MultiSelect / CreatableSelect /
+Combobox / Popover / NavigationMenu / TimePicker / DatePicker / DateRangePicker / LinkPreview、
+折叠侧栏的悬浮面板）用的是同一条曲线：进入 120ms 淡入 + 位移 6px + 缩放 0.96→1，
+缩放原点贴在触发器那一侧；离开 80ms，只做透明度与一半位移。
+
+自己写浮层时直接用这两个函数，别另抄一份：
+
+```svelte
+<script lang="ts">
+  import { menuIn, menuOut } from "goose-ui";
+</script>
+
+{#if open}
+  <div class="my-panel" in:menuIn={{ up: flipped }} out:menuOut={{ up: flipped }}>
+    面板内容
+  </div>
+{/if}
+```
+
+`up` 表示面板翻到了触发器上方（位移方向与缩放锚边随之反向），
+`align: 'end'` 让右对齐的浮层从右边展开。`prefers-reduced-motion: reduce` 下时长归零。
+
+注意：Svelte 5 里**嵌套 `{#if}` 的内层元素不会播放 `in:` 过渡**（外层 if 与内层 if
+在同一次更新里创建时，intro 被跳过；`out:` 正常）。要么把条件合并成一层，要么把内层
+拆成独立组件。
+
+### 滑动高亮动效（PillTrack）
+
+列表行、菜单项、分段控件、侧栏导航的「背景块跟着指针/选中项滑动」都由 `PillTrack` 绘制。
+**hover pill 与选中 pill 共用同一条 back-out 回弹曲线** `cubic-bezier(0.34, 1.5, 0.64, 1)`：
+位置先冲过落点、再收回来，过冲量约为本次位移的 8%，切换与划过的手感一致。
+
+时长也共用同一个映射（`d` 是本次位移距离）：
+
+```
+pillDur(d) = clamp(0.16s, 0.28s, 0.14s + d / 1600)
+```
+
+| 场景 | CSS 变量 | 相邻一行的时长 | 说明 |
+| --- | --- | --- | --- |
+| hover | `--pill-hover-dur` | ≈ 0.16s | 指针扫过一列时每一行都会重新起跳，过长会追不上指针 |
+| 选中 | `--pill-dur` | ≈ 0.16s | 与 hover 完全相同；远距离封顶 0.28s |
+
+**两边不能各写一套参数。** 曾经选中 pill 用 0.18–0.40s、hover 用 0.16–0.26s：下拉框每次
+只挪一行，永远落在下限，看着是「弹」的；侧栏点一次常跨十几项，直接顶到 0.40s 上限，
+同一条回弹曲线被拉长就成了「缓」。用户不会归因到「距离自适应」，只会觉得这两个 pill
+的动画不是一套。
+
+`height` 用的是过冲更小的 `cubic-bezier(0.34, 1.12, 0.64, 1)`（高度不是位移，过冲大会让
+pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回 `ease-out`，位移仍然跟随、
+只是不再弹。
+
+给新组件加成组 hover 高亮时，优先挂 `PillTrack` 而不是自己写 `:hover { background }` ——
+自己写只有「瞬时变色」，没有滑动和回弹，和其余组件放在一起会明显不齐。
+
+#### pill 配色：单 pill 用主题色，双 pill 才分「主题色 + 灰」
+
+| 场景 | 组件 | 取色 |
+| --- | --- | --- |
+| 只有一块 pill（落点高亮） | Select / Combobox / CreatableSelect / MultiSelect / Command / DropdownMenu / ContextMenu / TitleBar 搜索 | 那块 pill = `var(--primary)` 实心，该行文字/图标/快捷键转 `var(--accent-text)` |
+| 两块 pill | Sidebar / Tabs / Calendar 日期格 / RadioGroup / ToggleGroup | 激活项 `var(--primary)` + `var(--accent-text)`，hover = 中性灰 `var(--hover)` |
+| 大面积扫动 / 小按钮 | DataTable / DataList 行、分段的输入小格、日历翻页按钮 | hover = `var(--hover)` |
+| 下划线 tab | `variant="line"` | 自动取 `--hover-line`（比轨道深一档的灰，压在 1px 轨道上才看得见） |
+
+弹窗列表里「选中的那一行」不是 pill：它是常驻的勾 + `--primary-soft` 淡染底，跟跟着指针跑的
+落点 pill 并存 —— 两者一眼能分开，鼠标划过选中行时落点 pill 会隐藏、文字保持深色。
+
+**项间间隙归最近那一项**（`gapBridge`，默认 12px）：项与项之间总有 2~10px 的空隙
+（flex `gap`、兄弟项 `margin`、菜单分隔线），这些空隙属于容器、命中不到任何项，
+按元素命中判断时指针每扫过一条缝 pill 就会消失一次。`PillTrack` 现在会在命中不到项时
+按几何就近归属：最近项与**次近项**都在 `gapBridge` 以内才算数 —— 这一条把「两项之间的缝」
+和「表头上方 / 列表下方的空白」区分开，后者只有一侧有项，不会把首/末行点亮。
+视觉间隙一点没动，只是不再有死区；传 `gapBridge={0}` 可关掉。
+
+### 悬停提示（Tooltip）
+
+界面上的悬停文案一律走 `Tooltip`，不要写原生 `title` —— 原生 tooltip 的配色由系统决定，
+暗色主题下会弹出跟主题无关的浅色方块。
+
+```svelte
+<Tooltip title="设置" placement="bottom">
+  <Button size="icon" variant="ghost" icon={SettingsIcon} ariaLabel="打开设置" />
+</Tooltip>
+```
+
+几条约定：
+
+- **触发器是 `span`（inline-flex）**，所以可以放进 `<button>` 里，给图标按钮加提示不用改结构。
+- **气泡 portal 到 `body`**：原地渲染时，祖先的 `backdrop-filter` / `transform` 会变成
+  `position: fixed` 的包含块（表头磨砂、行进场动画都会命中），Modal / Drawer 的 `overflow`
+  还会把它裁掉。
+- **包裹改变了 flex 父子关系**：原来挂在元素上的 `flex: 1`、`margin-left: auto`、
+  `text-overflow: ellipsis` 可能失效，给触发器 `class` 补一条
+  `:global(.xxx-tip) { flex: 1 1 auto; min-width: 0 }`，内层再做省略。
+- **默认延迟 200ms**：一屏里可能挂几十个提示，延迟太小、鼠标扫过就弹一片。用 `delay` 覆盖。
+- 内容里的 `\n` 会保留（`white-space: pre-wrap`），长文本用 `maxWidth` 限宽。
+- 例外：`DataTable` 的纯文本单元格仍用原生 `title`（成千上万个格子，一格一个组件不划算）；
+  需要气泡就在 `custom` 列的 `cell` snippet 里自己包一层。
+
 ### Notification API
 
 ```ts
@@ -738,14 +840,33 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 
 | 角色                      | 变量                                                                                         | 用途                                     |
 | ------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| 主色                      | `--accent` / `--accent-hover` / `--accent-text`                                              | 激活项、主按钮、选中态                   |
-| 副强调色                  | `--accent-sub`                                                                               | 低透明度主色：hover 底、轻淡染           |
+| 主色                      | `--accent` / `--accent-hover` / `--accent-text`                                              | 激活项、主按钮、选中态；单 pill 列表的落点 pill |
+| 副强调色                  | `--accent-sub`                                                                               | 低透明度主色：选中项的淡染底（**不用于 pill / hover**） |
 | 焦点环 / 选中强调         | `--accent-ring` / `--accent-strong`                                                          | 焦点外圈 / 更重的选中底色                |
-| 互补色                    | `--complement` / `--complement-hover` / `--complement-sub`                                   | 与主色形成对比的位置、进度渐变终点       |
+| 互补色                    | `--complement` / `--complement-hover` / `--complement-sub`                                   | 与主色形成对比的位置                     |
 | 中性黑/灰                 | `--neutral-bg` / `--neutral-surface` / `--neutral-surface-2` / `--neutral-border`            | 大面积背景填充（无彩色，不参与色相配置） |
 | 完成 / 信息 / 警告 / 危险 | `--success` / `--info` / `--warning` / `--danger`（各带 `-hover` `-soft` `-text` `-border`） | 状态语义                                 |
+| 渐变                      | `--gradient-accent` / `--gradient-accent-hover`                                              | 全项目唯一一套，见下节                   |
+
+#### 渐变只有一套
+
+项目里所有「主色渐变」都引用同一组 token，不再各自写一条 `linear-gradient`：
+TitleBar logo、ProgressBar / Meter / Slider 的填充都是 `var(--gradient-accent)`。
+
+- 色相规则固定：**主色色相 `-30°` → `+30°`，跨度 60°**，中点落在主色上。换主题色时整条跟着转，
+  两端永远只在主色附近摆动（以前是 accent→complement，一道渐变里跨 100°+，中间那段是脏的）。
+- `--gradient-accent-hover` 只提亮一档、**色相完全不动**（L 0.55→0.62）。用在真有 hover 的地方：
+  TitleBar logo 悬停、Slider 悬停/拖动。
+- `--titlebar-logo-gradient` / `--titlebar-logo-gradient-hover` 是旧名，值等于上面两个 token，
+  已有覆盖写法继续有效；新代码用新名。
+- 渐变内是 `oklch(L C calc(var(--hue-accent) ± 30))`：色相偏移用纯数字（写成 `30deg` 会和 number 混算出无效值），
+  且在 `:root` 上预解析成自定义属性；组件里**不要**写成 `var(--x, <含 var() 的回退>)`，
+  回退值里出现任何 `var()` 都会让整条 background 在计算值阶段失效 → `background-image: none` → 元素隐形。
 
 > demo 侧栏「设置」页提供可视化调节：6 个角色（主色 + 互补色 + 完成/信息/警告/危险）+ 7 套预设 + 实时预览 + 恢复默认。
+> 页面末尾还有一节「全部颜色变量」：按基础面 / 描边 / 文字 / 六个语义色系 / 中性面 / 渐变 / 别名分组，
+> 列出 `theme.css` 定义的全部 77 个颜色 token 与 4 条渐变 token，可切换亮/暗对照，值与 `color-mix()` 都实时算出来，
+> 渐变色带还会把两端色相量出来写成 `234° → 294° · 跨 60°`；点色块直接复制 `var(--token)`。
 
 ### 右键菜单 API
 
@@ -787,8 +908,9 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ### 需要按色相联动时
 
-`--hue-*` 仍然存在，但它现在只服务于「需要取邻近色相」的渐变与动画（当前只有 TitleBar 品牌渐变
-用 `calc(var(--hue-accent) + 40)` 取主色的相邻色相）。改它不会动上面那些 hex 默认值。
+`--hue-*` 仍然存在，但它现在只服务于「需要取邻近色相」的渐变（当前只有统一渐变
+`--gradient-accent` 用 `calc(var(--hue-accent) - 30)` / `+ 30` 取主色两侧各 30°）。
+改它不会动上面那些 hex 默认值。
 
 ```css
 :root {
@@ -823,6 +945,9 @@ onMenuAction("row", "del", (data) => console.log(data));
 - 旧名 `--primary` / `--primary-hover` / `--primary-soft` / `--primary-text` 仍然可用，是
   `--accent` 体系的别名，既有代码无需改动
 - 中性色（`--bg` / `--surface*` / `--border`）刻意不参与色相配置 —— 大面积背景不应被染色
+- 浮层（菜单 / 气泡 / 下拉列表）另有 `--popup-surface`：亮色 `#ffffff`、暗色 `#000000`。
+  它不参与灰阶：浮层悬在页面之上，套一层中性灰就变成「灰上加灰」，边界只能靠阴影和细边框撑。
+  需要改浮层底色（例如改用带色调的面板）只覆盖这一个 token 即可，不必逐个组件写 `:global` 覆盖
 - 暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换；子树内用 `.light` 类可局部恢复浅色 token
 
 ### 工具类（theme.css 全局提供）

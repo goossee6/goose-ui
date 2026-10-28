@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import { floatingPosition } from './floatingPosition';
+  import { menuIn, menuOut } from './menuTransition';
   import { rowsHeight } from './rowHeight';
   import PillTrack from './PillTrack.svelte';
   import ScrollZones from './ScrollZones.svelte';
@@ -33,6 +34,7 @@
   let rootEl: HTMLElement;
   let scrollEl = $state<HTMLElement | null>(null);
   let dropdownStyle = $state('');
+  let flipUp = $state(false);
   // 键盘活动项：与 Select 一套交互（方向键移动、Enter 切换、Escape 关闭）
   let activeIdx = $state(-1);
 
@@ -84,6 +86,7 @@
     const ddh = rowsHeight(items, 8).height + 2;
     const r = floatingPosition(rect, { panelW: Math.max(120, rect.width), panelH: ddh, gap: 4 });
     dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
+    flipUp = r.flipUp;
   }
 
   function toggleItem(val: string) {
@@ -177,13 +180,22 @@
     <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
   </div>
   {#if open}
-    <div class="menu" style={dropdownStyle} role="listbox" aria-multiselectable="true">
+    <div
+      class="menu"
+      style={dropdownStyle}
+      role="listbox"
+      aria-multiselectable="true"
+      in:menuIn={{ up: flipUp }}
+      out:menuOut={{ up: flipUp }}
+    >
       <div class="menu-scroll" bind:this={scrollEl}>
+        <!-- 单 pill（只有 hover 这一块）→ 主题色实心；选中项不是 pill，
+             而是常驻的勾 + 淡染底，两者不冲突。 -->
         <PillTrack
           container={scrollEl}
           itemSelector=".option:not(.selected)"
           showSelected={false}
-          hoverBackground="var(--accent-sub)"
+          hoverBackground="var(--primary)"
           radius="var(--radius-md)"
         />
         {#each items as item, i (item.value)}
@@ -229,7 +241,7 @@
   .badge-x:hover { background-color: rgba(0, 0, 0, 0.15); }
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
-    .menu { position: fixed; display: flex; flex-direction: column; overflow: hidden; padding: var(--sp-sm); background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
+    .menu { position: fixed; display: flex; flex-direction: column; overflow: hidden; padding: var(--sp-sm); background-color: var(--popup-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); z-index: var(--z-max); }
   /* 唯一滚动体：隐藏滚动条 → 左右内边距一致 */
     /* 内边距在 .menu（面板层）：sticky 组头吸附滚动容器顶边，组头上方面板 padding 带无内容可透出 */
     .menu-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
@@ -237,8 +249,8 @@
   /* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
   .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */ padding: 0 40px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(12px); }
   .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
-  .option:hover { color: var(--text-strong); }
-  .option.active { color: var(--text-strong); }
+  .option:hover:not(.selected),
+  .option.active:not(.selected) { color: var(--accent-text); }
   .option.selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
   /* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
   .option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
