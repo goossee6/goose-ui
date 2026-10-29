@@ -17,8 +17,8 @@
   import CodePreview from "../CodePreview.svelte";
 
   const buttonProps: PropsTableItem[] = [
-    { name: "variant", desc: "按钮风格变体", type: "'primary' | 'default' | 'ghost' | 'danger' | 'link'", default: "'default'" },
-    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)", type: "'small' | 'middle' | 'large' | 'icon' | 'icon-sm' | 'icon-md' | 'icon-lg' | number", default: "'middle'" },
+    { name: "variant", desc: "按钮风格变体", type: "'primary' | 'default' | 'ghost' | 'danger' | 'danger-solid' | 'text' | 'text-primary' | 'link'", default: "'default'" },
+    { name: "size", desc: "尺寸，预设字符串或自定义数值(px)；xs 只给 text 变体用", type: "'xs' | 'small' | 'middle' | 'large' | 'icon' | 'icon-sm' | 'icon-md' | 'icon-lg' | number", default: "'middle'" },
     { name: "disabled", desc: "禁用状态", type: "boolean", default: "false" },
     { name: "loading", desc: "加载中：显示 spinner 并阻止点击", type: "boolean", default: "false" },
     { name: "type", desc: "原生 button 类型", type: "'button' | 'submit'", default: "'button'" },
@@ -28,6 +28,7 @@
     { name: "iconSize", desc: "图标尺寸(px)", type: "number", default: "16" },
     { name: "children", desc: "按钮内容", type: "Snippet" },
     { name: "onclick", desc: "点击回调", type: "(event: MouseEvent) => void" },
+    { name: "element", desc: "内部真实 button 节点，可 bind:element（对话框打开时聚焦用）", type: "HTMLButtonElement | null" },
     { name: "...rest", desc: "透传原生属性（如 ariaLabel、style）", type: "[key: string]: unknown" },
   ];
 
@@ -40,7 +41,10 @@
   <Button onclick={() => Notification.success("Default 被点击")}>Default 默认</Button>
   <Button variant="ghost" onclick={() => Notification.success("Ghost 被点击")}>Ghost 幽灵</Button>
   <Button variant="danger" onclick={() => Notification.error("Danger 被点击")}>Danger 危险</Button>
+  <Button variant="danger-solid" onclick={() => Notification.error("Danger Solid 被点击")}>Danger Solid 危险实心</Button>
   <Button variant="link" onclick={() => Notification.success("Link 被点击")}>Link 链接</Button>
+  <Button variant="text" onclick={() => Notification.success("Text 被点击")}>Text 文字</Button>
+  <Button variant="text-primary" onclick={() => Notification.success("Text Primary 被点击")}>Text Primary 文字主色</Button>
 </Row>`;
 
   const sizeSource = `<script lang="ts">
@@ -52,6 +56,7 @@
   <Button onclick={() => Notification.success("middle 按钮被点击")}>middle (默认)</Button>
   <Button size="large" onclick={() => Notification.success("large 按钮被点击")}>large</Button>
   <Button size={40} onclick={() => Notification.success("size=40 按钮被点击")}>size=40</Button>
+  <Button variant="text-primary" size="xs" onclick={() => Notification.success("xs 被点击")}>xs（仅 text 变体）</Button>
 </Row>`;
 
   const iconOnlySource = `<script lang="ts">
@@ -120,14 +125,17 @@
 </Row>`;
 </script>
 
-<Page toc title="按钮 Button" description="五种变体、多种尺寸、loading 状态、左右图标">
+<Page toc title="按钮 Button" description="八种变体、多种尺寸、loading 状态、左右图标">
   <CodePreview anchor="variants-sizes" anchorLevel={2} title="变体 Variants" code={variantSource}>
     <Row>
       <Button variant="primary" onclick={() => Notification.success("Primary 被点击")}>Primary 主要</Button>
       <Button onclick={() => Notification.success("Default 被点击")}>Default 默认</Button>
       <Button variant="ghost" onclick={() => Notification.success("Ghost 被点击")}>Ghost 幽灵</Button>
       <Button variant="danger" onclick={() => Notification.error("Danger 被点击")}>Danger 危险</Button>
+      <Button variant="danger-solid" onclick={() => Notification.error("Danger Solid 被点击")}>Danger Solid 危险实心</Button>
       <Button variant="link" onclick={() => Notification.success("Link 被点击")}>Link 链接</Button>
+      <Button variant="text" onclick={() => Notification.success("Text 被点击")}>Text 文字</Button>
+      <Button variant="text-primary" onclick={() => Notification.success("Text Primary 被点击")}>Text Primary 文字主色</Button>
     </Row>
   </CodePreview>
 
@@ -137,6 +145,7 @@
       <Button onclick={() => Notification.success("middle 按钮被点击")}>middle (默认)</Button>
       <Button size="large" onclick={() => Notification.success("large 按钮被点击")}>large</Button>
       <Button size={40} onclick={() => Notification.success("size=40 按钮被点击")}>size=40</Button>
+      <Button variant="text-primary" size="xs" onclick={() => Notification.success("xs 被点击")}>xs（仅 text 变体）</Button>
     </Row>
   </CodePreview>
 

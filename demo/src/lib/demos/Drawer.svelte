@@ -9,6 +9,7 @@
   let noMaskOpen = $state(false);
   let customFooterOpen = $state(false);
   let noPushOpen = $state(false);
+  let depthOpen = $state(false);
   let navOpen = $state(false);
   let navTab = $state("windows");
   let scopeOpen = $state(false);
@@ -49,6 +50,9 @@
     { name: "offsetTop", desc: "顶部留白（数字按 px），让抽屉从标题栏下沿开始", type: "number | string" },
     { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "true" },
     { name: "pushBackground", desc: "景深下沉（缩放 + 模糊 + 圆角），默认启用，传 false 关闭", type: "boolean", default: "true" },
+    { name: "pushScale", desc: "景深下沉时的背景缩放比例（1 = 不缩，夹在 0.5~1）", type: "number", default: "0.94" },
+    { name: "pushBlur", desc: "景深模糊半径（px，0 = 只缩不糊，夹在 0~40）", type: "number", default: "1" },
+    { name: "backgroundSelector", desc: "景深作用的宿主容器；传 null 关闭。默认取第一个匹配的 .layout / .layout-content / main", type: "string | null", default: "'.layout, .layout-content, main'" },
     { name: "container", desc: "挂载容器，默认 body；传入元素时抽屉改为在容器内绝对定位（容器需为定位元素）", type: "HTMLElement | null", default: "null" },
     { name: "footer", desc: "底部区域插槽", type: "Snippet | null" },
     { name: "onClose", desc: "关闭回调", type: "() => void" },
@@ -127,6 +131,18 @@
     <p>点击遮罩仍然可以关闭。</p>
   </Drawer>
 </Row>`;
+
+  const depthSource = `<script lang="ts">
+  import { Button, Drawer } from "goose-ui";
+
+  let open = $state(false);
+<\/script>
+
+<Button onclick={() => (open = true)}>强景深</Button>
+
+<Drawer bind:open title="景深档位" pushScale={0.97} pushBlur={6} maskClosable>
+  <p>pushScale: 背景缩放比例，1 = 不缩；pushBlur: 模糊半径，0 = 只缩不糊。</p>
+</Drawer>`;
 
   const coverageSource = `<script lang="ts">
   import { Button, Drawer } from "goose-ui";
@@ -381,6 +397,22 @@
       <Drawer bind:open={noPushOpen} title="关闭景深" maskClosable pushBackground={false}>
         <p>景深默认启用；显式传 <code>pushBackground=false</code> 后，背景不会产生缩放和模糊景深效果。</p>
         <p>点击遮罩仍然可以关闭。</p>
+      </Drawer>
+    </Row>
+  </CodePreview>
+
+  <CodePreview anchor="depth" anchorLevel={3} title="调整景深强度" code={depthSource}>
+    <Row>
+      <Button onclick={() => (depthOpen = true)}>强景深</Button>
+      <Drawer bind:open={depthOpen} title="景深档位" maskClosable pushScale={0.97} pushBlur={6}>
+        <p>
+          景深由 <code>pushScale</code>（缩放比例，1 = 不缩）和 <code>pushBlur</code>（模糊半径）
+          两档组成，与 <code>pushBackground</code> 一起决定「后退」的力度。
+        </p>
+        <p>
+          默认 <code>0.94 / 1</code> 是给窄侧栏抽屉调的：缩得多、糊得轻。铺满大半屏的面板反过来用
+          <code>0.97 / 6</code>——缩得少、糊得重，才不会在四周露出一圈页面底色。
+        </p>
       </Drawer>
     </Row>
   </CodePreview>

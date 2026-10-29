@@ -9,6 +9,7 @@
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
+	import Button from './Button.svelte';
 	import { trapTabKey } from './focusTrap';
 
 	let {
@@ -100,21 +101,19 @@
 				<div class="alert-content">{@render content()}</div>
 			{/if}
 			<div class="alert-actions">
-				<button type="button" class="alert-btn alert-btn--cancel" bind:this={cancelBtn} disabled={loading} onclick={cancel}>
-					{cancelText}
-				</button>
-				<button
-					type="button"
-					class="alert-btn alert-btn--confirm"
-					class:danger
+				<Button
+					variant="default"
+					size="middle"
 					disabled={loading}
-					onclick={confirm}
+					bind:element={cancelBtn}
+					onclick={cancel}>{cancelText}</Button
 				>
-					{#if loading}
-						<span class="alert-spinner" aria-hidden="true"></span>
-					{/if}
-					{confirmText}
-				</button>
+				<Button
+					variant={danger ? 'danger-solid' : 'primary'}
+					size="middle"
+					loading={loading}
+					onclick={confirm}>{confirmText}</Button
+				>
 			</div>
 		</div>
 	</div>
@@ -162,60 +161,5 @@
 		display: flex;
 		justify-content: flex-end;
 		gap: var(--sp-md);
-	}
-	.alert-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--sp-sm);
-		padding: var(--sp-md) var(--sp-lg);
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-md);
-		font-size: 13px;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
-	}
-	.alert-btn:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-	.alert-btn:focus-visible {
-		outline: 2px solid var(--primary);
-		outline-offset: 2px;
-	}
-	.alert-btn--cancel {
-		background: var(--surface);
-		color: var(--text);
-	}
-	.alert-btn--cancel:hover:not(:disabled) {
-		background: var(--hover);
-	}
-	.alert-btn--confirm {
-		background: var(--primary);
-		border-color: var(--primary);
-		color: var(--primary-text);
-	}
-	.alert-btn--confirm:hover:not(:disabled) {
-		background: var(--primary-hover);
-	}
-	.alert-btn--confirm.danger {
-		background: var(--danger);
-		border-color: var(--danger);
-	}
-	.alert-btn--confirm.danger:hover:not(:disabled) {
-		background: var(--danger-hover);
-	}
-	.alert-spinner {
-		width: 12px;
-		height: 12px;
-		border: 2px solid rgba(255, 255, 255, 0.4);
-		border-top-color: var(--primary-text);
-		border-radius: 50%;
-		animation: alert-spin 0.7s linear infinite;
-	}
-	@keyframes alert-spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 </style>

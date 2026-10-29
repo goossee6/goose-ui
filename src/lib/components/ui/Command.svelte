@@ -155,7 +155,7 @@
 				<kbd class="command-kbd">Esc</kbd>
 			</div>
 			<ul class="command-list" id="command-list" role="listbox" bind:this={listEl}>
-				<!-- 单 pill → 主题色实心（见 Select 里的说明） -->
+				<!-- 单 pill：命令面板没有常驻选中，落点就是当前项 → 主题色实心 -->
 				<PillTrack
 					container={listEl}
 					activeSelector=".command-item.active"

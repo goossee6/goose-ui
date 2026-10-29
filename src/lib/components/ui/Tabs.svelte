@@ -116,6 +116,7 @@
 			variant={mode === 'underline' ? 'line' : 'box'}
 			insetX={mode === 'vertical' ? 4 : undefined}
 			background="var(--primary)"
+			activeHoverBackground="var(--primary-hover)"
 			radius="var(--radius-md)"
 		/>
 		{#each items as item}

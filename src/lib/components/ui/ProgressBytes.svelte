@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from './Button.svelte';
 	import { formatBytes } from '../../utils/format';
 
 	let {
@@ -39,7 +40,7 @@
 		<span class="progress-right">
 			{#if eta}<span class="progress-eta">预计: {eta}</span>{/if}
 			{#if onCancel && !disabled}
-				<button class="progress-cancel" onclick={onCancel}>取消</button>
+				<Button variant="text" size="xs" class="progress-cancel" onclick={onCancel}>取消</Button>
 			{/if}
 		</span>
 	</div>
@@ -62,8 +63,6 @@
 	.progress-filename { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
 	.progress-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 	.progress-eta { font-size: 12px; color: var(--text-muted); }
-	.progress-cancel { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.15s; }
-	.progress-cancel:hover { color: var(--text-strong); }
 	.progress-row2 { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
 	.progress-bytes-info { font-variant-numeric: tabular-nums; }
 	.progress-stats { font-variant-numeric: tabular-nums; }

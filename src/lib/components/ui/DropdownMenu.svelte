@@ -25,6 +25,7 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import PillTrack from './PillTrack.svelte';
+	import { createLayerId, isInsideLayer, layerOwnerOf, registerLayer, unregisterLayer } from './overlayLayer';
 	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
 
@@ -70,6 +71,9 @@
 		class?: string;
 		style?: string;
 	} = $props();
+
+	// 本层浮层 id：菜单面板上挂 data-overlay-layer，供父层判断子面板用
+	const layerId = createLayerId('menu');
 
 	let rootEl = $state<HTMLElement | null>(null);
 	let menuEl = $state<HTMLElement | null>(null);
@@ -118,9 +122,15 @@
 	 * 会盖住它。挂到 body 才真正脱离。
 	 */
 	function portal(node: HTMLElement) {
+		// 先登记「我在哪一层里弹出来的」，再挂到 body：菜单同样可能长在
+		// Popover / Modal 里，父层要能认出这是它的子面板
+		const owner = layerOwnerOf(node);
+		node.dataset.overlayLayer = layerId;
+		registerLayer(layerId, owner);
 		document.body.appendChild(node);
 		return {
 			destroy() {
+				unregisterLayer(layerId);
 				node.remove();
 			},
 		};
@@ -193,10 +203,10 @@
 	$effect(() => {
 		if (!open) return;
 		const onDocDown = (e: MouseEvent) => {
-			const t = e.target as Node;
 			// 菜单已 portal 到 body，不再是 rootEl 的后代，必须单独判一次，
 			// 否则点菜单项时 mousedown 先关菜单、click 永远不触发。
-			if (rootEl && !rootEl.contains(t) && !menuEl?.contains(t)) close();
+			// 菜单里再弹出的子浮层（Select 下拉等）同样算内部，见 overlayLayer.ts
+			if (rootEl && !isInsideLayer(e.target, layerId, [rootEl, menuEl])) close();
 		};
 		const onScroll = () => measure();
 		const onResize = () => measure();
@@ -367,11 +377,23 @@
 	}
 	/* 菜单只有一块 pill（没有常驻选中态）→ 用主题色实心；
 	   文字转 --accent-text，否则深字压在品牌色上读不清。危险项走自己的浅红 pill，
-	   保留 --danger 文字与图标，所以下面这些规则都排除 .danger。 */
-	.dropdown-item:hover:not(:disabled) {
+	   保留 --danger 文字与图标，所以下面这些规则都排除 .danger。
+
+	   上色依据是 PillTrack 打在「pill 正压着的这一行」上的 `data-pill-on`，而**不是
+	   `:hover`**：指针落进项间缝隙、分隔线或面板内边距时，pill 仍按「就近归属」停在
+	   最近那一行，而 `:hover` 已经是 false —— 用 `:hover` 上色就会出现「鼠标移开了、
+	   蓝底还没退、字却已经变回深色」，深字压品牌色实测对比度约 1.4:1。
+
+	   只认 `hover` 档：`custom`（禁用行的中性灰、危险项的浅红）仍是浅底，转白更糟。
+
+	   `data-pill-on` 是 PillTrack 在运行时打上行元素的，Svelte 的静态分析看不见这样的
+	   属性选择器（会报 css_unused_selector，而 CSS 里没有 svelte-ignore）。所以这里把
+	   行本身包进 :global()，作用域改由祖先 `.dropdown-menu` 兜住 —— 既不越出这个菜单，
+	   也不会因为「编译器觉得没人用」而被删掉。 */
+	.dropdown-menu :global(.dropdown-item[data-pill-on='hover']:not(:disabled)) {
 		color: var(--accent-text);
 	}
-	.dropdown-item:hover:not(:disabled):not(.danger) .dropdown-item-icon {
+	.dropdown-menu :global(.dropdown-item[data-pill-on='hover']:not(:disabled):not(.danger) .dropdown-item-icon) {
 		color: var(--accent-text);
 	}
 	/* 键盘落在菜单项上时没有指针，pill 不会出现，用同一套主题色补上（不能再用 --hover，
@@ -394,7 +416,9 @@
 	.dropdown-item.danger {
 		color: var(--danger);
 	}
-	.dropdown-item.danger:hover:not(:disabled) {
+	/* 危险行的 pill 是浅红（data-pill-bg），本就不会被标成 hover 档；
+	   这条只是兜底：万一以后给危险行换回主题色 pill，文字仍留在红色而不是转白。 */
+	.dropdown-menu :global(.dropdown-item.danger[data-pill-on]:not(:disabled)) {
 		color: var(--danger);
 	}
 	.dropdown-item-icon {
@@ -446,8 +470,10 @@
 	}
 	/* 悬停时整行是品牌色实心 pill：开态轨道原本也是 --primary，会整个「融进」去。
 	   这里把轨道改成半透明白，靠明度差把自己勾出来；关态轨道也提亮一档，
-	   否则深灰轨道压在品牌色上像块脏斑。 */
-	.dropdown-item--switch:hover:not(:disabled) .dropdown-switch {
+	   否则深灰轨道压在品牌色上像块脏斑。
+	   同样跟着 `data-pill-on` 走（不是 :hover）：轨道颜色和 pill 必须同进同退，
+	   否则移开鼠标的瞬间会留下「深灰轨道 + 蓝色底」的一帧。 */
+	.dropdown-menu :global(.dropdown-item--switch[data-pill-on='hover']:not(:disabled) .dropdown-switch) {
 		background-color: color-mix(in srgb, var(--accent-text) 20%, transparent);
 		border-color: color-mix(in srgb, var(--accent-text) 45%, transparent);
 	}

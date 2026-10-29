@@ -39,7 +39,6 @@
   import { untrack } from "svelte";
   import type { Snippet } from "svelte";
   import X from '@lucide/svelte/icons/x';
-  import Icon from './Icon.svelte';
   import Button from './Button.svelte';
   import { trapTabKey } from './focusTrap';
 
@@ -70,6 +69,7 @@
     style = "",
     children,
     footer,
+    headerActions,
   }: {
     open?: boolean;
     title?: string | Snippet;
@@ -99,6 +99,14 @@
     style?: string;
     children?: Snippet;
     footer?: Snippet;
+    /**
+     * 标题行右侧的操作（渲染在关闭按钮左边）。
+     *
+     * 给「列表类弹窗」用：标题旁边直接放「全部清空」「关闭全部」这类针对整份
+     * 数据集的动作用，用户不用把视线移到页脚、也不用先关掉弹窗回到原页面。
+     * 不给就一像素都不占。
+     */
+    headerActions?: Snippet;
   } = $props();
 
   let okBusy = $state(false);
@@ -113,8 +121,9 @@
   let twIndex = 0;
   let twTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** 当前层在弹层栈里的 id；0 = 未打开 */
-  let layerId = 0;
+  /** 当前层在弹层栈里的 id；0 = 未打开。必须是响应式状态：层级（z-index）按它算，
+      普通 let 在 effect 里赋值不会触发重渲染，后开的弹窗就永远压不上去。 */
+  let layerId = $state(0);
   let lastFocused: HTMLElement | null = null;
 
   // 打开时登记到弹层栈（非模态不加滚动锁），关闭时摘掉并把焦点还给打开前的元素
@@ -238,6 +247,7 @@
     class="modal-overlay{maskProp === 'light' ? ' modal-overlay-light' : ''}{blur ? '' : ' modal-no-blur'}{modeless ? ' modal-overlay-modeless' : ''}"
     role="presentation"
     style:top={offsetTop == null ? undefined : typeof offsetTop === 'number' ? `${offsetTop}px` : offsetTop}
+    style:z-index={layerId ? `calc(var(--z-overlay) + ${layerId})` : undefined}
     onclick={handleMaskClick}
     transition:fade={{ duration: 150 }}
   >
@@ -251,22 +261,32 @@
       bind:this={dialogEl}
       transition:scale={{ duration: 180, start: 0.92 }}
     >
-      {#if title}
+      {#if title || headerActions}
         <div class="modal-header">
           <div class="modal-heading">
-            <span class="modal-title" id={titleId}>
-              {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
-            </span>
+            {#if title}
+              <span class="modal-title" id={titleId}>
+                {#if typeof title === "string"}{@html title}{:else}{@render title()}{/if}
+              </span>
+            {/if}
             {#if subtitle}
               <span class="modal-subtitle">
                 {#if typeof subtitle === "string"}{subtitle}{:else}{@render subtitle()}{/if}
               </span>
             {/if}
           </div>
+          {#if headerActions}
+            <div class="modal-actions">{@render headerActions()}</div>
+          {/if}
           {#if !disableClose}
-            <button class="modal-close" onclick={doCancel} aria-label="关闭">
-              <Icon icon={X} size={14} />
-            </button>
+            <Button
+              variant="ghost"
+              icon={X}
+              iconSize={14}
+              class="modal-close"
+              ariaLabel="关闭"
+              onclick={doCancel}
+            />
           {/if}
         </div>
       {/if}
@@ -302,6 +322,10 @@
 {/if}
 
 <style>
+  /* 层级：所有弹窗的基础 z-index 相同，后开的靠 layerId 往上叠一层。
+     只靠 DOM 顺序不可靠 —— 全局挂载的 ConfirmDialog / ErrorDialog 写在布局
+     前面，而业务弹窗可能在布局里面的任意位置；同 z-index 下先出现在文档里的
+     那份会被压住，于是「弹窗里再弹确认框」就点不到确认按钮了。 */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -372,24 +396,31 @@
     color: var(--text-muted);
     min-width: 0;
   }
-  .modal-close {
+  /* 关闭钮的视觉全交给 Button（ghost + icon-sm = 28×28、hover 提亮、
+     焦点环、按压回弹），这里只补 Button 不管的两件事：与右侧操作区的间距、
+     以及标题过长时不被压缩。
+     Button 是子组件，本组件的 scope class 落不到它身上，所以选择器最后一段
+     必须走 :global —— 否则这条规则一条都匹配不上。 */
+  .modal :global(.modal-close) {
+    margin-left: var(--sp-md);
+    flex-shrink: 0;
+  }
+  /* 标题行操作区：不吃剩余宽度（标题优先占满并省略），也不被压缩。
+     header 是 18px/600 的标题排版，按钮自带字号，这里不继承。 */
+  .modal-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
+    gap: var(--sp-sm, 8px);
     flex-shrink: 0;
-    margin-left: 8px;
-    background: none;
-    border: none;
-    border-radius: var(--radius-lg);
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    margin-left: var(--sp-lg);
+    font-size: 14px;
+    font-weight: 500;
   }
-  .modal-close:hover {
-    background-color: var(--surface-2);
-    color: var(--text-strong);
+  /* 传了 headerActions 但这次没有内容（调用方在里面用 if 控制显隐）时，
+     整块收掉：否则标题和关闭按钮之间会凭空多出 24px。
+     用 :has 而不是 :empty —— 片段里的 {#if} 会留下注释锚点，:empty 永远不成立。 */
+  .modal-actions:not(:has(*)) {
+    display: none;
   }
   .modal-body {
     padding: 32px 40px;

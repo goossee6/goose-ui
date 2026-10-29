@@ -416,7 +416,7 @@
               aria-sort={ariaSort(col)}
             >
               {#if colSortable(col)}
-                <button class="sort-btn" class:active={sortState?.key === col.id} onclick={() => (sortState = toggleSort(sortState, col.id))}>
+                <button type="button" class="sort-btn" class:active={sortState?.key === col.id} onclick={() => (sortState = toggleSort(sortState, col.id))}>
                   {col.header}
                   <Icon icon={Triangle} size={14} class={sortState?.key === col.id && sortState.dir === "desc" ? "sort-flip" : ""} />
                 </button>

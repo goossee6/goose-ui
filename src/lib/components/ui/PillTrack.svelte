@@ -9,6 +9,7 @@
 		insetX,
 		background = 'transparent',
 		hoverBackground = '',
+		activeHoverBackground = '',
 		radius = 'var(--radius-md)',
 		shadow = '',
 		disabled = false,
@@ -40,6 +41,20 @@
 		 * 需要带色相的 hover 也请混成实色：`color-mix(in srgb, var(--danger) 12%, var(--popup-surface))`。
 		 */
 		hoverBackground?: string;
+		/**
+		 * 指针落在**已选中项**上时 hover pill 的底色。缺省 = 继续用 `hoverBackground`。
+		 *
+		 * 为什么要单独一档：选中 pill 是常驻的主题色实心块，指针压上去时如果 hover pill
+		 * 仍是那块中性灰，就会出现两种坏结果 ——
+		 * · hover pill 压在选中 pill 之上 → 主题色被灰盖掉，激活项「一碰就看不出来了」；
+		 * · hover pill 被选中 pill 盖住 → 选中项对悬停毫无反应，与其余行的手感断开。
+		 * 两者都不是「连贯」，而是把两个状态混成一个。
+		 *
+		 * 传主题色的加深档（`var(--primary-hover)`）即可两全：色相不变、只是浓度变一档，
+		 * 指针扫过时同一块 pill 一路滑到底、颜色由灰转深，落定后看起来就是「选中块被按了一下」，
+		 * 激活语义也一直在。想改成「悬停时选中项真的变灰」（macOS 那种）就把这里设成 `var(--hover)`。
+		 */
+		activeHoverBackground?: string;
 		/** 圆角（line 变体固定 1px，忽略此值） */
 		radius?: string;
 		/** 选中 pill 阴影 */
@@ -95,6 +110,29 @@
 	let hoverGeom = $state('');
 	let hoverOn = $state(false);
 	let hoverBg = $state('');
+	/**
+	 * 指针当前是否压在**已选中项**上（匹配 activeSelector）。
+	 *
+	 * 只用来做两件事：给 hover pill 换 activeHoverBackground、把它抬到选中 pill 之上。
+	 * 必须在「指针换了项」「选中项被重测」「指针离开」三条路径上都刷新 —— 少任何一条，
+	 * 表现都是 pill 颜色/层级停在上一次的状态：比如点选一项后指针没动，选中项变了，
+	 * 深色档却还挂在原来那一行上。
+	 */
+	let activeHovered = $state(false);
+	/** 指针最后压住的那一项（effect 内外都要读，见 refreshActiveHover） */
+	let hoveredEl: HTMLElement | null = null;
+	/**
+	 * 压在这一项上的 pill 用的是哪一档底色。三种来源与 hoverBgFor 一一对应：
+	 * `hover` = hoverBackground（多数场景是主题色实心）、`active` = activeHoverBackground、
+	 * `custom` = 行自己的 `data-pill-bg`。
+	 *
+	 * 使用方要靠它选前景色（见下面 syncMark 的注释），所以不能只存颜色值本身 ——
+	 * 两个来源完全可能算出同一个颜色，但「深底要转白字 / 浅底要留深字」的结论不同。
+	 */
+	let hoverKind = $state<'hover' | 'active' | 'custom'>('hover');
+	/** 打在「pill 当前压住的项」上的标记，值就是 hoverKind */
+	const PILL_ON = 'data-pill-on';
+	let markedEl: HTMLElement | null = null;
 	let selectedGeom = $state('');
 	let selectedOn = $state(false);
 	/**
@@ -130,8 +168,9 @@
 			(hoverRestoring ? ' transition: none;' : '')
 	);
 	const selectedStyle = $derived(
-		`${selectedGeom} --pill-dur: ${selectedDur}s; opacity: ${selectedOn ? (disabled ? 0.5 : 1) : 0};` +
-			(restoring ? ' transition: none;' : '')
+		`${selectedGeom} --pill-dur: ${selectedDur}s; opacity: ${
+			selectedOn && !activeHovered ? (disabled ? 0.5 : 1) : 0
+		};` + (restoring ? ' transition: none;' : '')
 	);
 
 	// portal 的定位方式写进内联 style，而不是靠 class 切换：
@@ -436,7 +475,84 @@
 		}, 160);
 	}
 
+	/**
+	 * 重算「指针是不是正压在选中项上」，并把 hover pill 的颜色档位一起校准。
+	 *
+	 * 三条路径都要调：指针换项、指针离开、选中项被重测。最后一条最容易被漏掉 ——
+	 * 点选之后指针一动不动，activeSelector 命中的元素却换了：只更新 activeHovered
+	 * 而不重算 hoverBg，就会出现「旧的那行恢复成灰、新的那行被选中却也是灰」——
+	 * 选中 pill 已经被藏起来（opacity 0），hover pill 又是灰的，整行主题色凭空消失。
+	 * 没有 activeHoverBackground 的用法直接短路，少一次 matches() 调用。
+	 */
+	function refreshActiveHover() {
+		if (!activeHoverBackground || !activeSelector) {
+			activeHovered = false;
+			return;
+		}
+		activeHovered = !!(hoveredEl && hoveredEl.matches(activeSelector));
+		if (hoveredEl) {
+			applyHoverBg(hoveredEl);
+			// 选中项被换掉时档位会变（active ⇄ hover）：标记的值不跟着改，使用方就还按
+			// 旧档位上色 —— 例如指针没动、选中却挪走了，这一行从 active 退回 hover，
+			// 字色规则若按 active 判就漏掉白字，深字压在品牌色上
+			syncMark();
+		}
+	}
+
+	/**
+	 * 某一项该用哪种 hover 底色。三条来源，优先级从高到低：
+	 * 1) 行自己的 `data-pill-bg` —— 逐项显式指定（脏行、禁用行、危险项都用它）；
+	 * 2) 落在选中项上 → `activeHoverBackground`（见该 prop 的注释）；
+	 * 3) 都没有 → 空串，落到 hoverBackground / 变体默认值。
+	 *
+	 * 抽成函数是因为 onOver 与 resync 是两条独立路径（指针移动 / 布局重排后补命中），
+	 * 各写一遍必然分叉：最常见的坏法是重排后 pill 位置对了、颜色却还停在上一条的档位上。
+	 *
+	 * 返回 `kind` 而不只是颜色串：使用方要用它决定这一行的前景色（见 syncMark）。
+	 */
+	function hoverBgFor(item: HTMLElement): { bg: string; kind: 'hover' | 'active' | 'custom' } {
+		if (item.dataset.pillBg) return { bg: item.dataset.pillBg, kind: 'custom' };
+		if (activeHoverBackground && activeSelector && item.matches(activeSelector)) {
+			return { bg: activeHoverBackground, kind: 'active' };
+		}
+		return { bg: '', kind: 'hover' };
+	}
+
+	/** 底色与档位一起落地：两者分开赋值时，标记可能先读到旧档位。 */
+	function applyHoverBg(item: HTMLElement) {
+		const r = hoverBgFor(item);
+		hoverBg = r.bg;
+		hoverKind = r.kind;
+	}
+
+	/**
+	 * 把「pill 现在压在哪一项、压的是哪一档」同步成 DOM 标记 `data-pill-on`。
+	 *
+	 * 为什么需要标记，而不是让使用方继续用 `:hover` 决定前景色：
+	 * pill 的落点由**指针最近项**决定（见 gapBridge），指针落进项间缝隙、分隔线
+	 * 或面板内边距时，指针并不在那一项上 —— 于是 `:hover` 是 false，pill 却仍
+	 * 压在那行上。两边各说各话的结果是：品牌色实心的那一行文字退回深色
+	 * （深字压品牌色实测对比度约 1.4:1，「移开鼠标就读不清了」），开关行的轨道
+	 * 也退回深灰压在蓝底上。反过来，隐藏 pill 时若前景色瞬时恢复、pill 还在做
+	 * 150ms 淡出，同样会有一段时间读不清 —— 所以隐藏那一帧一并禁用淡出
+	 * （见 `.pill-track--hover-off`）。
+	 *
+	 * 值分三档，使用方按档位上色：只有 `hover` 这一档可以假定「深底、要转白字」；
+	 * `custom` 多半是浅底（禁用行的中性灰、危险项的浅红），转白反而更糟。
+	 */
+	function syncMark() {
+		const el = hoverOn && hoveredEl ? hoveredEl : null;
+		if (el) el.setAttribute(PILL_ON, hoverKind);
+		if (el !== markedEl) {
+			markedEl?.removeAttribute(PILL_ON);
+			markedEl = el;
+		}
+	}
+
 	function measureSelected() {
+		// 选中项可能刚被换掉（点选 / 外部改 value）：先按新的 activeSelector 重判一次
+		// 「指针还在不在选中项上」，颜色档位才不会留在上一行
+		refreshActiveHover();
 		if (!container || !showSelected || !activeSelector) {
 			setSelected(false);
 			return;
@@ -480,6 +596,8 @@
 		hoverOn = on;
 		if (on) clearTimeout(hoverParkTimer);
 		else scheduleHoverPark();
+		// 显隐与 DOM 标记必须同一帧落地：差一帧就是「蓝底还在、字已经变黑」
+		syncMark();
 	}
 
 	let raf = 0;
@@ -528,7 +646,6 @@
 		const host = c;
 		const matcher = sel;
 		const root = scrollParent(c);
-		let hovered: HTMLElement | null = null;
 		// 指针最后落点：重排之后要靠它重新命中「现在指针下面是哪一行」。
 		// 重排是布局变化，浏览器不会因此补发 pointerover —— 不主动补一次，
 		// pill 会停在旧行的坐标上，直到用户真的动一下鼠标。
@@ -579,7 +696,8 @@
 			if (!hoverOn) return;
 			const item = pointer ? hitTest(pointer.x, pointer.y) : null;
 			if (!item) {
-				hovered = null;
+				hoveredEl = null;
+				refreshActiveHover();
 				setHover(false);
 				return;
 			}
@@ -590,13 +708,15 @@
 				return;
 			}
 			settleTries = 0;
-			hovered = item;
+			hoveredEl = item;
 			const box = cachedBox(item);
 			if (box) {
 				hoverGeom = boxStyle(box);
 				hoverBox = box;
 			}
-			hoverBg = item.dataset.pillBg ?? '';
+			applyHoverBg(item);
+			refreshActiveHover();
+			syncMark();
 		}
 
 		/**
@@ -635,15 +755,18 @@
 			// 归属是「就近」，所以指针一过中线 pill 就滑到下一项，不会停在上一项上。
 			const item = direct && c.contains(direct) ? direct : itemNear(e.clientX, e.clientY);
 			if (!item) {
-				hovered = null;
+				hoveredEl = null;
+				refreshActiveHover();
 				setHover(false);
 				return;
 			}
 			// 同一项内部移动（指针扫过文字/图标）不重算几何：每格都读一次 rect
 			// 等于每次移动都强制一次同步布局，列表越长越卡
-			if (item === hovered) return;
-			hovered = item;
+			if (item === hoveredEl) return;
+			hoveredEl = item;
 			if (disabledMatch && item.matches(disabledMatch)) {
+				// 禁用项不参与「选中项加深」：它本来就点不动，给主题色是错误暗示
+				activeHovered = false;
 				setHover(false);
 				return;
 			}
@@ -663,7 +786,11 @@
 				// 缓存已落地，此后布局变化（含排序这种「只搬家不变尺寸」的）必须让它失效
 				ensureObservers();
 			}
-			hoverBg = item.dataset.pillBg ?? '';
+			applyHoverBg(item);
+			refreshActiveHover();
+			// 已经停在这一列上、指针换了项时 setHover(true) 是空操作，
+			// 标记得在这里跟着换过去，否则白字还留在上一行
+			syncMark();
 			if (wasParked) {
 				hoverRestoring = true;
 				requestAnimationFrame(() => (hoverRestoring = false));
@@ -671,10 +798,12 @@
 			setHover(true);
 		};
 		const onLeave = () => {
-			hovered = null;
+			hoveredEl = null;
 			pointer = null;
 			setHover(false);
 			hoverBg = '';
+			hoverKind = 'hover';
+			refreshActiveHover();
 		};
 		// hover pill 用「内容坐标」定位，滚动不影响它，滚动时作废缓存即可，
 		// 下一次指针划过重新量。portal 只作用于选中 pill，它有自己的测量路径。
@@ -693,6 +822,10 @@
 			mo?.disconnect();
 			cancelAnimationFrame(resyncRaf);
 			invalidateGeom();
+			// 监听器拆了，指针落点就失效了：hoveredEl 是组件级状态（不再随 effect 销毁），
+			// 不清掉的话重新订阅后第一次 matches() 会拿旧元素判出错误的颜色档位
+			hoveredEl = null;
+			activeHovered = false;
 			setHover(false);
 		};
 	});
@@ -747,6 +880,7 @@
 		class="pill-track pill-track--hover"
 		class:pill-track--line={variant === 'line'}
 		class:pill-track--in-box={inBox}
+		class:pill-track--hover-off={!hoverOn}
 		data-pill="hover"
 		aria-hidden="true"
 		style="{hoverBase} {hoverStyle}"
@@ -881,6 +1015,18 @@
 				transform var(--pill-dur, 0.18s) ease-out,
 				opacity 0.15s;
 		}
+	}
+
+	/* 隐藏当帧不给过渡 —— 必须写在最后，压过上面所有带 opacity 的 transition。
+	   前景色（菜单文字、开关轨道）在隐藏同一帧按 data-pill-on 瞬时切回深色，
+	   pill 若还做 0.15s 淡出，中间就有约 150ms 是「深字压着没退干净的品牌色」，
+	   对比度掉到 1.4:1 左右，看上去就是「移开鼠标以后糊了」。
+
+	   出现方向本来就不过渡：从停放位恢复的那一帧 hoverRestoring 会写 transition:none
+	   （否则会从左上角飞过来），所以显隐现在都是瞬时，只有位移与高度在动 ——
+	   pill 该「滑」，不该「淡」。 */
+	.pill-track--hover.pill-track--hover-off {
+		transition: none;
 	}
 </style>
 

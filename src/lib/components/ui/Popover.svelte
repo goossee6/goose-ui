@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
+	import { createLayerId, isInsideLayer, layerOwnerOf, registerLayer, unregisterLayer } from './overlayLayer';
 
 	let {
 		open = $bindable(false),
@@ -22,6 +23,10 @@
 		class?: string;
 		style?: string;
 	} = $props();
+
+	// 本层浮层 id：panel 上挂 data-overlay-layer，供「子面板（Select 下拉等）
+	// 是否算内部点击」的判断用，见 overlayLayer.ts
+	const layerId = createLayerId('popover');
 
 	let rootEl = $state<HTMLElement | null>(null);
 	let popEl = $state<HTMLElement | null>(null);
@@ -65,10 +70,11 @@
 	$effect(() => {
 		if (!open) return;
 		const onDocDown = (e: MouseEvent) => {
-			const t = e.target as Node;
-			// 面板已 portal 到 body，不再是 rootEl 的后代：只判 rootEl 会把
-			// 「点面板里面的下拉」当成点外面，一碰就关。
-			if (rootEl && !rootEl.contains(t) && !popEl?.contains(t)) hide();
+			// 面板已 portal 到 body，不再是 rootEl 的后代：既要认自己的面板，
+			// 也要认「面板里再弹出来的那一层」（Select 的下拉、DropdownMenu 的菜单
+			// 同样 portal 到 body）。不然后者会被当成点了外面，面板先关、子组件
+			// 随即卸载，click 压根派发不出去 —— 表现就是「选项点了没反应」。
+			if (rootEl && !isInsideLayer(e.target, layerId, [rootEl, popEl])) hide();
 		};
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
@@ -100,9 +106,14 @@
 	 * 挂到 body 才真正回到视口坐标。
 	 */
 	function portal(node: HTMLElement) {
+		// 先记下「我是谁弹出来的」，再挂到 body —— 挂走之后祖先链就断了
+		const owner = layerOwnerOf(node);
+		node.dataset.overlayLayer = layerId;
+		registerLayer(layerId, owner);
 		document.body.appendChild(node);
 		return {
 			destroy() {
+				unregisterLayer(layerId);
 				node.remove();
 			},
 		};

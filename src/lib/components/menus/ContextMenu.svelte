@@ -130,7 +130,7 @@
     role="menu"
     tabindex="-1"
     onkeydown={onMenuKeydown}>
-    <!-- 单 pill → 主题色实心（与下拉菜单同一套） -->
+    <!-- 单 pill：右键菜单没有常驻选中，落点就是当前项 → 主题色实心 -->
     <PillTrack
       container={menuEl}
       itemSelector=".ctxmenu-item"
@@ -162,9 +162,12 @@
 <style>
   .ctxmenu { position: fixed; z-index: var(--z-dialog); min-width: 180px; padding: var(--sp-sm); background-color: var(--popup-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
   .ctxmenu-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: var(--sp-lg) var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
-  /* pill 用品牌色实心 → 文字与图标一起转白，深字压在品牌色上读不清 */
-  .ctxmenu-item:hover:not(:disabled) { color: var(--accent-text); }
-  .ctxmenu-item:hover:not(:disabled) :global(.ctxmenu-item-icon) { color: var(--accent-text); }
+  /* pill 用品牌色实心 → 文字与图标一起转白，深字压在品牌色上读不清。
+     依据是 PillTrack 打的 `data-pill-on`，不是 `:hover`：指针落在项间缝隙/面板内边距里时
+     pill 仍按就近归属停在这一行，`:hover` 却已经是 false，转不转白必须跟 pill 走。
+     行选择器包 :global() 是因为该属性由运行时写入，静态分析会误判为未使用（同 DropdownMenu）。 */
+  .ctxmenu :global(.ctxmenu-item[data-pill-on='hover']:not(:disabled)) { color: var(--accent-text); }
+  .ctxmenu :global(.ctxmenu-item[data-pill-on='hover']:not(:disabled) .ctxmenu-item-icon) { color: var(--accent-text); }
   .ctxmenu-item :global(.ctxmenu-item-icon) { color: var(--text-muted); flex-shrink: 0; }
   .ctxmenu-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
   .ctxmenu-item:disabled { color: var(--text-muted); cursor: default; opacity: 0.6; }

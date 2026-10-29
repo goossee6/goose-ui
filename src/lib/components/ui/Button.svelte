@@ -19,13 +19,21 @@
     iconRight,
     iconSize = 16,
     ariaLabel = '',
+    /**
+     * 真实 DOM 按钮节点，供调用方 `bind:element` 拿到。
+     *
+     * 组件的 `bind:this` 给的是组件实例，拿不到 DOM；而对话框这类地方需要在
+     * 打开时把焦点放到某个按钮上（`AlertDialog` 就是），只能有这一条通道。
+     * 不要用它去改样式/挂事件——那是 props 的职责。
+     */
+    element = $bindable<HTMLButtonElement | null>(null),
     children,
     onclick,
     ...rest
   }: {
-    variant?: "primary" | "default" | "ghost" | "danger" | "link";
+    variant?: "primary" | "default" | "ghost" | "danger" | "danger-solid" | "text" | "text-primary" | "link";
     /** 枚举档位；number 时为任意高度（紧凑按钮） */
-    size?: "small" | "middle" | "large" | "icon" | "icon-sm" | "icon-md" | "icon-lg" | number;
+    size?: "xs" | "small" | "middle" | "large" | "icon" | "icon-sm" | "icon-md" | "icon-lg" | number;
     disabled?: boolean;
     loading?: boolean;
     type?: "button" | "submit";
@@ -35,6 +43,7 @@
     iconRight?: Component;
     iconSize?: number;
     ariaLabel?: string;
+    element?: HTMLButtonElement | null;
     children?: Snippet;
     onclick?: (event: MouseEvent) => void;
     [key: string]: unknown;
@@ -164,6 +173,7 @@
   style={sizeStyle + style}
   {onclick}
   aria-label={ariaLabel}
+  bind:this={element}
   onpointerdown={onPointerDown}
   onpointerup={releasePress}
   onpointerleave={releasePress}
@@ -256,6 +266,9 @@
   .btn-spinner { display: inline-flex; flex-shrink: 0; animation: btn-spin 0.8s linear infinite; }
   @keyframes btn-spin { to { transform: rotate(360deg); } }
   /* sizes */
+  /* xs：与正文同高的行内按钮（12px 字、20px 高）。只给 text / text-primary 用，
+     带背景的档位最小仍应是 small —— 28px 是「看得见、点得到」的下限。 */
+  .btn-xs { height: 20px; padding: 0 var(--sp-sm); font-size: var(--font-sm); border-radius: var(--radius-sm); gap: var(--sp-sm); }
   .btn-small { height: var(--height-sm); padding: var(--padding-sm); font-size: var(--font-sm); }
   .btn-middle { height: var(--height-md); padding: var(--padding-md); font-size: var(--font-md); }
   .btn-large { height: var(--height-lg); padding: var(--padding-lg); font-size: var(--font-lg); }
@@ -275,6 +288,21 @@
   .btn-ghost[aria-expanded='true']:not(:disabled) { background-color: var(--hover); color: var(--text-strong); }
   .btn-danger { background-color: var(--danger-soft); color: var(--danger-text); border: 1px solid var(--danger-border); }
   .btn-danger:hover:not(:disabled) { background-color: var(--danger-border); border-color: var(--danger-text); }
+  /* 实心危险：整屏只该有一个的危险动作（删除确认、抹掉不可恢复的数据）。
+     与 danger（浅红底、可反复点的常驻动作）是两档，不要互相替代。 */
+  .btn-danger-solid { background-color: var(--danger); color: var(--primary-text); border-color: var(--danger); }
+  .btn-danger-solid:hover:not(:disabled) { background-color: var(--danger-hover); border-color: var(--danger-hover); }
+  /* 文字按钮（表头旁的「今天」「现在」「清除」、错误条目里的「复制」）：
+     无边框无背景，配合 size="xs" 才与 12px 正文同高。
+     hover 底色用 currentColor 调淡：主色文字得到主色浅底、灰色文字得到中性浅底，
+     不用为两种颜色各写一条规则。 */
+  .btn-text, .btn-text-primary { background-color: transparent; border-color: transparent; }
+  .btn-text { color: var(--text-muted); }
+  .btn-text-primary { color: var(--primary); }
+  .btn-text:hover:not(:disabled), .btn-text-primary:hover:not(:disabled) {
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+  }
+  .btn-text:hover:not(:disabled) { color: var(--text-strong); }
   .btn-link { background-color: transparent; color: var(--primary); text-decoration: underline; text-underline-offset: 4px; }
   .btn-link:hover:not(:disabled) { text-decoration: none; }
 </style>

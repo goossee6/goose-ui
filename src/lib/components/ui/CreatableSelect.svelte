@@ -275,11 +275,14 @@
 			</div>
 			<div class="cs-listwrap">
 				<div class="cs-list" bind:this={listEl} role="listbox" id={listId}>
-					<!-- 单 pill → 主题色实心（见 Select 里的说明） -->
+					<!-- 选中 = 常驻主题色，指针落点 = 中性灰（见 Select 里的说明） -->
 					<PillTrack
 						container={listEl}
-						activeSelector=".cs-option--active:not(.cs-option--selected)"
+						itemSelector=".cs-option"
+						activeSelector=".cs-option--selected"
 						background="var(--primary)"
+						hoverBackground="var(--hover)"
+						activeHoverBackground="var(--primary-hover)"
 						radius="var(--radius-md)"
 					/>
 					{#if loading}
@@ -441,17 +444,23 @@
 		transition: color 0.1s, background-color 0.1s;
 	}
 	/* 落点行 pill 是实心主题色 → 文字转白（--accent-text）；选中行不在此列 */
-	.cs-option:hover:not(.cs-option--selected),
-	.cs-option--active:not(.cs-option--selected) { color: var(--accent-text); }
+	.cs-option:hover:not(.cs-option--selected) { color: var(--text-strong); }
+	/* 方向键落点：中性灰兜底，:not(:hover) 防止鼠标划过时与 pill 叠成两层 */
+	.cs-option--active:not(.cs-option--selected):not(:hover) {
+		background-color: var(--hover);
+		color: var(--text-strong);
+	}
 	/* 选项的 Tooltip 触发器：显式撑满整行，避免 inline-flex 在块级滚动容器里
 	   把选项排成一行（.cs-list 不是 flex 布局，靠的是每个选项自己 100% 宽）。 */
 	.cs-list :global(.cs-opt-tip) {
 		display: flex;
 		width: 100%;
 	}
-	.cs-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
+	.cs-option--selected { color: var(--accent-text); font-weight: 500; }
 	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
 	.cs-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
+	/* 勾跟着行文字翻白，否则深蓝勾压在主题色底上等于消失 */
+	.cs-option--selected .cs-option-check { color: inherit; }
 	.cs-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.cs-footer {
 		padding: var(--sp-sm) var(--sp-lg);

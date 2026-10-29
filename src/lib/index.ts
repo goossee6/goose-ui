@@ -2,6 +2,8 @@
 // Utils
 export { formatNum, formatBytes } from './utils/format';
 export { copyToClipboard } from './utils/clipboard';
+// 浮层层级：自建浮层时判断「外部点击」用，见 README「嵌套浮层的外部点击」
+export { createLayerId, layerOwnerOf, registerLayer, unregisterLayer, isInsideLayer } from './components/ui/overlayLayer';
 
 // Icons
 import Icon from './components/ui/Icon.svelte';

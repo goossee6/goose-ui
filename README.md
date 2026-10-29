@@ -180,7 +180,7 @@ import "goose-ui/styles/theme.css";
 
 | 组件        | 说明                                                                        |
 | ----------- | --------------------------------------------------------------------------- |
-| Button      | 按钮，支持 primary/default/ghost/danger/link 五种变体                       |
+| Button      | 按钮，variant 八档（primary/default/ghost/danger/danger-solid/text/text-primary/link） |
 | Card        | 卡片容器，支持 title + right header                                         |
 | Label       | 表单标签                                                                    |
 | StatusBadge | 状态徽章                                                                    |
@@ -276,8 +276,8 @@ import "goose-ui/styles/theme.css";
 
 | 组件                 | 说明                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------- |
-| Modal                | 模态弹窗（fade+scale 转场、backdrop blur）                                            |
-| Drawer               | 抽屉弹窗（4 方向 + 景深 + 可拖动吸附尺寸 / 拖到底关闭 + portal）                     |
+| Modal                | 模态弹窗（fade+scale 转场、backdrop blur、`headerActions` 标题行操作、多层按打开顺序叠放） |
+| Drawer               | 抽屉弹窗（4 方向 + 可调景深 `pushScale`/`pushBlur` + 可拖动吸附尺寸 / 拖到底关闭 + portal） |
 | Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭；placement 支持 bottom/top × start/end 对齐） |
 | AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                                      |
 | Command              | 命令面板（Ctrl/Cmd+K、分组、键盘导航）                                                |
@@ -421,7 +421,7 @@ import "goose-ui/styles/theme.css";
 高频控制点：
 
 - **宽度**：`Select`/`Modal`/`Drawer` 有 `width` prop；`Page`/`Tooltip` 有 `maxWidth`；`Sidebar` 用 `width={180}`（number 按 px，改写内部 `--sidebar-w`）；其余控件用 `style`
-- **尺寸档**：`Button`/`Checkbox`/`Toggle`/`Tabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
+- **尺寸档**：`Button`/`Checkbox`/`Toggle`/`Tabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）与 `size="xs"`（20px，只给 text / text-primary 用）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
 - **旋转**：`Icon` 的 `spin` prop（加载态），无需自己写动画
 - **可调变量**：`--titlebar-h`（TitleBar 高度，默认 42px）、`--header-h`（Header 高度，由 `height` prop 写入）、`--ui-{sm,md,lg}-{height,padding,font}`（全局控件 token，见 theme.css）
 
@@ -638,6 +638,32 @@ Combobox / Popover / NavigationMenu / TimePicker / DatePicker / DateRangePicker 
 在同一次更新里创建时，intro 被跳过；`out:` 正常）。要么把条件合并成一层，要么把内层
 拆成独立组件。
 
+### 嵌套浮层的外部点击（overlayLayer）
+
+`Popover` / `Select` / `DropdownMenu` 的面板都 portal 到 `body`，`contains()` 判不出
+「这是我自己弹出来的」。典型症状：**筛选气泡（Popover）里的下拉，选项点了没反应**——
+点选项时 Popover 先把这次 mousedown 当成外部点击、收起面板，Select 随即卸载，`click`
+根本没机会派发。动画开着时，退场过渡让面板多活 ~150ms，click 侥幸落地，于是变成
+「有时候能点、有时候不能」；关掉系统动效（`prefers-reduced-motion: reduce`）就 100% 失效。
+
+现在每个面板挂 `data-overlay-layer=<id>`，并在 portal 前登记「我是谁弹出来的」；
+外部点击判断统一走 `isInsideLayer(target, id, roots)`，沿父子链回溯，子面板算内部。
+新写浮层组件时照这三步做，别再自己写 `contains()`：
+
+```ts
+const layerId = createLayerId('xxx');
+
+function portal(node: HTMLElement) {
+  const owner = layerOwnerOf(node);   // 必须在 appendChild 之前
+  node.dataset.overlayLayer = layerId;
+  registerLayer(layerId, owner);
+  document.body.appendChild(node);
+  return { destroy() { unregisterLayer(layerId); node.remove(); } };
+}
+
+if (!isInsideLayer(e.target, layerId, [rootEl, panelEl])) close();
+```
+
 ### 滑动高亮动效（PillTrack）
 
 列表行、菜单项、分段控件、侧栏导航的「背景块跟着指针/选中项滑动」都由 `PillTrack` 绘制。
@@ -667,17 +693,24 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 给新组件加成组 hover 高亮时，优先挂 `PillTrack` 而不是自己写 `:hover { background }` ——
 自己写只有「瞬时变色」，没有滑动和回弹，和其余组件放在一起会明显不齐。
 
-#### pill 配色：单 pill 用主题色，双 pill 才分「主题色 + 灰」
+#### pill 配色：色相只表示「已选中」，灰阶只表示「指针在这里」
 
 | 场景 | 组件 | 取色 |
 | --- | --- | --- |
-| 只有一块 pill（落点高亮） | Select / Combobox / CreatableSelect / MultiSelect / Command / DropdownMenu / ContextMenu / TitleBar 搜索 | 那块 pill = `var(--primary)` 实心，该行文字/图标/快捷键转 `var(--accent-text)` |
-| 两块 pill | Sidebar / Tabs / Calendar 日期格 / RadioGroup / ToggleGroup | 激活项 `var(--primary)` + `var(--accent-text)`，hover = 中性灰 `var(--hover)` |
+| 有持久选中项 | Select / Combobox / CreatableSelect / Sidebar / Tabs / Calendar 日期格 | 选中 = `var(--primary)` 实心 + `var(--accent-text)`；hover = 中性灰 `var(--hover)`；**指针压在选中项上** = `var(--primary-hover)` |
+| 只有落点、没有持久选中 | Command / DropdownMenu / ContextMenu / TitleBar 搜索 | 落点 pill = `var(--primary)` 实心，该行文字/图标/快捷键转 `var(--accent-text)` |
 | 大面积扫动 / 小按钮 | DataTable / DataList 行、分段的输入小格、日历翻页按钮 | hover = `var(--hover)` |
 | 下划线 tab | `variant="line"` | 自动取 `--hover-line`（比轨道深一档的灰，压在 1px 轨道上才看得见） |
 
-弹窗列表里「选中的那一行」不是 pill：它是常驻的勾 + `--primary-soft` 淡染底，跟跟着指针跑的
-落点 pill 并存 —— 两者一眼能分开，鼠标划过选中行时落点 pill 会隐藏、文字保持深色。
+两个状态各占一个通道：**色相 = 是否已选中，明度 = 指针在不在**。所以主题色不再跟着指针跑 ——
+否则每一行被划过都像被选中了一次，用户要在「上次选的是哪个」和「现在指着哪个」之间反复分辨。
+动作菜单没有持久选中，「落点」本身就是当前项，仍然用主题色，那里不存在第二个语义。
+
+指针落在**已选中项**上时，不要用那块中性灰：它会把主题色整个盖掉，激活标识一碰就没了。
+传 `activeHoverBackground="var(--primary-hover)"` —— 同一色相深一档，hover pill 一路滑过去、
+颜色由灰转深，视觉上就是「选中块被按了一下」。实现上是此时把常驻的选中 pill `opacity` 归零，
+让换了色的 hover pill 顶上来（两者位置完全重合），因此不存在「两块色块叠在一起」的层叠问题，
+也不依赖 `z-index` 谁压谁。
 
 **项间间隙归最近那一项**（`gapBridge`，默认 12px）：项与项之间总有 2~10px 的空隙
 （flex `gap`、兄弟项 `margin`、菜单分隔线），这些空隙属于容器、命中不到任何项，
@@ -685,6 +718,32 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 按几何就近归属：最近项与**次近项**都在 `gapBridge` 以内才算数 —— 这一条把「两项之间的缝」
 和「表头上方 / 列表下方的空白」区分开，后者只有一侧有项，不会把首/末行点亮。
 视觉间隙一点没动，只是不再有死区；传 `gapBridge={0}` 可关掉。
+
+**前景色必须跟着 pill 走，不能跟着 `:hover` 走。** `gapBridge` 会把 pill 留在「最近那一项」上，
+而指针这时可能正落在缝隙、分隔线或面板内边距里 —— `:hover` 已是 false，pill 却还压在那行。
+用 `:hover` 决定文字/开关的颜色，就会出现「鼠标移开了、蓝底还没退、字已经变回深色」
+（深字压品牌色实测对比度约 1.4:1，开关行还会留下一条深灰轨道压在蓝底上）。
+`PillTrack` 会往「pill 正压着的那一项」打 `data-pill-on`，值就是那一块 pill 的底色档位：
+
+| 值 | 什么情况 | 前景色 |
+| --- | --- | --- |
+| `hover` | 用的是 `hoverBackground`（通常是主题色实心） | 转 `var(--accent-text)` |
+| `active` | 指针压在已选中项上，用的是 `activeHoverBackground` | 跟随选中项（一般本身就是白字） |
+| `custom` | 行自己的 `data-pill-bg`（禁用行的中性灰、危险行的浅红） | 保持原色，不要转白 |
+
+标记与 pill 的显隐在**同一帧**切换，并且隐藏那一帧 pill 不做淡出 —— 否则「字已经转黑、
+蓝底还在慢慢退」这 150ms 就是用户说的「移开鼠标就读不清」。出现方向本来就不过渡
+（从停放位恢复的那一帧会写 `transition:none`），所以 pill 只「滑」不「淡」。
+
+写这类规则时注意作用域：`data-pill-on` 是运行时写进 DOM 的，Svelte 的静态分析看不见，
+直接写 `.dropdown-item[data-pill-on]` 会被判成 `css_unused_selector`。做法是让祖先保持 scoped、
+把带属性的那一段包进 `:global()`，既不出这个组件，也不会被当成死代码：
+
+```css
+.dropdown-menu :global(.dropdown-item[data-pill-on='hover']:not(:disabled)) {
+  color: var(--accent-text);
+}
+```
 
 ### 悬停提示（Tooltip）
 
@@ -772,8 +831,42 @@ const ok = await showConfirm("确定要删除吗？", {
 }); // Promise<boolean>：确认 true，取消/关闭 false
 ```
 
-- 选项：`title`（默认 `'确认'`）、`confirmText`（`'确定'`）、`cancelText`（`'取消'`）、`danger`（确认按钮危险色）
+- 选项：`title`（默认 `'确认'`）、`confirmText`（`'确定'`）、`cancelText`（`'取消'`）、`danger`（确认按钮危险色）、
+  `detail` / `detailLabel`（明细块，见下）
 - 需在应用顶层挂载一次 `<ConfirmDialog />`；弹窗内按 `Enter` 等同点击确认
+
+**明细块 `detail`**：要用户逐项核对的清单（一批 PID、一批文件名）放进 `detail`，而不是拼进 `message`——
+长清单会把首句淹没。它是等宽、可选中、限高 168px 内部滚动的块，`detailLabel` 是它上面的小标题：
+
+```ts
+await showConfirm(`将强制结束「chrome.exe」（PID 4000）及其 23 个后代进程，共 24 个进程。`, {
+  title: "关闭所有进程",
+  confirmText: "强制结束",
+  danger: true,
+  detailLabel: "以下 24 个 PID 都会被结束",
+  detail: "4000、4001、4002…",
+});
+```
+
+带 `detail` 时确认框不播打字机动画：Modal 的打字机是把内容截成字符串逐字 `@html` 出来的，
+几十项清单要打两三秒，而这正是用户此刻要读的内容。
+
+**标题行操作 `headerActions`**：给列表类弹窗用——「全部清空」「关闭全部」这类针对整份数据的动作
+放在标题旁边，用户不用把视线移到页脚、也不用先关掉弹窗。传一个 snippet，渲染在关闭按钮左侧；
+不传（或片段这次没有内容）就一像素不占：
+
+```svelte
+<Modal bind:open title="chrome.exe 的进程树" headerActions={killAll}>
+  {#snippet killAll()}
+    <Button variant="danger" size="small" onclick={onKillAll}>关闭所有（{rows.length}）</Button>
+  {/snippet}
+  <DataList rows={rows} … />
+</Modal>
+```
+
+**多层叠加按打开顺序排层**：每个 Modal 打开时从全局栈取一个 id，`z-index = --z-overlay + id`。
+所以「弹窗里再弹确认框」时确认框一定在上面 —— `ConfirmDialog` / `ErrorDialog` 通常挂在布局
+**前面**，只靠 DOM 顺序会被业务弹窗压住，确认按钮点得到 DOM 却点不到。
 
 ### 错误弹窗 API
 
@@ -844,7 +937,7 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 
 | 角色                      | 变量                                                                                         | 用途                                     |
 | ------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| 主色                      | `--accent` / `--accent-hover` / `--accent-text`                                              | 激活项、主按钮、选中态；单 pill 列表的落点 pill |
+| 主色                      | `--accent` / `--accent-hover` / `--accent-text`                                              | 激活项、主按钮、选中态；无持久选中项的动作菜单落点 pill |
 | 副强调色                  | `--accent-sub`                                                                               | 低透明度主色：选中项的淡染底（**不用于 pill / hover**） |
 | 焦点环 / 选中强调         | `--accent-ring` / `--accent-strong`                                                          | 焦点外圈 / 更重的选中底色                |
 | 互补色                    | `--complement` / `--complement-hover` / `--complement-sub`                                   | 与主色形成对比的位置                     |

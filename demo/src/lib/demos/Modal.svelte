@@ -22,6 +22,8 @@
     { name: "confirmText", desc: "确认按钮文案", type: "string", default: "'确定'" },
     { name: "cancelText", desc: "取消按钮文案", type: "string", default: "'取消'" },
     { name: "danger", desc: "确认按钮使用危险色（danger）", type: "boolean", default: "false" },
+    { name: "detailLabel", desc: "明细块标题（配 detail 使用）", type: "string", default: "''" },
+    { name: "detail", desc: "明细正文：等宽、可选中、限高 168px 内部滚动；非空时不播打字机动画", type: "string", default: "''" },
     { name: "返回值", desc: "Promise<boolean>：确认为 true，取消/关闭为 false；支持 await", type: "Promise<boolean>" },
   ];
 
@@ -45,6 +47,20 @@
       cancelText: "稍后再说",
     });
     Notification[ok ? "success" : "info"](ok ? "已触发重启" : "已推迟");
+  }
+
+  /* 明细块：清单类操作（结束一批进程、删除多个文件）需要让用户逐项核对，
+     塞进 message 会把首句淹掉，所以正文单独成块。 */
+  async function detailConfirm() {
+    const pids = Array.from({ length: 24 }, (_, i) => 4000 + i);
+    const ok = await showConfirm(`将强制结束「chrome.exe」（PID 4000）及其 ${pids.length - 1} 个后代进程，共 ${pids.length} 个进程。未保存的数据会丢失，且无法撤销。`, {
+      title: "关闭所有进程",
+      confirmText: "强制结束",
+      danger: true,
+      detailLabel: `以下 ${pids.length} 个 PID 都会被结束`,
+      detail: pids.join("、"),
+    });
+    Notification[ok ? "success" : "info"](ok ? "已发出结束请求" : "已取消");
   }
 
   const alertdialogProps: PropsTableItem[] = [
@@ -84,6 +100,7 @@
     { name: "modeless", desc: "非模态：无遮罩变暗，点击穿透到页面", type: "boolean", default: "false" },
     { name: "maskClosable", desc: "点击遮罩是否关闭", type: "boolean", default: "false" },
     { name: "disableClose", desc: "禁用标题栏关闭按钮", type: "boolean", default: "false" },
+    { name: "headerActions", desc: "标题行右侧的操作片段（渲染在关闭按钮左边，空则不占位）", type: "Snippet" },
     { name: "typewriter", desc: "正文打字机效果（默认关闭，显式设置才启用）", type: "boolean", default: "false" },
     { name: "typewriterDuration", desc: "打字总时长(ms)", type: "number", default: "1500" },
     { name: "okText", desc: "确认按钮文案", type: "string", default: "'确定'" },
@@ -356,6 +373,24 @@
 
 <Button onclick={customConfirm}>重启服务</Button>`;
 
+  const confirmDetailSource = `<script lang="ts">
+  import { Button, showConfirm } from "goose-ui";
+
+  async function detailConfirm() {
+    const pids = Array.from({ length: 24 }, (_, i) => 4000 + i);
+    const ok = await showConfirm("将强制结束「chrome.exe」（PID 4000）及其 23 个后代进程，共 24 个进程。", {
+      title: "关闭所有进程",
+      confirmText: "强制结束",
+      danger: true,
+      detailLabel: "以下 24 个 PID 都会被结束",
+      detail: pids.join("、"),
+    });
+    console.log(ok ? "已发出结束请求" : "已取消");
+  }
+<\/script>
+
+<Button variant="danger" onclick={detailConfirm}>结束一批进程</Button>`;
+
   const alertDialogBasicSource = `<script lang="ts">
   import { AlertDialog, Button } from "goose-ui";
 
@@ -619,6 +654,16 @@
       <Button onclick={customConfirm}>重启服务</Button>
     </Row>
     <p class="muted">支持 <code>title</code>、<code>confirmText</code>、<code>cancelText</code>；弹窗内按 <code>Enter</code> 等同点击确认。</p>
+  </CodePreview>
+
+  <CodePreview anchor="confirm-detail" anchorLevel={3} title="Confirm 明细块 detail（清单类操作）" code={confirmDetailSource}>
+    <Row>
+      <Button variant="danger" onclick={detailConfirm}>结束一批进程</Button>
+    </Row>
+    <p class="muted">
+      要用户逐项核对的清单放进 <code>detail</code>：等宽、可选中、限高 168px 内部滚动，<code>detailLabel</code>
+      是它的小标题。带明细时不再播打字机动画——几十项逐字打完要两三秒，而这正是用户此刻要读的东西。
+    </p>
   </CodePreview>
 
   <Card title="showConfirm(message, options?)">

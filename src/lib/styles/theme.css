@@ -61,14 +61,19 @@
 	--surface-2: #eeeef0;
 	--surface-3: #e5e5e8;
 	--hover: #e5e5e8;
-	/* ^ hover 底色的**默认值**，只给「双 pill」场景：有常驻选中 pill、又需要第二块
-	     hover 反馈的组件（侧栏、Tabs、Calendar 日期格、RadioGroup、ToggleGroup、
-	     表格/列表行）。规则是「选中 pill = --primary 实心 + --accent-text 文字，
-	     hover pill = 这块中性灰」。
-	     单 pill 的场景（弹窗列表 / 菜单：Select、Combobox、CreatableSelect、
-	     MultiSelect、Command、DropdownMenu、ContextMenu、TitleBar 搜索）不传它 ——
-	     那里只有「落点」一个状态，pill 直接用 --primary 实心（与侧栏激活项同一套配色），
-	     文字同步转 --accent-text，否则深字压在品牌色上读不清。
+	/* ^ hover 底色的**默认值**，只给「双 pill」场景：一只常驻的选中 pill，加一块
+	     跟着指针走的 hover pill。规则是「选中 = --primary 实心 + --accent-text 文字，
+	     hover = 这块中性灰」，两个通道各管一件事：**色相只表示「已选中」，灰阶只表示
+	     「指针在这里」**。下拉列表（Select、Combobox、CreatableSelect）、侧栏、Tabs、
+	     Calendar 日期格、RadioGroup、ToggleGroup、表格/列表行都走这套。
+	     为什么不能像早期那样「单 pill 全用主题色」：pill 跟着指针跑时，每一行被划过
+	     都像被选中了一次，真正的选中项反而只能靠勾和淡染底去猜。下拉列表尤其明显 ——
+	     用户要在「我上次选的是哪个」和「我现在指着哪个」之间来回分辨。
+	     真的只有落点一个状态的地方（Command 命令面板、DropdownMenu / ContextMenu /
+	     TitleBar 搜索这类**没有持久选中**的动作菜单）才继续用 --primary 实心：
+	     那里「落点」本身就是当前项，不存在第二个语义要区分。
+	     指针压在已选中项上时不要用这块灰（会把激活标识抹掉），传
+	     `activeHoverBackground="var(--primary-hover)"` 让 pill 在同一色相上深一档。
 	     刻意不透明：半透明淡染叠在纯白浮层、灰卡片、深色侧栏上浓淡都不一样，
 	     同一个 --accent-sub 在两处就是两种颜色；叠两层还会更深一档，改不回来。
 	     需要带色相的 hover（如菜单里的危险项）请混成实色：

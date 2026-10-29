@@ -10,7 +10,7 @@
   import { fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import type { Snippet } from 'svelte';
-  import Icon from './Icon.svelte';
+  import Button from './Button.svelte';
   import X from '@lucide/svelte/icons/x';
   import { trapTabKey } from './focusTrap';
 
@@ -25,6 +25,8 @@
     offsetTop,
     maskClosable = true,
     pushBackground = true,
+    pushScale = 0.94,
+    pushBlur = 1,
     backgroundSelector = '.layout, .layout-content, main',
     container = null,
     footer,
@@ -46,6 +48,22 @@
     offsetTop?: number | string;
     maskClosable?: boolean;
     pushBackground?: boolean;
+    /**
+     * 景深下沉时的背景缩放比例，1 = 不缩。
+     *
+     * 景深由「缩小 + 模糊」两件事叠出来：缩小负责「退后一层」，模糊负责失焦。
+     * 都做满会像整个页面被缩小塞进一个框里，所以默认只缩 6%。
+     */
+    pushScale?: number;
+    /**
+     * 景深模糊半径（px），0 = 只缩小不模糊。
+     *
+     * 1px 是「几乎看不出、但边缘不再锋利」的一档，适合侧栏/普通抽屉；
+     * 4~8px 才能让背景明显失焦，适合铺满大半屏的设置类抽屉。
+     * 模糊会把元素边缘向外羽化，半径越大越容易在四周露底色 —— 靠 pushScale
+     * 拉出的那圈空隙兜住，所以两者要一起调（缩得越少，能吃的模糊半径越小）。
+     */
+    pushBlur?: number;
     /** pushBackground 要缩放的宿主容器；传 null 关闭（等价 pushBackground={false}） */
     backgroundSelector?: string | null;
     /** 挂载容器；默认 body。传入元素时抽屉在该元素内绝对定位（容器需是定位元素） */
@@ -99,22 +117,42 @@
 
   /* pushBackground：把宿主容器整体缩小 + 轻微模糊，做出「抽屉把页面推后一层」的观感。
      这里只在**打开瞬间**快照宿主的原内联样式，关闭/销毁时写回快照 ——
-     早先是直接置空，会把宿主自己写的 transform / filter 一并抹掉。 */
-  const PUSH_STYLE: Record<string, string> = {
-    transition: 'transform 0.36s cubic-bezier(0.2, 0, 0.2, 1), filter 0.36s, border-radius 0.36s',
-    transformOrigin: 'center center',
-    transform: 'scale(0.94)',
-    filter: 'blur(1px)',
-    borderRadius: '14px',
-    overflow: 'hidden',
-  };
-  const PUSH_KEYS = Object.keys(PUSH_STYLE);
+     早先是直接置空，会把宿主自己写的 transform / filter 一并抹掉。
+
+     缩放与模糊由 pushScale / pushBlur 两个 prop 给出，不写死：不同尺寸的抽屉需要的
+     下沉量差很多。侧栏那种贴边抽屉缩 6% 刚好，铺满 80% 屏的设置抽屉再缩 6% 就过了；
+     反过来 1px 模糊放在大面积背景上又等于没做景深。 */
+  const PUSH_KEYS = [
+    'transition',
+    'transformOrigin',
+    'transform',
+    'filter',
+    'borderRadius',
+    'overflow',
+  ] as const;
+
+  /** 当前景深档位对应的内联样式；每次现算，props 变了下一次 applyBg 就跟着变 */
+  function pushStyle(): Record<string, string> {
+    // 夹一下非法值：缩放低于 0.5 会把页面缩成一块小卡片，模糊上限防手滑写 999
+    const scale = Number.isFinite(pushScale) ? Math.min(Math.max(pushScale, 0.5), 1) : 0.94;
+    const blur = Number.isFinite(pushBlur) ? Math.min(Math.max(pushBlur, 0), 40) : 1;
+    return {
+      transition: 'transform 0.36s cubic-bezier(0.2, 0, 0.2, 1), filter 0.36s, border-radius 0.36s',
+      transformOrigin: 'center center',
+      // 不缩的时候写 none 而不是 scale(1)：scale(1) 同样会创建包含块，
+      // 把宿主里 position: fixed 的元素改成相对它定位（Wails 四角 resize 手柄会跟着跑）
+      transform: scale >= 0.999 ? 'none' : `scale(${scale})`,
+      filter: blur > 0 ? `blur(${blur}px)` : 'none',
+      borderRadius: '14px',
+      overflow: 'hidden',
+    };
+  }
   let bgEl: HTMLElement | null = null;
   let bgSaved: Record<string, string> | null = null;
 
   function applyBg(pushed: boolean, keepTransition = false): void {
     if (!bgEl) return;
-    const src = pushed ? PUSH_STYLE : (bgSaved ?? {});
+    const src = pushed ? pushStyle() : (bgSaved ?? {});
     for (const k of PUSH_KEYS) {
       // 收尾时要先让 transform 在「过渡仍在」的前提下回去，所以最后才还原 transition
       if (keepTransition && k === 'transition') continue;
@@ -140,7 +178,7 @@
       const el = bgEl;
       const savedTransition = bgSaved?.transition ?? '';
       // 保持过渡在位，下一帧再把 transform / filter / 圆角写回快照 —— 同帧写会变成硬跳
-      el.style.transition = PUSH_STYLE.transition;
+      el.style.transition = pushStyle().transition;
       const raf = requestAnimationFrame(() => applyBg(false, true));
       // 回弹跑完（360ms）再收尾：把 transition 本身也还原，期间用户重新打开能接上
       const t = setTimeout(() => {
@@ -406,9 +444,14 @@
         <span class="drawer-title" id={titleId}>
           {#if typeof title === 'string'}{@html title}{:else}{@render title?.()}{/if}
         </span>
-        <button class="drawer-close" onclick={doClose} aria-label="关闭">
-          <Icon icon={X} size={14} />
-        </button>
+        <Button
+          variant="ghost"
+          icon={X}
+          iconSize={14}
+          class="drawer-close"
+          ariaLabel="关闭"
+          onclick={doClose}
+        />
       </div>
       <div class="drawer-body">
         {@render children?.()}
@@ -615,24 +658,12 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .drawer-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
+  /* 关闭钮的视觉全交给 Button（ghost + icon-sm = 28×28、hover 提亮、焦点环），
+     这里只补间距与抗压缩。Button 是子组件，本组件的 scope class 落不到它身上，
+     所以选择器最后一段走 :global。 */
+  .drawer-header :global(.drawer-close) {
+    margin-left: var(--sp-md);
     flex-shrink: 0;
-    margin-left: 8px;
-    background: none;
-    border: none;
-    border-radius: var(--radius-lg);
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
-  }
-  .drawer-close:hover {
-    background-color: var(--surface-2);
-    color: var(--text-strong);
   }
   .drawer-body {
     padding: 24px;

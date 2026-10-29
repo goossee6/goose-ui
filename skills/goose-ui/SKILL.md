@@ -14,12 +14,15 @@ Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components
 - Svelte 5（runes 模式）+ `@lucide/svelte`（图标，必装；`dependencies` 为空，没有 clsx 之类）
 - 应用入口引入一次主题：`import "goose-ui/styles/theme.css";`
 - 通知/确认/错误弹窗需在 App 顶层挂载对应容器：`<NotificationProvider />`、`<ConfirmDialog />`、`<ErrorDialog />`
+  - `showConfirm(message, opts)` 要贴一长串清单（一批 PID / 文件名）时用 `opts.detail` + `opts.detailLabel`，
+    别拼进 `message`：明细是等宽、可选中、限高 168px 内滚的块，且带明细时确认框自动不播打字机
+    （逐字打完几十项要两三秒，而这些字正是用户此刻要读的）
 
 ## 组件选型速查
 
 | 需求 | 组件 |
 | --- | --- |
-| 按钮 / 图标按钮 | `Button`（variant: primary/default/ghost/danger/link；`size` 或 `size={40}`） |
+| 按钮 / 图标按钮 | `Button`（variant: primary/default/ghost/danger/danger-solid/text/text-primary/link；`size` 或 `size={40}`；`xs` 只配 text 用；`bind:element` 取真实 DOM） |
 | 卡片容器 | `Card`（title + right snippet） |
 | 演示卡片（效果/源码切换） | demo 内部 `CodePreview`，**不导出**，不要用在业务代码 |
 | 输入 / 多行 | `Input` / `Textarea`（clearable、status、prefix/suffix snippet） |
@@ -29,7 +32,7 @@ Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components
 | 折叠 | `Collapsible`（单块展开收起，`variant`: card/plain）/ `Accordion`（多面板，`value` 数组 + `multiple`） |
 | 日期 / 时间 | `DatePicker` / `DateRangePicker` / `TimePicker`（惯性滚轮）/ `Calendar` / `RangeCalendar` |
 | 分段字段 | `DateField` / `TimeField` / `DateRangeField` / `TimeRangeField`（基于 `SegmentField`） |
-| 弹层 | `Modal` / `Drawer`（4 方向）/ `Popover` / `Tooltip` / `AlertDialog` / `Command`(Ctrl+K)；`Drawer` 另支持 `resizable`+`snapPoints` 拖拽吸附、`container` 挂到指定元素、`backgroundSelector` 指定景深宿主 |
+| 弹层 | `Modal` / `Drawer`（4 方向）/ `Popover` / `Tooltip` / `AlertDialog` / `Command`(Ctrl+K)；`Drawer` 另支持 `resizable`+`snapPoints` 拖拽吸附、`container` 挂到指定元素、`backgroundSelector` 指定景深宿主、`pushScale`/`pushBlur` 调景深力度（默认 0.94 / 1px 适合窄抽屉；铺满大半屏的面板反过来用 0.985 / 6px——缩得少、糊得重） |
 | 通知 | `Notification.success/info/warning/error(...)`（需 Provider） |
 | 表格 / 列表 | `DataTable`（排序+高亮+右键菜单）/ `DataList` |
 | 反馈 | `Progress系列` / `UsageBar` / `Meter` / `Skeleton` / `Loading` / `Empty` |
@@ -52,6 +55,8 @@ Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components
 7. **双向绑定**：受控值用 `$bindable`（`bind:value`）；Tabs 语义是「先写 value 再回调」。
 8. **浮层定位**：统一走 `floatingPosition()`（视口钳位 + 翻转），不要手写 getBoundingClientRect 拼样式。
 9. **z-index**：用 `--z-overlay/--z-dropdown/--z-popover/--z-dialog/--z-notification` 阶梯，勿写魔法数字。
+   多层 `Modal` 不用自己管：组件按打开顺序取 `layerId`，叠成 `calc(var(--z-overlay) + id)`。
+   业务弹窗里再调 `showConfirm` 能正常压在上面 —— 别指望 DOM 顺序（`ConfirmDialog` 一般挂在布局前）。
 10. **Wails3 外壳**：`Layout` 只提供 `titlebar` / `aside` / `children` 三个插槽，不内置组件；
     用 `titlebar` 放 `TitleBar`、`aside` 放 `Sidebar`（或省略改用 `Drawer`）。
     `theme={themeStore.theme}` + `onThemeToggle={toggleThemeFromEvent}` 获得圆形扩散的主题切换。
@@ -149,23 +154,56 @@ Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components
     渐变在 `:root` 上预解析成自定义属性、组件里不用带 `var()` 的 `var()` 回退
     （回退值里出现任何 `var()` → 整条 background 失效 → 元素隐形）。
     旧名 `--titlebar-logo-gradient*` 保留为别名，新代码用新名。
-23. **pill 配色：单 pill 用主题色，双 pill 才是「主题色激活 + 灰 hover」**。
-    `PillTrack` 的 `background`（选中 pill）与 `hoverBackground`（hover pill）分工如下：
-    - **只有一块 pill**（弹窗列表 / 菜单：Select、Combobox、CreatableSelect、MultiSelect、
-      Command、DropdownMenu、ContextMenu、TitleBar 搜索）→ 那块 pill 就是「落点」，
-      取 `var(--primary)` 实心，并且**必须把该行的文字、图标、右侧快捷键/value 一起改成
-      `var(--accent-text)`**，否则深色字压在品牌色上读不清（这几处都已处理，照抄即可）。
-      不要传 `--accent-sub` / `--primary-soft`：半透明淡染压在浮层上不算「主题色」，
-      而且和侧栏激活项对不上。
-    - **两块 pill**（Sidebar、Tabs、Calendar 日期格、RadioGroup、ToggleGroup）→
-      激活项 `var(--primary)` + `--accent-text`，hover 用中性灰 `var(--hover)`。
+23. **pill 配色：色相只表示「已选中」，灰阶只表示「指针在这里」**。
+    `PillTrack` 的 `background`（常驻选中 pill）与 `hoverBackground`（跟随指针的 hover pill）
+    是两个通道，不要合并：
+    - **有持久选中项**（Select、Combobox、CreatableSelect、Sidebar、Tabs、Calendar 日期格）→
+      选中 `var(--primary)` + `--accent-text`，hover 用中性灰 `var(--hover)`。
+      主题色**不能跟着指针跑**：那样每一行被划过都像被选中了一次，用户得在
+      「上次选的是哪个」和「现在指着哪个」之间反复分辨（弹窗列表尤其明显）。
+    - **指针压在已选中项上** → 传 `activeHoverBackground="var(--primary-hover)"`，
+      不要用那块灰：灰会把主题色整个盖掉，激活标识一碰就消失。实现方式是此时把选中 pill
+      的 `opacity` 归零、让换了色的 hover pill 顶上来（位置完全重合），所以不用比 `z-index`。
+    - **没有持久选中**（Command 命令面板、DropdownMenu、ContextMenu、TitleBar 搜索）→
+      落点就是当前项，继续用 `var(--primary)` 实心，并把该行文字 / 图标 / 右侧快捷键
+      改成 `var(--accent-text)`，否则深色字压在品牌色上读不清。
     - **表格 / 列表行（DataTable、DataList）**、分段控件的小格、日历里的翻页按钮 →
       hover 保持 `var(--hover)` 灰：这些是「大面积扫动」或「小按钮」，整行刷成品牌色太重。
+    - 一律不透明。`--accent-sub` / `--primary-soft` 这类半透明淡染叠在纯白浮层、
+      灰卡片、深色侧栏上是三种颜色，叠两层还会更深一档，改不回来。
+    - 键盘落点没有 hover pill 驱动（pill 是 pointer 驱动的），用 CSS 兜一层：
+      `.项--active:not(.项--selected):not(:hover) { background: var(--hover) }`。
+      `:not(:hover)` 是必须的 —— 鼠标划过时也会写 activeIdx，不加就会出现
+      「CSS 灰底先亮、灰 pill 后到」的两次反馈。
     - `variant="line"`（下划线 tab）即使只有 hover 一条也不是主题色：2px 细条压在 1px 轨道上，
       用 `--hover` 会比轨道更浅、看着像把线擦掉一段，所以不传 `hoverBackground` 时
       由组件自动取 `--hover-line`（亮 #c9c9cf / 暗 #4b4b53，同样不透明）。
-    一律不透明。需要带色相的特殊行（如菜单危险项）混成实色：
-    `color-mix(in srgb, var(--danger) 12%, var(--popup-surface))`。
+    - 需要带色相的特殊行（如菜单危险项）混成实色：
+      `color-mix(in srgb, var(--danger) 12%, var(--popup-surface))`。
+
+24. **浮层里再弹浮层，外部点击判断必须走 `isInsideLayer`，别自己写 `contains`**：
+    `Popover` / `Select` / `DropdownMenu` 的面板都 portal 到 `body`，`contains()` 判不出
+    「这是我自己弹出的子面板」。踩过的坑：筛选气泡里放一个下拉，点下拉选项时 Popover
+    先把 mousedown 当外部点击收起 → Select 卸载 → `click` 不派发 → **选项点了没反应**；
+    动画还开着时退场过渡让面板多活 ~150ms，反而是「有时候能点」，关掉系统动效就 100% 失效。
+    面板上挂 `data-overlay-layer=<createLayerId()>`，portal 前 `layerOwnerOf` + `registerLayer`
+    登记父层，判断时 `isInsideLayer(e.target, layerId, [rootEl, panelEl])`（见 `overlayLayer.ts`）。
+
+25. **pill 是 pointer 驱动的「最近项」，前景色必须跟 `data-pill-on` 走，不能跟 `:hover` 走**。
+    `gapBridge` 会把 pill 留在离指针最近的那一项上，而指针可能正落在项间缝隙、分隔线或
+    面板内边距里 —— 此时 `:hover` 是 false、pill 却仍压着那一行。用 `:hover` 上色就会出现
+    「鼠标移开了、蓝底还没退、字已经变回深色」（深字压品牌色对比度约 1.4:1）；开关行还会
+    留下一条深灰轨道压在蓝底上。`PillTrack` 往「pill 正压着的那一项」打 `data-pill-on`：
+    - `hover` → 用的是 `hoverBackground`（通常主题色实心）→ 文字/图标/开关转 `--accent-text`；
+    - `active` → 压在已选中项上，用的是 `activeHoverBackground` → 跟随选中项（本就白字）；
+    - `custom` → 行自己的 `data-pill-bg`（禁用行中性灰、危险行浅红）→ **保持原色，别转白**。
+    标记与 pill 显隐同帧切换，且隐藏那一帧 pill 不做淡出（否则深字压在没退干净的品牌色上
+    150ms）。出现方向本来就不过渡（从停放位恢复写 `transition:none`）——pill 只「滑」不「淡」。
+    - 写规则时注意作用域：`data-pill-on` 是运行时写的，Svelte 静态分析看不见，直接写
+      `.dropdown-item[data-pill-on]` 会被判 `css_unused_selector`（CSS 里没有 svelte-ignore）。
+      让祖先保持 scoped、把带属性的整段包进 `:global()`：
+      `.dropdown-menu :global(.dropdown-item[data-pill-on='hover']:not(:disabled)) { … }`。
+      注意 `:global()` 只能在选择器序列的首或尾。
 
 ## 常见组合
 

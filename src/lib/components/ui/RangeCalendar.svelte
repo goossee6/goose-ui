@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from './Button.svelte';
 	import { WEEKDAYS, toISO, fromISO, isSameDay, type CalendarCell } from './Calendar.svelte';
 
 	let {
@@ -226,8 +227,9 @@
 
 	<div class="rc-footer">
 		<span class="rc-hint">{picking === 'start' ? '选择开始日期' : '选择结束日期'}</span>
-		<button
-			type="button"
+		<Button
+			variant="text-primary"
+			size="xs"
 			class="rc-clear"
 			disabled={disabled || (!start && !end)}
 			onclick={() => {
@@ -236,10 +238,8 @@
 				picking = 'start';
 				hoverIso = '';
 				onchange?.({ start: '', end: '' });
-			}}
+			}}>清除</Button
 		>
-			清除
-		</button>
 	</div>
 </div>
 
@@ -361,21 +361,5 @@
 	.rc-hint {
 		font-size: 12px;
 		color: var(--text-muted);
-	}
-	.rc-clear {
-		border: none;
-		background: none;
-		color: var(--primary);
-		font-size: 12px;
-		cursor: pointer;
-		padding: 2px var(--sp-sm);
-		border-radius: var(--radius-sm);
-	}
-	.rc-clear:hover:not(:disabled) {
-		background: var(--primary-soft);
-	}
-	.rc-clear:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
 	}
 </style>

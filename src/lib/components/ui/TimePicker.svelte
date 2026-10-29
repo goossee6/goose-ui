@@ -7,6 +7,7 @@
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
+	import Button from './Button.svelte';
 	import Wheel from './Wheel.svelte';
 
 	let {
@@ -209,7 +210,7 @@
 			</div>
 			<div class="tp-footer">
 				<span class="tp-hint">{value || '未选择'}</span>
-				<button type="button" class="tp-now" onclick={now}>现在</button>
+				<Button variant="text-primary" size="xs" class="tp-now" onclick={now}>现在</Button>
 			</div>
 		</div>
 	{/if}
@@ -337,17 +338,5 @@
 		font-family: var(--font-mono);
 		font-size: 12px;
 		color: var(--text-muted);
-	}
-	.tp-now {
-		border: none;
-		background: none;
-		color: var(--primary);
-		font-size: 12px;
-		cursor: pointer;
-		padding: 2px var(--sp-sm);
-		border-radius: var(--radius-sm);
-	}
-	.tp-now:hover {
-		background: var(--primary-soft);
 	}
 </style>

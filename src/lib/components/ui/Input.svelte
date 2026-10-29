@@ -115,7 +115,7 @@
 		</span>
 	{/if}
 	{#if clearable && !readonly}
-		<button class="input-clear" class:input-clear--hidden={!value} onclick={() => { if (value) { value = ''; onClear?.(); } }} aria-label="清除">
+		<button type="button" class="input-clear" class:input-clear--hidden={!value} onclick={() => { if (value) { value = ''; onClear?.(); } }} aria-label="清除">
 			<Icon icon={X} size={14} />
 		</button>
 	{/if}

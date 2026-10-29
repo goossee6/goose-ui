@@ -205,11 +205,15 @@
 				<span class="combobox-count">{filtered.length} 项</span>
 			{/if}
 			<div class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
-				<!-- 单 pill → 主题色实心（见 Select 里的说明） -->
+				<!-- 选中 = 常驻主题色，指针落点 = 中性灰（见 Select 里的说明） -->
 				<PillTrack
 					container={listEl}
-					activeSelector=".combobox-option.active:not(.selected)"
+					itemSelector=".combobox-option"
+					activeSelector=".combobox-option.selected"
+					disabledMatch=".disabled"
 					background="var(--primary)"
+					hoverBackground="var(--hover)"
+					activeHoverBackground="var(--primary-hover)"
 					radius="var(--radius-md)"
 				/>
 				{#if !filtered.length}
@@ -381,17 +385,19 @@
 		transition: color 0.1s, background-color 0.1s;
 	}
 	/* 落点行 pill 是实心主题色 → 文字转白（--accent-text）；选中行不在此列 */
-	.combobox-option.active:not(.selected),
-	.combobox-option:hover:not(.selected) {
-		color: var(--accent-text);
+	.combobox-option:hover:not(.selected) { color: var(--text-strong); }
+	/* 方向键落点：中性灰兜底。:not(:hover) 避免鼠标划过时先亮一层 CSS 底、pill 再滑到 */
+	.combobox-option.active:not(.selected):not(:hover) {
+		background-color: var(--hover);
+		color: var(--text-strong);
 	}
 	.combobox-option.selected {
-		background-color: var(--primary-soft);
-		color: var(--text-strong);
+		color: var(--accent-text);
 		font-weight: 500;
 	}
 	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
 	.combobox-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
+	.combobox-option.selected .combobox-option-check { color: inherit; }
 	.combobox-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.combobox-option.disabled {
 		opacity: 0.45;

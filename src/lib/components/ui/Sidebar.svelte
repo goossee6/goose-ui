@@ -476,6 +476,7 @@
       activeSelector={activeSel}
       background="var(--primary)"
       hoverBackground="var(--hover)"
+      activeHoverBackground="var(--primary-hover)"
       radius="var(--radius-md)"
       zIndex={-1}
     />

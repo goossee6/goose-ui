@@ -5,6 +5,7 @@
 	import { rowsHeight } from './rowHeight';
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
+	import { createLayerId, isInsideLayer, layerOwnerOf, registerLayer, unregisterLayer } from './overlayLayer';
 	import Check from '@lucide/svelte/icons/check';
 
 	interface Option {
@@ -41,6 +42,10 @@
 		width?: string;
 		placement?: 'top' | 'bottom' | 'left' | 'right';
 	} = $props();
+
+	// 本层浮层 id：下拉面板上挂 data-overlay-layer。放在 Popover / Drawer 里时，
+	// 父层靠它认出「这点的是我弹出的子面板」，不会一碰就关（见 overlayLayer.ts）
+	const layerId = createLayerId('select');
 
 	let open = $state(false);
 	let mounted = $state(false);
@@ -101,9 +106,14 @@
 	 * 挂到 body 后 fixed 才真正相对视口。
 	 */
 	function portal(node: HTMLElement) {
+		// 先登记「我在哪一层里弹出来的」，再挂到 body
+		const owner = layerOwnerOf(node);
+		node.dataset.overlayLayer = layerId;
+		registerLayer(layerId, owner);
 		document.body.appendChild(node);
 		return {
 			destroy() {
+				unregisterLayer(layerId);
 				node.remove();
 			},
 		};
@@ -157,10 +167,9 @@
 	});
 
 	function handleOutsideClick(e: MouseEvent) {
-		const t = e.target as Node;
 		// 面板已 portal 到 body，不再是 wrapperEl 的后代，必须单独判断，
 		// 否则点选项会先被这里判成「外部点击」直接关掉。
-		if (wrapperEl && !wrapperEl.contains(t) && !dropdownEl?.contains(t)) { open = false; mounted = false; }
+		if (wrapperEl && !isInsideLayer(e.target, layerId, [wrapperEl, dropdownEl])) { open = false; mounted = false; }
 	}
 
 	onMount(() => {
@@ -202,13 +211,18 @@
 			out:menuOut={{ up: flipUp }}
 		>
 			<div class="select-scroll" bind:this={scrollEl}>
-				<!-- 单 pill：列表里只有「指针/方向键落点」这一个高亮，没有第二个选中 pill。
-				     单 pill 一律用主题色实心（与侧栏的激活项同一套配色），文字转 --accent-text；
-				     选中行不归它管 —— 那行有勾 + 淡染底，是常驻状态，不是 pill。 -->
+				<!-- 两个 pill 分工：选中 = 主题色常驻，指针落点 = 中性灰。
+				     主题色只表示「已选中」，不再跟着指针跑 —— 否则每一行被划过时
+				     都像被选中了一次，真正的选中项反而要靠勾和淡染底去猜。
+				     指针压在选中项上时换 --primary-hover（同一色相深一档），
+				     既有悬停反馈，又不会把激活标识抹掉。 -->
 				<PillTrack
 					container={scrollEl}
-					activeSelector=".select-option--active:not(.select-option--selected)"
+					itemSelector=".select-option"
+					activeSelector=".select-option--selected"
 					background="var(--primary)"
+					hoverBackground="var(--hover)"
+					activeHoverBackground="var(--primary-hover)"
 					radius="var(--radius-md)"
 				/>
 				{#if options.length === 0}
@@ -333,11 +347,20 @@
 	}
 	/* 落点行的 pill 是实心主题色，文字必须转成 --accent-text（白），
 	   否则深色字压在品牌色上看不清。选中行不在此列：它靠勾 + 淡染底表达状态。 */
-	.select-option:hover:not(.select-option--selected) { color: var(--accent-text); }
-	.select-option--active:not(.select-option--selected) { color: var(--accent-text); }
-	.select-option--selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
+	/* 悬停行：底是中性灰 pill，文字用常规深色（白字只留给主题色底） */
+	.select-option:hover:not(.select-option--selected) { color: var(--text-strong); }
+	/* 方向键落点：同样一块中性灰。:not(:hover) 是必须的 —— 鼠标划过时也会写 activeIdx，
+	   不加这个限定就会「CSS 灰底先亮、灰 pill 后到」，同一行闪两次。 */
+	.select-option--active:not(.select-option--selected):not(:hover) {
+		background-color: var(--hover);
+		color: var(--text-strong);
+	}
+	/* 选中行：底交给常驻的主题色 pill，这里只负责把文字翻成前景色 */
+	.select-option--selected { color: var(--accent-text); font-weight: 500; }
 	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
 	.select-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
+	/* 勾压在主题色 pill 上，必须跟着行文字一起翻白，否则深蓝勾配深蓝底等于消失 */
+	.select-option--selected .select-option-check { color: inherit; }
 	.select-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.select-meta {
 		font-size: 12px;
@@ -349,8 +372,15 @@
 	.select-meta--good { background-color: var(--success-soft); color: var(--success-text); }
 	.select-meta--medium { background-color: #fef3c7; color: #d97706; }
 	.select-meta--bad { background-color: var(--danger-soft); color: var(--danger-text); }
+	/* 选中行是主题色实心块，标签自带的浅灰/浅彩色底压在蓝上会显得脏，
+	   统一换成一层白纱 + 行文字色；语义色在选中态让位给「可读」 */
+	.select-option--selected .select-meta {
+		background-color: rgba(255, 255, 255, 0.18);
+		color: var(--accent-text);
+	}
 	:global(.dark) .select-dropdown { background-color: var(--popup-surface); color: var(--text); }
 	:global(.dark) .select-group { background-color: var(--popup-surface); }
 	:global(.dark) .select-option { color: var(--text); }
-	:global(.dark) .select-option--selected { color: var(--text-strong); }
+	/* 0,2,0 的 .dark .select-option 会盖掉 0,1,0 的选中行配色，必须同时抬一档 */
+	:global(.dark) .select-option--selected { color: var(--accent-text); }
 </style>

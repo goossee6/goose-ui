@@ -28,6 +28,7 @@
 </script>
 
 <script lang="ts">
+	import Button from './Button.svelte';
 	import PillTrack from './PillTrack.svelte';
 
 	let {
@@ -159,6 +160,7 @@
 			activeSelector=".calendar-day.selected"
 			hoverBackground="var(--hover)"
 			background="var(--primary)"
+			activeHoverBackground="var(--primary-hover)"
 			radius="var(--radius-md)"
 		/>
 		{#each cells as cell (cell.iso)}
@@ -188,7 +190,7 @@
 				hoverBackground="var(--hover)"
 				radius="var(--radius-sm)"
 			/>
-			<button type="button" class="calendar-today-btn" disabled={disabled} onclick={goToday}>今天</button>
+			<Button variant="text-primary" size="xs" class="calendar-today-btn" {disabled} onclick={goToday}>今天</Button>
 		</div>
 	{/if}
 </div>
@@ -300,14 +302,9 @@
 		padding-top: var(--sp-md);
 		border-top: 1px solid var(--border);
 	}
+	/* 样式全在 Button 的 text-primary + xs 档，这里只剩 PillTrack 需要的一件事：
+	   悬停 pill 沉在条目下面（z-index:-1），条目必须自身定位才盖得住它。 */
 	.calendar-today-btn {
 		position: relative;
-		border: none;
-		background: none;
-		color: var(--primary);
-		font-size: 12px;
-		cursor: pointer;
-		padding: 2px var(--sp-sm);
-		border-radius: var(--radius-sm);
 	}
 </style>
