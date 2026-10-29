@@ -83,7 +83,7 @@
 </script>
 
 <Page toc title="Header 头部导航" description="滚动容器顶部的吸顶导航条，支持标题、操作区、自定义插槽">
-  <CodePreview anchor="basic-layout" anchorLevel={2} title="基础用法" code={basicSource}>
+  <CodePreview wide anchor="basic-layout" anchorLevel={2} title="基础用法" code={basicSource}>
     <div class="demo-preview">
       <div class="preview-frame">
         <Header title="页面标题" />
@@ -92,7 +92,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="actions" anchorLevel={3} title="带操作按钮" code={actionsSource}>
+  <CodePreview wide anchor="actions" anchorLevel={3} title="带操作按钮" code={actionsSource}>
     <div class="demo-preview">
       <div class="preview-frame">
         <Header title="管理后台">
@@ -107,7 +107,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="breadcrumb" anchorLevel={3} title="面包屑导航" code={breadcrumbSource}>
+  <CodePreview wide anchor="breadcrumb" anchorLevel={3} title="面包屑导航" code={breadcrumbSource}>
     <div class="demo-preview">
       <div class="preview-frame">
         <Header>
@@ -124,7 +124,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="custom" anchorLevel={2} title="自定义中间区域" code={centerSource}>
+  <CodePreview wide anchor="custom" anchorLevel={2} title="自定义中间区域" code={centerSource}>
     <div class="demo-preview">
       <div class="preview-frame">
         <Header title="搜索">
@@ -140,7 +140,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="full-width" anchorLevel={3} title="全宽布局" code={fullWidthSource}>
+  <CodePreview wide anchor="full-width" anchorLevel={3} title="全宽布局" code={fullWidthSource}>
     <div class="demo-preview">
       <div class="preview-frame preview-frame--full">
         <Header title="全宽 Header">
@@ -169,7 +169,8 @@
     overflow-y: auto;
     background: var(--bg);
   }
-  .preview-frame--full { margin: 0 -20px; border-radius: 0; border-left: none; border-right: none; }
+  /* 全宽示例：-16px 正好抵消 CodePreview 卡片的 16px 内边距，让 frame 贴住卡片内缘 */
+  .preview-frame--full { margin: 0 -16px; border-radius: 0; border-left: none; border-right: none; }
   .preview-content {
     padding: 16px 20px 20px;
     font-size: 13px;

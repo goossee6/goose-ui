@@ -92,6 +92,7 @@
 	</div>
 	<div
 		class="slider-track"
+		class:dragging
 		bind:this={trackEl}
 		role="slider"
 		tabindex={disabled ? -1 : 0}
@@ -169,6 +170,12 @@
 		/* 统一强调渐变：主色 -30° → +30°（见 theme.css） */
 		background: var(--gradient-accent);
 		pointer-events: none;
+		/* width 只在「值被外部改」时补间（见 .dragging）：拖动中必须即时跟手 */
+		transition: width 0.2s ease-out, background 0.18s ease;
+	}
+	/* 拖动中关掉位移补间，只留配色过渡：否则滑块和填充都比指针慢半拍，
+	   连续拖拽时像在追指针 */
+	.slider-track.dragging .slider-fill {
 		transition: background 0.18s ease;
 	}
 	/* hover / 拖动时整条提亮一档（色相不变），和外面的 thumb 光环一起给反馈 */
@@ -186,10 +193,20 @@
 		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 		transform: translateX(-50%);
 		pointer-events: none;
+		/* 与 fill 同步：外部改值（按钮 / 预设 / 表单重置）时滑过去，而不是瞬移 */
+		transition: left 0.2s ease-out, box-shadow 0.15s;
+	}
+	.slider-track.dragging .slider-thumb {
 		transition: box-shadow 0.15s;
 	}
 	.slider-track:hover .slider-thumb,
 	.slider-track:focus-visible .slider-thumb {
 		box-shadow: 0 0 0 4px var(--accent-ring);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.slider-fill,
+		.slider-thumb {
+			transition: none;
+		}
 	}
 </style>

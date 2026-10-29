@@ -220,6 +220,10 @@
 		position: relative;
 		height: 180px;
 		flex-shrink: 0;
+		/* 轮廓用 inset 阴影画在外层：.wheel 自己是滚动体 + 带 mask 渐隐，边框套在它身上会被
+		   mask 一起吃掉（上下只剩半截）；用 border 画在外层又会挤掉 2px 高度、让吸附中心偏 1px。 */
+		box-shadow: inset 0 0 0 1px var(--border);
+		border-radius: var(--radius-md);
 	}
 	.wheel-band {
 		position: absolute;
@@ -242,8 +246,9 @@
 		scroll-snap-type: y mandatory;
 		scrollbar-width: none;
 		padding: 72px 0;
-		background: var(--surface-2);
-		border: 1px solid var(--border);
+		/* 透明：底色交给外层边框 + 中心蓝带，滚轮本体不再铺一层灰。
+		   不透明的话会把 .wheel-band 整块盖住（z-index 0 在它下面）。 */
+		background: none;
 		border-radius: var(--radius-md);
 		touch-action: pan-y;
 		user-select: none;

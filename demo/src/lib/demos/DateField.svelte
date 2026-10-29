@@ -79,13 +79,30 @@
 
 <!-- 精确到秒 + 禁用 -->
 <TimeRangeField start="08:00:00" end="18:30:00" seconds disabled />`;
+
+  let validDate = $state('2026-10-06');
+  let validTime = $state('09:30');
+
+  const validationSource = `<script lang="ts">
+  import { DateField, TimeField } from "goose-ui";
+
+  let date = $state('2026-10-06');
+  let time = $state('09:30');
+<\/script>
+
+<!-- 月份输 13、日期输 31（2 月会夹到 28）、小时输 25，离开字段自动纠正 -->
+<DateField bind:value={date} />
+<TimeField bind:value={time} />
+
+<!-- 外部传入的非法值只标红，不擅自改写 -->
+<DateField value="2026-13-45" />`;
 </script>
 
-<Page toc title="Date/Time Field 日期时间字段" description="分段键盘输入的日期/时间字段（自动跳格、整串粘贴、退格回跳）">
+<Page toc title="Date/Time Field 日期时间字段" description="分段键盘输入的日期/时间字段（聚焦全选、自动跳格、整串粘贴、退格回跳）">
   <CodePreview anchor="props" anchorLevel={2} title="DateField 日期字段" code={dateFieldSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <DateField bind:value={date} />
-      <p class="note">value = {date || '（空）'}</p>
+      <p class="note">value = {date || '（空）'}　·　点进任一段即整段选中，直接敲数字覆盖（已在该段时再点可按位置落光标）</p>
       <DateField value="" disabled />
     </div>
   </CodePreview>
@@ -114,6 +131,23 @@
       <TimeRangeField bind:start={ts} bind:end={te} />
       <p class="note">{ts || '（空）'} → {te || '（空）'}</p>
       <TimeRangeField start="08:00:00" end="18:30:00" seconds disabled />
+    </div>
+  </CodePreview>
+
+  <CodePreview anchor="validate" anchorLevel={3} title="输入校验" code={validationSource}>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <DateField bind:value={validDate} />
+        <TimeField bind:value={validTime} />
+      </div>
+      <p class="note">
+        月份输 13、日期输 31（2 月夹到 28）、小时输 25 —— 输入中越界标红，离开字段时自动夹到合法值并补零。
+        绑定值会经历中间态（如 {validDate || '（空）'} / {validTime || '（空）'}），离开字段即为合法值
+      </p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <DateField value="2026-13-45" />
+        <span class="note">外部传入的非法值只标红，不擅自改写（编辑后才会纠正）</span>
+      </div>
     </div>
   </CodePreview>
 

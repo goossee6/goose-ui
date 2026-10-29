@@ -241,7 +241,9 @@
 	.command-dialog {
 		width: 100%;
 		max-width: 480px;
-		background: var(--surface-2);
+		/* 与 Modal / AlertDialog 同档面板色：亮色纯白、暗色比页面浅一档，
+		   原先的 --surface-2 在亮色是灰的，跟自己的触发器都不是一个色 */
+		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);

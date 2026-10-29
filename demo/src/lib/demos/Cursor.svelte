@@ -72,7 +72,7 @@
 </script>
 
 <Page toc title="Cursor 自定义光标" description="区域内自定义光标跟随，可配拖尾外圈、尺寸与文字标签">
-  <CodePreview anchor="basic" anchorLevel={2} title="基础光标" code={basicSource}>
+  <CodePreview wide anchor="basic" anchorLevel={2} title="基础光标" code={basicSource}>
     <Cursor size={28} label="点我">
       <div class="zone">
         <p class="zone-title">Hover 区域</p>
@@ -82,7 +82,7 @@
     </Cursor>
   </CodePreview>
 
-  <CodePreview anchor="trail" anchorLevel={2} title="拖尾外圈" code={trailSource}>
+  <CodePreview wide anchor="trail" anchorLevel={2} title="拖尾外圈" code={trailSource}>
     <div class="switches">
       <label class="opt"><input type="checkbox" bind:checked={trail} /> 显示拖尾外圈</label>
     </div>
@@ -94,7 +94,7 @@
     </Cursor>
   </CodePreview>
 
-  <CodePreview anchor="outline" anchorLevel={2} title="描边 / 实心" code={outlineSource}>
+  <CodePreview wide anchor="outline" anchorLevel={2} title="描边 / 实心" code={outlineSource}>
     <div class="switches">
       <label class="opt"><input type="checkbox" bind:checked={outline} /> 描边样式</label>
     </div>
@@ -106,7 +106,7 @@
     </Cursor>
   </CodePreview>
 
-  <CodePreview anchor="size" anchorLevel={2} title="尺寸" code={sizeSource}>
+  <CodePreview wide anchor="size" anchorLevel={2} title="尺寸" code={sizeSource}>
     <Row>
       <Cursor size={16}><div class="tile">16px</div></Cursor>
       <Cursor size={24}><div class="tile">24px 默认</div></Cursor>
@@ -114,7 +114,7 @@
     </Row>
   </CodePreview>
 
-  <CodePreview anchor="hide-native" anchorLevel={2} title="保留系统光标" code={hideNativeSource}>
+  <CodePreview wide anchor="hide-native" anchorLevel={2} title="保留系统光标" code={hideNativeSource}>
     <Cursor size={40} trail hideNative={false}>
       <div class="zone zone--short">
         <p class="zone-title">hideNative = false</p>

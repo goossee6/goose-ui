@@ -5,6 +5,7 @@
 		pageSize = 10,
 		siblingCount = 1,
 		showTotal = true,
+		showQuickJumper = false,
 		onchange,
 		class: cls = '',
 		style = '',
@@ -14,6 +15,7 @@
 		pageSize?: number;
 		siblingCount?: number;
 		showTotal?: boolean;
+		showQuickJumper?: boolean;
 		onchange?: (page: number) => void;
 		class?: string;
 		style?: string;
@@ -45,6 +47,38 @@
 		if (next === page) return;
 		page = next;
 		onchange?.(next);
+	}
+
+	// ── 跳页输入 ──────────────────────────────────────────────────────
+	// 只保留数字，位数不超过 pageCount 的位数：既能挡住字母/粘贴进来的
+	// "第 3 页"，又不会把「1」写成「01」这种用户没打算的东西。
+	let jumpText = $state('');
+
+	function onJumpInput(e: Event) {
+		const el = e.currentTarget as HTMLInputElement;
+		const digits = el.value.replace(/\D/g, '').slice(0, String(pageCount).length);
+		jumpText = digits;
+		// 受控回写：Svelte 比较到 jumpText 未变时不会重置 DOM，多余的字符得自己抹掉
+		if (el.value !== digits) el.value = digits;
+	}
+
+	/** Enter / 失焦提交，越界夹到端点（同 go 的规则），提交后清空以便重新输入 */
+	function commitJump() {
+		const raw = jumpText;
+		jumpText = '';
+		if (!raw) return;
+		const n = Number(raw);
+		if (Number.isFinite(n)) go(Math.trunc(n));
+	}
+
+	function onJumpKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			commitJump();
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			jumpText = '';
+		}
 	}
 </script>
 
@@ -90,6 +124,24 @@
 	>
 		<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
 	</button>
+	{#if showQuickJumper && pageCount > 1}
+		<label class="pagination-jumper">
+			跳至
+			<input
+				class="pagination-jump-input"
+				type="text"
+				inputmode="numeric"
+				autocomplete="off"
+				spellcheck="false"
+				aria-label="跳至页码，输入后按回车"
+				value={jumpText}
+				oninput={onJumpInput}
+				onkeydown={onJumpKeydown}
+				onblur={commitJump}
+			/>
+			页
+		</label>
+	{/if}
 </nav>
 
 <style>
@@ -149,5 +201,37 @@
 		padding: 0 var(--sp-sm);
 		color: var(--text-muted);
 		font-family: var(--font-mono);
+	}
+	.pagination-jumper {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-sm);
+		margin-left: var(--sp-sm);
+		font-size: 13px;
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
+	/* 与 .pagination-btn 同高同字体，跳页框看起来才像分页条的一部分 */
+	.pagination-jump-input {
+		width: 46px;
+		height: 32px;
+		padding: 0 var(--sp-sm);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background: var(--surface);
+		color: var(--text);
+		font-family: var(--font-mono);
+		font-size: 13px;
+		text-align: center;
+		box-sizing: border-box;
+		transition: border-color 0.15s;
+	}
+	.pagination-jump-input:hover {
+		border-color: var(--border-strong);
+	}
+	.pagination-jump-input:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: 2px;
+		border-color: var(--primary);
 	}
 </style>

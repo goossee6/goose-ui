@@ -7,6 +7,7 @@
 		separator = '-',
 		numeric = true,
 		placeholders = [],
+		ranges = [],
 		disabled = false,
 		class: cls = '',
 		style = '',
@@ -17,6 +18,8 @@
 		separator?: string;
 		numeric?: boolean;
 		placeholders?: string[];
+		/** 每段的合法数值区间（含端点），缺省按位数取 [0, 10^n - 1]；日期字段用它传「日 ≤ 当月天数」这类结论 */
+		ranges?: ([number, number] | undefined)[];
 		disabled?: boolean;
 		class?: string;
 		style?: string;
@@ -25,6 +28,29 @@
 
 	let inputs = $state<HTMLInputElement[]>([]);
 	let fieldEl = $state<HTMLElement | null>(null);
+
+	/**
+	 * 聚焦即全选：每格只有 2~4 个字符，全选后直接敲数字就是整段覆盖，不用先退格。
+	 * - 键盘聚焦（Tab / 自动跳格 / 退格回跳）：focus 里 select() 就够。
+	 * - 鼠标首次点进来：focus 之后浏览器还会按点击位置再落一次光标，选区会被打掉，
+	 *   所以在同一次 mouseup 里拦掉默认收起；已聚焦的再次点击不拦，
+	 *   否则没法点选光标、也没法双击选词。
+	 */
+	let focusByPointer = false;
+
+	function handlePointerDown(e: PointerEvent) {
+		focusByPointer = document.activeElement !== e.currentTarget;
+	}
+
+	function handleFocus(e: FocusEvent) {
+		(e.currentTarget as HTMLInputElement).select();
+	}
+
+	function handleMouseUp(e: MouseEvent) {
+		if (!focusByPointer) return;
+		focusByPointer = false;
+		e.preventDefault();
+	}
 
 	const cells = $derived.by(() => {
 		const arr: string[] = [];
@@ -37,6 +63,52 @@
 		arr[i] = ch;
 		value = arr;
 		onchange?.(arr);
+	}
+
+	/** 段的合法区间；没指定就按位数取满，等于不加额外约束 */
+	function rangeOf(i: number): [number, number] {
+		const r = ranges[i];
+		if (r) return r;
+		return [0, 10 ** widths[i] - 1];
+	}
+
+	/** 段已填但越界：输入过程中只标红，不打断（否则「1」想打「12」会被立刻改掉） */
+	function isInvalid(i: number): boolean {
+		if (!numeric) return false;
+		const raw = cells[i];
+		if (!raw) return false;
+		const n = Number(raw);
+		const [lo, hi] = rangeOf(i);
+		return n < lo || n > hi;
+	}
+
+	/**
+	 * 离开整个字段时才规整：位数不足左补零，越界夹到区间端点。
+	 * 字段内部跳格（年 → 月）不触发，否则打「13」月会立刻变「12」，
+	 * 红字提示还没看清就被改掉；也让「日 ≤ 当月天数」这类依赖段有稳定的判断依据。
+	 */
+	function normalize() {
+		if (!numeric) return;
+		const arr = cells.slice();
+		let changed = false;
+		for (let i = 0; i < arr.length; i++) {
+			if (!arr[i]) continue;
+			const [lo, hi] = rangeOf(i);
+			const next = String(Math.min(hi, Math.max(lo, Number(arr[i])))).padStart(widths[i], '0');
+			if (next !== arr[i]) {
+				arr[i] = next;
+				changed = true;
+			}
+		}
+		if (!changed) return;
+		value = arr;
+		onchange?.(arr);
+	}
+
+	function handleBlur(e: FocusEvent) {
+		const next = e.relatedTarget as Node | null;
+		if (next && fieldEl?.contains(next)) return;
+		normalize();
 	}
 
 	function focusCell(i: number) {
@@ -102,6 +174,7 @@
 		radius="var(--radius-sm)"
 	/>
 	{#each cells as ch, i (i)}
+		{@const bad = isInvalid(i)}
 		{#if i > 0}
 			<span class="segment-sep" aria-hidden="true">{separator}</span>
 		{/if}
@@ -117,9 +190,14 @@
 			placeholder={placeholders[i] ?? ''}
 			value={ch}
 			aria-label="第 {i + 1} 段"
+			aria-invalid={bad ? 'true' : undefined}
 			oninput={(e) => handleInput(i, e)}
 			onkeydown={(e) => handleKeydown(i, e)}
 			onpaste={(e) => handlePaste(i, e)}
+			onblur={handleBlur}
+			onpointerdown={handlePointerDown}
+			onfocus={handleFocus}
+			onmouseup={handleMouseUp}
 		/>
 	{/each}
 </div>
@@ -160,6 +238,10 @@
 	.segment-cell::placeholder {
 		color: var(--text-muted);
 		font-family: inherit;
+	}
+	/* 越界只在当段标红：定位到具体哪一格，失焦规整后自动消失 */
+	.segment-cell[aria-invalid='true'] {
+		color: var(--danger);
 	}
 	.segment-sep {
 		color: var(--text-muted);

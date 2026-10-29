@@ -249,8 +249,29 @@
   /* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
   .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */ padding: 0 40px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(12px); }
   .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
-  .option:hover:not(.selected),
-  .option.active:not(.selected) { color: var(--accent-text); }
+  /* 白字必须由「pill 真的压在这一行上」决定，不能由 :hover / .active 决定。
+     两个反例都会让整行文字凭空消失（白底白字）：
+     · 菜单恰好在静止的指针下展开 —— CSS 的 :hover 立刻为真，pill 却要等
+       pointerover 才会落位，这中间是白字压白底；
+     · 指针划过某行后移出菜单，或方向键移动落点 —— activeIdx 还留在那一行，
+       而 pill 只跟指针（pointerleave 后 opacity:0），同样是有字无色。
+     所以上色认 PillTrack 打在行上的 `data-pill-on` 标记（与 DropdownMenu 同一套）。
+     属性是运行时写的，Svelte 编译期看不到，属性段包进 :global()，
+     作用域由祖先 .menu-scroll 兜住。 */
+  .menu-scroll :global(.option[data-pill-on="hover"]:not(.selected)) { color: var(--accent-text); }
+  /* 没有指针时的落点（方向键 / 指针刚移出菜单）：补一块与 pill 同色的实底。
+     这里不能用中性灰：本组件的指针落点是品牌色实心，键盘落点若变灰，
+     同一行在鼠标下和方向键下就是两种控件。与 DropdownMenu 的
+     `:focus-visible` 处理一致。
+
+     条件是 `:not(:hover)` 而不是「菜单里没有指针」：指针在列表里时按方向键，
+     落点行必须亮起来 —— 否则 Enter 会作用在一行看不出被选中的项上。
+     代价是指针行（pill）与键盘行（实底）会同时是蓝的，与 Select / Combobox
+     同一种表现；二者本质是「当前项」的两个来源，宁可重影也不隐藏落点。 */
+  .option.active:not(.selected):not(:hover) {
+    background-color: var(--primary);
+    color: var(--accent-text);
+  }
   .option.selected { background-color: var(--primary-soft); color: var(--text-strong); font-weight: 500; }
   /* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
   .option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }

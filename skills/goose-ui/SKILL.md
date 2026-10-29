@@ -31,7 +31,7 @@ Svelte 5 组件库（Runes），支持 Wails3 桌面应用：`src/lib/components
 | 复选框 / 单选框 | `Checkbox`（small/middle/large + `indeterminate`）/ `Radio` / `RadioGroup` |
 | 折叠 | `Collapsible`（单块展开收起，`variant`: card/plain）/ `Accordion`（多面板，`value` 数组 + `multiple`） |
 | 日期 / 时间 | `DatePicker` / `DateRangePicker` / `TimePicker`（惯性滚轮）/ `Calendar` / `RangeCalendar` |
-| 分段字段 | `DateField` / `TimeField` / `DateRangeField` / `TimeRangeField`（基于 `SegmentField`） |
+| 分段字段 | `DateField` / `TimeField` / `DateRangeField` / `TimeRangeField`（基于 `SegmentField`；聚焦即整段选中，直接敲数字覆盖；越界输入标红、离开字段自动夹到合法范围并补零） |
 | 弹层 | `Modal` / `Drawer`（4 方向）/ `Popover` / `Tooltip` / `AlertDialog` / `Command`(Ctrl+K)；`Drawer` 另支持 `resizable`+`snapPoints` 拖拽吸附、`container` 挂到指定元素、`backgroundSelector` 指定景深宿主、`pushScale`/`pushBlur` 调景深力度（默认 0.94 / 1px 适合窄抽屉；铺满大半屏的面板反过来用 0.985 / 6px——缩得少、糊得重） |
 | 通知 | `Notification.success/info/warning/error(...)`（需 Provider） |
 | 表格 / 列表 | `DataTable`（排序+高亮+右键菜单）/ `DataList` |

@@ -247,8 +247,9 @@
 	.range-calendar {
 		width: 280px;
 		padding: var(--sp-lg);
-		background: var(--surface-2);
-		border: 1px solid var(--border-strong);
+		/* 同 Calendar：浮层底色走 --popup-surface，不用 surface 系的灰 */
+		background: var(--popup-surface);
+		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		box-sizing: border-box;
 	}

@@ -12,6 +12,7 @@
     language = 'svelte',
     maxHeight = '',
     flush = false,
+    wide = false,
     anchor = '',
     anchorLevel = 3,
     right,
@@ -44,6 +45,15 @@
      * 只作用于「效果」页签；「源码」页签的 CodeBlock 始终保留内边距。
      */
     flush?: boolean;
+    /**
+     * 让「效果」页签的内容撑满卡片可用宽度。
+     *
+     * 默认 `.cp-pane` 是 flex 项、宽度由内容决定（收缩到 max-content），窄内容
+     * 居中、宽内容撑满 —— 对按钮组、标签这类自带固有宽度的内容正合适。
+     * 但进度条、滑块是 `width: 100%` 的「随容器伸」组件：容器宽度又反过来由
+     * 它决定，于是塌成一条几十像素的细线。给这类示例开 `wide` 即可。
+     */
+    wide?: boolean;
     /** 标题栏右侧附加内容（渲染在复制按钮左侧），替代原 Card 的 right snippet */
     right?: Snippet;
     children?: Snippet;
@@ -182,7 +192,7 @@
     bind:this={bodyEl}
   >
     {#if active === 'preview'}
-      <div class="cp-pane">
+      <div class="cp-pane" class:cp-pane--wide={wide}>
         {@render children?.()}
       </div>
     {:else}
@@ -308,6 +318,12 @@
     margin: auto;
     /* 单轴居中：内容窄于卡片时水平居中，宽于卡片时仍撑满可横向滚 */
     max-width: 100%;
+  }
+  /* wide：内容自己撑满卡片（进度条 / 滑块这类 width:100% 的组件）。
+     这里必须写在 .cp-pane 上而不是子元素上 —— 子元素的 100% 相对 pane 的
+     收缩宽度，会绕回「由内容决定宽度」的循环，最后还是塌成一条。 */
+  .cp-pane--wide {
+    width: 100%;
   }
   /* 源码页签：卡片高度是固定的（.cp-body 的 min/max-height），
      CodeBlock 吃掉剩余空间并自己滚 —— 只保留这一层滚动，避免嵌套两条滚动条。

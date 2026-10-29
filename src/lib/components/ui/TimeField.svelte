@@ -21,6 +21,19 @@
 
 	const widths = $derived(seconds ? [2, 2, 2] : [2, 2]);
 
+	const ranges = $derived<[number, number][]>(
+		seconds
+			? [
+					[0, 23],
+					[0, 59],
+					[0, 59],
+				]
+			: [
+					[0, 23],
+					[0, 59],
+				]
+	);
+
 	const segs = $derived.by(() => {
 		const parts = value.split(':');
 		const n = seconds ? 3 : 2;
@@ -48,6 +61,7 @@
 <div class="time-field {cls}" style={style} aria-label={ariaLabel} role="group">
 	<SegmentField
 		{widths}
+		{ranges}
 		value={segs}
 		{disabled}
 		separator=":"

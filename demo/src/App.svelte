@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { NotificationProvider, ErrorDialog, ContextMenu, Sidebar, ConfirmDialog, Layout, TitleBar, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
+  import { NotificationProvider, ErrorDialog, ContextMenu, ConfirmDialog, BackTop, Sidebar, Layout, TitleBar, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
   import House from "@lucide/svelte/icons/house";
   import BookOpen from "@lucide/svelte/icons/book-open";
   import LayoutGrid from "@lucide/svelte/icons/layout-grid";
@@ -239,6 +239,10 @@
   {#if PageView}
     <PageView />
   {/if}
+
+  <!-- 全站返回顶部：滚动容器是每个 Page 的 .page-body（Layout 外框在有 Page 时 overflow:hidden）。
+       切页时 .page-body 被整体替换，组件在滚动事件里检测到 target 失连会重新解析，无需按页重建。 -->
+  <BackTop visibilityHeight={240} target=".page-body" />
 </Layout>
 
 <style>

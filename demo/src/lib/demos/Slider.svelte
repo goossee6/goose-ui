@@ -90,7 +90,7 @@
 <Slider value={50} disabled label="禁用" />`;
 </script>
 
-<Page toc title="Slider 滑块" description="拖拽或键盘（方向键/Home/End/PageUp/PageDown）调节连续值；value 双向绑定，onchange 松手/键盘时触发">
+<Page toc title="Slider 滑块" description="拖拽或键盘（方向键/Home/End/PageUp/PageDown）调节连续值；value 双向绑定，外部改值带 0.2s 补间（拖动中不补间），onchange 松手/键盘时触发">
   <CodePreview anchor="basic" anchorLevel={2} title="基础用法" code={basicSource}>
     <div style="display:flex;flex-direction:column;gap:20px;max-width:420px">
       <Slider bind:value={basic} label="进度" />
@@ -126,7 +126,7 @@
         <Button size="small" onclick={() => (controlled = 50)}>设为 50</Button>
         <Button size="small" onclick={() => (controlled = 100)}>设为 100</Button>
       </Row>
-      <p class="note">外部改 value 即时生效（当前 = {controlled}）；onchange 仅在松手/键盘操作时触发，最近一次：<span class="mono">{lastChange}</span></p>
+      <p class="note">外部改 value 时滑块用 0.2s 补间滑过去（拖动中不补间，始终跟手），当前 = {controlled}；onchange 仅在松手/键盘操作时触发，最近一次：<span class="mono">{lastChange}</span></p>
     </div>
   </CodePreview>
 

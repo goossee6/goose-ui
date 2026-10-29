@@ -26,6 +26,19 @@
 		return arr;
 	});
 
+	/** 当月天数：年缺省时按闰年算，免得 2/29 还没填年份就被夹成 28 */
+	const dayMax = $derived.by(() => {
+		const y = Number(segs[0]) || 2000;
+		const m = Math.min(12, Math.max(1, Number(segs[1]) || 1));
+		return new Date(y, m, 0).getDate();
+	});
+
+	const ranges = $derived<[number, number][]>([
+		[1, 9999],
+		[1, 12],
+		[1, dayMax],
+	]);
+
 	function join(arr: string[]): string {
 		const [y, mo, d] = arr;
 		if (!y) return '';
@@ -44,6 +57,7 @@
 <div class="date-field {cls}" style={style} aria-label={ariaLabel} role="group">
 	<SegmentField
 		{widths}
+		{ranges}
 		value={segs}
 		{disabled}
 		separator="-"

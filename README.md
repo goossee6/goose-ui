@@ -209,7 +209,7 @@ import "goose-ui/styles/theme.css";
 | RadioGroup      | 单选组（pill 分段轨道，context 注入）                                                                                                             |
 | Toggle          | iOS 风格开关，带弹性动画                                                                                                                          |
 | ToggleGroup     | 单选/多选切换组，default/outline 变体                                                                                                             |
-| Slider          | 滑块（pointer 捕获拖拽 + 键盘）                                                                                                                   |
+| Slider          | 滑块（pointer 捕获拖拽 + 键盘；外部改值 0.2s 补间，拖动中不补间）                                                                                |
 | Combobox        | 组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航）                                                                             |
 | Rating          | 评分（半星/只读/键盘 slider 语义）                                                                                                                |
 | PINInput        | 验证码输入（跳格/粘贴/退格回跳，`group`+`separator` 分组）                                                                                        |
@@ -222,8 +222,8 @@ import "goose-ui/styles/theme.css";
 
 | 组件            | 说明                                                                                 |
 | --------------- | ------------------------------------------------------------------------------------ |
-| DateField       | 日期分段字段（`YYYY-MM-DD`，分段自动跳格/粘贴跨段）                                  |
-| TimeField       | 时间分段字段（`HH:mm[:ss]`，`seconds` 可选段）                                       |
+| DateField       | 日期分段字段（`YYYY-MM-DD`，分段自动跳格/粘贴跨段/聚焦全选/失焦校验：月份 ≤12、日 ≤当月天数、闰年） |
+| TimeField       | 时间分段字段（`HH:mm[:ss]`，`seconds` 可选段；时分秒上限 23/59/59，失焦纠正并补零）     |
 | DateRangeField  | 日期范围分段字段（start/end 双向绑定）                                               |
 | TimeRangeField  | 时间范围分段字段                                                                     |
 | Calendar        | 日历网格（月导航、min/max、disabledDate、方向键/PgUp/PgDn）                          |
@@ -242,7 +242,7 @@ import "goose-ui/styles/theme.css";
 | Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                                                                                |
 | TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                                                                                 |
 | PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制；hover 与选中共用同一条回弹曲线和同一套「距离 → 时长」映射（见「滑动高亮动效」）                                                                                                   |
-| Pagination      | 分页（siblingCount 省略号折叠）                                                                                                                                                                                                          |
+| Pagination      | 分页（siblingCount 省略号折叠、showQuickJumper 跳页输入）                                                                                                                                                                                |
 | Collapsible     | 折叠面板（grid-rows 0fr→1fr 过渡）                                                                                                                                                                                                       |
 | Accordion       | 手风琴（单开/多开/collapsible，复用 Collapsible）                                                                                                                                                                                        |
 | ProgressBar     | 渐变进度条                                                                                                                                                                                                                               |
@@ -268,7 +268,7 @@ import "goose-ui/styles/theme.css";
 | DropdownMenu   | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                        |
 | Toolbar        | 工具栏（role=toolbar + roving 方向键）                                               |
 | Layout         | 应用外壳纯布局（顶栏 / 可选侧栏 / 内容区插槽，不内置组件，自行组合 TitleBar、Sidebar 或 Drawer） |
-| BackTop        | 返回顶部（超过阈值淡入 + easeOutCubic 平滑回顶）                                     |
+| BackTop        | 返回顶部（阈值淡入 + easeOutCubic 回顶；元素容器贴容器右下角，回退贴视口）           |
 | Cursor         | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                            |
 | Background     | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）            |
 

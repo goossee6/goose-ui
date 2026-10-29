@@ -310,10 +310,11 @@
 		z-index: var(--z-popover);
 		max-width: calc(100vw - 16px);
 		padding: var(--sp-md);
-		background: var(--surface);
-		border: 1px solid var(--border-strong);
+		/* 浮层底色：亮色比页面更白、暗色比页面更黑（--surface 在暗色下反而比页面浅） */
+		background: var(--popup-surface);
+		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
-		box-shadow: 0 8px 24px color-mix(in srgb, #000 12%, transparent);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 	}
 	.tp-columns {
 		display: flex;

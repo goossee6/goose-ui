@@ -233,4 +233,9 @@
 		min-width: 340px;
 		max-width: calc(100vw - 16px);
 	}
+	/* 阴影必须挂在日历本体上，不能挂 .drp-panel：面板 min-width 340 比日历的 280 宽，
+	   挂在外层会露出一截 60px 宽的方形投影。 */
+	.drp-panel :global(.range-calendar) {
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+	}
 </style>

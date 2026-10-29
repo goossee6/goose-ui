@@ -166,7 +166,7 @@
 </script>
 
 <Page toc title="进度条 Progress" description="通用进度条、字节级上传进度、分片进度、用量配额条">
-  <CodePreview anchor="progress-bar" anchorLevel={2} title="基础进度条 ProgressBar" code={progressBarSource}>
+  <CodePreview wide anchor="progress-bar" anchorLevel={2} title="基础进度条 ProgressBar" code={progressBarSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
       <ProgressBar percent={percent} />
       <div style="display:flex;gap:8px;align-items:center">
@@ -180,7 +180,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="bytes-chunks" anchorLevel={2} title="字节进度 ProgressBytes" code={progressBytesSource}>
+  <CodePreview wide anchor="bytes-chunks" anchorLevel={2} title="字节进度 ProgressBytes" code={progressBytesSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <ProgressBytes
         fileName="goose-ui-v0.1.0.zip"
@@ -197,7 +197,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="progressbytes-multipart" anchorLevel={3} title="分片进度 ProgressBytes (multipart)" code={progressMultipartSource}>
+  <CodePreview wide anchor="progressbytes-multipart" anchorLevel={3} title="分片进度 ProgressBytes (multipart)" code={progressMultipartSource}>
     <div>
       <ProgressBytes
         fileName="large-video.mp4"
@@ -212,7 +212,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="progressslotbar" anchorLevel={3} title="分片槽进度 ProgressSlotBar" code={progressSlotSource}>
+  <CodePreview wide anchor="progressslotbar" anchorLevel={3} title="分片槽进度 ProgressSlotBar" code={progressSlotSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <ProgressSlotBar part={3} total={10} loaded={slotLoaded} totalSize={1024 * 1024 * 2} />
       <div>
@@ -221,7 +221,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="usage-custom" anchorLevel={2} title="用量条 UsageBar" code={usageBarSource}>
+  <CodePreview wide anchor="usage-custom" anchorLevel={2} title="用量条 UsageBar" code={usageBarSource}>
     <div style="display:flex;flex-direction:column;gap:20px">
       <UsageBar label="存储空间" value={2.4} limit={10} formatValue={(n) => `${n} GB`} />
       <UsageBar label="API 调用次数" value={8500} limit={10000} />
@@ -230,7 +230,7 @@
     </div>
   </CodePreview>
 
-  <CodePreview anchor="custom-height" anchorLevel={3} title="自定义高度与右侧插槽" code={usageBarCustomSource}>
+  <CodePreview wide anchor="custom-height" anchorLevel={3} title="自定义高度与右侧插槽" code={usageBarCustomSource}>
     <div style="display:flex;flex-direction:column;gap:20px">
       <UsageBar label="自定义高度 (12px)" value={45} limit={100} barHeight="12px" />
       {#snippet customLabelRight({ value, limit, formatValue }: { value: number; limit: number; percent: number; overQuota: boolean; formatValue: (n: number) => string })}

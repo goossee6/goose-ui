@@ -199,8 +199,10 @@
 	.calendar {
 		width: 280px;
 		padding: var(--sp-lg);
-		background: var(--surface-2);
-		border: 1px solid var(--border-strong);
+		/* 与下拉 / 菜单同一个浮层底色（见 theme.css 里 --popup-surface 的说明）：
+		   surface 系是页面内的面，日历是浮在页面之上（或被 Card 垫着）的一块面板 */
+		background: var(--popup-surface);
+		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		box-sizing: border-box;
 	}

@@ -48,6 +48,42 @@
 
 	let scroller: HTMLElement | Window | null = null;
 
+	/** 距容器（或视口）右/下内边距 */
+	const INSET = 24;
+
+	/**
+	 * fixed 定位 + JS 跟随：按钮始终贴在滚动容器**可见区域**的右下角。
+	 * 不能用 absolute 锚进容器 —— 绝对定位的元素会随容器内容一起滚走（实测 y 差值正好等于 scrollTop），
+	 * 所以改算容器 boundingRect 换算成视口坐标。
+	 */
+	function place() {
+		if (!rootEl) return;
+		if (scroller instanceof HTMLElement) {
+			const r = scroller.getBoundingClientRect();
+			rootEl.style.right = `${window.innerWidth - r.right + INSET}px`;
+			rootEl.style.bottom = `${window.innerHeight - r.bottom + INSET}px`;
+		} else {
+			rootEl.style.right = `${INSET}px`;
+			rootEl.style.bottom = `${INSET}px`;
+		}
+	}
+
+	function onMove() {
+		// target 指向的元素可能被整页替换（路由切页、列表重渲染）；
+		// 元素容器失连（已从 DOM 摘除）时也重查一次。初次解析落在 window
+		// 兜底（target 还没渲染出来）时，同样靠这里在首次滚动时纠正。
+		if (target || (scroller instanceof HTMLElement && !scroller.isConnected)) {
+			const next = findScroller();
+			if (next !== scroller) {
+				scroller?.removeEventListener('scroll', onScroll);
+				scroller = next;
+				scroller.addEventListener('scroll', onScroll, { passive: true });
+			}
+		}
+		place();
+		onScroll();
+	}
+
 	function onScroll() {
 		if (!scroller) return;
 		visible = scrollTop(scroller) > visibilityHeight;
@@ -75,12 +111,17 @@
 	$effect(() => {
 		if (typeof window === 'undefined') return;
 		scroller = findScroller();
+		place();
 		onScroll();
 		scroller.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('scroll', onScroll, { passive: true });
+		// capture 监听所有滚动（含中间容器与页面滚动）：容器在页面里被滚走时按钮跟着挪，
+		// 仍然贴在它的可见右下角；resize 同理
+		window.addEventListener('scroll', onMove, { capture: true, passive: true });
+		window.addEventListener('resize', onMove);
 		return () => {
 			scroller?.removeEventListener('scroll', onScroll);
-			window.removeEventListener('scroll', onScroll);
+			window.removeEventListener('scroll', onMove, { capture: true });
+			window.removeEventListener('resize', onMove);
 			if (raf) cancelAnimationFrame(raf);
 		};
 	});
@@ -107,6 +148,7 @@
 		bottom: 24px;
 		z-index: var(--z-fixed);
 		line-height: 0;
+		/* right/bottom 由 place() 按滚动容器可见区域实时计算（元素容器）或保持 24px（window） */
 	}
 	.back-top {
 		position: relative;

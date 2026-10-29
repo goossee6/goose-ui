@@ -228,4 +228,10 @@
 		min-width: 280px;
 		max-width: calc(100vw - 16px);
 	}
+	/* 面板底色/边框由 Calendar 自己给（它也能当静态卡片用，所以阴影不写在组件里）。
+	   浮起来这一层才补阴影，与 Select / Combobox 的浮层同一个值。
+	   选择器落不到子组件根节点上，最后一段必须 :global。 */
+	.dp-panel :global(.calendar) {
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+	}
 </style>

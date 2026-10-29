@@ -248,7 +248,7 @@
 					</div>
 				{/each}
 			</div>
-			<ScrollZones target={listEl} bg="var(--surface-2)" />
+			<ScrollZones target={listEl} bg="var(--popup-surface)" />
 		</div>
 	{/if}
 </div>
@@ -323,10 +323,12 @@
 		overflow: hidden;
 		/* 面板层内边距（原在列表上）：pill 不贴边、sticky 组头上方无内容透出 */
 		padding: var(--sp-sm);
-		background: var(--surface-2);
-		border: 1px solid var(--border-strong);
+		/* 与 Select / MultiSelect 同一个弹出层底色，不用 --surface-2（那层灰是页面内嵌区块的底） */
+		background-color: var(--popup-surface);
+		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+		color: var(--text);
 	}
 	/* 结果计数：absolute 不进 rowsHeight 高度模型；pointer-events:none 不拦顶部滚动触发区 */
 	.combobox-count {
@@ -367,7 +369,7 @@
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
 		/* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
-		background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+		background-color: color-mix(in srgb, var(--popup-surface) 80%, transparent);
 		backdrop-filter: blur(12px);
 	}
 	.combobox-option {
