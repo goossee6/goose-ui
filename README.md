@@ -27,13 +27,20 @@ pnpm dev
 ## 安装
 
 ```bash
-npm install goose-ui @lucide/svelte
+pnpm add github:goossee6/goose-ui @lucide/svelte
 ```
 
-或使用 pnpm：
+锁版本安装：
 
 ```bash
-pnpm add goose-ui @lucide/svelte
+pnpm add github:goossee6/goose-ui#v0.1.0
+```
+
+本地开发接入（改组件源码即时生效，无需重装）：
+
+```bash
+git clone https://github.com/goossee6/goose-ui.git ../goose-ui
+pnpm add file:../goose-ui
 ```
 
 > `@lucide/svelte` 是 **peer 依赖且必装**：十几个组件（Button / Modal / Select …）
@@ -42,8 +49,7 @@ pnpm add goose-ui @lucide/svelte
 
 ### 接入注意（Vite）
 
-本包以 **源码形态** 发布（`exports` 直指 `src/lib` 下的 `.ts` / `.svelte`），
-Vite 需要放弃对这些文件做依赖预打包，否则 `.svelte` 会被当成普通 JS 处理：
+包以源码形态分发，Vite 需关闭对它的依赖预打包：
 
 ```ts
 // vite.config.ts
@@ -55,8 +61,8 @@ export default defineConfig({
 
 ### 接入注意（深色首屏）
 
-`theme.css` 默认是亮色，深色用户会先看到一帧白再切黑。在 `index.html` 的 `<head>` 里、
-业务 JS 之前补一小段（键名与 `themeStore` 的存储键一致）：
+`theme.css` 默认亮色，深色用户会先看到一帧白再切黑。在 `index.html` 的 `<head>` 里、
+业务 JS 之前补一段（键名与 `themeStore` 的存储键一致）：
 
 ```html
 <script>
@@ -235,42 +241,42 @@ import "goose-ui/styles/theme.css";
 
 ### 数据展示
 
-| 组件            | 说明                                                                                                                                                                                                                                                                                                           |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DataTable       | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill                                                                                                                                                                                                      |
-| DataList        | 数据列表，带空状态与可选的内置 header（直接复用 `Header` 组件：`title`/`header`/`headerCenter`/`headerRight`/`headerClass`/`headerStyle`/`headerSticky` 原样透传；内置 header 默认高 **64px**，传 `headerStyle="--header-h:56px"` 覆盖；`dataTableHeader` 用于独立成块时补齐内边距）；行 hover 同样走滑动 pill |
-| Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                                                                                                                                                      |
-| TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                                                                                                                                                       |
-| PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制；hover 与选中共用同一条回弹曲线和同一套「距离 → 时长」映射（见「滑动高亮动效」）                                                                                        |
-| Pagination      | 分页（siblingCount 省略号折叠、showQuickJumper 跳页输入）                                                                                                                                                                                                                                                      |
-| Collapsible     | 折叠面板（grid-rows 0fr→1fr 过渡）                                                                                                                                                                                                                                                                             |
-| Accordion       | 手风琴（单开/多开/collapsible，复用 Collapsible）                                                                                                                                                                                                                                                              |
-| ProgressBar     | 渐变进度条                                                                                                                                                                                                                                                                                                     |
-| ProgressBytes   | 上传进度（字节/速度/ETA）                                                                                                                                                                                                                                                                                      |
-| ProgressSlotBar | 分片上传进度                                                                                                                                                                                                                                                                                                   |
-| UsageBar        | 用量/限额进度条                                                                                                                                                                                                                                                                                                |
-| Meter           | 度量条（threshold 转高亮 / critical 转危险色，role=progressbar）                                                                                                                                                                                                                                               |
-| Typewriter      | 打字机效果，支持逐字文本或淡入 Snippet                                                                                                                                                                                                                                                                         |
-| Carousel        | 轮播图（手动/自动播放、悬停暂停、首尾循环）                                                                                                                                                                                                                                                                    |
-| Time            | 实时时钟（time/date/datetime + 12h 制）                                                                                                                                                                                                                                                                        |
-| Countdown       | 倒计时（duration/target 双模式 + 暂停 + 归零回调）                                                                                                                                                                                                                                                             |
+| 组件            | 说明                                                                                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DataTable       | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill                                                    |
+| DataList        | 数据列表，带空状态与可选的内置 header（`title`/`header`/`headerCenter`/`headerRight` 等原样透传）；行 hover 同样走滑动 pill                                  |
+| Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                    |
+| TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                     |
+| PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制（见「滑动高亮动效」） |
+| Pagination      | 分页（siblingCount 省略号折叠、showQuickJumper 跳页输入）                                                                                                    |
+| Collapsible     | 折叠面板（grid-rows 0fr→1fr 过渡）                                                                                                                           |
+| Accordion       | 手风琴（单开/多开/collapsible，复用 Collapsible）                                                                                                            |
+| ProgressBar     | 渐变进度条                                                                                                                                                   |
+| ProgressBytes   | 上传进度（字节/速度/ETA）                                                                                                                                    |
+| ProgressSlotBar | 分片上传进度                                                                                                                                                 |
+| UsageBar        | 用量/限额进度条                                                                                                                                              |
+| Meter           | 度量条（threshold 转高亮 / critical 转危险色，role=progressbar）                                                                                             |
+| Typewriter      | 打字机效果，支持逐字文本或淡入 Snippet                                                                                                                       |
+| Carousel        | 轮播图（手动/自动播放、悬停暂停、首尾循环）                                                                                                                  |
+| Time            | 实时时钟（time/date/datetime + 12h 制）                                                                                                                      |
+| Countdown       | 倒计时（duration/target 双模式 + 暂停 + 归零回调）                                                                                                           |
 
 ### 导航与布局
 
-| 组件           | 说明                                                                                                                                                                               |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PageHeader     | 页面标题栏（标题 + 描述 + children 附加行 + 右侧操作区，窄屏自动换行）                                                                                                             |
-| Page           | 页面容器（根布局 + 页头 + 内容区间距一次到位）                                                                                                                                     |
-| Sidebar        | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）。尺寸全部由组件内的一组 `--sb-*` 变量派生（行高 36 / 组内 2 / 组间 16 / 行圆角 md），改一个值整列跟着走 |
-| Header         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                                                                                       |
-| NavigationMenu | 导航菜单（面板定位/翻转，链接 + 描述）                                                                                                                                             |
-| Menubar        | 菜单栏（横向方向键：焦点在触发器间 roving，已展开时自动切换菜单；复用 DropdownMenu）                                                                                               |
-| DropdownMenu   | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                                                                                                                      |
-| Toolbar        | 工具栏（role=toolbar + roving 方向键）                                                                                                                                             |
-| Layout         | 应用外壳纯布局（顶栏 / 可选侧栏 / 内容区插槽，不内置组件，自行组合 TitleBar、Sidebar 或 Drawer）                                                                                   |
-| BackTop        | 返回顶部（阈值淡入 + easeOutCubic 回顶；元素容器贴容器右下角，回退贴视口）                                                                                                         |
-| Cursor         | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                                                                                                                          |
-| Background     | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）                                                                                                          |
+| 组件           | 说明                                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| PageHeader     | 页面标题栏（标题 + 描述 + children 附加行 + 右侧操作区，窄屏自动换行）                                                                   |
+| Page           | 页面容器（根布局 + 页头 + 内容区间距一次到位）                                                                                           |
+| Sidebar        | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）。尺寸全部由组件内的一组 `--sb-*` 变量派生，改一个值整列跟着走 |
+| Header         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                                             |
+| NavigationMenu | 导航菜单（面板定位/翻转，链接 + 描述）                                                                                                   |
+| Menubar        | 菜单栏（横向方向键 + 已展开时自动切换菜单；复用 DropdownMenu）                                                                           |
+| DropdownMenu   | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                                                                            |
+| Toolbar        | 工具栏（role=toolbar + roving 方向键）                                                                                                   |
+| Layout         | 应用外壳纯布局（顶栏 / 可选侧栏 / 内容区插槽，不内置组件，自行组合 TitleBar、Sidebar 或 Drawer）                                         |
+| BackTop        | 返回顶部（阈值淡入 + easeOutCubic 回顶；元素容器贴容器右下角，回退贴视口）                                                               |
+| Cursor         | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                                                                                |
+| Background     | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）                                                                |
 
 ### 反馈
 
@@ -331,12 +337,11 @@ import "goose-ui/styles/theme.css";
 </Layout>
 ```
 
-- 层级：`Layout`（窗口背景色；标题栏透明 → 与窗口同色）→ 42px 标题栏 + body 左 `aside` 侧栏槽 / 右内容卡片（边框圆角；空隙经 `--page-pad: 20px 24px` 由 `Page` 承担，外壳自身 padding 为 0）
 - `titlebar` / `aside` 都是可选插槽：不传 `aside` 时内容区占满整宽，导航可改用 `Drawer`
 - `resize`：Wails 窗口（四角手柄 + 全域拖拽调整），浏览器省略
 - `windowControls={false}`：写在 `TitleBar` 上，隐藏默认窗口三键（浏览器环境）；`controls` snippet 可在键区附加自定义按钮
 - `scroll`（默认 `true`）：内容卡片整页滚；`false` = 框架不滚、页内滚动区自理
-- 内容区装的是 `Page` 时，内容卡片**自动让出滚动**（`.layout-content:has(> .page)`），滚动只由 `Page` 的 `.page-body` 承担。不这么做的话，页面切换的 24px 位移会临时把卡片撑出一条额外滚动条，过渡结束又收回——表现为切页时闪一下双滚动条、正文横跳一个滚动条宽度
+- 内容区装 `Page` 时内容卡片自动让出滚动，滚动只由 `Page` 的 `.page-body` 承担
 
 页面结构用 `Page`，不要再手写「根 div + 页头 + padding/gap」样板：
 
@@ -360,12 +365,12 @@ import "goose-ui/styles/theme.css";
 
 ### 间距变量（外壳与页面通过变量沟通，零耦合）
 
-| 变量               | 作用                                                                                                                                                                                      | 默认           |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| `--page-pad`       | `Page` 内边距——页面空隙的**唯一责任方**；裸壳默认 `16px`，`Layout` 内容区传 `20px 24px`，任何容器（含 absolute 覆盖）都不影响。**上下两半会被 `padding-block: 0` 清零，实际只有左右生效** | `16px`         |
-| `--page-gap`       | 页头 ↔ 内容 ↔ 卡片的统一垂直节奏                                                                                                                                                          | `16px`         |
-| `--ph-gap`         | 独立使用 `PageHeader` 时的下间距（`Page` 内自动为 `0`，交给 `--page-gap`）                                                                                                                | `32px`         |
-| `--layout-pad-x/y` | `--page-pad` 在 `Layout` 内的镜像（`Header` 吸顶用它反向贴满内缘）。`y` 必须与 `Page` 的清零保持一致（`0px`），否则 Header 的负 margin 会把吸顶条拽出滚动口                               | `24px` / `0px` |
+| 变量               | 作用                                                                                              | 默认           |
+| ------------------ | ------------------------------------------------------------------------------------------------- | -------------- |
+| `--page-pad`       | `Page` 内边距——页面空隙的唯一责任方。**上下两半被清零，实际只有左右生效**                         | `16px`         |
+| `--page-gap`       | 页头 ↔ 内容 ↔ 卡片的统一垂直节奏                                                                  | `16px`         |
+| `--ph-gap`         | 独立使用 `PageHeader` 时的下间距（`Page` 内自动为 `0`）                                           | `32px`         |
+| `--layout-pad-x/y` | `--page-pad` 在 `Layout` 内的镜像（`Header` 吸顶用它反向贴满内缘）；`y` 保持 `0px` 与 `Page` 一致 | `24px` / `0px` |
 
 - 自绘外壳（非 `Layout`）若自带内容区 padding，在外壳上写 `--page-pad: 0` 归零即可
 - `Page` 默认 body 不滚（`scroll` 关闭）：局部滚动区由页面内部处理；整页滚动给 `Page` 加 `scroll`
@@ -384,16 +389,15 @@ import "goose-ui/styles/theme.css";
 </Page>
 ```
 
-- 只认**带 `id`** 的 `h2`/`h3`：没有 id 的标题会被跳过（`href="#undefined"` 会把页面弹回顶部），所以写标题时顺手给 id
+- 只认**带 `id`** 的 `h2`/`h3`，没有 id 的标题会被跳过
 - `h3` 会作为上一级 `h2` 的子项缩进显示；`[data-toc-skip]` 内的标题不收录
-- 滚动高亮按「标题顶边越过页头下沿」判定，纯 `IntersectionObserver` 无法表达「正在读哪一节」
-- 跳转用 `scrollIntoView` 而非改 hash（很多应用用 hash 路由，改 hash 会顶掉当前页签）；锚点让位由 `scroll-margin-top: var(--toc-anchor)` 统一处理
+- 跳转用 `scrollIntoView` 而非改 hash；锚点让位由 `scroll-margin-top: var(--toc-anchor)` 统一处理
 - 目录列宽 `--toc-width`（默认 `220px`）、最大高度 `--toc-max-h`、每级缩进 `--toc-indent`
 - 宽度 ≥ 1100px 时才显示目录列，窄屏自动隐藏
 
 ### 页面切换过渡（方向感知，Page 统一处理）
 
-`Page` 自带进入/离开过渡（`fly`：220ms · cubicOut · 24px · 淡入淡出），方向由 `Sidebar` 按导航项顺序自动计算：**向上切换** → 新页从上方进入、旧页向下离开；向下切换镜像。离开期间旧页自动 pin 成 absolute 让出文档流，新旧共存不堆叠、不产生滚动条跳动。
+`Page` 自带进入/离开过渡（`fly`：220ms · cubicOut · 24px · 淡入淡出），方向由 `Sidebar` 按导航项顺序自动计算：**向上切换** → 新页从上方进入、旧页向下离开；向下切换镜像。
 
 两种接法（动画核心同一套，按应用切换语义二选一）：
 
@@ -405,7 +409,7 @@ import "goose-ui/styles/theme.css";
 <Page active={tab === "a"}>…</Page>
 ```
 
-- 首屏渲染不播 intro；嵌套 `Page`（如预览框内）加 `transition={false}` 关闭，避免双重动画
+- 首屏渲染不播 intro；嵌套 `Page`（如预览框内）加 `transition={false}` 关闭
 - 无 `Sidebar` 的程序化切换沿用上次方向；也可直接写 `pageDirStore.dir`（导出 `'up' | 'down'`）指定
 
 ### 组件控制面（三层原则，即插即用）
@@ -420,14 +424,14 @@ import "goose-ui/styles/theme.css";
 
 高频控制点：
 
-- **宽度**：`Select`/`Modal`/`Drawer` 有 `width` prop；`Page`/`Tooltip` 有 `maxWidth`；`Sidebar` 用 `width={180}`（number 按 px，改写内部 `--sidebar-w`）；其余控件用 `style`
+- **宽度**：`Select`/`Modal`/`Drawer` 有 `width` prop；`Page`/`Tooltip` 有 `maxWidth`；`Sidebar` 用 `width={180}`（number 按 px）；其余控件用 `style`
 - **尺寸档**：`Button`/`Checkbox`/`Toggle`/`Tabs` 的 `size` 为枚举档；`Button` 额外支持 `size={40}`（number = 任意高度）与 `size="xs"`（20px，只给 text / text-primary 用）；`Icon`/`Loading` 的 `size` 为任意数值（px，默认 20 / 30）
 - **旋转**：`Icon` 的 `spin` prop（加载态），无需自己写动画
 - **可调变量**：`--titlebar-h`（TitleBar 高度，默认 42px）、`--header-h`（Header 高度，由 `height` prop 写入）、`--ui-{sm,md,lg}-{height,padding,font}`（全局控件 token，见 theme.css）
 
 ## TitleBar 标题栏
 
-自绘标题栏。窗口控制经 `windowApi` 注入（包一层 `@wailsio/runtime` 的 `Window` 即可），**库本身不依赖任何桌面 runtime**，因此浏览器里也能完整渲染与调试。
+自绘标题栏。窗口控制经 `windowApi` 注入（包一层 `@wailsio/runtime` 的 `Window` 即可），**库本身不依赖任何桌面 runtime**，浏览器里也能完整渲染与调试。
 
 ### 内联搜索
 
@@ -460,30 +464,11 @@ import "goose-ui/styles/theme.css";
 - `TitleBarSearchItem`：`{ value, label, group?, keywords?, disabled? }`。`group` 相同的项在下拉里归为一节；`disabled` 项不可选中、也不参与过滤
 - `keywords` 参与过滤但不显示——中文标签配英文关键词（如 `缩放` ↔ `zoom`）很实用
 - 键盘：`↑`/`↓` 移动、`Enter` 选中、`Esc` 关闭；选中后自动收起下拉并清空输入，再触发 `onSearchSelect`
-- `searchEmptyText` 自定义无匹配时的提示；下拉宽度固定 280px，不跟输入框走（否则长 `label` 会被压窄）
+- `searchEmptyText` 自定义无匹配时的提示
 
-### 搜索框宽度（自适应，上限 40%）
+### 搜索框宽度（自适应）
 
-标题栏是三段布局：**左 logo / 中搜索 / 右窗口键**。左、右是刚体（`flex: 0 0 auto`），**搜索段是唯一的弹性段**（`flex: 1 1 0`）：标题栏的剩余空间全部归搜索框，窗口变窄它跟着收窄，全程不挤压 logo 与窗口三键。
-
-宽度上限是**标题栏可用空间的 40%**（`max-width: 40cqw`）。宽窗口下搜索框就停在这条线上——否则超宽屏上它会摊到 800px 以上、把标题栏的视觉重心压垮；窄窗口下它不受这条上限约束，继续随空间收窄。
-
-**没有任何 prop 可以调这个宽度**，因为按像素配置的 min/max 在某个窗口尺寸下总会变成「既不够用、又不肯让位」的负担。比例上限则不会：它天然跟着标题栏一起缩放。
-
-不让搜索框挤到邻居，靠的是这三条：
-
-- 两侧 12px `gap` 保持不变，搜索框与 logo / 窗口键**永不重叠**
-- 窗口键区恒为刚体（`flex: 0 0 auto`），任何宽度下都不被压缩
-- 标题栏窄于 450px 时（此时 40% 已不足 180px，放不下有意义的查询词）**整个搜索框隐藏**，而不是裁出一条无边框的窄缝
-
-> 实现要点：
->
-> - `padding`(8px×2) 与 `border`(1px×2) 共 18px 是**不可压缩**的，仅靠 flex 收缩无法把搜索框真正收到 0，所以「收到 0」必须由 `@container` 显式隐藏来完成（`container-type: inline-size` 加在 `.titlebar-search-wrap` 上）
-> - `flex-basis` 必须写 `0` 而非 `auto`：`auto` 会以输入框的固有宽度为基准，`min-width: 0` 也就一并失效
-> - **不要用 `min-width: min(--x, 100%)` 这类写法**——`min-width` 里的百分比按包含块宽度解析而非 flex line 剩余空间，窄窗口下会失效并让搜索框溢出压住两侧
-> - `40cqw` 里的 `cqw` **只能参照 `.titlebar`**，不能把 `.titlebar-search-wrap` 自己声明成容器来用：`cqw` 取的是「最近的祖先容器」宽度，自引用会让 `max-width: 40cqw` 变成「wrap 宽度的 40%」而永远填满不了，比例彻底失效。这也是 `container-type: inline-size` 留在 wrap 上、而 `@container` 查询却写 `titlebar` 名字的原因
-
-> 实测（headless Chrome，1920px → 340px）：宽窗口下搜索框稳定占 39.1%–39.6%，`gap` 恒 12px，窗口键恒 138px，**全程零重叠、零溢出**。
+标题栏三段布局：左 logo / 中搜索 / 右窗口键。搜索段是唯一弹性段，随窗口收窄，宽度上限为标题栏可用空间的 40%（不可调），标题栏窄于 450px 时整个搜索框隐藏。
 
 ## Sidebar 用法
 
@@ -510,8 +495,8 @@ import "goose-ui/styles/theme.css";
 
 - `mode`：`float`（悬浮岛，默认）/ `flat`（贴边）；`collapsed` 可 `bind:` 双向绑定
 - 组件自带 pill 指示器：切换/折叠/展开分组时自动测量并平滑移动
-- 分组标题滚动时**吸附顶部**（被下一个组头推走）；分组与顶层项字号（14px）、图标文字间距（10px）、左缘对齐一致
-- 外部导航（链接跳转、前进后退、深链改写 `activeTab`）会**自动展开**目标项所在分组并将其滚入视野；手动收起的分组不会被当前项弹开，仅在 `activeTab` 真的变化时才展开。折叠态下跳转则记入展开意图，侧栏再展开时还原
+- 分组标题滚动时吸附顶部；分组与顶层项字号（14px）、图标文字间距（10px）、左缘对齐一致
+- 外部导航（链接跳转、深链改写 `activeTab`）会自动展开目标项所在分组并将其滚入视野
 
 ### 顶层项 —— 与分组同级穿插
 
@@ -533,13 +518,11 @@ import "goose-ui/styles/theme.css";
 <Sidebar {groups} bind:activeTab />
 ```
 
-- 展开态：与**分组标题左缘对齐**（同为 1 级），共享同一 pill；折叠态：渲染为图标按钮，**点击直接切换**（区别于分组的 hover popover）
+- 展开态：与分组标题左缘对齐，共享同一 pill；折叠态：渲染为图标按钮，点击直接切换（区别于分组的 hover popover）
 
 ### endItems —— 列表结尾固定项
 
-渲染在导航列表**末尾**，不新增额外 footer 层级：空间充足时贴底，列表超高时顺次接在末尾；展开态与普通导航项**共享同一 pill**（切换时 pill 连续滑入而非淡出淡入）；左缘与分组标题对齐（1 级）。侧栏折叠时**渲染为图标按钮并同样贴底**（与分组图标同级、同 `title` 悬浮提示、可点击切换）。
-
-> 滚动条：导航区用 `overflow-y: auto`（非 `scroll`），因此**折叠态下 8 个图标不溢出时不会绘制滚动条、也不预留槽位**；展开态列表超高时才出现滚动条。若改用 `overflow-y: scroll` + `scrollbar-gutter: stable`，折叠态会在 56px 宽的侧栏里常驻一条滚动条并占掉 10px。
+渲染在导航列表**末尾**；展开态与普通导航项共享同一 pill，折叠时渲染为图标按钮并贴底。
 
 ```svelte
 <script lang="ts">
@@ -562,7 +545,7 @@ import "goose-ui/styles/theme.css";
 
 ### footer 插槽 —— 自定义底部区域
 
-`footer` 是 snippet，内容完全由项目自定义（A 文本、B 按钮随项目放什么）：
+`footer` 是 snippet，内容完全由项目自定义：
 
 ```svelte
 <script lang="ts">
@@ -595,7 +578,6 @@ import "goose-ui/styles/theme.css";
 ```
 
 - 底部自带分隔线（`border-top`），仅在展开时显示
-- 按钮也可换成图标按钮（如状态图标：盾牌 → 旋转 → 勾），结构不变
 
 ## 工具函数与 API
 
@@ -614,10 +596,7 @@ await copyToClipboard("text"); // 返回 Promise<boolean>
 
 所有自带浮层的组件（DropdownMenu / ContextMenu / Select / MultiSelect / CreatableSelect /
 Combobox / Popover / NavigationMenu / TimePicker / DatePicker / DateRangePicker / LinkPreview、
-折叠侧栏的悬浮面板）用的是同一条曲线：进入 120ms 淡入 + 位移 6px + 缩放 0.96→1，
-缩放原点贴在触发器那一侧；离开 80ms，只做透明度与一半位移。
-
-自己写浮层时直接用这两个函数，别另抄一份：
+折叠侧栏的悬浮面板）共用同一套进入/离开过渡。自己写浮层时直接复用：
 
 ```svelte
 <script lang="ts">
@@ -631,24 +610,13 @@ Combobox / Popover / NavigationMenu / TimePicker / DatePicker / DateRangePicker 
 {/if}
 ```
 
-`up` 表示面板翻到了触发器上方（位移方向与缩放锚边随之反向），
-`align: 'end'` 让右对齐的浮层从右边展开。`prefers-reduced-motion: reduce` 下时长归零。
-
-注意：Svelte 5 里**嵌套 `{#if}` 的内层元素不会播放 `in:` 过渡**（外层 if 与内层 if
-在同一次更新里创建时，intro 被跳过；`out:` 正常）。要么把条件合并成一层，要么把内层
-拆成独立组件。
+- `up` 表示面板翻到了触发器上方（位移方向与缩放锚边随之反向）；`align: 'end'` 让右对齐的浮层从右边展开
+- `prefers-reduced-motion: reduce` 下时长归零
+- Svelte 5 里嵌套 `{#if}` 的内层元素不播放 `in:` 过渡（`out:` 正常）——把条件合并成一层，或把内层拆成独立组件
 
 ### 嵌套浮层的外部点击（overlayLayer）
 
-`Popover` / `Select` / `DropdownMenu` 的面板都 portal 到 `body`，`contains()` 判不出
-「这是我自己弹出来的」。典型症状：**筛选气泡（Popover）里的下拉，选项点了没反应**——
-点选项时 Popover 先把这次 mousedown 当成外部点击、收起面板，Select 随即卸载，`click`
-根本没机会派发。动画开着时，退场过渡让面板多活 ~150ms，click 侥幸落地，于是变成
-「有时候能点、有时候不能」；关掉系统动效（`prefers-reduced-motion: reduce`）就 100% 失效。
-
-现在每个面板挂 `data-overlay-layer=<id>`，并在 portal 前登记「我是谁弹出来的」；
-外部点击判断统一走 `isInsideLayer(target, id, roots)`，沿父子链回溯，子面板算内部。
-新写浮层组件时照这三步做，别再自己写 `contains()`：
+`Popover` / `Select` / `DropdownMenu` 的面板都 portal 到 `body`，父子浮层的「外部点击」判断用库内统一的 layer 机制（子面板算内部，不会被父面板误关）。新写浮层组件时照此接入，不要自己写 `contains()`：
 
 ```ts
 const layerId = createLayerId("xxx");
@@ -671,78 +639,23 @@ if (!isInsideLayer(e.target, layerId, [rootEl, panelEl])) close();
 
 ### 滑动高亮动效（PillTrack）
 
-列表行、菜单项、分段控件、侧栏导航的「背景块跟着指针/选中项滑动」都由 `PillTrack` 绘制。
-**hover pill 与选中 pill 共用同一条 back-out 回弹曲线** `cubic-bezier(0.34, 1.5, 0.64, 1)`：
-位置先冲过落点、再收回来，过冲量约为本次位移的 8%，切换与划过的手感一致。
+列表行、菜单项、分段控件、侧栏导航的「背景块跟着指针/选中项滑动」都由 `PillTrack` 绘制。给新组件加成组 hover 高亮时，优先挂 `PillTrack` 而不是自己写 `:hover { background }`。
 
-时长也共用同一个映射（`d` 是本次位移距离）：
+行为要点：
 
-```
-pillDur(d) = clamp(0.16s, 0.28s, 0.14s + d / 1600)
-```
+- hover pill 与选中 pill 共用同一条回弹曲线；时长按位移距离自适应（相邻一行 ≈0.16s，远距离封顶 0.28s），可用 `--pill-hover-dur` / `--pill-dur` 覆盖
+- `prefers-reduced-motion: reduce` 下全部退回 `ease-out`
+- **配色约定**：色相只表示「已选中」（`--primary` 实心），灰阶只表示「指针在这里」（`var(--hover)`）；指针压在已选中项上时用 `var(--primary-hover)`（传 `activeHoverBackground` 定制）
+- **项间间隙自动归属最近项**（`gapBridge`，默认 12px，传 `0` 关闭），指针扫过缝隙 pill 不消失
+- `PillTrack` 会往 pill 正压着的那一项打 `data-pill-on`（`hover` / `active` / `custom`），前景色按它决定，不要用 `:hover`：
 
-| 场景  | CSS 变量           | 相邻一行的时长 | 说明                                               |
-| ----- | ------------------ | -------------- | -------------------------------------------------- |
-| hover | `--pill-hover-dur` | ≈ 0.16s        | 指针扫过一列时每一行都会重新起跳，过长会追不上指针 |
-| 选中  | `--pill-dur`       | ≈ 0.16s        | 与 hover 完全相同；远距离封顶 0.28s                |
+| 值       | 什么情况                                            | 前景色                         |
+| -------- | --------------------------------------------------- | ------------------------------ |
+| `hover`  | 用的是 `hoverBackground`（通常是主题色实心）        | 转 `var(--accent-text)`        |
+| `active` | 指针压在已选中项上，用的是 `activeHoverBackground`  | 跟随选中项（一般本身就是白字） |
+| `custom` | 行自己的 `data-pill-bg`（禁用行的中性灰、危险行等） | 保持原色                       |
 
-**两边不能各写一套参数。** 曾经选中 pill 用 0.18–0.40s、hover 用 0.16–0.26s：下拉框每次
-只挪一行，永远落在下限，看着是「弹」的；侧栏点一次常跨十几项，直接顶到 0.40s 上限，
-同一条回弹曲线被拉长就成了「缓」。用户不会归因到「距离自适应」，只会觉得这两个 pill
-的动画不是一套。
-
-`height` 用的是过冲更小的 `cubic-bezier(0.34, 1.12, 0.64, 1)`（高度不是位移，过冲大会让
-pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回 `ease-out`，位移仍然跟随、
-只是不再弹。
-
-给新组件加成组 hover 高亮时，优先挂 `PillTrack` 而不是自己写 `:hover { background }` ——
-自己写只有「瞬时变色」，没有滑动和回弹，和其余组件放在一起会明显不齐。
-
-#### pill 配色：色相只表示「已选中」，灰阶只表示「指针在这里」
-
-| 场景                   | 组件                                                                   | 取色                                                                                                                              |
-| ---------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 有持久选中项           | Select / Combobox / CreatableSelect / Sidebar / Tabs / Calendar 日期格 | 选中 = `var(--primary)` 实心 + `var(--accent-text)`；hover = 中性灰 `var(--hover)`；**指针压在选中项上** = `var(--primary-hover)` |
-| 只有落点、没有持久选中 | Command / DropdownMenu / ContextMenu / TitleBar 搜索                   | 落点 pill = `var(--primary)` 实心，该行文字/图标/快捷键转 `var(--accent-text)`                                                    |
-| 大面积扫动 / 小按钮    | DataTable / DataList 行、分段的输入小格、日历翻页按钮                  | hover = `var(--hover)`                                                                                                            |
-| 下划线 tab             | `variant="line"`                                                       | 自动取 `--hover-line`（比轨道深一档的灰，压在 1px 轨道上才看得见）                                                                |
-
-两个状态各占一个通道：**色相 = 是否已选中，明度 = 指针在不在**。所以主题色不再跟着指针跑 ——
-否则每一行被划过都像被选中了一次，用户要在「上次选的是哪个」和「现在指着哪个」之间反复分辨。
-动作菜单没有持久选中，「落点」本身就是当前项，仍然用主题色，那里不存在第二个语义。
-
-指针落在**已选中项**上时，不要用那块中性灰：它会把主题色整个盖掉，激活标识一碰就没了。
-传 `activeHoverBackground="var(--primary-hover)"` —— 同一色相深一档，hover pill 一路滑过去、
-颜色由灰转深，视觉上就是「选中块被按了一下」。实现上是此时把常驻的选中 pill `opacity` 归零，
-让换了色的 hover pill 顶上来（两者位置完全重合），因此不存在「两块色块叠在一起」的层叠问题，
-也不依赖 `z-index` 谁压谁。
-
-**项间间隙归最近那一项**（`gapBridge`，默认 12px）：项与项之间总有 2~10px 的空隙
-（flex `gap`、兄弟项 `margin`、菜单分隔线），这些空隙属于容器、命中不到任何项，
-按元素命中判断时指针每扫过一条缝 pill 就会消失一次。`PillTrack` 现在会在命中不到项时
-按几何就近归属：最近项与**次近项**都在 `gapBridge` 以内才算数 —— 这一条把「两项之间的缝」
-和「表头上方 / 列表下方的空白」区分开，后者只有一侧有项，不会把首/末行点亮。
-视觉间隙一点没动，只是不再有死区；传 `gapBridge={0}` 可关掉。
-
-**前景色必须跟着 pill 走，不能跟着 `:hover` 走。** `gapBridge` 会把 pill 留在「最近那一项」上，
-而指针这时可能正落在缝隙、分隔线或面板内边距里 —— `:hover` 已是 false，pill 却还压在那行。
-用 `:hover` 决定文字/开关的颜色，就会出现「鼠标移开了、蓝底还没退、字已经变回深色」
-（深字压品牌色实测对比度约 1.4:1，开关行还会留下一条深灰轨道压在蓝底上）。
-`PillTrack` 会往「pill 正压着的那一项」打 `data-pill-on`，值就是那一块 pill 的底色档位：
-
-| 值       | 什么情况                                                | 前景色                         |
-| -------- | ------------------------------------------------------- | ------------------------------ |
-| `hover`  | 用的是 `hoverBackground`（通常是主题色实心）            | 转 `var(--accent-text)`        |
-| `active` | 指针压在已选中项上，用的是 `activeHoverBackground`      | 跟随选中项（一般本身就是白字） |
-| `custom` | 行自己的 `data-pill-bg`（禁用行的中性灰、危险行的浅红） | 保持原色，不要转白             |
-
-标记与 pill 的显隐在**同一帧**切换，并且隐藏那一帧 pill 不做淡出 —— 否则「字已经转黑、
-蓝底还在慢慢退」这 150ms 就是用户说的「移开鼠标就读不清」。出现方向本来就不过渡
-（从停放位恢复的那一帧会写 `transition:none`），所以 pill 只「滑」不「淡」。
-
-写这类规则时注意作用域：`data-pill-on` 是运行时写进 DOM 的，Svelte 的静态分析看不见，
-直接写 `.dropdown-item[data-pill-on]` 会被判成 `css_unused_selector`。做法是让祖先保持 scoped、
-把带属性的那一段包进 `:global()`，既不出这个组件，也不会被当成死代码：
+作用域写法：`data-pill-on` 是运行时写入 DOM 的属性，Svelte 静态分析看不见，需把带属性的那一段包进 `:global()`：
 
 ```css
 .dropdown-menu :global(.dropdown-item[data-pill-on="hover"]:not(:disabled)) {
@@ -752,8 +665,7 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 
 ### 悬停提示（Tooltip）
 
-界面上的悬停文案一律走 `Tooltip`，不要写原生 `title` —— 原生 tooltip 的配色由系统决定，
-暗色主题下会弹出跟主题无关的浅色方块。
+界面上的悬停文案一律走 `Tooltip`，不要写原生 `title` —— 原生 tooltip 的配色由系统决定，暗色主题下会弹出跟主题无关的浅色方块。
 
 ```svelte
 <Tooltip title="设置" placement="bottom">
@@ -761,23 +673,12 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 </Tooltip>
 ```
 
-几条约定：
-
-- **触发器是 `span`（inline-flex）**，所以可以放进 `<button>` 里，给图标按钮加提示不用改结构。
-- **气泡 portal 到 `body`**：原地渲染时，祖先的 `backdrop-filter` / `transform` 会变成
-  `position: fixed` 的包含块（表头磨砂、行进场动画都会命中），Modal / Drawer 的 `overflow`
-  还会把它裁掉。
-- **包裹改变了 flex 父子关系**：原来挂在元素上的 `flex: 1`、`margin-left: auto`、
-  `text-overflow: ellipsis` 可能失效，给触发器 `class` 补一条
-  `:global(.xxx-tip) { flex: 1 1 auto; min-width: 0 }`，内层再做省略。
-- **默认延迟 200ms**：一屏里可能挂几十个提示，延迟太小、鼠标扫过就弹一片。用 `delay` 覆盖。
-- **没浮出来过就什么都不做**：`hide()` 里先判 `visible`，没真正显示过就直接返回、不推进
-  状态机。别把这句去掉 —— `"leaving"` 同样会渲染气泡，而那时它还没跑过
-  `calculatePosition()`，位置还是初始的 `(0, 0)`，也就是**窗口左上角**。指针在 200ms
-  延迟内划走时每行都会走到这条路径，于是快速划过列表就能看到左上角叠出一片错位的气泡。
-- 内容里的 `\n` 会保留（`white-space: pre-wrap`），长文本用 `maxWidth` 限宽。
-- 例外：`DataTable` 的纯文本单元格仍用原生 `title`（成千上万个格子，一格一个组件不划算）；
-  需要气泡就在 `custom` 列的 `cell` snippet 里自己包一层。
+- **触发器是 `span`（inline-flex）**，可以放进 `<button>` 里
+- **气泡 portal 到 `body`**，不受祖先 `backdrop-filter` / `transform` / `overflow` 影响
+- **包裹改变了 flex 父子关系**：原来挂在元素上的 `flex: 1`、`margin-left: auto`、`text-overflow: ellipsis` 可能失效，给触发器 `class` 补 `:global(.xxx-tip) { flex: 1 1 auto; min-width: 0 }`，内层再做省略
+- **默认延迟 200ms**，用 `delay` 覆盖
+- 内容里的 `\n` 会保留（`white-space: pre-wrap`），长文本用 `maxWidth` 限宽
+- 例外：`DataTable` 的纯文本单元格仍用原生 `title`（一格一个组件不划算）；需要气泡就在 `custom` 列的 `cell` snippet 里自己包一层
 
 ### Notification API
 
@@ -793,8 +694,8 @@ Notification.error("连接失败");
 - 类型：`success` / `info` / `warning` / `error`
 - `position`：`top-left` / `top` / `top-right` / `bottom-left` / `bottom` / `bottom-right`，默认 `bottom-right`
 - 需先在应用顶层挂载 `<NotificationProvider />`
-- 通知宽度固定为 360px，可通过 `--notif-width` 变量覆盖；`max-width: calc(100vw - 48px)` 视口护栏仍生效
-- 错误消息提取可用 `errorToString(e)`：字符串原样返回，取 `message` 字段（兼容 `Error` 与序列化对象），否则 `String(e)`
+- 通知宽度固定 360px，可 `--notif-width` 覆盖
+- 错误消息提取用 `errorToString(e)`：
 
 ```ts
 import { Notification, errorToString } from "goose-ui";
@@ -804,8 +705,7 @@ Notification.error(`加载失败: ${errorToString(err)}`);
 
 #### 多个互不干扰的通知容器
 
-`Notification` 绑定在**全局单例 store** 上，所有不传 `store` 的 `<NotificationProvider />` 都渲染这一份（默认用法）。
-若需要彼此独立的容器（例如主窗口与浮窗、或不同区域各管各的通知），用工厂显式建实例：
+`Notification` 绑定在全局单例 store 上；需要独立容器时用工厂显式建实例：
 
 ```svelte
 <script lang="ts">
@@ -820,10 +720,7 @@ Notification.error(`加载失败: ${errorToString(err)}`);
 ```
 
 - 两份 store 的通知列表、id 序列、暂停位完全独立；卸载其中一个不影响另一个
-- `<NotificationProvider />` 的 props：`store`（渲染哪份 store）、`offset`（位置微调样式片段，
-  多容器同挂载时用 `top:...px;left:...px;` 错开浮层）、`gap`、`visibleToasts`、`expand`、`hotkey`
-- `Notification.xxx()` 不使用 Svelte context：`getContext()` 只能在组件初始化期调用，
-  在事件处理器里会抛 `lifecycle_outside_component`，因此独立容器必须显式传 store
+- `Notification.xxx()` 不使用 Svelte context，独立容器必须显式传 store
 
 ### 确认框 API
 
@@ -836,12 +733,10 @@ const ok = await showConfirm("确定要删除吗？", {
 }); // Promise<boolean>：确认 true，取消/关闭 false
 ```
 
-- 选项：`title`（默认 `'确认'`）、`confirmText`（`'确定'`）、`cancelText`（`'取消'`）、`danger`（确认按钮危险色）、
-  `detail` / `detailLabel`（明细块，见下）
+- 选项：`title`（默认 `'确认'`）、`confirmText`（`'确定'`）、`cancelText`（`'取消'`）、`danger`（确认按钮危险色）、`detail` / `detailLabel`（明细块）
 - 需在应用顶层挂载一次 `<ConfirmDialog />`；弹窗内按 `Enter` 等同点击确认
 
-**明细块 `detail`**：要用户逐项核对的清单（一批 PID、一批文件名）放进 `detail`，而不是拼进 `message`——
-长清单会把首句淹没。它是等宽、可选中、限高 168px 内部滚动的块，`detailLabel` 是它上面的小标题：
+**明细块 `detail`**：要用户逐项核对的清单（一批 PID、一批文件名）放进 `detail`，而不是拼进 `message`。它是等宽、可选中、限高 168px 内部滚动的块，`detailLabel` 是它上面的小标题：
 
 ```ts
 await showConfirm(`将强制结束「chrome.exe」（PID 4000）及其 23 个后代进程，共 24 个进程。`, {
@@ -853,12 +748,7 @@ await showConfirm(`将强制结束「chrome.exe」（PID 4000）及其 23 个后
 });
 ```
 
-带 `detail` 时确认框不播打字机动画：Modal 的打字机是把内容截成字符串逐字 `@html` 出来的，
-几十项清单要打两三秒，而这正是用户此刻要读的内容。
-
-**标题行操作 `headerActions`**：给列表类弹窗用——「全部清空」「关闭全部」这类针对整份数据的动作
-放在标题旁边，用户不用把视线移到页脚、也不用先关掉弹窗。传一个 snippet，渲染在关闭按钮左侧；
-不传（或片段这次没有内容）就一像素不占：
+**标题行操作 `headerActions`**：传一个 snippet，渲染在关闭按钮左侧，适合「全部清空」这类针对整份数据的动作：
 
 ```svelte
 <Modal bind:open title="chrome.exe 的进程树" headerActions={killAll}>
@@ -869,9 +759,7 @@ await showConfirm(`将强制结束「chrome.exe」（PID 4000）及其 23 个后
 </Modal>
 ```
 
-**多层叠加按打开顺序排层**：每个 Modal 打开时从全局栈取一个 id，`z-index = --z-overlay + id`。
-所以「弹窗里再弹确认框」时确认框一定在上面 —— `ConfirmDialog` / `ErrorDialog` 通常挂在布局
-**前面**，只靠 DOM 顺序会被业务弹窗压住，确认按钮点得到 DOM 却点不到。
+**多层叠加按打开顺序排层**：每个 Modal 打开时从全局栈取一个 id，`z-index = --z-overlay + id`——「弹窗里再弹确认框」时确认框一定在上面。`ConfirmDialog` / `ErrorDialog` 建议挂在布局**前面**。
 
 ### 错误弹窗 API
 
@@ -899,8 +787,6 @@ initTheme(); // 幂等：应用持久化/系统偏好 + 主题色（ThemeToggle 
 
 ### 主题色 API
 
-颜色本身是 **hex**：主题里每个角色都有一份可直接读改的默认值（亮/暗各一套），用户设置的颜色也以 hex 存。色相（`--hue-*`）只剩一个用途——给需要「取邻近色」的渐变/动画做偏移计算（如 TitleBar 品牌渐变），不参与任何颜色的默认值。
-
 ```ts
 import { setColor, setColors, resetColors, getColors, colorStore, formatHex, normalizeHex, maxChroma, parseColor, DEFAULT_COLORS } from "goose-ui";
 
@@ -911,17 +797,13 @@ getColors(); // { accent: "#1850ec", ... }（只含被自定义的角色）
 normalizeHex("#48f"); // "#4488ff"（非 hex 返回 null）
 formatHex({ l: 0.6, c: 0.2, h: 264 }); // "#6a5fd8"
 parseColor("#48f"); // { l, c, h }
-maxChroma(0.6, 264); // 该明度/色相在 sRGB 内的彩度上限，约 0.2
+maxChroma(0.6, 264); // 该明度/色相在 sRGB 内的彩度上限
 DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 ```
 
-> 传进去的就是 hex 时会被**原样保留**，不经过 oklch 往返——否则 `#0ea5e9` 转一圈会掉成 `#0aa5e9`（浮点取整丢 1 bit）。只有 `oklch(...)` 串和 `{l,c,h}` 对象才需要折算。
->
-> 自己做取色器时用得上 `maxChroma(l, h)`：超出 sRGB 的彩度在转 hex 时会被逐通道截断，存回去的 `c` 变小，滑条就会出现「拖到 100% 只剩 45%」的弹回。
-
-- 颜色写入 `<html>` 内联样式（`--c-<角色>`），**全局生效**（含浮层、portal 出去的元素），并持久化到 `localStorage`
-- 同时会自动派生并写入 `--c-<角色>-hover`（亮色压暗、暗色提亮）和 `--c-<角色>-text`（仅亮色，再压暗一档）——否则 `theme.css` 的回退链会让 hover 退化成基色、语义色文字掉对比度。切换亮暗主题时会按新主题重算这两档
-- 六个角色（顺序即列表顺序）：`accent`（主色）/ `complement`（互补色），以及五个信息色 `success`（完成）/ `info`（信息）/ `warning`（警告）/ `danger`（危险）
+- 颜色写入 `<html>` 内联样式（`--c-<角色>`），全局生效（含浮层、portal 元素），并持久化到 `localStorage`
+- 同时自动派生并写入 `--c-<角色>-hover` 与 `--c-<角色>-text`；切换亮暗主题时按新主题重算
+- 六个角色：`accent`（主色）/ `complement`（互补色），以及 `success`（完成）/ `info`（信息）/ `warning`（警告）/ `danger`（危险）
 - **纯 CSS 也能配**，无需任何 JS——直接覆盖角色变量：
 
 ```css
@@ -935,8 +817,7 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 }
 ```
 
-- 只想改**色相**（让依赖色相偏移的渐变/动画跟着走）时仍可用 `setHue(role, hue)` / `--hue-<角色>`；它不影响上面的 hex 默认值。
-- 默认值常量：`DEFAULT_COLORS`（六个角色的亮色默认 hex），可直接读来展示或做「是否已改动」的比较。
+- 只想改**色相**（让依赖色相偏移的渐变/动画跟着走）时用 `setHue(role, hue)` / `--hue-<角色>`；它不影响 hex 默认值
 
 #### 色彩角色对照
 
@@ -952,23 +833,13 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 
 #### 渐变只有一套
 
-项目里所有「主色渐变」都引用同一组 token，不再各自写一条 `linear-gradient`：
-TitleBar logo、ProgressBar / Meter / Slider 的填充都是 `var(--gradient-accent)`。
+所有「主色渐变」都引用同一组 token：`var(--gradient-accent)`（TitleBar logo、ProgressBar / Meter / Slider 填充）。
 
-- 色相规则固定：**主色色相 `-30°` → `+30°`，跨度 60°**，中点落在主色上。换主题色时整条跟着转，
-  两端永远只在主色附近摆动（以前是 accent→complement，一道渐变里跨 100°+，中间那段是脏的）。
-- `--gradient-accent-hover` 只提亮一档、**色相完全不动**（L 0.55→0.62）。用在真有 hover 的地方：
-  TitleBar logo 悬停、Slider 悬停/拖动。
-- `--titlebar-logo-gradient` / `--titlebar-logo-gradient-hover` 是旧名，值等于上面两个 token，
-  已有覆盖写法继续有效；新代码用新名。
-- 渐变内是 `oklch(L C calc(var(--hue-accent) ± 30))`：色相偏移用纯数字（写成 `30deg` 会和 number 混算出无效值），
-  且在 `:root` 上预解析成自定义属性；组件里**不要**写成 `var(--x, <含 var() 的回退>)`，
-  回退值里出现任何 `var()` 都会让整条 background 在计算值阶段失效 → `background-image: none` → 元素隐形。
+- 色相规则固定：**主色色相 `-30°` → `+30°`，跨度 60°**，中点落在主色上；换主题色时整条跟着转
+- `--gradient-accent-hover` 只提亮一档、色相不动，用在真有 hover 的地方（TitleBar logo 悬停、Slider 悬停/拖动）
+- `--titlebar-logo-gradient` / `--titlebar-logo-gradient-hover` 是旧名，值等于上面两个 token，已有覆盖写法继续有效
 
-> demo 侧栏「设置」页提供可视化调节：6 个角色（主色 + 互补色 + 完成/信息/警告/危险）+ 7 套预设 + 实时预览 + 恢复默认。
-> 页面末尾还有一节「全部颜色变量」：按基础面 / 描边 / 文字 / 六个语义色系 / 中性面 / 渐变 / 别名分组，
-> 列出 `theme.css` 定义的全部 77 个颜色 token 与 4 条渐变 token，可切换亮/暗对照，值与 `color-mix()` 都实时算出来，
-> 渐变色带还会把两端色相量出来写成 `234° → 294° · 跨 60°`；点色块直接复制 `var(--token)`。
+> demo 侧栏「设置」页提供可视化调节：6 个角色 + 7 套预设 + 实时预览 + 恢复默认；页面末尾「全部颜色变量」列出 `theme.css` 全部 token，点色块直接复制 `var(--token)`。
 
 ### 右键菜单 API
 
@@ -984,9 +855,7 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 - 配合顶层挂载 `<ContextMenu />` 使用
 - `cellMenuAttrs("row", data)` 生成 `data-menu-*` 属性，绑定到表格单元格
-- `onMenuAction(menu, action, handler)` 返回取消订阅函数。注意同一 `(menu, action)` **只保留最后注册的
-  handler**，且取消订阅会移除该 action 的 handler——多个组件注册同名菜单/同 action 时请改用不同的
-  action 名（或由上层统一注册一次）
+- `onMenuAction(menu, action, handler)` 返回取消订阅函数。注意同一 `(menu, action)` **只保留最后注册的 handler**——多个组件注册同名菜单/同 action 时请改用不同的 action 名（或由上层统一注册一次）
 
 ## 主题定制
 
@@ -1005,14 +874,11 @@ onMenuAction("row", "del", (data) => console.log(data));
 }
 ```
 
-`-hover` / `-soft` / `-text` / `-border` 由 `--accent` 用 `color-mix()` 派生，改主色即可连带生效；
-需要单独调时再覆盖同名变量。**这是推荐方式**——比按色相派生更好读、更好接手。
+`-hover` / `-soft` / `-text` / `-border` 由 `--accent` 用 `color-mix()` 派生，改主色即可连带生效；需要单独调时再覆盖同名变量。**这是推荐方式**。
 
 ### 需要按色相联动时
 
-`--hue-*` 仍然存在，但它现在只服务于「需要取邻近色相」的渐变（当前只有统一渐变
-`--gradient-accent` 用 `calc(var(--hue-accent) - 30)` / `+ 30` 取主色两侧各 30°）。
-改它不会动上面那些 hex 默认值。
+`--hue-*` 只服务于「需要取邻近色相」的渐变（当前只有 `--gradient-accent` 使用），改它不会动 hex 默认值：
 
 ```css
 :root {
@@ -1044,12 +910,9 @@ onMenuAction("row", "del", (data) => console.log(data));
 }
 ```
 
-- 旧名 `--primary` / `--primary-hover` / `--primary-soft` / `--primary-text` 仍然可用，是
-  `--accent` 体系的别名，既有代码无需改动
-- 中性色（`--bg` / `--surface*` / `--border`）刻意不参与色相配置 —— 大面积背景不应被染色
-- 浮层（菜单 / 气泡 / 下拉列表）另有 `--popup-surface`：亮色 `#ffffff`、暗色 `#000000`。
-  它不参与灰阶：浮层悬在页面之上，套一层中性灰就变成「灰上加灰」，边界只能靠阴影和细边框撑。
-  需要改浮层底色（例如改用带色调的面板）只覆盖这一个 token 即可，不必逐个组件写 `:global` 覆盖
+- 旧名 `--primary` / `--primary-hover` / `--primary-soft` / `--primary-text` 仍然可用，是 `--accent` 体系的别名
+- 中性色（`--bg` / `--surface*` / `--border`）不参与色相配置——大面积背景不应被染色
+- 浮层（菜单 / 气泡 / 下拉列表）底色单独由 `--popup-surface` 控制（亮色 `#ffffff`、暗色 `#000000`），改浮层底色只覆盖这一个 token
 - 暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换；子树内用 `.light` 类可局部恢复浅色 token
 
 ### 工具类（theme.css 全局提供）
@@ -1064,7 +927,7 @@ onMenuAction("row", "del", (data) => console.log(data));
 | `.status-dot-offline` | 离线状态圆点（红）        | 无动画                                                            |
 
 - 直接挂在任意元素上即可，无前置条件
-- `.animate-*` 为一次性动画：元素重新显示时（如 `display:none↔''` 切换）会从头重播；页面级入场请交给 `Page` 过渡统一处理，勿在卡片上叠加
+- `.animate-*` 为一次性动画：元素重新显示时会从头重播；页面级入场请交给 `Page` 过渡统一处理
 
 ## Peer Dependencies
 
@@ -1073,12 +936,9 @@ onMenuAction("row", "del", (data) => console.log(data));
 | `svelte` ^5.0.0           | ✅   | 框架                                                  |
 | `@lucide/svelte` >=1.43.0 | ✅   | 图标库；十几个组件在模块顶层直接 import，缺了无法构建 |
 
-> 本包 `dependencies` 为空：没有 clsx 之类的 class 拼接库，也没有样式运行时。
+> `dependencies` 为空：没有 clsx 之类的 class 拼接库，也没有样式运行时。
 >
-> **Wails3 桌面应用**：goose-ui 不依赖 `@wailsio/runtime`。窗口控制通过
-> `TitleBar` 的 `windowApi` prop 注入（实现 `WindowController` 接口，包一层
-> `@wailsio/runtime` 的 `Window` 即可）；窗口拖拽与四角缩放是纯 CSS。完整示例见
-> demo 的 TitleBar 页「Wails3 接入说明」。
+> **Wails3 桌面应用**：goose-ui 不依赖 `@wailsio/runtime`。窗口控制通过 `TitleBar` 的 `windowApi` prop 注入（实现 `WindowController` 接口，包一层 `@wailsio/runtime` 的 `Window` 即可）；窗口拖拽与四角缩放是纯 CSS。完整示例见 demo 的 TitleBar 页「Wails3 接入说明」。
 
 ## 开发
 
@@ -1089,8 +949,7 @@ pnpm test           # 单元测试（node --test，tests/*.test.ts）
 pnpm build          # 生产构建
 ```
 
-CI（`.github/workflows/deploy.yml`）在构建 demo 前会先跑 `pnpm check` 与 `pnpm test`，
-任何类型错误、a11y 警告或单测失败都会挡住部署。
+CI（`.github/workflows/deploy.yml`）在构建 demo 前会先跑 `pnpm check` 与 `pnpm test`，任何类型错误、a11y 警告或单测失败都会挡住部署。
 
 ## License
 
