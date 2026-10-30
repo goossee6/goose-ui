@@ -49,7 +49,7 @@ Vite 需要放弃对这些文件做依赖预打包，否则 `.svelte` 会被当�
 // vite.config.ts
 export default defineConfig({
   plugins: [svelte()],
-  optimizeDeps: { exclude: ['goose-ui'] },
+  optimizeDeps: { exclude: ["goose-ui"] },
 });
 ```
 
@@ -61,11 +61,11 @@ export default defineConfig({
 ```html
 <script>
   try {
-    var t = localStorage.getItem('goose-ui-theme');
-    if (t !== 'dark' && t !== 'light') {
-      t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    var t = localStorage.getItem("goose-ui-theme");
+    if (t !== "dark" && t !== "light") {
+      t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
-    if (t === 'dark') document.documentElement.classList.add('dark');
+    if (t === "dark") document.documentElement.classList.add("dark");
   } catch (e) {}
 </script>
 ```
@@ -178,23 +178,23 @@ import "goose-ui/styles/theme.css";
 
 ### 基础组件
 
-| 组件        | 说明                                                                        |
-| ----------- | --------------------------------------------------------------------------- |
+| 组件        | 说明                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------- |
 | Button      | 按钮，variant 八档（primary/default/ghost/danger/danger-solid/text/text-primary/link） |
-| Card        | 卡片容器，支持 title + right header                                         |
-| Label       | 表单标签                                                                    |
-| StatusBadge | 状态徽章                                                                    |
-| Icon        | 图标包装器（传入 `@lucide/svelte` 图标组件，支持 size/class/spin 旋转动画） |
-| Separator   | 分割线，横/竖/虚线/文字分隔                                                 |
-| AspectRatio | 等比容器，按比例裁剪内容                                                    |
-| Avatar      | 头像（首字母回退 + 状态点 + size/shape）                                    |
-| ScrollArea  | 滚动区（自定义滚动条、role=region）                                         |
-| Row         | 水平排列行（`gap` sm/md/lg + `align` + 自动换行）                           |
-| Tag         | 标签（6 变体 × 3 尺寸 + 圆点 + 可关闭）                                     |
-| Skeleton    | 骨架屏（text/circle/rect + 多行 + shimmer 动画）                            |
-| Image       | 图片（懒加载 + 失败兜底 + 点击放大预览）                                    |
-| Footer      | 页脚（左右插槽 + 链接列表 + 版权行 + 吸底）                                 |
-| CodeBlock   | 代码块（语言标签 + 一键复制 + 注释/字符串/关键字轻量高亮）                  |
+| Card        | 卡片容器，支持 title + right header                                                    |
+| Label       | 表单标签                                                                               |
+| StatusBadge | 状态徽章                                                                               |
+| Icon        | 图标包装器（传入 `@lucide/svelte` 图标组件，支持 size/class/spin 旋转动画）            |
+| Separator   | 分割线，横/竖/虚线/文字分隔                                                            |
+| AspectRatio | 等比容器，按比例裁剪内容                                                               |
+| Avatar      | 头像（首字母回退 + 状态点 + size/shape）                                               |
+| ScrollArea  | 滚动区（自定义滚动条、role=region）                                                    |
+| Row         | 水平排列行（`gap` sm/md/lg + `align` + 自动换行）                                      |
+| Tag         | 标签（6 变体 × 3 尺寸 + 圆点 + 可关闭）                                                |
+| Skeleton    | 骨架屏（text/circle/rect + 多行 + shimmer 动画）                                       |
+| Image       | 图片（懒加载 + 失败兜底 + 点击放大预览）                                               |
+| Footer      | 页脚（左右插槽 + 链接列表 + 版权行 + 吸底）                                            |
+| CodeBlock   | 代码块（语言标签 + 一键复制 + 注释/字符串/关键字轻量高亮）                             |
 
 ### 表单输入
 
@@ -205,11 +205,11 @@ import "goose-ui/styles/theme.css";
 | MultiSelect     | 多选下拉，支持 badge 标签与分组吸顶（组头）、Escape/方向键/Enter 键盘操作                                                                         |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源；搜索框 role=combobox，选项列表 role=listbox                                                                |
 | Checkbox        | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）                                                                            |
-| Radio           | 单个单选项（一般直接用下面的 RadioGroup，单独用时需自管选中态）                                                                                    |
+| Radio           | 单个单选项（一般直接用下面的 RadioGroup，单独用时需自管选中态）                                                                                   |
 | RadioGroup      | 单选组（pill 分段轨道，context 注入）                                                                                                             |
 | Toggle          | iOS 风格开关，带弹性动画                                                                                                                          |
 | ToggleGroup     | 单选/多选切换组，default/outline 变体                                                                                                             |
-| Slider          | 滑块（pointer 捕获拖拽 + 键盘；外部改值 0.2s 补间，拖动中不补间）                                                                                |
+| Slider          | 滑块（pointer 捕获拖拽 + 键盘；外部改值 0.2s 补间，拖动中不补间）                                                                                 |
 | Combobox        | 组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航）                                                                             |
 | Rating          | 评分（半星/只读/键盘 slider 语义）                                                                                                                |
 | PINInput        | 验证码输入（跳格/粘贴/退格回跳，`group`+`separator` 分组）                                                                                        |
@@ -220,75 +220,75 @@ import "goose-ui/styles/theme.css";
 
 ### 日期与时间
 
-| 组件            | 说明                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------ |
+| 组件            | 说明                                                                                                |
+| --------------- | --------------------------------------------------------------------------------------------------- |
 | DateField       | 日期分段字段（`YYYY-MM-DD`，分段自动跳格/粘贴跨段/聚焦全选/失焦校验：月份 ≤12、日 ≤当月天数、闰年） |
-| TimeField       | 时间分段字段（`HH:mm[:ss]`，`seconds` 可选段；时分秒上限 23/59/59，失焦纠正并补零）     |
-| DateRangeField  | 日期范围分段字段（start/end 双向绑定）                                               |
-| TimeRangeField  | 时间范围分段字段                                                                     |
-| Calendar        | 日历网格（月导航、min/max、disabledDate、方向键/PgUp/PgDn）                          |
-| RangeCalendar   | 范围日历（先起点后终点，悬停预览，清除；方向键移动光标、Enter 提交、PgUp/PgDn 翻月） |
-| DatePicker      | 日期选择器（触发器 + 浮层 Calendar，自动翻转、清除）                                 |
-| DateRangePicker | 范围选择器（触发器 + 浮层 RangeCalendar）                                            |
+| TimeField       | 时间分段字段（`HH:mm[:ss]`，`seconds` 可选段；时分秒上限 23/59/59，失焦纠正并补零）                 |
+| DateRangeField  | 日期范围分段字段（start/end 双向绑定）                                                              |
+| TimeRangeField  | 时间范围分段字段                                                                                    |
+| Calendar        | 日历网格（月导航、min/max、disabledDate、方向键/PgUp/PgDn）                                         |
+| RangeCalendar   | 范围日历（先起点后终点，悬停预览，清除；方向键移动光标、Enter 提交、PgUp/PgDn 翻月）                |
+| DatePicker      | 日期选择器（触发器 + 浮层 Calendar，自动翻转、清除）                                                |
+| DateRangePicker | 范围选择器（触发器 + 浮层 RangeCalendar）                                                           |
 
 > 日期/时间选择器的清除按钮为独立 `<button>`（可 Tab 聚焦 + Enter/Space 触发），由绝对定位叠在触发器图标位。
 
 ### 数据展示
 
-| 组件            | 说明                                                                                                                                                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DataTable       | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill                                                                                                                                |
+| 组件            | 说明                                                                                                                                                                                                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DataTable       | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill                                                                                                                                                                                                      |
 | DataList        | 数据列表，带空状态与可选的内置 header（直接复用 `Header` 组件：`title`/`header`/`headerCenter`/`headerRight`/`headerClass`/`headerStyle`/`headerSticky` 原样透传；内置 header 默认高 **64px**，传 `headerStyle="--header-h:56px"` 覆盖；`dataTableHeader` 用于独立成块时补齐内边距）；行 hover 同样走滑动 pill |
-| Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                                                                                |
-| TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                                                                                 |
-| PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制；hover 与选中共用同一条回弹曲线和同一套「距离 → 时长」映射（见「滑动高亮动效」）                                                                                                   |
-| Pagination      | 分页（siblingCount 省略号折叠、showQuickJumper 跳页输入）                                                                                                                                                                                |
-| Collapsible     | 折叠面板（grid-rows 0fr→1fr 过渡）                                                                                                                                                                                                       |
-| Accordion       | 手风琴（单开/多开/collapsible，复用 Collapsible）                                                                                                                                                                                        |
-| ProgressBar     | 渐变进度条                                                                                                                                                                                                                               |
-| ProgressBytes   | 上传进度（字节/速度/ETA）                                                                                                                                                                                                                |
-| ProgressSlotBar | 分片上传进度                                                                                                                                                                                                                             |
-| UsageBar        | 用量/限额进度条                                                                                                                                                                                                                          |
-| Meter           | 度量条（threshold 转高亮 / critical 转危险色，role=progressbar）                                                                                                                                                                         |
-| Typewriter      | 打字机效果，支持逐字文本或淡入 Snippet                                                                                                                                                                                                   |
-| Carousel        | 轮播图（手动/自动播放、悬停暂停、首尾循环）                                                                                                                                                                                              |
-| Time            | 实时时钟（time/date/datetime + 12h 制）                                                                                                                                                                                                  |
-| Countdown       | 倒计时（duration/target 双模式 + 暂停 + 归零回调）                                                                                                                                                                                       |
+| Tabs            | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                                                                                                                                                      |
+| TabsPanel       | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                                                                                                                                                       |
+| PillTrack       | 滑动高亮原语（选中 pill + hover pill，MutationObserver 自动跟随选中）。Sidebar / Tabs / DataTable / DataList 的 hover 高亮带都由它绘制；hover 与选中共用同一条回弹曲线和同一套「距离 → 时长」映射（见「滑动高亮动效」）                                                                                        |
+| Pagination      | 分页（siblingCount 省略号折叠、showQuickJumper 跳页输入）                                                                                                                                                                                                                                                      |
+| Collapsible     | 折叠面板（grid-rows 0fr→1fr 过渡）                                                                                                                                                                                                                                                                             |
+| Accordion       | 手风琴（单开/多开/collapsible，复用 Collapsible）                                                                                                                                                                                                                                                              |
+| ProgressBar     | 渐变进度条                                                                                                                                                                                                                                                                                                     |
+| ProgressBytes   | 上传进度（字节/速度/ETA）                                                                                                                                                                                                                                                                                      |
+| ProgressSlotBar | 分片上传进度                                                                                                                                                                                                                                                                                                   |
+| UsageBar        | 用量/限额进度条                                                                                                                                                                                                                                                                                                |
+| Meter           | 度量条（threshold 转高亮 / critical 转危险色，role=progressbar）                                                                                                                                                                                                                                               |
+| Typewriter      | 打字机效果，支持逐字文本或淡入 Snippet                                                                                                                                                                                                                                                                         |
+| Carousel        | 轮播图（手动/自动播放、悬停暂停、首尾循环）                                                                                                                                                                                                                                                                    |
+| Time            | 实时时钟（time/date/datetime + 12h 制）                                                                                                                                                                                                                                                                        |
+| Countdown       | 倒计时（duration/target 双模式 + 暂停 + 归零回调）                                                                                                                                                                                                                                                             |
 
 ### 导航与布局
 
-| 组件           | 说明                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------ |
-| PageHeader     | 页面标题栏（标题 + 描述 + children 附加行 + 右侧操作区，窄屏自动换行）               |
-| Page           | 页面容器（根布局 + 页头 + 内容区间距一次到位）                                       |
+| 组件           | 说明                                                                                                                                                                               |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PageHeader     | 页面标题栏（标题 + 描述 + children 附加行 + 右侧操作区，窄屏自动换行）                                                                                                             |
+| Page           | 页面容器（根布局 + 页头 + 内容区间距一次到位）                                                                                                                                     |
 | Sidebar        | 悬浮岛式侧边栏（导航分组 + 顶层项穿插 + 折叠 + popover + endItems/footer）。尺寸全部由组件内的一组 `--sb-*` 变量派生（行高 36 / 组内 2 / 组间 16 / 行圆角 md），改一个值整列跟着走 |
-| Header         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                         |
-| NavigationMenu | 导航菜单（面板定位/翻转，链接 + 描述）                                               |
-| Menubar        | 菜单栏（横向方向键：焦点在触发器间 roving，已展开时自动切换菜单；复用 DropdownMenu） |
-| DropdownMenu   | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                        |
-| Toolbar        | 工具栏（role=toolbar + roving 方向键）                                               |
-| Layout         | 应用外壳纯布局（顶栏 / 可选侧栏 / 内容区插槽，不内置组件，自行组合 TitleBar、Sidebar 或 Drawer） |
-| BackTop        | 返回顶部（阈值淡入 + easeOutCubic 回顶；元素容器贴容器右下角，回退贴视口）           |
-| Cursor         | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                            |
-| Background     | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）            |
+| Header         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                                                                                       |
+| NavigationMenu | 导航菜单（面板定位/翻转，链接 + 描述）                                                                                                                                             |
+| Menubar        | 菜单栏（横向方向键：焦点在触发器间 roving，已展开时自动切换菜单；复用 DropdownMenu）                                                                                               |
+| DropdownMenu   | 下拉菜单（flip 测量、键盘导航；`disabled` prop 可禁用触发器）                                                                                                                      |
+| Toolbar        | 工具栏（role=toolbar + roving 方向键）                                                                                                                                             |
+| Layout         | 应用外壳纯布局（顶栏 / 可选侧栏 / 内容区插槽，不内置组件，自行组合 TitleBar、Sidebar 或 Drawer）                                                                                   |
+| BackTop        | 返回顶部（阈值淡入 + easeOutCubic 回顶；元素容器贴容器右下角，回退贴视口）                                                                                                         |
+| Cursor         | 自定义光标（区域内圆点跟随 + 可选拖尾外圈，隐藏系统光标）                                                                                                                          |
+| Background     | 装饰背景（gradient/grid/dots/noise 四变体 + 光晕漂移动画，children 叠加）                                                                                                          |
 
 ### 反馈
 
-| 组件                 | 说明                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------- |
-| Modal                | 模态弹窗（fade+scale 转场、backdrop blur、`headerActions` 标题行操作、多层按打开顺序叠放） |
+| 组件                 | 说明                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| Modal                | 模态弹窗（fade+scale 转场、backdrop blur、`headerActions` 标题行操作、多层按打开顺序叠放）  |
 | Drawer               | 抽屉弹窗（4 方向 + 可调景深 `pushScale`/`pushBlur` + 可拖动吸附尺寸 / 拖到底关闭 + portal） |
-| Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭；placement 支持 bottom/top × start/end 对齐） |
-| AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                                      |
-| Command              | 命令面板（Ctrl/Cmd+K、分组、键盘导航）                                                |
-| LinkPreview          | 链接预览（延迟悬停、翻转、卡片水平居中于锚点）                                        |
-| Tooltip              | 气泡提示（12 方向 + 自动翻转 + hover/focus/click 触发）                               |
-| NotificationProvider | 通知容器；`store` prop 决定渲染哪份 store（默认全局单例，可传独立实例）               |
-| NotificationItem     | 单条通知（由 NotificationProvider 内部渲染）                                          |
-| ErrorDialog          | 错误弹窗（配合 pushError 使用）                                                       |
-| ConfirmDialog        | 确认框容器（App 顶层挂载一次，配合 showConfirm 使用）                                 |
-| Loading              | 加载指示器（spinner 或自定义图片，size 可调）                                         |
-| Empty                | 空状态（图标 + 主文案 + 副提示 + 可选操作区，居中排布）                               |
+| Popover              | 气泡卡片（受控 open、翻转、Esc/外点关闭；placement 支持 bottom/top × start/end 对齐）       |
+| AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                                            |
+| Command              | 命令面板（Ctrl/Cmd+K、分组、键盘导航）                                                      |
+| LinkPreview          | 链接预览（延迟悬停、翻转、卡片水平居中于锚点）                                              |
+| Tooltip              | 气泡提示（12 方向 + 自动翻转 + hover/focus/click 触发）                                     |
+| NotificationProvider | 通知容器；`store` prop 决定渲染哪份 store（默认全局单例，可传独立实例）                     |
+| NotificationItem     | 单条通知（由 NotificationProvider 内部渲染）                                                |
+| ErrorDialog          | 错误弹窗（配合 pushError 使用）                                                             |
+| ConfirmDialog        | 确认框容器（App 顶层挂载一次，配合 showConfirm 使用）                                       |
+| Loading              | 加载指示器（spinner 或自定义图片，size 可调）                                               |
+| Empty                | 空状态（图标 + 主文案 + 副提示 + 可选操作区，居中排布）                                     |
 
 ### 其他
 
@@ -360,12 +360,12 @@ import "goose-ui/styles/theme.css";
 
 ### 间距变量（外壳与页面通过变量沟通，零耦合）
 
-| 变量               | 作用                                                                                                                          | 默认            |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| `--page-pad`       | `Page` 内边距——页面空隙的**唯一责任方**；裸壳默认 `16px`，`Layout` 内容区传 `20px 24px`，任何容器（含 absolute 覆盖）都不影响。**上下两半会被 `padding-block: 0` 清零，实际只有左右生效** | `16px`          |
-| `--page-gap`       | 页头 ↔ 内容 ↔ 卡片的统一垂直节奏                                                                                              | `16px`          |
-| `--ph-gap`         | 独立使用 `PageHeader` 时的下间距（`Page` 内自动为 `0`，交给 `--page-gap`）                                                    | `32px`          |
-| `--layout-pad-x/y` | `--page-pad` 在 `Layout` 内的镜像（`Header` 吸顶用它反向贴满内缘）。`y` 必须与 `Page` 的清零保持一致（`0px`），否则 Header 的负 margin 会把吸顶条拽出滚动口 | `24px` / `0px`  |
+| 变量               | 作用                                                                                                                                                                                      | 默认           |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `--page-pad`       | `Page` 内边距——页面空隙的**唯一责任方**；裸壳默认 `16px`，`Layout` 内容区传 `20px 24px`，任何容器（含 absolute 覆盖）都不影响。**上下两半会被 `padding-block: 0` 清零，实际只有左右生效** | `16px`         |
+| `--page-gap`       | 页头 ↔ 内容 ↔ 卡片的统一垂直节奏                                                                                                                                                          | `16px`         |
+| `--ph-gap`         | 独立使用 `PageHeader` 时的下间距（`Page` 内自动为 `0`，交给 `--page-gap`）                                                                                                                | `32px`         |
+| `--layout-pad-x/y` | `--page-pad` 在 `Layout` 内的镜像（`Header` 吸顶用它反向贴满内缘）。`y` 必须与 `Page` 的清零保持一致（`0px`），否则 Header 的负 margin 会把吸顶条拽出滚动口                               | `24px` / `0px` |
 
 - 自绘外壳（非 `Layout`）若自带内容区 padding，在外壳上写 `--page-pad: 0` 归零即可
 - `Page` 默认 body 不滚（`scroll` 关闭）：局部滚动区由页面内部处理；整页滚动给 `Page` 加 `scroll`
@@ -651,14 +651,19 @@ Combobox / Popover / NavigationMenu / TimePicker / DatePicker / DateRangePicker 
 新写浮层组件时照这三步做，别再自己写 `contains()`：
 
 ```ts
-const layerId = createLayerId('xxx');
+const layerId = createLayerId("xxx");
 
 function portal(node: HTMLElement) {
-  const owner = layerOwnerOf(node);   // 必须在 appendChild 之前
+  const owner = layerOwnerOf(node); // 必须在 appendChild 之前
   node.dataset.overlayLayer = layerId;
   registerLayer(layerId, owner);
   document.body.appendChild(node);
-  return { destroy() { unregisterLayer(layerId); node.remove(); } };
+  return {
+    destroy() {
+      unregisterLayer(layerId);
+      node.remove();
+    },
+  };
 }
 
 if (!isInsideLayer(e.target, layerId, [rootEl, panelEl])) close();
@@ -676,10 +681,10 @@ if (!isInsideLayer(e.target, layerId, [rootEl, panelEl])) close();
 pillDur(d) = clamp(0.16s, 0.28s, 0.14s + d / 1600)
 ```
 
-| 场景 | CSS 变量 | 相邻一行的时长 | 说明 |
-| --- | --- | --- | --- |
-| hover | `--pill-hover-dur` | ≈ 0.16s | 指针扫过一列时每一行都会重新起跳，过长会追不上指针 |
-| 选中 | `--pill-dur` | ≈ 0.16s | 与 hover 完全相同；远距离封顶 0.28s |
+| 场景  | CSS 变量           | 相邻一行的时长 | 说明                                               |
+| ----- | ------------------ | -------------- | -------------------------------------------------- |
+| hover | `--pill-hover-dur` | ≈ 0.16s        | 指针扫过一列时每一行都会重新起跳，过长会追不上指针 |
+| 选中  | `--pill-dur`       | ≈ 0.16s        | 与 hover 完全相同；远距离封顶 0.28s                |
 
 **两边不能各写一套参数。** 曾经选中 pill 用 0.18–0.40s、hover 用 0.16–0.26s：下拉框每次
 只挪一行，永远落在下限，看着是「弹」的；侧栏点一次常跨十几项，直接顶到 0.40s 上限，
@@ -695,12 +700,12 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 
 #### pill 配色：色相只表示「已选中」，灰阶只表示「指针在这里」
 
-| 场景 | 组件 | 取色 |
-| --- | --- | --- |
-| 有持久选中项 | Select / Combobox / CreatableSelect / Sidebar / Tabs / Calendar 日期格 | 选中 = `var(--primary)` 实心 + `var(--accent-text)`；hover = 中性灰 `var(--hover)`；**指针压在选中项上** = `var(--primary-hover)` |
-| 只有落点、没有持久选中 | Command / DropdownMenu / ContextMenu / TitleBar 搜索 | 落点 pill = `var(--primary)` 实心，该行文字/图标/快捷键转 `var(--accent-text)` |
-| 大面积扫动 / 小按钮 | DataTable / DataList 行、分段的输入小格、日历翻页按钮 | hover = `var(--hover)` |
-| 下划线 tab | `variant="line"` | 自动取 `--hover-line`（比轨道深一档的灰，压在 1px 轨道上才看得见） |
+| 场景                   | 组件                                                                   | 取色                                                                                                                              |
+| ---------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 有持久选中项           | Select / Combobox / CreatableSelect / Sidebar / Tabs / Calendar 日期格 | 选中 = `var(--primary)` 实心 + `var(--accent-text)`；hover = 中性灰 `var(--hover)`；**指针压在选中项上** = `var(--primary-hover)` |
+| 只有落点、没有持久选中 | Command / DropdownMenu / ContextMenu / TitleBar 搜索                   | 落点 pill = `var(--primary)` 实心，该行文字/图标/快捷键转 `var(--accent-text)`                                                    |
+| 大面积扫动 / 小按钮    | DataTable / DataList 行、分段的输入小格、日历翻页按钮                  | hover = `var(--hover)`                                                                                                            |
+| 下划线 tab             | `variant="line"`                                                       | 自动取 `--hover-line`（比轨道深一档的灰，压在 1px 轨道上才看得见）                                                                |
 
 两个状态各占一个通道：**色相 = 是否已选中，明度 = 指针在不在**。所以主题色不再跟着指针跑 ——
 否则每一行被划过都像被选中了一次，用户要在「上次选的是哪个」和「现在指着哪个」之间反复分辨。
@@ -725,11 +730,11 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 （深字压品牌色实测对比度约 1.4:1，开关行还会留下一条深灰轨道压在蓝底上）。
 `PillTrack` 会往「pill 正压着的那一项」打 `data-pill-on`，值就是那一块 pill 的底色档位：
 
-| 值 | 什么情况 | 前景色 |
-| --- | --- | --- |
-| `hover` | 用的是 `hoverBackground`（通常是主题色实心） | 转 `var(--accent-text)` |
-| `active` | 指针压在已选中项上，用的是 `activeHoverBackground` | 跟随选中项（一般本身就是白字） |
-| `custom` | 行自己的 `data-pill-bg`（禁用行的中性灰、危险行的浅红） | 保持原色，不要转白 |
+| 值       | 什么情况                                                | 前景色                         |
+| -------- | ------------------------------------------------------- | ------------------------------ |
+| `hover`  | 用的是 `hoverBackground`（通常是主题色实心）            | 转 `var(--accent-text)`        |
+| `active` | 指针压在已选中项上，用的是 `activeHoverBackground`      | 跟随选中项（一般本身就是白字） |
+| `custom` | 行自己的 `data-pill-bg`（禁用行的中性灰、危险行的浅红） | 保持原色，不要转白             |
 
 标记与 pill 的显隐在**同一帧**切换，并且隐藏那一帧 pill 不做淡出 —— 否则「字已经转黑、
 蓝底还在慢慢退」这 150ms 就是用户说的「移开鼠标就读不清」。出现方向本来就不过渡
@@ -740,7 +745,7 @@ pill 上下「撑一下」）。`prefers-reduced-motion: reduce` 下全部退回
 把带属性的那一段包进 `:global()`，既不出这个组件，也不会被当成死代码：
 
 ```css
-.dropdown-menu :global(.dropdown-item[data-pill-on='hover']:not(:disabled)) {
+.dropdown-menu :global(.dropdown-item[data-pill-on="hover"]:not(:disabled)) {
   color: var(--accent-text);
 }
 ```
@@ -935,15 +940,15 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 
 #### 色彩角色对照
 
-| 角色                      | 变量                                                                                         | 用途                                     |
-| ------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| 角色                      | 变量                                                                                         | 用途                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | 主色                      | `--accent` / `--accent-hover` / `--accent-text`                                              | 激活项、主按钮、选中态；无持久选中项的动作菜单落点 pill |
 | 副强调色                  | `--accent-sub`                                                                               | 低透明度主色：选中项的淡染底（**不用于 pill / hover**） |
-| 焦点环 / 选中强调         | `--accent-ring` / `--accent-strong`                                                          | 焦点外圈 / 更重的选中底色                |
-| 互补色                    | `--complement` / `--complement-hover` / `--complement-sub`                                   | 与主色形成对比的位置                     |
-| 中性黑/灰                 | `--neutral-bg` / `--neutral-surface` / `--neutral-surface-2` / `--neutral-border`            | 大面积背景填充（无彩色，不参与色相配置） |
-| 完成 / 信息 / 警告 / 危险 | `--success` / `--info` / `--warning` / `--danger`（各带 `-hover` `-soft` `-text` `-border`） | 状态语义                                 |
-| 渐变                      | `--gradient-accent` / `--gradient-accent-hover`                                              | 全项目唯一一套，见下节                   |
+| 焦点环 / 选中强调         | `--accent-ring` / `--accent-strong`                                                          | 焦点外圈 / 更重的选中底色                               |
+| 互补色                    | `--complement` / `--complement-hover` / `--complement-sub`                                   | 与主色形成对比的位置                                    |
+| 中性黑/灰                 | `--neutral-bg` / `--neutral-surface` / `--neutral-surface-2` / `--neutral-border`            | 大面积背景填充（无彩色，不参与色相配置）                |
+| 完成 / 信息 / 警告 / 危险 | `--success` / `--info` / `--warning` / `--danger`（各带 `-hover` `-soft` `-text` `-border`） | 状态语义                                                |
+| 渐变                      | `--gradient-accent` / `--gradient-accent-hover`                                              | 全项目唯一一套，见下节                                  |
 
 #### 渐变只有一套
 
@@ -1063,10 +1068,10 @@ onMenuAction("row", "del", (data) => console.log(data));
 
 ## Peer Dependencies
 
-| 包                        | 必需 | 说明                                                    |
-| ------------------------- | ---- | ------------------------------------------------------- |
-| `svelte` ^5.0.0           | ✅   | 框架                                                    |
-| `@lucide/svelte` >=1.43.0 | ✅   | 图标库；十几个组件在模块顶层直接 import，缺了无法构建   |
+| 包                        | 必需 | 说明                                                  |
+| ------------------------- | ---- | ----------------------------------------------------- |
+| `svelte` ^5.0.0           | ✅   | 框架                                                  |
+| `@lucide/svelte` >=1.43.0 | ✅   | 图标库；十几个组件在模块顶层直接 import，缺了无法构建 |
 
 > 本包 `dependencies` 为空：没有 clsx 之类的 class 拼接库，也没有样式运行时。
 >
