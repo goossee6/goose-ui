@@ -116,7 +116,7 @@
 	</button>
 
 	<!-- 清除按钮必须是触发器的兄弟节点：<button> 不能是 <button> 的后代（SSR 会 hydration mismatch）。
-	     用绝对定位叠在日历图标位上，视觉与原来一致。 -->
+	     用绝对定位叠在日历图标位上。 -->
 	{#if clearable && label && !disabled}
 		<button type="button" class="drp-clear" aria-label="清除" onclick={clear}>
 			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>

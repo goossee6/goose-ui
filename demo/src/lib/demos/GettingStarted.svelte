@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Card, Page, Row, CodeBlock } from "goose-ui";
 
-  const installSource = `pnpm add goose-ui`;
+  const installSource = `pnpm add github:goossee6/goose-ui @lucide/svelte`;
 
   const setupSource = `// src/main.ts（或任意应用入口）
 import "goose-ui/styles/theme.css";
@@ -23,10 +23,10 @@ initTheme(); // 应用持久化的亮/暗主题与主题色`;
   </Button>
 </Card>`;
 
-  const themeSource = `/* 改色相即可换主题：亮/暗两套自动派生 */
+  const themeSource = `/* 直接覆盖角色 hex；-hover / -soft / -text 由 color-mix 自动派生 */
 :root {
-  --hue-accent: 25;      /* 强调色 */
-  --hue-complement: 230; /* 互补色 */
+  --accent: #1850ec;     /* 主色 */
+  --complement: #009145; /* 互补色 */
 }`;
 
   const shellSource = `<script lang="ts">
@@ -97,8 +97,8 @@ npx skills add goossee6/goose-ui        # Claude Code / Codex / Cursor 通用`;
 
   <Card anchor="accent-theme" title="4. 换主题色">
     <p class="note">
-      只改色相即可，系统会为亮色与暗色分别派生整套配色。也可用
-      <code>setHue('accent', 25)</code> 在代码里设置并持久化（详见左侧「设置」页）。
+      直接覆盖角色 hex 即可，<code>-hover</code> / <code>-soft</code> 等派生变量自动连带生效；
+      也可用 <code>setColor('accent', '#1850ec')</code> 在代码里设置并持久化（详见左侧「设置」页）。
     </p>
     <CodeBlock code={themeSource} language="css" />
   </Card>

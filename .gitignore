@@ -10,3 +10,8 @@ preview.log
 demo/dev.log
 
 .workbuddy/
+.codegraph/.codegraph/
+.vscode/
+.probe/
+*.log
+demo/dist/

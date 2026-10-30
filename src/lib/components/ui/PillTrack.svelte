@@ -136,39 +136,20 @@
 	let selectedGeom = $state('');
 	let selectedOn = $state(false);
 	/**
-	 * 位移距离 → 移动时长（秒）。选中 pill 与 hover pill **共用这一套映射**。
-	 *
-	 * 两边各写一套参数时，手感会在用户毫无察觉的地方分叉：下拉列表每次只挪一行
-	 * （≈36px，落在下限），一直是「弹」的；侧栏点一次常跨十几项、距离几百像素，
-	 * 按同一公式算就会顶到上限（原来是 0.4s），同一条回弹曲线被拉长，观感就成了
-	 * 「缓」。用户不会归因到「距离自适应」，只会觉得两个 pill 的动画不是一套。
-	 *
-	 * 所以只保留一条曲线、一个上限：
-	 * · 近距（同一行内的小控件、相邻菜单项）→ 0.16s，过冲还看得清，反应也不掉队；
-	 * · 远距（侧栏跨组、日历跨月）→ 封顶 0.28s，再长就不是「弹」而是「飘」了。
-	 * 指针扫过一列时每行都会重新起跳，上限也不能太大，否则 pill 永远追在指针后面。
+	 * pill 位移时长（秒），固定值，选中 pill 与 hover pill 共用。
+	 * 需要不同节奏可用 --pill-dur / --pill-hover-dur 覆盖。
 	 */
-	function pillDur(d: number): number {
-		return Math.min(0.28, Math.max(0.16, 0.14 + d / 1600));
-	}
-
-	// 选中 pill 移动时长，写入 --pill-dur 供 transition 读取
-	let selectedDur = $state(0.18);
-	let selectedBox: Box | null = null;
-	// hover pill 移动时长，写入 --pill-hover-dur（与选中 pill 同一套映射）
-	let hoverDur = $state(0.18);
-	// 上一格几何：用来算这次位移距离（决定回弹时长）
-	let hoverBox: Box | null = null;
+	const PILL_DUR = 0.2;
 	// 从停放位恢复：当帧不播位移过渡（否则 pill 会从左上角飞过来）
 	let restoring = $state(false);
 	let hoverRestoring = $state(false);
 
 	const hoverStyle = $derived(
-		`${hoverGeom} --pill-hover-dur: ${hoverDur}s; opacity: ${hoverOn ? 1 : 0};` +
+		`${hoverGeom} --pill-hover-dur: ${PILL_DUR}s; opacity: ${hoverOn ? 1 : 0};` +
 			(hoverRestoring ? ' transition: none;' : '')
 	);
 	const selectedStyle = $derived(
-		`${selectedGeom} --pill-dur: ${selectedDur}s; opacity: ${
+		`${selectedGeom} --pill-dur: ${PILL_DUR}s; opacity: ${
 			selectedOn && !activeHovered ? (disabled ? 0.5 : 1) : 0
 		};` + (restoring ? ' transition: none;' : '')
 	);
@@ -203,11 +184,11 @@
 	 * · 盒子类（div / table / tbody / ul …，DataTable、DataList、Tabs、Sidebar 这些）：
 	 *   容器自己往往有背景色。此时负 z-index 的 pill 会画到**容器背景的后面**而
 	 *   整个消失 —— 表头/行底色把主题色挡掉了，用户看到的就是「pill 没了」。
-	 *   所以这类宿主改用 z-index:0 + 让行背景透明（见 .pill-track--in-box 注释），
+	 *   所以这类宿主用 z-index:0 + 让行背景透明（见 .pill-track--in-box 注释），
 	 *   pill 落在容器自己的层叠上下文里、画在容器背景之上。
 	 *
 	 * · 表格行单元格（tr / td / li 之类）：它们通常没有自己的背景，z-index:-1 正好
-	 *   沉到行内容之下、页面背景之上，维持原来的下沉行为。
+	 *   沉到行内容之下、页面背景之上。
 	 *
 	 * 这里只判断「是不是显式的行/单元格元素」—— 其余一律按盒子处理，
 	 * 因为「容器有背景」才是常态，误判成盒子最多是 pill 回到 z-index:0（可见），
@@ -264,7 +245,7 @@
 		const cr = container.getBoundingClientRect();
 		const l = er.left - cr.left + container.scrollLeft - container.clientLeft;
 		const t = er.top - cr.top + container.scrollTop - container.clientTop;
-		// line：t/h 恒 0（只有 left 动）；insetX：l/w 恒定（只有 top 动）→ 位移距离自然只含真实移动分量
+		// line：t/h 恒 0（只有 left 动）；insetX：l/w 恒定（只有 top 动）→ pill 只画真实移动轴上的正确矩形
 		if (variant === 'line') return { l, t: 0, w: er.width, h: 0 };
 		if (insetX !== undefined) {
 			return {
@@ -362,7 +343,7 @@
 	 * left/top 是布局属性：每次 hover 划过一行，浏览器都要为这一帧重算布局
 	 * （Chrome 的性能面板里表现为每次 hover 都记一次 Layout shift，
 	 * 一屏几十行就是几十次）。translate 是合成属性 —— 位移只改合成层的
-	 * transform，不碰布局，滚动和悬停都不再产生 layout shift。
+	 * transform，不碰布局，滚动和悬停都不产生 layout shift。
 	 *
 	 * 宽高仍用 width/height：pill 的尺寸本来就是"贴合项"的结果，需要真实
 	 * 尺寸参与布局；只有位移是高频的，把高频那部分挪到合成层就够了。
@@ -568,12 +549,6 @@
 			return;
 		}
 		const wasParked = !selectedOn && selectedGeom === PARKED;
-		// box 未变（340ms 补测/重复触发）不重算，否则 d=0 会把时长重置为下限，飞行中途改写 transition
-		if (selectedBox && (box.l !== selectedBox.l || box.t !== selectedBox.t || box.w !== selectedBox.w || box.h !== selectedBox.h)) {
-			const d = wasParked ? 0 : Math.hypot(box.l - selectedBox.l, box.t - selectedBox.t);
-			selectedDur = pillDur(d);
-		}
-		selectedBox = box;
 		selectedGeom = boxStyle(box);
 		// 停放恢复：先禁用过渡落地，下一帧恢复常规过渡
 		if (wasParked) {
@@ -712,7 +687,6 @@
 			const box = cachedBox(item);
 			if (box) {
 				hoverGeom = boxStyle(box);
-				hoverBox = box;
 			}
 			applyHoverBg(item);
 			refreshActiveHover();
@@ -775,13 +749,6 @@
 			const wasParked = !hoverOn && (!hoverGeom || hoverGeom === PARKED);
 			const box = cachedBox(item);
 			if (box) {
-				// 位移距离 → 时长：与选中 pill 同一个 pillDur()，划过项与切换项手感才一致。
-				// 停放恢复那一次不参与计算：它从 (0,0) 出发，距离恒为最大值，
-				// 而且当帧是 transition:none，量出来的时长只会污染下一次。
-				if (hoverBox && !wasParked) {
-					hoverDur = pillDur(Math.hypot(box.l - hoverBox.l, box.t - hoverBox.t));
-				}
-				hoverBox = box;
 				hoverGeom = boxStyle(box);
 				// 缓存已落地，此后布局变化（含排序这种「只搬家不变尺寸」的）必须让它失效
 				ensureObservers();
@@ -822,7 +789,7 @@
 			mo?.disconnect();
 			cancelAnimationFrame(resyncRaf);
 			invalidateGeom();
-			// 监听器拆了，指针落点就失效了：hoveredEl 是组件级状态（不再随 effect 销毁），
+			// 监听器拆了，指针落点就失效了：hoveredEl 是组件级状态（不随 effect 销毁），
 			// 不清掉的话重新订阅后第一次 matches() 会拿旧元素判出错误的颜色档位
 			hoveredEl = null;
 			activeHovered = false;
@@ -906,9 +873,8 @@
 		pointer-events: none;
 		transition: opacity 0.15s;
 		/* 回弹曲线：中段 y 超过 1（back-out），位置先冲过落点再落回来 ——
-		   「回弹」就是这一段过冲。选中与 hover 共用同一条曲线、同一套时长映射
-		   （见 pillDur()），所以下拉列表里逐行跟随、侧栏里跨组切换，落点和
-		   冲出去的幅度是同一个手感，只是走的距离不同。
+		   「回弹」就是这一段过冲。选中与 hover 共用同一条曲线、同一个固定时长
+		   （PILL_DUR），落点和冲出去的幅度是同一个手感。
 
 		   过冲幅度取 1.5：接近 Button 的 1.56，但 pill 是整块色块，同样的相对
 		   过冲摊到几十上百像素的宽度上会比按钮缩放显眼，略收一点。
@@ -917,13 +883,13 @@
 		/* height 用的轻过冲版：高度不是位移，过冲会让人看到 pill 上下「撑一下」，
 		   1.12 只够抹掉硬切感，不至于把上下边缘顶出去太多。 */
 		--pill-ease-soft: cubic-bezier(0.34, 1.12, 0.64, 1);
-		/* 位移已改用 transform，位移本身不再触发布局。
+		/* 位移走 transform，不触发布局。
 		   刻意不加 will-change: transform —— 那会让每个 pill 常驻一个合成层，
 		   一页十几张表就是十几层，反而更费显存和合成时间；
 		   transform 过渡在 Chrome 里同样会被自动提升，只在动画期间存在。 */
 	}
 	/* 两种 pill 分工不同，层叠策略也不同：
-	   hover 是「行底色」，就地画在宿主容器内部（和加入 portal 之前一样），
+	   hover 是「行底色」，就地画在宿主容器内部，
 	   由宿主行的层叠上下文管，因此行透明、行白底都能正常显示；
 	   选中是「当前项标记」，默认压在最上面（z-index:1），任何底色都压不掉它。
 	   两者互不影响 —— hover 到已选中的项时能同时看到两层。
@@ -957,8 +923,8 @@
 	.pill-track--in-box {
 		z-index: 0;
 	}
-	/* hover 的定位回到内容坐标（见 parkPos）：不再走 portal，也就没有内联的 position:fixed。 */
-	/* hover：与选中 pill 同一条曲线、同一套时长映射（pillDur），只是写进不同的变量。
+	/* hover 的定位用内容坐标（见 parkPos），没有内联的 position:fixed。 */
+	/* hover：与选中 pill 同一条曲线、同一个固定时长（PILL_DUR），只是写进不同的变量。
 	   位移过渡的是 transform 而不是 left/top —— 前者走合成器，不触发重排。
 
 	   width 仍然瞬时对齐：它是布局属性，和 transform 放在同一条 transition 里会让
@@ -970,16 +936,16 @@
 	   不会引起兄弟节点重排，代价可控，所以单独给 height 同一条缓动。 */
 	.pill-track--hover {
 		transition:
-			transform var(--pill-hover-dur, 0.18s) var(--pill-ease),
-			height var(--pill-hover-dur, 0.18s) var(--pill-ease-soft),
+			transform var(--pill-hover-dur, 0.2s) var(--pill-ease),
+			height var(--pill-hover-dur, 0.2s) var(--pill-ease-soft),
 			background-color 0.15s,
 			opacity 0.15s;
 	}
-	/* 选中：位移 back-out 过冲回弹 + 距离自适应时长。
+	/* 选中：位移 back-out 过冲回弹 + 固定时长（PILL_DUR）。
 	   尺寸不参与过渡：选中标记切换频率低，且 width 还会随列宽变化（理由见上）。 */
 	.pill-track--sel {
 		transition:
-			transform var(--pill-dur, 0.18s) var(--pill-ease),
+			transform var(--pill-dur, 0.2s) var(--pill-ease),
 			opacity 0.15s;
 	}
 	.pill-track--line {
@@ -991,11 +957,11 @@
 	/* 下划线变体只有横向位移：同样带回弹，否则同一套 Tabs 在两种模式下
 	   一个会弹一个不会，正是这次要修的不一致。 */
 	.pill-track--hover.pill-track--line {
-		transition: transform var(--pill-hover-dur, 0.18s) var(--pill-ease), opacity 0.15s;
+		transition: transform var(--pill-hover-dur, 0.2s) var(--pill-ease), opacity 0.15s;
 	}
 	.pill-track--sel.pill-track--line {
 		transition:
-			transform var(--pill-dur, 0.18s) var(--pill-ease),
+			transform var(--pill-dur, 0.2s) var(--pill-ease),
 			opacity 0.15s;
 	}
 	/* 减少动效：过冲全部退回线性缓出，位移照样跟随，只是不再「弹」。

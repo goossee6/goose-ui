@@ -34,9 +34,7 @@
 	 *
 	 * 单独派生出来是为了把模板里的两层 {#if} 压成一层：
 	 * Svelte 5 里嵌套 {#if} 内层元素**不会播放 in: 过渡**（实测：单层 if 能动画，
-	 * 外面再包一层 if 就整段跳过 intro）。原来的写法是
-	 * `{#if openValue}` → `{#if item?.children?.length}` → 面板，
-	 * 于是面板的进入动画从来没生效过，只有离开是自己写的所以看不出来。
+	 * 外面再包一层 if 就整段跳过 intro）。
 	 */
 	const openItem = $derived(items.find((i) => i.value === openValue && i.children?.length));
 	let navEl = $state<HTMLElement | null>(null);

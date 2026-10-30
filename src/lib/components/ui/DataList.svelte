@@ -153,7 +153,7 @@
   {#if rows.length === 0}
     <div class="placeholder">{emptyText}</div>
   {:else}
-    <!-- hover 底色由 pill 绘制（跨行滑动的圆角带），故行本身不再变色。
+    <!-- hover 底色由 pill 绘制（跨行滑动的圆角带），故行本身不变色。
          容器就是列表自身：clientWidth 已扣掉滚动条，pill 才能与行等宽。
          注意 pill 的坐标参照容器内容区，行盒的横向内缩必须用 margin 而不是
          padding，否则 pill 会贴到内容区宽而不是行盒宽。 -->
@@ -220,7 +220,7 @@
 
   .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
-  /* 每项自带边框（方框 + 圆角与 pill 一致），不再用 border-bottom 画行间分隔线。
+  /* 行间分隔线由每项自带的边框画出（方框 + 圆角与 pill 一致）。
      z-index 只用于压住 pill 之上的内容层，容器本身不设 z-index，pill 才能照常显示 */
   .list-row {
     position: relative;

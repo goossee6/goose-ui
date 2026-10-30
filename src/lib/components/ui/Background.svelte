@@ -84,9 +84,7 @@
 	.bg--overlay.bg--noise {
 		background-color: color-mix(in srgb, var(--surface-2) 55%, transparent);
 	}
-	/* 渐变：底色让位，颜色全部由下面 3 个漂移的色点提供。
-	   不再用 135deg 线性渐变 —— 那种「左上到右下」的对角配色一眼就能看出是
-	   固定的两块颜色，而色点会各自游移，观感更像流动的光。 */
+	/* 渐变：底色让位，颜色全部由下面 3 个漂移的色点提供。*/
 	.bg--gradient {
 		background: var(--surface);
 	}

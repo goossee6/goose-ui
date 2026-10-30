@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { NotificationProvider, ErrorDialog, ContextMenu, ConfirmDialog, BackTop, Sidebar, Layout, TitleBar, themeStore, toggleThemeFromEvent, type SidebarEntry, type WindowController } from "goose-ui";
+  import { NotificationProvider, ErrorDialog, ContextMenu, ConfirmDialog, BackTop, Sidebar, Layout, TitleBar, themeStore, toggleThemeFromEvent, VERSION, type SidebarEntry, type WindowController } from "goose-ui";
   import House from "@lucide/svelte/icons/house";
   import BookOpen from "@lucide/svelte/icons/book-open";
   import LayoutGrid from "@lucide/svelte/icons/layout-grid";
@@ -28,14 +28,11 @@
       items: [
         { value: "title", label: "Title 标题" },
         { value: "button", label: "Button 按钮" },
-        { value: "page", label: "Page 页面容器" },
         { value: "separator", label: "Separator 分割线" },
         { value: "avatar", label: "Avatar 头像" },
         { value: "scrollarea", label: "ScrollArea 滚动区" },
         { value: "icon", label: "Icon 图标" },
-        { value: "tag", label: "Tag 标签" },
         { value: "codeblock", label: "CodeBlock 代码高亮" },
-        { value: "toolbar", label: "Toolbar 工具栏" },
       ],
     },
     {
@@ -68,6 +65,7 @@
         { value: "command", label: "Command 命令面板" },
         { value: "linkpreview", label: "LinkPreview 链接预览" },
         { value: "loading", label: "Loading 加载" },
+        { value: "skeleton", label: "Skeleton 骨架屏" },
       ],
     },
     {
@@ -76,13 +74,12 @@
       items: [
         { value: "card", label: "Card 卡片" },
         { value: "collapse", label: "Collapse 折叠面板" },
-        { value: "tabs", label: "Tabs 标签页" },
         { value: "tabledata", label: "DataTable 数据表格" },
         { value: "tablelist", label: "DataList 列表" },
+        { value: "tag", label: "Tag 标签" },
         { value: "pagination", label: "Pagination 分页" },
         { value: "progress", label: "Progress 进度条" },
         { value: "meter", label: "Meter 度量条" },
-        { value: "skeleton", label: "Skeleton 骨架屏" },
         { value: "typewriter", label: "Typewriter 打字机" },
         { value: "image", label: "Image 图片" },
         { value: "carousel", label: "Carousel 轮播图" },
@@ -94,10 +91,13 @@
       items: [
         { value: "header", label: "Header 头部导航" },
         { value: "navmenu", label: "NavigationMenu/Menubar/DropdownMenu 导航与菜单" },
-        { value: "cursor", label: "Cursor 光标" },
-        { value: "background", label: "Background 背景" },
+        { value: "tabs", label: "Tabs 标签页" },
+        { value: "page", label: "Page 页面容器" },
+        { value: "toolbar", label: "Toolbar 工具栏" },
         { value: "footer", label: "Footer 页脚" },
         { value: "backtop", label: "BackTop 返回顶部" },
+        { value: "cursor", label: "Cursor 光标" },
+        { value: "background", label: "Background 背景" },
         { value: "time", label: "Time 时钟" },
         { value: "countdown", label: "Countdown 倒计时" },
       ],
@@ -230,7 +230,7 @@
     <Sidebar {groups} bind:activeTab bind:collapsed={sidebarCollapsed} {endItems} mode={sidebarMode} embedded shadow={false}>
       {#snippet footer()}
         <div class="sidebar-footer-inner">
-          <span class="footer-version">v0.1.0 · Svelte 5</span>
+          <span class="footer-version">v{VERSION} · Svelte 5</span>
         </div>
       {/snippet}
     </Sidebar>

@@ -489,7 +489,7 @@
   .table-container { width: 100%; height: 100%; max-height: max(var(--dt-max-h), 0px); overflow: auto; scrollbar-gutter: stable; min-width: 0; }
   .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
-  /* 列宽固定：按 colgroup 指定的百分比分配，不再由内容反推宽度，
+  /* 列宽固定：按 colgroup 指定的百分比分配，不随内容反推，
      因此各列之和恒等于表格宽度，横向永远不出现滚动条。 */
   /* separate 而非 collapse：collapse 模式下 td 的 border-radius 与背景会被共享边吃掉。
      spacing:0 保证视觉上仍然是紧贴的表格，仅失去「边框合并」这一特性。
@@ -504,13 +504,9 @@
   /* 表头：纯色底 + 加粗下边框与行分隔。
      不用 backdrop-filter 磨砂：它要一层 GPU 合成层，而吸顶表头在滚动时背后一直
      在动，等于每帧重新采样重模糊一次。而它的视觉收益本来就接近零 —— 表头背后
-     就是表格行的纯色底，blur(12px) 与一层半透明色几乎看不出区别。
-     实测（demo 表格页、浏览器平滑滚动、每组 3 次取中位数）：
-       sticky + blur(12px)   13.03ms/帧  满帧 54.2%
-       sticky + 纯色底        13.12ms/帧  满帧 53.6%
-       blur(1px) 与 blur(12px) 都是 12.0ms —— 开销与半径无关，是这个属性本身
+     就是表格行的纯色底，blur 与一层半透明色几乎看不出区别，
      所以直接去掉，分层感交给底色与边框。 */
-  /* 表头不再有拖拽手柄（列宽调整能力已移除），所以 overflow 可以留在 hidden，
+  /* 表头没有拖拽手柄，所以 overflow 可以留在 hidden，
      单元格内容溢出由 .cell-inner / .sort-btn 各自的 ellipsis 处理。 */
   th { position: sticky; top: 0; z-index: 1; background-clip: padding-box; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-lg) 16px; border-bottom: 2px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

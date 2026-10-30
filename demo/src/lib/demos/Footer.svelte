@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, Page, Footer} from "goose-ui";
+  import {Card, Page, Footer, VERSION} from "goose-ui";
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
   import CodePreview from "../CodePreview.svelte";
 
@@ -29,7 +29,7 @@
     <strong style="font-size:13px">goose-ui</strong>
   {/snippet}
   {#snippet right()}
-    <span style="font-size:12px">v0.1.0</span>
+    <span style="font-size:12px">v${VERSION}</span>
   {/snippet}
 </Footer>`;
 
@@ -66,7 +66,7 @@
           <strong style="font-size:13px">goose-ui</strong>
         {/snippet}
         {#snippet right()}
-          <span style="font-size:12px">v0.1.0</span>
+          <span style="font-size:12px">v{VERSION}</span>
         {/snippet}
       </Footer>
     </div>

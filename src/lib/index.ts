@@ -1,4 +1,6 @@
 // goose-ui — barrel export
+// Version（唯一来源在 version.ts，package.json 由 tests/version.test.ts 守卫同步）
+export { VERSION } from './version';
 // Utils
 export { formatNum, formatBytes } from './utils/format';
 export { copyToClipboard } from './utils/clipboard';

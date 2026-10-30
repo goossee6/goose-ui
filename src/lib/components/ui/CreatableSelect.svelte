@@ -173,7 +173,7 @@
 		await tick();
 		// 校准不能用 ddEl.scrollHeight：列表自身 min-height:0 + overflow:auto 会被面板 max-height
 		// 夹扁而不溢出，面板 scrollHeight 看不穿这层收缩 → 少量结果时列表被压到小于内容高，
-		// 被误判可滚、点亮下触发区遮挡项。改用实测 chrome + 列表真实内容高。
+		// 被误判可滚、点亮下触发区遮挡项。用实测 chrome + 列表真实内容高。
 		if (ddEl) {
 			const panel = ddEl;
 			const q = (s: string) => (panel.querySelector(s) as HTMLElement | null)?.offsetHeight ?? 0;

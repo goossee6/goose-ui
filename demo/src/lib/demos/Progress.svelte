@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Card, ProgressBar, ProgressBytes, ProgressSlotBar, UsageBar, Button, Page, Notification} from "goose-ui";
+  import {Card, ProgressBar, ProgressBytes, ProgressSlotBar, UsageBar, Button, Page, Notification, VERSION} from "goose-ui";
   import { onDestroy } from "svelte";
 
   let percent = $state(35);
@@ -109,7 +109,7 @@
 <\/script>
 
 <ProgressBytes
-  fileName="goose-ui-v0.1.0.zip"
+  fileName="goose-ui-v${VERSION}.zip"
   progress={Math.round(bytesProgress)}
   speed="1.2 MB/s"
   eta="12s"
@@ -183,7 +183,7 @@
   <CodePreview wide anchor="bytes-chunks" anchorLevel={2} title="字节进度 ProgressBytes" code={progressBytesSource}>
     <div style="display:flex;flex-direction:column;gap:12px">
       <ProgressBytes
-        fileName="goose-ui-v0.1.0.zip"
+        fileName={`goose-ui-v${VERSION}.zip`}
         progress={Math.round(bytesProgress)}
         speed="1.2 MB/s"
         eta="12s"
