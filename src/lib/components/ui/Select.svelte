@@ -119,12 +119,47 @@
 		};
 	}
 
+	let measureCtx: CanvasRenderingContext2D | null = null;
+
+	/**
+	 * 选项行的内容宽度（最宽一行：勾选列 + 间距 + 标签/meta 文本）。
+	 *
+	 * 用 canvas measureText 离屏测量，不用等 DOM 渲染——面板宽度在
+	 * 定位时就要确定，而那时选项还没挂载。字体族继承触发器，
+	 * 字号取 .select-option 固定的 13px（meta 12px）。
+	 */
+	function optionContentWidth(): number {
+		if (options.length === 0) return 0;
+		measureCtx ??= document.createElement('canvas').getContext('2d');
+		if (!measureCtx) return 0;
+		const family = wrapperEl ? getComputedStyle(wrapperEl).fontFamily : 'sans-serif';
+		measureCtx.font = `13px ${family}`;
+		let w = 0;
+		for (const opt of options) {
+			let row = measureCtx.measureText(opt.label).width;
+			if (opt.meta) {
+				// meta 前有 8px 间距，自身左右 padding 6+6
+				measureCtx.font = `12px ${family}`;
+				row += 8 + measureCtx.measureText(opt.meta).width + 12;
+				measureCtx.font = `13px ${family}`;
+			}
+			w = Math.max(w, row);
+		}
+		// 勾选列 16px + 列间距 8px + 选项行左右内边距 32px
+		return w + 56;
+	}
+
 	function position() {
 		if (!wrapperEl) return;
 		const rect = wrapperEl.getBoundingClientRect();
 		// 面板高度 = 前 10 行（组头算一行）的实际高度，不足则自适应；8 为面板上下内边距，2 为边框
 		const ddh = rowsHeight(options, 8).height + 2;
-		const ddw = Math.max(120, rect.width);
+		// 面板宽度：默认跟触发器，但不窄于选项内容的自然宽度——
+		// 窄触发器配长选项文本时不截断（.select-option-label 是 nowrap + ellipsis，
+		// 宽度不够就会出省略号）。canvas 测量与实际排版有几像素级出入，
+		// 留 8px 安全余量；再压一个视口上限兜底超长选项。
+		const contentW = optionContentWidth() + 18; // 面板左右内边距 8 + 边框 2 + 测量安全余量 8
+		const ddw = Math.min(window.innerWidth - 16, Math.max(120, rect.width, contentW));
 		const r = floatingPosition(rect, {
 			panelW: ddw,
 			panelH: ddh,
