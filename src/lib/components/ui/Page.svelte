@@ -132,7 +132,9 @@
 			if (transition) {
 				const run = start(pageOutConfig(el));
 				run.finished.then(() => {
-					if (driver !== run) return;
+					// start() 的 finished 回调先执行，自然播完时 driver 已被置 null，
+					// 所以这里必须允许 null；只有新过渡接管（driver 非空且不是本段）才跳过隐藏。
+					if (driver && driver !== run) return;
 					el.style.display = 'none';
 					unpinPage(el);
 				});
