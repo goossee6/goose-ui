@@ -211,7 +211,7 @@
 <ContextMenu />
 <ConfirmDialog />
 
-<Layout class={activeTab === "home" ? "layout--home" : ""}>
+<Layout class={activeTab === "home" ? "layout--home" : ""} framed={activeTab !== "home"}>
   {#snippet titlebar()}
     <TitleBar
       title="Goose-ui"

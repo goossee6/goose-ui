@@ -791,9 +791,16 @@
   }
   .group-title {
     white-space: nowrap;
+    /* 组名过长时让标题自己缩、不要挤走 chevron：flex 项默认 min-width:auto，
+       长英文组名（CLOUDFLARE + uppercase + 字距）会把整行撑出 trigger 盒子，
+       chevron 溢出到盒子右侧 —— 而 pill 只覆盖盒子，箭头就露在选中块外面。 */
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .group-chevron {
     margin-left: auto;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     transition: transform 0.2s;

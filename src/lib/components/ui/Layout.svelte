@@ -9,6 +9,7 @@
 		children,
 		scroll = true,
 		resize = false,
+		framed = true,
 		class: cls = '',
 		style = '',
 	}: {
@@ -22,6 +23,18 @@
 		scroll?: boolean;
 		/** Wails 窗口支持：全域拖拽调整 + 四角手柄（浏览器环境无效果） */
 		resize?: boolean;
+		/**
+		 * 内容区是否画成卡片（边框 / 圆角 / 底色），默认 true。
+		 *
+		 * 传 false 得到一块「裸容器」：适合首页这类要把背景铺满整窗、或者内容
+		 * 自己画分区的场景。以前这类需求只能靠 `:global(.layout-content)`
+		 * 加一串 `!important` 把卡片剥掉 —— 那是使用方不该写的样式，
+		 * 也会在升级时随内部类名一起失效。
+		 *
+		 * 内边距与 `--layout-pad-x` 不跟着变：那是 `Page` / 吸顶 `Header`
+		 * 对齐的依据，剥掉会让页头错位。
+		 */
+		framed?: boolean;
 		class?: string;
 		style?: string;
 	} = $props();
@@ -39,7 +52,7 @@
 				{@render aside()}
 			</aside>
 		{/if}
-		<main class="layout-content" class:layout-content--fixed={!scroll}>
+		<main class="layout-content" class:layout-content--fixed={!scroll} class:layout-content--plain={!framed}>
 			{@render children?.()}
 		</main>
 		{#if resize}
@@ -106,6 +119,15 @@
 	}
 	.layout-content--fixed {
 		overflow: hidden;
+	}
+	/* 无卡片模式（framed=false）：只当容器用，不画边框 / 圆角 / 底色。
+	   放在 .layout-content 之后 —— 同特异性、后写者胜，不需要 !important。
+	   内边距与 --layout-pad-x 刻意不动：Page 的留白和吸顶 Header 的反向
+	   margin 都靠它，一改页头就错位。 */
+	.layout-content--plain {
+		border: none;
+		border-radius: 0;
+		background: transparent;
 	}
 	/* 内容区装的是 Page 时，外框不再承担滚动：Page 的 .page-body 才是滚动区，
 	   它的溢出全部落在自己身上，外框这一层滚不到任何东西。

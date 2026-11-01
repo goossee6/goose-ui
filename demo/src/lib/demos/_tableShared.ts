@@ -93,5 +93,6 @@ export const pillProps: PropsTableItem[] = [
   { name: "radius", desc: "圆角（line 变体固定 1px，忽略此值）", type: "string", default: "'var(--radius-md)'" },
   { name: "shadow", desc: "选中 pill 阴影", type: "string", default: "''" },
   { name: "disabledMatch", desc: "禁用项匹配选择器，hover 时分跳过", type: "string", default: "':disabled'" },
+  { name: "bounce", desc: "回弹的过冲距离（px，固定值，与位移距离无关）；0 = 不过冲，直接缓出到位", type: "number", default: "10" },
   { name: "portal", desc: "把 pill 挂到 document.body 并用 position: fixed 定位。默认 false（挂在容器内）；容器处在滚动层里、滚动时掉帧明显时可开启", type: "boolean", default: "false" },
 ];

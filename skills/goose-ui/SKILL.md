@@ -102,8 +102,54 @@ theming); copy-paste examples for every component are in the online demo:
       Action menus with no persistent selection (Command / DropdownMenu / ContextMenu) use the solid theme color
       as the landing color. Always opaque — translucent values like `--accent-sub` read as three different colors
       over different backgrounds.
+    - **The bounce has a fixed overshoot distance** (`bounce`, px, default 10) — not a percentage of the travel.
+      A `cubic-bezier` with y > 1 overshoots by a fraction of the distance, so a 2-row hop bounces 2px and a
+      20-row hop bounces 20px. Movement is therefore driven by `element.animate` keyframes (start → peak at 60% →
+      landing), and `transform` is deliberately absent from the CSS `transition` list. `bounce={0}` = no overshoot.
+    - **Never animate from a position the user can't see.** Empty geometry (first mount), the parked
+      `translate(0,0)`, or a previous landing that has been scrolled out of the container all mean "no start
+      point": place the pill instantly instead (and skip the fade). This is what stops the phantom pill that
+      flies in from the top of the page after clicking a nav item in a scrolled sidebar.
     - Gaps between items are attributed to the nearest item (`gapBridge`, default 12px, `0` disables), so the pill
-      doesn't flicker crossing gaps.
+      doesn't flicker crossing gaps. Attribution only considers items that are **actually visible**: a collapsed
+      `grid-template-rows: 0fr` panel still lays its rows out at full height (36px rects, `elementFromPoint` never
+      hits them), so they must be filtered out or gap hovers land the pill on an invisible row.
+    - **When the pointer is already on the newly-activated item, the hover pill plays the slide.** Clicking means
+      the pointer is there, so the hover pill is already parked on the target; letting the selected pill travel
+      from the old item makes two layers land on one row and the activation animation stops looking like a normal
+      hover. Same node, same keyframes, same start-point rules — only the landing color differs
+      (`--primary-hover` pressed state).
+    - **The selected pill becomes the backdrop for that slide.** The newly-activated item switches to
+      `--accent-text` (white) on the same frame; with no block underneath it is white-on-white until the slide
+      arrives. So the selected pill is **visible the whole time it is selected** — do not fade it out when the
+      pointer rests on it, or the backdrop disappears for exactly as long as the pointer stays there. When the
+      pointer is *not* on the item (keyboard navigation, external `value` change), the selected pill still
+      slides on its own.
+    - **The pressed darkening lives on the stationary selected pill**, as a `background` transition to
+      `activeHoverBackground` — never on the moving hover pill. A layer that both travels and carries "this row
+      is active" crossfades its color *while passing over the active row*: measured brightness 79 → 111 → 58
+      entering (lights up, then dims) and 58 → 194 → 79 leaving (a white flash), which is the flicker. With the
+      selected pill always painted and the hover pill below it (same `z-index`, later in DOM), the moving layer's
+      intermediate colors are covered up entirely, and the only color change left is a monotonic in-place fade.
+    - **Never re-run a slide to the same landing.** Layout re-checks (`resync`) call `slidePill` again with the same
+      target while the pill is still at its overshoot point — the distance check passes and it restarts from
+      mid-flight, bouncing a second time (measured: an extra 303.5 → 298 animation 300ms after settling).
+    - **Don't cache per-item pill positions.** Collapsing a group is a pure `grid-template-rows` transition: no DOM
+      mutation, no container resize, no scroll — every invalidation signal stays silent, and a cached box then puts
+      the pill where the item used to be (measured 264px off). Offsets are re-read per hover; that is cheap.
+    - **The selected pill also has to re-measure on container resize** (`ResizeObserver`), not just on DOM mutations.
+      Collapsing the sidebar (`width: 56px ⇄ 220px`, 0.3s) mutates nothing while it animates, and its
+      `activeSelector` flips to `''` (no `.nav-item` exists in the icon rail), so the measuring effect is torn down
+      and rebuilt on expand — the rebuilt `MutationObserver` never sees the insert that already happened. Without
+      the resize observer plus one immediate re-measure inside the effect body, the pill keeps the width measured on
+      the first frame of the expand animation (30px against a 178px row) and never corrects itself.
+    - **During a layout transition the pill tracks the layout frame by frame** (`trackLayout`), with slide animations
+      skipped and any leftover `pill-slide` cancelled (`fill: none` animations outrank the inline `transform`, so a
+      running one drags the whole follow ~3px behind). Waiting for `transitionend` instead snaps the pill at the end
+      of a 0.25s group expand (item travels 288 → 362 while the pill sits at 288); using `slidePill` instead can't
+      keep up with 3–5px per frame. Only layout-affecting `transitionrun`s start tracking — every row carries
+      `transition: color .15s`, and while tracking the selected pill skips its slide, so keyboard switching would
+      teleport.
     - **Foreground color follows `data-pill-on`, not `:hover`** (when the pill rests on the nearest item the pointer
       may be over a gap, where `:hover` is already false). Components set `data-pill-on="hover"|"active"|"custom"`;
       wrap the attribute-bearing part of the selector in `:global()` (Svelte's static analysis can't see runtime
@@ -122,6 +168,16 @@ theming); copy-paste examples for every component are in the online demo:
     `registerLayer` before portaling, and check `isInsideLayer(e.target, layerId, [rootEl, panelEl])`.
 
 ## Writing Custom Controls
+
+- **The demo may not style a component's internals.** Every visual fix belongs in the component. Concretely, in
+  `demo/` you may not (a) reach inside a component with `:global(.component-internal-class)`, (b) wrap it in a
+  container whose CSS changes how the component itself looks (height, padding, border, background), or (c) lean on
+  a demo-scoped class that readers copying the shown source won't have. Layout scaffolding (flex row, gap,
+  constrained width, a fixed-height scroll box) is fine — the component's own box must be untouched.
+  When the demo seems to need more, the API is missing something: add the prop (e.g. `Layout framed={false}` for a
+  chrome-less content area, `Drawer offsetTop` for drawers under a title bar) and use that instead.
+  `demo/cleanroom.html` renders the same components with defaults and no wrapper — open it next to the demo page to
+  see the difference. It is a dev-only entry (not in the production build).
 
 - **Visually hidden native inputs must land inside their label**: a `position: absolute` input requires the
   carrying label to have `position: relative` and `margin: 0` (Chrome's UA margin for checkboxes is

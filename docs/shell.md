@@ -39,6 +39,10 @@ Layout / Page / Sidebar / TitleBar 的组合用法。组件总览见[组件清�
 - `resize`：Wails 窗口（四角手柄 + 全域拖拽调整），浏览器省略
 - `windowControls={false}`：写在 `TitleBar` 上，隐藏默认窗口三键（浏览器环境）；`controls` snippet 可在键区附加自定义按钮
 - `scroll`（默认 `true`）：内容卡片整页滚；`false` = 框架不滚、页内滚动区自理
+- `framed`（默认 `true`）：内容区要不要画成卡片（边框 / 圆角 / 底色）。传 `false` 得到一块裸容器，
+  用于首页这类「背景要铺满整窗」或内容自己画分区的场景 —— 以前只能靠
+  `:global(.layout-content)` + 一串 `!important` 把卡片剥掉，现在一个属性就够，
+  内边距与 `--layout-pad-x` 保持不变（那是 `Page` 留白与吸顶 `Header` 对齐的依据）
 - 内容区装 `Page` 时内容卡片自动让出滚动，滚动只由 `Page` 的 `.page-body` 承担
 
 页面结构用 `Page`，不要再手写「根 div + 页头 + padding/gap」样板：

@@ -35,8 +35,9 @@
 
   <p class="note">
     DataTable 与 DataList 的 hover 高亮不是简单的 <code>:hover</code> 换色，而是由内置的
-    <code>PillTrack</code> 绘制的一块圆角带：鼠标在行间移动时它带 0.22s 缓动从上一行滑到下一行，
-    行高不同也能贴准。禁止行（DataTable 的 <code>disabled</code>）不参与，鼠标划过时 pill 停在上一个可用行。
+    <code>PillTrack</code> 绘制的一块圆角带：鼠标在行间移动时它从上一行滑到下一行，落点前固定冲出去
+    <code>bounce</code> 像素再弹回来（幅度与位移距离无关），行高不同也能贴准。禁止行（DataTable 的
+    <code>disabled</code>）不参与，鼠标划过时 pill 停在上一个可用行。
     要给自己写的列表接同一套效果，把容器元素和项选择器交给 <code>PillTrack</code> 即可，
     容器需要 <code>position: relative</code>。
   </p>
@@ -228,9 +229,11 @@
   .lh-search {
     width: 180px;
   }
-  .lh-search :global(.input-wrapper) {
-    height: 32px;
-  }
+  /* 这里曾经用 `.lh-search :global(.input-wrapper) { height: 32px }` 把搜索框压矮：
+     那是往组件内部类上打补丁，读者照抄页面源码时拿不到这条样式，看到的还是默认
+     36px —— demo 与「直接使用组件」的效果从此对不上。窗口外面只该管宽度这种布局
+     属性（.lh-search），高度交给组件默认值；真要紧凑输入框，用 style="height:32px"
+     走公开属性，别碰内部类。 */
   .lh-search--wide {
     width: 240px;
   }

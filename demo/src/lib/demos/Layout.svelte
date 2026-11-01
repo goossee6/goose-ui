@@ -10,6 +10,7 @@
     { name: "children", desc: "内容区", type: "Snippet" },
     { name: "scroll", desc: "内容卡片整页滚动；false = 框架不滚、页内滚动区自理", type: "boolean", default: "true" },
     { name: "resize", desc: "Wails 窗口支持：全域拖拽调整 + 四角手柄", type: "boolean", default: "false" },
+    { name: "framed", desc: "内容区是否画成卡片（边框 / 圆角 / 底色）；false = 裸容器，用于整窗铺背景的首页", type: "boolean", default: "true" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
@@ -171,13 +172,16 @@
       </Layout>
     </div>
 
-    <!-- container 把抽屉限制在预览框内；真实应用放在 Layout 外层即可，不用传 -->
+    <!-- container 把抽屉限制在预览框内；真实应用放在 Layout 外层即可，不用传。
+         offsetTop 让抽屉层从标题栏下面开始 —— 这本来就是公开属性，
+         不该用 :global(.drawer-root--contained) 去改内部类。 -->
     <Drawer
       bind:open={navOpen}
       title="导航"
       placement="left"
       width={260}
       container={drawerHost}
+      offsetTop="var(--titlebar-h)"
       pushBackground={false}
     >
       <div class="preview-nav">
@@ -231,10 +235,8 @@
     border-radius: var(--radius-lg);
     overflow: hidden;
   }
-  /* 抽屉只覆盖标题栏以下区域（演示里 container 是整个预览框） */
-  .layout-preview :global(.drawer-root--contained) {
-    top: var(--titlebar-h);
-  }
+  /* 抽屉的「从标题栏下面开始」由 <Drawer offsetTop> 负责（公开属性），
+     这里不再需要覆盖 .drawer-root--contained 的 top。 */
   .preview-aside {
     display: flex;
     flex-direction: column;

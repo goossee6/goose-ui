@@ -19,7 +19,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tsconfig/svelte": "^5.0.8",
-    "@wailsio/runtime": "3.0.0-beta.29",
+    "@wailsio/runtime": "3.0.0",
     "esm-env": "^1.2.2",
     "svelte": "^5.46.4",
     "svelte-check": "^4.4.8",

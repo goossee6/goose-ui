@@ -16,6 +16,7 @@
 		portal = false,
 		zIndex = -1,
 		gapBridge = 12,
+		bounce = 10,
 	}: {
 		/** 容器：测量参照 + hover 事件挂载点（通常 bind:this 的定位/滚动容器） */
 		container?: HTMLElement | null;
@@ -101,6 +102,17 @@
 		 * 传 0 关闭桥接，回到「只有指针真的压在项上才算 hover」。
 		 */
 		gapBridge?: number;
+		/**
+		 * 回弹的过冲距离（px，**固定值**）。
+		 *
+		 * 之所以要「固定」：CSS 的 `cubic-bezier` 过冲是**按位移比例**给的
+		 * （1.5 的 back-out ≈ 位移的 5%），于是滑两行只弹 2px、滑二十行弹出 20px，
+		 * 同一个组件在不同列表长度上手感完全不同。这里改成「不管多远都冲出去
+		 * `bounce` 像素再落回」，位移只影响速度，不影响弹的幅度。
+		 *
+		 * 传 0 = 不过冲（纯缓出）；`prefers-reduced-motion: reduce` 下自动按 0 处理。
+		 */
+		bounce?: number;
 	} = $props();
 
 	// 几何与可见性分离：几何持久、隐藏只翻 opacity，避免下次显示时从 0,0 飞入。
@@ -137,21 +149,41 @@
 	let selectedOn = $state(false);
 	/**
 	 * pill 位移时长（秒），固定值，选中 pill 与 hover pill 共用。
-	 * 需要不同节奏可用 --pill-dur / --pill-hover-dur 覆盖。
+	 *
+	 * 位移由 JS 关键帧播（见 slidePill），所以这个时长只由这里决定；
+	 * `--pill-hover-dur` 现在只管 hover pill 的**高度**过渡（行高不一致时那一下伸缩）。
 	 */
 	const PILL_DUR = 0.2;
-	// 从停放位恢复：当帧不播位移过渡（否则 pill 会从左上角飞过来）
+	/** 位移动画的 id：`el.getAnimations()` 里混着 opacity 的 CSS transition，靠它区分自己起的动画 */
+	const SLIDE_ID = 'pill-slide';
+	// 从停放位恢复 / 起点不可用：当帧不播位移与淡入（否则 pill 会从左上角飞过来、或淡着出现）
 	let restoring = $state(false);
 	let hoverRestoring = $state(false);
-
 	const hoverStyle = $derived(
 		`${hoverGeom} --pill-hover-dur: ${PILL_DUR}s; opacity: ${hoverOn ? 1 : 0};` +
 			(hoverRestoring ? ' transition: none;' : '')
 	);
+	/**
+	 * 选中 pill **常显**（选中就可见），hover 到它身上也不隐藏。
+	 *
+	 * 曾经的做法是「指针压到选中项上就把选中 pill 藏起来，露出 hover pill 的
+	 * activeHoverBackground」—— 这会让「激活项加深」这件事由**会移动**的那一层承担，
+	 * 于是整行底色在位移途中一路跨色：
+	 *   · 进入：hover pill 正从上一行滑过来，底色从 --hover 渐变到 --primary-hover，
+	 *     跨色到一半时压在激活行上 —— 实测该行亮度 79 → 111 → 58（先亮后暗，就是闪烁）；
+	 *   · 离开：hover pill 从 --primary-hover 渐变回 --hover，还压在激活行上时已经是
+	 *     浅灰 —— 实测亮度 58 → 194 → 79（更明显的一次闪白）。
+	 * 根因是「一个色块被要求同时对上两行」：它在这两行之间移动时，任何中间色对
+	 * 目标行都是错的，而激活行的文字是浅色，浅色底就是读不清。
+	 *
+	 * 现在改为：底色由**静止的**选中 pill 自己换（见 selectedBase 的 background），
+	 * 那是一次原地颜色过渡，亮度单调、没有中间态可言；hover pill 只负责指针位置，
+	 * 它压在激活行上的那部分被选中 pill 完全盖住（同 z-index、DOM 在后，见样式表），
+	 * 所以它跨色跨成什么样都看不见。
+	 */
 	const selectedStyle = $derived(
-		`${selectedGeom} --pill-dur: ${PILL_DUR}s; opacity: ${
-			selectedOn && !activeHovered ? (disabled ? 0.5 : 1) : 0
-		};` + (restoring ? ' transition: none;' : '')
+		`${selectedGeom} opacity: ${selectedOn ? (disabled ? 0.5 : 1) : 0};` +
+			(restoring ? ' transition: none;' : '')
 	);
 
 	// portal 的定位方式写进内联 style，而不是靠 class 切换：
@@ -229,8 +261,19 @@
 	const SELECTED_POS = $derived(
 		portal ? ` position: fixed; top: 0; left: 0; z-index: ${zIndex};` : ''
 	);
+	/**
+	 * 选中 pill 的底色：指针压在它身上时换成 activeHoverBackground（「按住」档）。
+	 *
+	 * 这一档原来写在 hover pill 上（指针一压上来就把选中 pill 藏起来）。但那层是
+	 * 跟着指针**移动**的，让它承担「激活项加深」就意味着整行底色要在位移途中跨色 ——
+	 * hover 到激活项与从激活项移开这两下都会闪（详见 selectedStyle 的注释）。
+	 * 换到这里之后，跨色发生在静止元素上，只可能「由亮到暗」或「由暗到亮」一条直线。
+	 */
+	const selectedFill = $derived(
+		activeHovered && activeHoverBackground ? activeHoverBackground : background
+	);
 	const selectedBase = $derived(
-		`background: ${background};${radiusCss}${
+		`background: ${selectedFill};${radiusCss}${
 			shadow ? ` box-shadow: ${shadow};` : ''
 		}${SELECTED_POS}`
 	);
@@ -259,31 +302,19 @@
 	}
 
 	/**
-	 * 缓存版几何：滚动容器里的「内容坐标」在滚动时不变化，只取决于布局。
-	 *
-	 * 每次指针划过都调 getBoundingClientRect 会强制同步布局（reflow），这是列表类
-	 * 组件卡顿的主因：鼠标扫过一屏行就是几十次 rect 读取。改为读 offset 系列
-	 * （不触发布局），再一次性换算出相对容器的内容坐标：
-	 *   - 项与容器在同一 offsetParent 下：l = offsetLeft - container.clientLeft
-	 *   - 不同 offsetParent 下：用 offsetParent 的 rect 差把链推到容器
-	 * 缓存按项 + 容器 / 变体 / insetX 校验，布局变化时由 ResizeObserver 与滚动/尺寸
-	 * 事件作废。rect 版 measureBox 保留给需要「当下真实位置」的选中 pill 测量。
-	 */
-	let geomCache = new WeakMap<HTMLElement, Box>();
-	let geomKey = '';
-	/**
 	 * 项 → 实时矩形（容器内容坐标）的快照，只给「间隙归属」用（见 itemNear）。
 	 *
-	 * 与 geomCache 的分工：geomCache 存的是 pill 的落点几何（按 variant / insetX 变形、
+	 * 与 itemBox 的分工：itemBox 算的是 pill 的落点几何（按 variant / insetX 变形、
 	 * line 变体还会把 t/h 归零），拿来算距离会把下划线变体的纵向位置全算错；
 	 * 这里存未经变形的矩形，距离才和指针位置同一坐标系。
-	 * 生命周期一致：同一套失效信号（布局变化 / 滚动 / 变体切换）一起清掉。
 	 */
 	let itemRects: { el: HTMLElement; l: number; t: number; w: number; h: number }[] | null = null;
+	/** 建快照那一刻的容器内容尺寸，用作一次廉价的失效校验（见 itemsSnapshot） */
+	let itemRectsSize = '';
 
 	function invalidateGeom() {
-		geomCache = new WeakMap();
 		itemRects = null;
+		itemRectsSize = '';
 	}
 
 	/** 元素与其 offsetParent 链上，相对容器 padding edge 的偏移（不读 rect 之外的信息） */
@@ -304,37 +335,42 @@
 		return { x, y };
 	}
 
-	function cachedBox(el: HTMLElement): Box | null {
+	/**
+	 * 某项的落点几何（容器内容坐标）。
+	 *
+	 * 每次 hover 都现算，不做「元素 → 位置」的缓存。缓存要正确，就必须能察觉
+	 * **任何**让项移动的事件，而这类事件里至少有一种完全不给信号：
+	 * 分组折叠只是把 `grid-template-rows` 从 1fr 过渡到 0fr —— 节点没增删（MutationObserver
+	 * 不响）、容器尺寸没变（ResizeObserver 不响）、也没有滚动。留一份旧坐标的后果很具体：
+	 * 收起一个分组后再 hover 同一项，pill 落在上一个布局的位置上（实测偏 264px），
+	 * 而且这种偏差只在「hover 过的项」上出现，看起来像随机错位。
+	 *
+	 * 现算并不贵：offset 系列是纯读取，路径上只有三四个节点，且不要求计算完整 rect
+	 * （当初要避开的正是「每次指针移动都对一屏几十行各读一次 getBoundingClientRect」，
+	 * 那个代价在 itemsSnapshot 里，仍然保留快照）。
+	 */
+	function itemBox(el: HTMLElement): Box | null {
 		if (!container) return null;
-		// key 里的 portal 维度只与「选中 pill」有关；hover 永远在宿主内部用内容坐标。
-		const key = `${variant}|${insetX ?? ''}`;
-		if (key !== geomKey) {
-			geomKey = key;
-			invalidateGeom();
+		// 内容坐标：几何与滚动无关。选中 pill 走另一条路径 measureSelected()，它自己量实时 rect。
+		const off = offsetPath(el);
+		// offsetParent 链走不到容器（transform / 绝对定位链 / sticky 吸附态）→ 用 rect 兜底，
+		// 保证「当下真实位置」不会因为拿不到 offset 基准而算错
+		if (!off) return measureBox(el);
+		// 不再扣 clientLeft / clientTop：offsetLeft 本身就是相对 offsetParent 的 **padding edge**
+		// 量的（实测容器 padding:4px + border:1px 时，tab.offsetLeft === 4），而绝对定位的
+		// 包含块也正是 padding box —— 两者同一基准，再减一次边框就是重复扣减。
+		// 症状很具体：容器只要有 1px 边框，hover pill 就固定比该项左/上各差 1px，
+		// 而选中 pill 走 measureBox（rect 基准，减 clientLeft 是对的）不差 —— 于是同一个 tab
+		// 上「hover 块」和「选中块」错开 1px，换 tab 时看着像块先歪一下再对齐。
+		// 注意 itemsSnapshot / itemNear / measureBox 仍要减：它们以 getBoundingClientRect
+		// （border box 基准）为起点，减 clientLeft 才是 padding 坐标，不要一起改掉。
+		const l = off.x;
+		const t = off.y;
+		if (variant === 'line') return { l, t: 0, w: el.offsetWidth, h: 0 };
+		if (insetX !== undefined) {
+			return { l: insetX, t, w: Math.max(container.clientWidth - insetX * 2, 0), h: el.offsetHeight };
 		}
-		const hit = geomCache.get(el);
-		if (hit) return hit;
-
-		let box: Box | null = null;
-		{
-			// 内容坐标：几何与滚动无关，可缓存（offset 系列不触发布局）。
-			// 选中 pill 用的是另一条路径 measureSelected()，它自己量实时 rect。
-			const off = offsetPath(el);
-			if (off) {
-				// 扣容器边框：offsetLeft 相对 padding box，pill 也定位在 padding edge
-				const l = off.x - container.clientLeft;
-				const t = off.y - container.clientTop;
-				if (variant === 'line') box = { l, t: 0, w: el.offsetWidth, h: 0 };
-				else if (insetX !== undefined) {
-					box = { l: insetX, t, w: Math.max(container.clientWidth - insetX * 2, 0), h: el.offsetHeight };
-				} else box = { l, t, w: el.offsetWidth, h: el.offsetHeight };
-			} else {
-				// 布局不是常规文档流（transform / 绝对定位链）时退回 rect 测量，保证正确性
-				box = measureBox(el);
-			}
-			if (box) geomCache.set(el, box);
-			return box;
-		}
+		return { l, t, w: el.offsetWidth, h: el.offsetHeight };
 	}
 
 	/**
@@ -354,17 +390,169 @@
 	}
 
 	/**
+	 * 两个 pill 各自的「上一次落点」。
+	 *
+	 * 位移改成 JS 关键帧后，起点必须显式给出（CSS 过渡那套是浏览器自己从
+	 * 「当前计算值」接上去的，遇到首帧 / 停放位 / 元素被裁掉时就无从判断，
+	 * 于是从 translate(0,0) 起步 —— 视觉上就是「pill 从页面顶部飞过来」）。
+	 * `null` = 没有可用的起点（首次挂载、从停放位恢复、被滚出可视区），
+	 * 此时直接落位、不播位移。
+	 */
+	let selBox: Box | null = null;
+	let hovBox: Box | null = null;
+	/**
+	 * 每个 pill 上一段位移动画的**目标**（`translate(x, y)` 形式的落点串）。
+	 *
+	 * 只用来做一件事：落点没变就不重播（见 slidePill 里的说明）。
+	 * 用 WeakMap 而非 `$state`：它是纯运行时记录，不参与渲染。
+	 */
+	const slideGoal = new WeakMap<HTMLElement, string>();
+
+	/** 减少动效：位移照样跟随，但不过冲。 */
+	const reduceMotion = () =>
+		typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	/**
+	 * 落点是否落在容器的**可视区**里（内容坐标）。
+	 *
+	 * 用途只有一个：判断「pill 现在待的地方用户看得见吗」。
+	 * 看不见就不能从那里起步 —— 把侧栏滚到 `scrollTop = 1700` 再点上面的项，
+	 * 上一个选中项已经跑到视口上方，transition 却照旧从那儿播，
+	 * 于是选中 pill 从页面顶部一路滑进来（实测起点 -1338px，看着像凭空多出一个 pill）。
+	 *
+	 * line 变体只有横向位移，纵向不参与判断。
+	 */
+	function boxInView(b: Box | null): boolean {
+		const c = container;
+		if (!b || !c) return false;
+		if (variant === 'line') return b.l + b.w > c.scrollLeft && b.l < c.scrollLeft + c.clientWidth;
+		return b.t + b.h > c.scrollTop && b.t < c.scrollTop + c.clientHeight;
+	}
+
+	/**
+	 * 把 pill 从 `from` 滑到 `to`：**固定过冲**的回弹。
+	 *
+	 * 三段关键帧，过冲点固定 `bounce` 像素（不是 `cubic-bezier` 那种按位移比例的
+	 * 相对过冲），所以滑一行和滑二十行的弹幅一致，只有速度不同：
+	 *
+	 *   0%   起点
+	 *   60%  过冲点（沿位移方向再出去 bounce 像素）
+	 *   100% 落点
+	 *
+	 * 为什么不用 CSS transition：缓动函数只能改写「进度」，无法改写「幅度」——
+	 * 想要固定像素的过冲，就必须自己给出关键帧。
+	 *
+	 * 位移写入内联 style 的是**落点**，动画只是覆盖在上面（`fill: none`）：
+	 * 播放结束自动露出内联落点，不会有一帧回跳。
+	 */
+	function slidePill(el: HTMLElement | null, from: Box | null, to: Box, durMs: number) {
+		if (!el || !from) return;
+		const line = variant === 'line';
+		let dy0 = line ? 0 : from.t;
+		let x0 = from.l;
+		const dy1 = line ? 0 : to.t;
+		// 上一段位移还没播完（指针快速地扫过好几行）：从**当下看得见的位置**接着走，
+		// 而不是从上一段的落点重新起步 —— 否则每个格子都往回跳一下。
+		// 只认自己起的动画（id）：getAnimations() 里还会有 opacity 的 CSS transition，
+		// 把它 cancel 掉就成了「显隐瞬切」。也只在真有动画在跑时才读计算值。
+		const running = el.getAnimations().filter((a) => a.id === SLIDE_ID);
+		if (running.length) {
+			const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+			x0 = m.m41;
+			dy0 = line ? 0 : m.m42;
+		}
+		const dx = to.l - x0;
+		const dy = dy1 - dy0;
+		const dist = Math.hypot(dx, dy);
+		// 位移小到看不出来（重测同一项 / 亚像素抖动）：什么都不做 —— 尤其别 cancel 掉
+		// 正在跑的那一段，否则重排补测一来，半路的动画就被掐断、pill 瞬移到落点
+		if (dist < 0.5) return;
+		const goal = `translate(${to.l}px, ${dy1}px)`;
+		// 已经在往**同一个落点**滑：不要再起一段。
+		//
+		// 重排补测（resync）会拿同一个落点再调一次，此时 pill 正处于过冲点、
+		// 离落点还有几个像素 —— 距离判定放行，于是从半路重新起步、又过冲一次。
+		// 用户看到的就是「滑到位之后莫名又弹一下」（实测第一次落定后 300ms 处
+		// 还多出一段 303.5 → 298 的动画）。目标没变就没有重新起步的理由。
+		if (running.length && slideGoal.get(el) === goal) return;
+		slideGoal.set(el, goal);
+		running.forEach((a) => a.cancel());
+		const start = `translate(${x0}px, ${dy0}px)`;
+		if (reduceMotion() || bounce <= 0) {
+			// 不过冲也仍然要「动过去」：一趟缓出位移，避免瞬移感
+			const a = el.animate([{ transform: start }, { transform: goal }], {
+				duration: durMs,
+				easing: 'ease-out',
+				fill: 'none',
+			});
+			a.id = SLIDE_ID;
+			return;
+		}
+		// 过冲不许把 pill 顶出目标项之外（否则 pill 会明显「弹到别的行上」）。
+		//
+		// 原来只按 `dist * 0.5` 收敛，可这个条件在最常见的「滑一行」上永远不成立：
+		// 行高 36 + 间距 2 → dist 38，dist/2 = 19 > bounce 10，于是每一行都会先冲进
+		// 下一行 10px（≈行高的 28%）再退回来。实测侧栏轨迹：146 → 184(落点) → 194(峰值)
+		// → 184，落定前有 6 帧、约 100ms 是错位的 —— 肉眼看就是「块没对准这一行」。
+		// 上限改成**目标项在移动主轴上的尺寸**：36px 的行 → 4.3px，116px 的 tab → 仍取到
+		// bounce 的 10px（约 8%），过冲该有的「弹」还在，但不会跨出该项。
+		const span = Math.abs(dy) >= Math.abs(dx) ? to.h : to.w;
+		const ov = Math.min(bounce, dist * 0.5, span * 0.12);
+		const peak = `translate(${to.l + (dx / dist) * ov}px, ${dy1 + (dy / dist) * ov}px)`;
+		const anim = el.animate(
+			[
+				// 加速后收住，冲过落点
+				{ offset: 0, transform: start, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)' },
+				// 回落到落点
+				{ offset: 0.6, transform: peak, easing: 'cubic-bezier(0.33, 0, 0.4, 1)' },
+				{ offset: 1, transform: goal },
+			],
+			{ duration: durMs, fill: 'none' }
+		);
+		anim.id = SLIDE_ID;
+	}
+
+	/**
+	 * 项是不是被祖先「裁没了」。
+	 *
+	 * 折叠面板收起走的是 `grid-template-rows: 1fr → 0fr` + 内层 `overflow: hidden`：
+	 * 裁剪盒高度归零，但里面的行**仍按原高度留在布局里**，`getBoundingClientRect()`
+	 * 报的还是 36px。它们既看不见也点不到（`elementFromPoint` 命中不到），
+	 * 却会混进间隙快照，把指针停在缝隙时的「就近归属」抢走 —— pill 于是落到
+	 * 缝里某个看不见的行上，看着就是位置算错（侧栏收起分组后扫过分组间距最常见）。
+	 *
+	 * 判据用「祖先盒的 clientHeight / clientWidth 归零」：这种裁切必然是裁剪盒自身
+	 * 收缩到 0，比逐层读 `getComputedStyle(overflow)` 便宜，也不会误伤滚动容器
+	 * （它 clientHeight > 0）。`display: contents` 这类没有盒子的祖先要跳过，
+	 * 否则它的 clientHeight 也是 0，会把可见项一起误判掉。
+	 */
+	function clippedAway(el: HTMLElement, host: HTMLElement): boolean {
+		let node = el.parentElement;
+		while (node && node !== host) {
+			if (node.getClientRects().length > 0 && (node.clientHeight <= 0 || node.clientWidth <= 0)) return true;
+			node = node.parentElement;
+		}
+		return false;
+	}
+
+	/**
 	 * 全部项的矩形快照（容器内容坐标）。
 	 *
 	 * 只在指针真的落进「非项」区域时才建一次，之后复用，直到布局变化 / 滚动 /
 	 * 变体切换把它作废（见 invalidateGeom）。量的是**未经 pill 变形的原始矩形**：
-	 * cachedBox 会按 variant 把 line 的 t/h 归零、按 insetX 改宽度，拿它算距离
+	 * itemBox 会按 variant 把 line 的 t/h 归零、按 insetX 改宽度，拿它算距离
 	 * 会把下划线变体的纵向偏差全部算进去。
 	 */
 	function itemsSnapshot(): { el: HTMLElement; l: number; t: number; w: number; h: number }[] {
-		if (itemRects) return itemRects;
 		const c = container;
 		if (!c || !itemSelector) return (itemRects = []);
+		if (itemRects) {
+			// 廉价自检：DOM 没变、容器尺寸没变、也没滚动，但内容高度变了
+			// （分组折叠把 grid-template-rows 从 1fr 缩到 0fr 就是这种），
+			// 上面那些失效信号一个都不会响。一次 scrollHeight 读取足够挡住这类隐性重排。
+			if (`${c.scrollHeight}x${c.scrollWidth}` === itemRectsSize) return itemRects;
+			itemRects = null;
+		}
 		const cr = c.getBoundingClientRect();
 		const cl = c.clientLeft;
 		const ct = c.clientTop;
@@ -372,13 +560,15 @@
 		const st = c.scrollTop;
 		// 内容坐标与滚动无关，所以这里不必按可视区裁剪 —— 裁剪放到 itemNear 里按**当下**的
 		// 滚动位置做（容器自身滚动不冒泡，收不到 scroll 事件，缓存里存不下"当时谁可见"）。
-		// 仍然跳过零尺寸的项：display:none、折叠面板收起的子项都是 0×0，
-		// 它们会在内容起点留下一堆坐标，指针扫过列表边缘时可能"就近"到看不见的项上。
-		itemRects = [];
+		// 仍然跳过两类看不见的项：
+		//   · 自身零尺寸（display:none）—— 会在内容起点留下一堆坐标；
+		//   · 被折叠祖先裁没（见 clippedAway）—— 有尺寸、有坐标，但一个像素都露不出来。
+		const next: { el: HTMLElement; l: number; t: number; w: number; h: number }[] = [];
 		for (const el of c.querySelectorAll<HTMLElement>(itemSelector)) {
+			if (clippedAway(el, c)) continue;
 			const r = el.getBoundingClientRect();
 			if (r.width <= 0 || r.height <= 0) continue;
-			itemRects.push({
+			next.push({
 				el,
 				l: r.left - cr.left + sl - cl,
 				t: r.top - cr.top + st - ct,
@@ -386,7 +576,8 @@
 				h: r.height,
 			});
 		}
-		return itemRects;
+		itemRectsSize = `${c.scrollHeight}x${c.scrollWidth}`;
+		return (itemRects = next);
 	}
 
 	/**
@@ -444,7 +635,11 @@
 		clearTimeout(parkTimer);
 		parkTimer = setTimeout(() => {
 			parkTimer = undefined;
-			if (!selectedOn) selectedGeom = PARKED;
+			if (!selectedOn) {
+				selectedGeom = PARKED;
+				// 停放 = 没有可信起点：下次出现必须瞬时落位，不能从 (0,0) 起步
+				selBox = null;
+			}
 		}, 160);
 	}
 
@@ -452,7 +647,10 @@
 		clearTimeout(hoverParkTimer);
 		hoverParkTimer = setTimeout(() => {
 			hoverParkTimer = undefined;
-			if (!hoverOn) hoverGeom = PARKED;
+			if (!hoverOn) {
+				hoverGeom = PARKED;
+				hovBox = null;
+			}
 		}, 160);
 	}
 
@@ -548,10 +746,42 @@
 			setSelected(false);
 			return;
 		}
-		const wasParked = !selectedOn && selectedGeom === PARKED;
-		selectedGeom = boxStyle(box);
-		// 停放恢复：先禁用过渡落地，下一帧恢复常规过渡
-		if (wasParked) {
+		const prev = selBox;
+		const prevGeom = selectedGeom;
+		// 停放恢复 / 首次落位：几何还是空串或停放值，起点无从判断
+		const wasParked = !selectedOn && (prevGeom === PARKED || prevGeom === '');
+		const next = boxStyle(box);
+		// 落点真的变了才算「在滑动」（同一项重测、宽度 resize 也都走这里，不必开保护窗）
+		const sliding = selectedOn && next !== prevGeom;
+		selectedGeom = next;
+		selBox = box;
+		// 只有「本来就在可视区里」才播位移：起点在视口外（列表被滚远了）时，
+		// 从那儿滑过来就是「凭空多出一个 pill 从页面顶部飞入」，直接落位更干净
+		if (sliding && boxInView(prev)) {
+			if (following) {
+				// 布局过渡中（见 trackLayout）：位置是被布局推着走的，直接贴合。
+				// 这里若照常播 slidePill，每帧都会从「当下位置」重新起一段 200ms 缓动，
+				// 追不上连续位移，视觉上就是拖在后面越拖越远。
+			} else if (activeHovered && hoverOn && hoverNode) {
+				// 指针正压在新激活项上（点击切换的常态）：这段位移交给 **hover pill** 播。
+				//
+				// 此时 hover pill 早已停在目标项上，若仍让选中 pill 从旧项滑过来，
+				// 目标行上会同时出现两层（浅色 hover 块 + 滑来的选中块），观感就是
+				// 「激活项的动画和 hover 不是同一个」。改由 hover pill 从旧激活项起步，
+				// 点击切换与普通 hover 就走完全相同的节点、关键帧、行高过渡与起点判定。
+				//
+				// 选中 pill 不滑，直接落在目标位当**底盘**：新激活项的文字这一帧就转成
+				// 前景色（白字），底下没有块就是白字压白底。它现在常显（见 selectedStyle），
+				// 所以底盘这一层不用再靠 holdSelected 撑一个窗口 —— hover pill 滑到位后
+				// 压在底盘上，两者同色（都是 activeHoverBackground），本来就看不出来。
+				slidePill(hoverNode, prev, box, PILL_DUR * 1000);
+				restoring = true;
+				requestAnimationFrame(() => (restoring = false));
+			} else {
+				slidePill(selNode, prev, box, PILL_DUR * 1000);
+			}
+		} else if (sliding || wasParked) {
+			// 瞬时落位，且别淡入：pill 该「出现在该在的地方」，不该「从别处飞过来」
 			restoring = true;
 			requestAnimationFrame(() => (restoring = false));
 		}
@@ -586,6 +816,49 @@
 		timer = setTimeout(measureSelected, 340);
 	}
 
+	/**
+	 * 布局正在**连续**变形的时段（分组的 `1fr ⇄ 0fr`、侧栏宽度过渡）。
+	 *
+	 * 这期间不能只靠 `transitionend` 补测：那是收尾才有的一次跳跃，
+	 * 而目标项整段过渡里一直在移动 —— 选中 pill 会先钉在原地，等动画结束再
+	 * 「啪」地对过去（实测展开分组时 item 从 288 走到 362，pill 全程停在 288）。
+	 * 反过来也不能靠 slidePill：它的时长是 200ms 的缓出，追不上每帧 3~5px 的
+	 * 连续位移，表现是一路拖着走、越拖越远。
+	 *
+	 * 正确做法是「逐帧贴合」：过渡期间每帧重测一次，并且**跳过位移动画** ——
+	 * pill 不是自己滑过去的，是被布局推着走的（见 measureSelected 的 following 分支）。
+	 */
+	let following = false;
+	let followRaf = 0;
+	let followUntil = 0;
+	/** 过渡事件不保证成对（被打断时没有 transitionend），给一个定长兜底 */
+	const FOLLOW_MS = 600;
+
+	function trackLayout() {
+		followUntil = performance.now() + FOLLOW_MS;
+		if (following) return;
+		following = true;
+		// 起始那一帧可能还有一段 slidePill 在播：`fill: none` 的动画播放期间**压过**内联
+		// transform，逐帧跟随要的是「内联写到哪就显示到哪」，否则整段跟随都被那 200ms
+		// 的缓动拖在后面（实测展开侧栏时 pill 左缘一直比行多 3px，正是过冲点残留）。
+		selNode?.getAnimations().filter((a) => a.id === SLIDE_ID).forEach((a) => a.cancel());
+		const step = () => {
+			measureSelected();
+			if (!following) return;
+			if (performance.now() > followUntil) {
+				following = false;
+				return;
+			}
+			followRaf = requestAnimationFrame(step);
+		};
+		followRaf = requestAnimationFrame(step);
+	}
+
+	function stopTrack() {
+		following = false;
+		cancelAnimationFrame(followRaf);
+	}
+
 	// 选中项变化（class/子节点增删）→ rAF 合帧重测；props 变化 → 同步重测
 	$effect(() => {
 		measureSelected();
@@ -595,13 +868,74 @@
 	// MutationObserver 即使没回调，浏览器也要在每次 DOM 变更后维护一遍观察记录。
 	// DataTable/DataList 这类只有 hover 的用法（showSelected=false 或无 activeSelector）
 	// 根本不需要它 —— 一页几十个实例各挂一个 subtree 观察器是纯开销。
+	//
+	// 三路信号缺一不可，各自兜的失效场景不同：
+	// · MutationObserver：项被增删、选中项换了 class（点选 / 外部改 value）。
+	// · ResizeObserver：**容器自身的尺寸在动画中渐变**。侧栏折叠态 → 展开态是
+	//   `width: 56px ⇄ 220px` 的 0.3s 过渡，期间 DOM 一个节点没动，MutationObserver
+	//   全程沉默；不跟这一路，pill 就停在展开动画第一帧量到的宽度上 —— 实测展开后
+	//   pill 宽 30px 而激活行已经 178px，且此后永不回正（直到再 hover 或点一次）。
+	// · transitionend：纯 CSS 过渡把项整体挪走（分组 `grid-template-rows: 1fr ⇄ 0fr`），
+	//   DOM 与容器尺寸都不变，只有收尾这一下能听见。
 	$effect(() => {
 		const c = container;
 		if (!c || !showSelected || !activeSelector) return;
 		const mo = new MutationObserver(scheduleMeasure);
 		mo.observe(c, { subtree: true, childList: true, attributeFilter: ['class'] });
+		// 只有尺寸**真的变了**才跟随：observe() 会立刻回一次初始尺寸，
+		// 不滤掉它等于每次挂载都白跑 600ms 的逐帧测量（这期间选中 pill 还不播位移）
+		let lastSize = `${c.clientWidth}x${c.clientHeight}`;
+		const ro = new ResizeObserver(() => {
+			const s = `${c.clientWidth}x${c.clientHeight}`;
+			if (s === lastSize) return;
+			lastSize = s;
+			trackLayout();
+		});
+		ro.observe(c);
+		// 收尾补测：与 hover 侧同一策略（跳过 pill 自己的过渡，否则每次淡出都白跑一遍）
+		const onEnd = (e: TransitionEvent) => {
+			if ((e.target as HTMLElement | null)?.classList?.contains('pill-track')) return;
+			scheduleMeasure();
+			// 一个分组里可能同时有好几条布局过渡（各行的 grid 展开），
+			// 全部收尾才停逐帧跟随 —— 少这一条，剩下的过渡段就成了「钉住 + 末了跳一下」
+			if (!anyLayoutTransition()) stopTrack();
+		};
+		c.addEventListener('transitionend', onEnd);
+		// 过渡**开始**就把 pill 挂上「逐帧跟随」：布局在 0.25s 里连续推开项，
+		// 等 transitionend 才挪就是收尾时的一次跳跃（见 trackLayout）。
+		//
+		// 只认**影响布局**的属性：列表里几乎每行都有 `transition: color 0.15s`，
+		// 指针一划过就有一串 transitionrun 冒泡上来，照单全收等于每次移动都开一轮
+		// 逐帧测量 —— 而且 following 期间选中 pill 不播位移动画，键盘切换会变成瞬移。
+		const LAYOUT_PROP =
+			/^(?:width|height|inline-size|block-size|min-|max-|grid-|padding|margin|inset|top|left|right|bottom|flex-basis|font-size|line-height|gap|row-gap|column-gap|border-(?!radius))/;
+		/** 容器内还有没有影响布局的过渡在跑（过渡收尾时问一次，不逐帧问） */
+		function anyLayoutTransition(): boolean {
+			const c = container;
+			if (!c || typeof c.getAnimations !== 'function') return false;
+			return c.getAnimations({ subtree: true }).some((a) => {
+				if (!(a instanceof CSSTransition) || a.playState !== 'running') return false;
+				const t = (a.effect as KeyframeEffect | null)?.target ?? null;
+				if (t?.classList?.contains('pill-track')) return false;
+				return LAYOUT_PROP.test(a.transitionProperty);
+			});
+		}
+		const onStart = (e: TransitionEvent) => {
+			if ((e.target as HTMLElement | null)?.classList?.contains('pill-track')) return;
+			if (!LAYOUT_PROP.test(e.propertyName)) return;
+			trackLayout();
+		};
+		c.addEventListener('transitionrun', onStart);
+		// effect 重建的那一帧 DOM 已经变过了（activeSelector 正是随折叠/展开翻转的），
+		// 新建的观察者看不到那次 mutation —— 不主动补这一次，展开侧栏后 pill 会一直
+		// 停在旧几何上，直到用户碰巧 hover 一下导航。
+		scheduleMeasure();
 		return () => {
 			mo.disconnect();
+			ro.disconnect();
+			c.removeEventListener('transitionend', onEnd);
+			c.removeEventListener('transitionrun', onStart);
+			stopTrack();
 			cancelAnimationFrame(raf);
 			clearTimeout(timer);
 		};
@@ -665,7 +999,6 @@
 		 *
 		 * 排序 / 筛选会整排搬动行节点：光标底下可能已经换了一行，
 		 * 此时正确行为是 pill 跟着滑过去，而不是停在旧坐标上（看起来像串行）。
-		 * 缓存在 onLayoutChange 里已作废，这里读到的是重排后的真实位置。
 		 */
 		function resync() {
 			if (!hoverOn) return;
@@ -684,9 +1017,13 @@
 			}
 			settleTries = 0;
 			hoveredEl = item;
-			const box = cachedBox(item);
+			const box = itemBox(item);
 			if (box) {
+				// 起点同样要在可视区内：列表被滚远之后指针还停在原处，缓存的落点在视口外，
+				// 从那儿滑过来就是「pill 从顶上飞进来」
+				if (boxInView(hovBox)) slidePill(hoverNode, hovBox, box, PILL_DUR * 1000);
 				hoverGeom = boxStyle(box);
+				hovBox = box;
 			}
 			applyHoverBg(item);
 			refreshActiveHover();
@@ -694,12 +1031,12 @@
 		}
 
 		/**
-		 * 布局失效：作废几何缓存；指针还停在列表上时补一次重新命中。
+		 * 布局失效：作废间隙快照；指针还停在列表上时补一次重新命中。
 		 *
-		 * 为什么非要 MutationObserver：几何缓存按「元素 → 位置」记账，而排序、
-		 * 筛选只是把**已有节点**搬了个位置 —— 容器尺寸一点没变，ResizeObserver
-		 * 不会触发；也没有滚动。少这一路信号，缓存里留着的就是重排前的
-		 * offsetTop，下次 hover 时 pill 会落到别的行上（hover A、pill 在 B）。
+		 * 为什么非要 MutationObserver：排序、筛选只是把**已有节点**搬了个位置 ——
+		 * 容器尺寸一点没变，ResizeObserver 不会触发，也没有滚动。浏览器也不会因为
+		 * 重排补发 pointerover，少这一路信号，pill 就停在旧行的坐标上，
+		 * 直到用户真的动一下鼠标（hover A、pill 在 B）。
 		 */
 		function onLayoutChange() {
 			invalidateGeom();
@@ -707,6 +1044,21 @@
 			cancelAnimationFrame(resyncRaf);
 			settleTries = 0;
 			resyncRaf = requestAnimationFrame(resync);
+		}
+
+		/**
+		 * 纯 CSS 过渡收尾也算一次布局变化。
+		 *
+		 * 分组折叠/展开走的是 `grid-template-rows: 1fr ⇄ 0fr`：节点一个没增删、
+		 * 容器尺寸也没变，MutationObserver 与 ResizeObserver 全程沉默。
+		 * 但行确实整体上移/下移了，指针底下换了一行 —— 不补这一次重新命中，
+		 * pill 会留在折叠前的位置上，视觉上就是「pill 没跟着分组走」。
+		 * pill 自己的位移/淡出也会冒泡到这里，跳过它们，否则每次滑动都白跑一遍重算。
+		 */
+		function onTransitionEnd(e: TransitionEvent) {
+			const el = e.target as HTMLElement | null;
+			if (el?.classList?.contains('pill-track')) return;
+			onLayoutChange();
 		}
 
 		function ensureObservers() {
@@ -744,13 +1096,22 @@
 				setHover(false);
 				return;
 			}
-			// 停放恢复：当帧不播位移/高度过渡，避免从左上角飞过来、或从 0 高度展开。
-			// 首次 hover 时 hoverGeom 还是空串（等价于落在 0,0,0,0），一并按停放处理。
-			const wasParked = !hoverOn && (!hoverGeom || hoverGeom === PARKED);
-			const box = cachedBox(item);
+			// 起点可用性：首次 hover（几何为空）、从停放位恢复（几何在 0,0）、
+			// 或者上一处落点已经被滚出可视区 —— 这三种都不能当位移起点，
+			// 否则 pill 会从左上角 / 页面顶部飞过来。此时直接落位。
+			const prevBox = hovBox;
+			const jump = !hoverOn || !prevBox || !boxInView(prevBox);
+			const box = itemBox(item);
 			if (box) {
 				hoverGeom = boxStyle(box);
-				// 缓存已落地，此后布局变化（含排序这种「只搬家不变尺寸」的）必须让它失效
+				hovBox = box;
+				if (jump) {
+					hoverRestoring = true;
+					requestAnimationFrame(() => (hoverRestoring = false));
+				} else {
+					slidePill(hoverNode, prevBox, box, PILL_DUR * 1000);
+				}
+				// 定位一次之后再挂观察器：指针真的停进列表里，重排才可能影响到 pill
 				ensureObservers();
 			}
 			applyHoverBg(item);
@@ -758,10 +1119,6 @@
 			// 已经停在这一列上、指针换了项时 setHover(true) 是空操作，
 			// 标记得在这里跟着换过去，否则白字还留在上一行
 			syncMark();
-			if (wasParked) {
-				hoverRestoring = true;
-				requestAnimationFrame(() => (hoverRestoring = false));
-			}
 			setHover(true);
 		};
 		const onLeave = () => {
@@ -770,6 +1127,7 @@
 			setHover(false);
 			hoverBg = '';
 			hoverKind = 'hover';
+			hovBox = null;
 			refreshActiveHover();
 		};
 		// hover pill 用「内容坐标」定位，滚动不影响它，滚动时作废缓存即可，
@@ -781,10 +1139,13 @@
 		root.addEventListener('pointerleave', onLeave);
 		// 滚动：pill 用内容坐标，滚动不改变它的落点，作废缓存供下次划过重算即可
 		root.addEventListener('scroll', onScroll, { passive: true });
+		// 纯 CSS 过渡（分组折叠那种）不会触发任何 DOM / 尺寸信号，只能靠过渡收尾补测
+		root.addEventListener('transitionend', onTransitionEnd);
 		return () => {
 			root.removeEventListener('pointerover', onOver);
 			root.removeEventListener('pointerleave', onLeave);
 			root.removeEventListener('scroll', onScroll);
+			root.removeEventListener('transitionend', onTransitionEnd);
 			ro?.disconnect();
 			mo?.disconnect();
 			cancelAnimationFrame(resyncRaf);
@@ -793,6 +1154,7 @@
 			// 不清掉的话重新订阅后第一次 matches() 会拿旧元素判出错误的颜色档位
 			hoveredEl = null;
 			activeHovered = false;
+			hovBox = null;
 			setHover(false);
 		};
 	});
@@ -801,6 +1163,8 @@
 	// 不用 use:action —— action 只在元素创建时跑一次，且它是否会在样式更新之后执行并不保证。
 	// 用 $effect.pre 显式管理：pre 阶段拿到节点时它已插入 DOM、尚未绘制，搬走不会闪一帧。
 	let selNode = $state<HTMLElement | null>(null);
+	// hover pill 的节点：位移动画要直接对元素起关键帧（见 slidePill）
+	let hoverNode = $state<HTMLElement | null>(null);
 
 	$effect.pre(() => {
 		const el = selNode;
@@ -851,6 +1215,7 @@
 		data-pill="hover"
 		aria-hidden="true"
 		style="{hoverBase} {hoverStyle}"
+		bind:this={hoverNode}
 	></div>
 {/if}
 {#if showSelected}
@@ -872,27 +1237,22 @@
 		left: 0;
 		pointer-events: none;
 		transition: opacity 0.15s;
-		/* 回弹曲线：中段 y 超过 1（back-out），位置先冲过落点再落回来 ——
-		   「回弹」就是这一段过冲。选中与 hover 共用同一条曲线、同一个固定时长
-		   （PILL_DUR），落点和冲出去的幅度是同一个手感。
+		/* 位移（transform）不在这里过渡：回弹的过冲幅度要是**固定像素**，
+		   而缓动函数只能改写「进度」、改不了「幅度」——`cubic-bezier(…, 1.5, …)`
+		   给出的过冲是位移的百分之几，滑一行弹 2px、滑二十行弹 20px。
+		   所以位移改由 JS 关键帧播（见 slidePill），这里只留尺寸 / 颜色 / 显隐。
 
-		   过冲幅度取 1.5：接近 Button 的 1.56，但 pill 是整块色块，同样的相对
-		   过冲摊到几十上百像素的宽度上会比按钮缩放显眼，略收一点。
-		   1.4 那种量在 0.19s 的短位移里几乎看不出「弹」，只是「快」。 */
-		--pill-ease: cubic-bezier(0.34, 1.5, 0.64, 1);
-		/* height 用的轻过冲版：高度不是位移，过冲会让人看到 pill 上下「撑一下」，
-		   1.12 只够抹掉硬切感，不至于把上下边缘顶出去太多。 */
+		   留下的 height 用带轻过冲的曲线：高度不是位移，过冲会让人看到 pill
+		   上下「撑一下」，1.12 只够抹掉硬切感，不至于把上下边缘顶出去太多。 */
 		--pill-ease-soft: cubic-bezier(0.34, 1.12, 0.64, 1);
 		/* 位移走 transform，不触发布局。
 		   刻意不加 will-change: transform —— 那会让每个 pill 常驻一个合成层，
 		   一页十几张表就是十几层，反而更费显存和合成时间；
-		   transform 过渡在 Chrome 里同样会被自动提升，只在动画期间存在。 */
+		   位移动画在播放期间 Chrome 会自动提升它。 */
 	}
 	/* 两种 pill 分工不同，层叠策略也不同：
-	   hover 是「行底色」，就地画在宿主容器内部，
-	   由宿主行的层叠上下文管，因此行透明、行白底都能正常显示；
-	   选中是「当前项标记」，默认压在最上面（z-index:1），任何底色都压不掉它。
-	   两者互不影响 —— hover 到已选中的项时能同时看到两层。
+	   hover 是「指针位置」，就地画在宿主容器内部，由宿主行的层叠上下文管；
+	   选中是「当前项标记 + 行底色」，压在 hover 之上（理由见 .pill-track--in-box）。
 	   唯一例外是左栏导航那种实心填充：传 zIndex={-1} 让它沉到文字下面当底色。 */
 	.pill-track--hover {
 		/* 不下沉到 z-index:-1：那要求页面所有祖先背景都透明、且有本地层叠上下文兜底，
@@ -919,34 +1279,40 @@
 	   · DataList 的 .list-row 同样是 transparent + position:relative；
 	   · Tabs / ToggleGroup / Sidebar 的行本身不写背景。
 	   只要行背景是透明的，pill 就画在容器底色之上、行内容之下，两种主题都是主题色。
-	   hover 本来就是这个策略（见上面的 .pill-track--hover），这里让选中 pill 与之统一。 */
+
+	   这里两个 pill 拿到同一档 z-index，而模板里选中 pill **渲染在 hover 之后** ——
+	   同档位按 DOM 顺序绘制，所以选中 pill 一定压在 hover pill 上面。
+	   这条不是巧合，是「激活项加深」能做得干净的前提：hover pill 滑到激活项上时，
+	   它那一段（以及它在途中跨成的任何中间色）都被选中 pill 整块盖住，
+	   于是「底色」永远由静止的那一层决定（见 selectedStyle 的注释）。 */
 	.pill-track--in-box {
 		z-index: 0;
 	}
 	/* hover 的定位用内容坐标（见 parkPos），没有内联的 position:fixed。 */
-	/* hover：与选中 pill 同一条曲线、同一个固定时长（PILL_DUR），只是写进不同的变量。
-	   位移过渡的是 transform 而不是 left/top —— 前者走合成器，不触发重排。
+	/* hover：位移由 slidePill 播（含固定过冲），这里只剩尺寸 / 颜色 / 显隐。
 
-	   width 仍然瞬时对齐：它是布局属性，和 transform 放在同一条 transition 里会让
+	   width 仍然瞬时对齐：它是布局属性，和位移动画放在同一帧里会让
 	   Chrome 无法把 pill 提升为独立合成层，于是每帧都要重新走
 	   Paint → Layerize → Commit（实测单帧 Layerize 可达 32~37ms，主线程满载）。
 
 	   但 height 必须过渡：列表项高度并不总是一致（多行文本、缩略图、行内标签等），
 	   瞬时切换会让 pill 在两项之间「弹」一下。高度只作用在这个绝对定位的 pill 上，
-	   不会引起兄弟节点重排，代价可控，所以单独给 height 同一条缓动。 */
+	   不会引起兄弟节点重排，代价可控，所以单独给 height 一条缓动。 */
 	.pill-track--hover {
 		transition:
-			transform var(--pill-hover-dur, 0.2s) var(--pill-ease),
 			height var(--pill-hover-dur, 0.2s) var(--pill-ease-soft),
 			background-color 0.15s,
 			opacity 0.15s;
 	}
-	/* 选中：位移 back-out 过冲回弹 + 固定时长（PILL_DUR）。
-	   尺寸不参与过渡：选中标记切换频率低，且 width 还会随列宽变化（理由见上）。 */
+	/* 选中：位移同样由 slidePill 播。
+	   尺寸不参与过渡：选中标记切换频率低，且 width 还会随列宽变化（理由见上）。
+	   background-color 必须过渡：指针压到激活项上时它换成 activeHoverBackground
+	   （「按住」档），那是选中 pill 唯一的颜色变化，且必须是原地渐变 —— 换到会移动的
+	   hover pill 上去做，就会在位移途中跨色，整行先变亮再变暗（见 selectedStyle）。 */
 	.pill-track--sel {
 		transition:
-			transform var(--pill-dur, 0.2s) var(--pill-ease),
-			opacity 0.15s;
+			opacity 0.15s,
+			background-color 0.15s;
 	}
 	.pill-track--line {
 		top: auto;
@@ -954,31 +1320,19 @@
 		height: 2px;
 		border-radius: 1px;
 	}
-	/* 下划线变体只有横向位移：同样带回弹，否则同一套 Tabs 在两种模式下
-	   一个会弹一个不会，正是这次要修的不一致。 */
+	/* 下划线变体只有横向位移：同样走 slidePill，否则同一套 Tabs 在两种模式下
+	   一个会弹一个不会，正是之前修过的不一致。 */
 	.pill-track--hover.pill-track--line {
-		transition: transform var(--pill-hover-dur, 0.2s) var(--pill-ease), opacity 0.15s;
+		transition: opacity 0.15s;
 	}
-	.pill-track--sel.pill-track--line {
-		transition:
-			transform var(--pill-dur, 0.2s) var(--pill-ease),
-			opacity 0.15s;
-	}
-	/* 减少动效：过冲全部退回线性缓出，位移照样跟随，只是不再「弹」。
-	   注意这里只换 transition，不要写 transform: none —— 那会把 pill 的位置压回原点。 */
+	/* 减少动效：位移照样跟随，只是不再「弹」（slidePill 内部按 ease-out 走一趟）。
+	   注意这里不要写 transform: none —— 那会把 pill 的位置压回原点。 */
 	@media (prefers-reduced-motion: reduce) {
 		.pill-track--hover,
 		.pill-track--hover.pill-track--line {
 			transition:
-				transform var(--pill-hover-dur, 0.18s) ease-out,
 				height var(--pill-hover-dur, 0.18s) ease-out,
 				background-color 0.15s,
-				opacity 0.15s;
-		}
-		.pill-track--sel,
-		.pill-track--sel.pill-track--line {
-			transition:
-				transform var(--pill-dur, 0.18s) ease-out,
 				opacity 0.15s;
 		}
 	}

@@ -127,12 +127,11 @@
   import { Window } from "@wailsio/runtime";
 
   // 适配器：把 runtime 的 Window 方法映射成 goose-ui 的 WindowController
+  // 3.0.0 起自带 ToggleMaximise，不必再自己判断 IsMaximised 再挑 Maximise / Restore
   const wailsApi: WindowController = {
     isMaximised: () => Window.IsMaximised(),
     minimise: () => Window.Minimise(),
-    toggleMaximise: async () => {
-      (await Window.IsMaximised()) ? await Window.Restore() : await Window.Maximise();
-    },
+    toggleMaximise: () => Window.ToggleMaximise(),
     close: () => Window.Close(),
   };
 <\/script>

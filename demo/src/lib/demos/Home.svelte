@@ -297,16 +297,12 @@
 </div>
 
 <style>
-  /* ── 页面级渐变背景：提升到整窗（.layout--home），铺满视口 ── */
+  /* ── 页面级渐变背景：提升到整窗（.layout--home），铺满视口 ──
+     卡片那层由 <Layout framed={false}> 自己剥掉了（见 App.svelte），
+     这里只剩「整窗背景」这一件 demo 自己的装饰，不再需要覆盖内部类。 */
   :global(.layout--home.layout) {
     background: radial-gradient(900px 420px at 18% -10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
       radial-gradient(720px 520px at 92% 110%, color-mix(in srgb, var(--complement) 18%, transparent), transparent 60%), var(--bg) !important;
-  }
-  :global(.layout--home .layout-content) {
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    background: transparent !important;
   }
   .hp-page {
     position: relative;
@@ -560,9 +556,9 @@
     color: var(--text-muted);
     font-family: var(--font-mono);
   }
-  .hp-metric :global(.progress-track) {
-    flex: 1;
-  }
+  /* 这里曾经写过 `.hp-metric :global(.progress-track) { flex: 1 }`：
+     ProgressBar 的轨道本来就是 width:100%，在 flex 行里会正常收缩到剩余宽度
+     （实测 852 的行里 36 + 754 + 42），那条覆盖是多余的，已删。 */
   .hp-metric-val {
     width: 42px;
     flex-shrink: 0;
