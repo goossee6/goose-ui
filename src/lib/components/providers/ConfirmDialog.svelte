@@ -47,17 +47,17 @@
   .confirm-message {
     margin: 0;
     color: var(--text);
-    font-size: 14px;
+    font-size: var(--fs-14);
     line-height: 1.5;
   }
 
   .confirm-detail {
-    margin-top: 12px;
+    margin-top: var(--space-3);
   }
 
   .confirm-detail-label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
     color: var(--text-muted);
     font-size: var(--font-sm);
     line-height: 1.4;
@@ -69,7 +69,7 @@
     margin: 0;
     max-height: 168px;
     overflow: auto;
-    padding: 8px 10px;
+    padding: var(--space-2) var(--space-2-5);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--surface-2);

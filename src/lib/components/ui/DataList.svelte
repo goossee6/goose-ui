@@ -218,7 +218,7 @@
      边框之间的呼吸空间。容器不加 padding —— 那会再叠一层，把行盒和 pill 的
      对齐一起推歪。 */
 
-  .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
+  .placeholder { padding: var(--space-10); text-align: center; color: var(--text-muted); font-size: var(--fs-14); }
 
   /* 行间分隔线由每项自带的边框画出（方框 + 圆角与 pill 一致）。
      z-index 只用于压住 pill 之上的内容层，容器本身不设 z-index，pill 才能照常显示 */

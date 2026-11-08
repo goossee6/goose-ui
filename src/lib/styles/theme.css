@@ -156,26 +156,77 @@
 	--info-text: var(--c-info-text, var(--c-info, var(--info)));
 	--info-border: color-mix(in srgb, var(--info) 40%, transparent);
 
-	/* 间距（3 档） */
-	--sp-sm: 4px;
-	--sp-md: 8px;
-	--sp-lg: 16px;
+	/* ── 刻度层（单一事实来源）───────────────────────────────────────────────
+	   详见 docs/grid.md。规则只有三条：有限、可组合、可推导。
+	   命名带数值（--space-3 = 12px），因为语义名（sm/md/lg）既不能组合
+	   ——「上下 4、左右 8」无 token 可用——也无法推导，会分裂成第二套事实来源。
+	   组件的间距一律引用这一层，不写裸 px。 */
+	/* 空间：主网格 4pt，子刻度 2pt。n = px / 4，子刻度写 n.5 */
+	--space-0: 0;
+	--space-0-5: 2px;
+	--space-1: 4px;
+	--space-1-5: 6px;
+	--space-2: 8px;
+	--space-2-5: 10px;
+	--space-3: 12px;
+	--space-3-5: 14px;
+	--space-4: 16px;
+	--space-5: 20px;
+	--space-6: 24px;
+	--space-7: 28px;
+	--space-8: 32px;
+	--space-10: 40px;
+	--space-12: 48px;
+	--space-14: 56px;
+	--space-16: 64px;
+	--space-20: 80px;
+	--space-24: 96px;
 
-	/* 圆角（3 档） */
+	/* 字号：独立成档，刻意不进 4pt 网格。
+	   14px 是中文正文甜点，13px 是 macOS 列表通行值，为网格改成 16 会让密集界面散掉。
+	   行高另取 4 的倍数（16 / 20 / 24 / 28 / 32）。 */
+	--fs-10: 10px;
+	--fs-11: 11px;
+	--fs-12: 12px;
+	--fs-13: 13px;
+	--fs-14: 14px;
+	--fs-16: 16px;
+	--fs-18: 18px;
+	--fs-20: 20px;
+
+	/* 圆角：保留 2px 子刻度。36px 的按钮从 6 推到 8 会明显变圆，属视觉敏感区，
+	   不为网格牺牲。999 / 9999 统一为 full。
+	   xs 一档供高亮标记这类极小色块用（Carbon / Fluent 的圆角刻度同样含 2px）。 */
+	--radius-xs: 2px;
 	--radius-sm: 4px;
 	--radius-md: 6px;
 	--radius-lg: 8px;
+	--radius-xl: 12px;
+	--radius-full: 9999px;
 
-	/* 控件尺寸（3 档，组件 size prop 默认 md） */
+	/* 描边宽度：不参与刻度（描边不是间距，归位会让边缘发虚） */
+	--border-w: 1px;
+	--border-w-strong: 2px;
+
+	/* ── 语义别名：只允许指向刻度，不自己存值 ──
+	   存值会分裂成两个事实来源——改刻度时这里不跟着变，组件表现不一致。 */
+	--sp-sm: var(--space-1);
+	--sp-md: var(--space-2);
+	--sp-lg: var(--space-4);
+
+	/* 控件尺寸（3 档，组件 size prop 默认 md）
+	   尺寸走「档位」不走「刻度」：把按钮高度写成 --space-7（28px）语义是错的，
+	   改刻度会连累所有尺寸。档位是枚举，刻度是连续量的离散化，两者不混。 */
 	--height-sm: 28px;
 	--height-md: 36px;
 	--height-lg: 44px;
-	--font-sm: 12px;
-	--font-md: 14px;
-	--font-lg: 16px;
-	--padding-sm: 0 8px;
-	--padding-md: 0 12px;
-	--padding-lg: 0 16px;
+	--font-sm: var(--fs-12);
+	--font-md: var(--fs-14);
+	--font-lg: var(--fs-16);
+	/* 复合内边距：保留简写形态（组件直接整块用），但值来自刻度 */
+	--padding-sm: 0 var(--space-2);
+	--padding-md: 0 var(--space-3);
+	--padding-lg: 0 var(--space-4);
 
 	/* 组件档位尺寸（small | middle | large）
 	   档位值只写在这一段；组件里的 .xxx--small/--middle/--large 每个属性直接引用
@@ -184,8 +235,8 @@
 	--tag-font-sm: 11px;
 	--tag-font-md: 12px;
 	--tag-font-lg: 13px;
-	--tag-pad-sm: 3px 6px;
-	--tag-pad-md: 4px 9px;
+	--tag-pad-sm: 2px 6px;
+	--tag-pad-md: 4px 8px;
 	--tag-pad-lg: 6px 12px;
 	/* 勾选框 */
 	--checkbox-sm: 14px;
@@ -218,9 +269,12 @@
 	--togglegroup-font-sm: 12px;
 	--togglegroup-font-md: 13px;
 	--togglegroup-font-lg: 14px;
-	--togglegroup-pad-sm: 2px 16px;
-	--togglegroup-pad-md: 8px 16px;
-	--togglegroup-pad-lg: 16px 16px;
+	/* 分段按钮组：与 Tabs 的 segment 模式共用同一套比例（纵向 4/6/8，横向 12/16/20）。
+	   同一个「分段控件」不该有两套内边距 —— 早先这里是 2/8/16，纵向差 6 和 8，
+	   大号会撑到 53px 高，比 Tabs 的同类档位高出十几像素。 */
+	--togglegroup-pad-sm: 4px 12px;
+	--togglegroup-pad-md: 6px 16px;
+	--togglegroup-pad-lg: 8px 20px;
 	/* 标签页（三种模式各自的内边距 + 字号） */
 	--tab-font-sm: 12px;
 	--tab-font-md: 14px;

@@ -156,24 +156,37 @@
   const loaded = new Map<string, PageComp>();
   let PageView = $state<PageComp | null>(null);
   let loadSeq = 0;
+  /** 加载失败时记住是哪一页，供「重试」按钮定位（不设它会变成静默空白） */
+  let loadError = $state<{ tab: string; message: string } | null>(null);
 
-  $effect(() => {
-    const tab = activeTab;
-    const cached = loaded.get(tab);
-    if (cached) {
-      PageView = cached;
-      return;
+  function loadTab(tab: string, force = false) {
+    if (!force) {
+      const cached = loaded.get(tab);
+      if (cached) {
+        PageView = cached;
+        loadError = null;
+        return;
+      }
     }
     const loader = demoLoaders[tab];
     if (!loader) return;
     // 序号守卫：连点两个页签时，先发的那次可能后回，不能覆盖后点的结果
     const seq = ++loadSeq;
-    loader().then((mod) => {
-      loaded.set(tab, mod.default);
-      if (seq === loadSeq) PageView = mod.default;
-    }).catch((e) => {
-      console.error(`加载 ${tab} 页失败`, e);
-    });
+    loadError = null;
+    loader()
+      .then((mod) => {
+        loaded.set(tab, mod.default);
+        if (seq === loadSeq) PageView = mod.default;
+      })
+      .catch((e: unknown) => {
+        if (seq !== loadSeq) return;
+        console.error(`加载 ${tab} 页失败`, e);
+        loadError = { tab, message: e instanceof Error ? e.message : String(e) };
+      });
+  }
+
+  $effect(() => {
+    loadTab(activeTab);
   });
 
   $effect(() => {
@@ -204,6 +217,11 @@
   function onSearchSelect(item: { value: string }) {
     activeTab = item.value;
   }
+
+  /** 失败页的中文名，取自侧栏搜索的同一份清单 */
+  const errorLabel = $derived(
+    loadError ? (searchItems.find((i) => i.value === loadError!.tab)?.label ?? loadError.tab) : "",
+  );
 </script>
 
 <NotificationProvider />
@@ -236,7 +254,16 @@
     </Sidebar>
   {/snippet}
 
-  {#if PageView}
+  {#if loadError}
+    <!-- 弱网下某个 chunk 三次重试仍失败：给出可见的失败态与出口，
+         而不是停在上一页只留一条 console 错误 -->
+    <div class="load-error">
+      <div class="load-error-title">「{errorLabel}」页加载失败</div>
+      <div class="load-error-desc">网络中断导致代码分块没有下载完整，重试通常会恢复。</div>
+      <div class="load-error-detail">{loadError.message}</div>
+      <button class="load-error-retry" onclick={() => loadError && loadTab(loadError.tab, true)}>重试</button>
+    </div>
+  {:else if PageView}
     <PageView />
   {/if}
 
@@ -271,5 +298,45 @@
      PageDemo 里用 <p data-toc-title> 顶替的纯文字小标题。 */
   :global(.page-body [data-toc-title][id]) {
     scroll-margin-top: var(--toc-anchor, 72px);
+  }
+  /* 加载失败占位：弱网下这块会代替页面出现，所以样式跟着主题走 */
+  .load-error {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    max-width: 520px;
+    margin: var(--space-16) auto;
+    padding: var(--space-6) var(--space-6);
+    border: var(--border-w) solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1, transparent);
+  }
+  .load-error-title {
+    font-size: var(--fs-16);
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+  .load-error-desc {
+    font-size: var(--fs-13);
+    color: var(--text);
+  }
+  .load-error-detail {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+  .load-error-retry {
+    padding: var(--space-1) var(--space-4);
+    border: var(--border-w) solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text-strong);
+    font-size: var(--fs-13);
+    cursor: pointer;
+  }
+  .load-error-retry:hover {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 </style>

@@ -172,16 +172,16 @@
 		padding: var(--sp-lg);
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 	}
 	.link-preview-site {
-		font-size: 11px;
+		font-size: var(--fs-11);
 		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
 	}
 	.link-preview-title {
-		font-size: 13px;
+		font-size: var(--fs-13);
 		font-weight: 600;
 		color: var(--text-strong);
 		display: -webkit-box;
@@ -191,7 +191,7 @@
 		overflow: hidden;
 	}
 	.link-preview-desc {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 		line-height: 1.6;
 		display: -webkit-box;

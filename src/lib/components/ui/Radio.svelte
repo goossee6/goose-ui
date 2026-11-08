@@ -93,7 +93,7 @@
 		align-items: center;
 		gap: var(--sp-md);
 		cursor: pointer;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text);
 		line-height: 1;
 		transition: color 0.15s;

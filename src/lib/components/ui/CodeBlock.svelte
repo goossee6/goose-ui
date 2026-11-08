@@ -106,7 +106,7 @@
 	}
 	.cb-lang {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: var(--fs-11);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: var(--text-muted);
@@ -114,13 +114,13 @@
 	.cb-copy {
 		display: inline-flex;
 		align-items: center;
-		gap: 4px;
-		padding: 3px 8px;
+		gap: var(--space-1);
+		padding: var(--space-1) var(--space-2);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
 		background: var(--surface);
 		color: var(--text-muted);
-		font-size: 11px;
+		font-size: var(--fs-11);
 		cursor: pointer;
 		transition: color 0.15s, border-color 0.15s;
 	}
@@ -138,7 +138,7 @@
 		overflow: auto;
 		scrollbar-gutter: stable;
 		font-family: var(--font-mono);
-		font-size: 12.5px;
+		font-size: var(--fs-13);
 		line-height: 1.6;
 		color: var(--text);
 		tab-size: 2;

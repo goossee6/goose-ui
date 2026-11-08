@@ -11,10 +11,12 @@
   ],
   "scripts": {
     "dev": "pnpm --filter demo dev",
-    "build": "pnpm --filter demo build",
+    "build": "pnpm --filter demo build && node scripts/check-bundle-size.mjs",
     "build:dev": "pnpm --filter demo build:dev",
     "check": "pnpm --filter demo check",
     "test": "node --test \"tests/*.test.ts\"",
+    "grid:audit": "node scripts/grid-audit.mjs",
+    "grid:codemod": "node scripts/grid-codemod.mjs",
     "preview": "pnpm --filter demo preview"
   },
   "repository": {

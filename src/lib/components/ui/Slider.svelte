@@ -128,7 +128,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		font-size: 13px;
+		font-size: var(--fs-13);
 	}
 	.slider-label {
 		color: var(--text);
@@ -151,14 +151,14 @@
 	.slider-track:focus-visible {
 		outline: 2px solid var(--primary);
 		outline-offset: 4px;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 	}
 	.slider-rail {
 		position: absolute;
 		left: 0;
 		right: 0;
 		height: 6px;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		background: var(--surface-2);
 		border: 1px solid var(--border);
 	}
@@ -166,7 +166,7 @@
 		position: absolute;
 		left: 0;
 		height: 6px;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		/* 统一强调渐变：主色 -30° → +30°（见 theme.css） */
 		background: var(--gradient-accent);
 		pointer-events: none;

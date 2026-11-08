@@ -24,10 +24,10 @@
 
 <style>
 	.badge {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		font-weight: 600;
-		padding: 2px 8px;
-		border-radius: 9999px;
+		padding: var(--space-0-5) var(--space-2);
+		border-radius: var(--radius-full);
 		display: inline-block;
 		line-height: 1.4;
 	}

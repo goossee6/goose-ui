@@ -439,7 +439,7 @@
 		display: none;
 		width: var(--toc-width);
 		flex-shrink: 0;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		/* 目录列给吸顶页头让位的总高度。页头是 .page-body 的首个子项且 sticky，
 		   所以目录自己的 sticky 顶边必须落在页头下缘之外，否则滚起来被压住一半。
 		   优先用脚本量出的真实页头高度（有页头 ≈ 页头高 + --page-gap，无页头 = 0），
@@ -448,7 +448,7 @@
 	}
 
 	.toc-title {
-		font-size: 11px;
+		font-size: var(--fs-11);
 		font-weight: 600;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
@@ -465,7 +465,7 @@
 		max-height: min(var(--toc-max-h), calc(100vh - var(--toc-sticky-top) - 16px));
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 
 	.toc-nav {
@@ -488,7 +488,7 @@
 
 	.toc-link {
 		display: block;
-		padding: 5px 0 5px var(--toc-indent);
+		padding: var(--space-1) 0 var(--space-1) var(--toc-indent);
 		/* 往左移 1px 盖住 ul 的左边框 */
 		margin-left: -1px;
 		border-left: 1px solid transparent;
@@ -503,7 +503,7 @@
 	/* 三级条目多缩进一级，但共用同一条竖线；选中时颜色比二级轻，靠缩进区分层级 */
 	.toc-nav li.lvl3 > .toc-link {
 		padding-left: calc(var(--toc-indent) * 2);
-		font-size: 12px;
+		font-size: var(--fs-12);
 	}
 	.toc-link:hover,
 	.toc-link.active {

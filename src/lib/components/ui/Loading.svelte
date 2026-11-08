@@ -34,7 +34,7 @@
 	.loading {
 		display: inline-block;
 		vertical-align: middle;
-		margin: 0 4px;
+		margin: 0 var(--space-1);
 	}
 	.loading-spinner {
 		animation: loading-spin 0.8s linear infinite;

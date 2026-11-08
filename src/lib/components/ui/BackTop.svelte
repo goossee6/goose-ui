@@ -144,8 +144,8 @@
 <style>
 	.back-top-root {
 		position: fixed;
-		right: 24px;
-		bottom: 24px;
+		right: var(--space-6);
+		bottom: var(--space-6);
 		z-index: var(--z-fixed);
 		line-height: 0;
 		/* right/bottom 由 place() 按滚动容器可见区域实时计算（元素容器）或保持 24px（window） */

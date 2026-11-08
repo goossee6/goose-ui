@@ -85,7 +85,7 @@
 	}
 	.accordion-panel {
 		padding: var(--sp-lg) var(--sp-lg);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		line-height: 1.7;
 	}

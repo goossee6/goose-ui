@@ -263,7 +263,7 @@
 		margin-bottom: var(--sp-md);
 	}
 	.rc-title {
-		font-size: 13px;
+		font-size: var(--fs-13);
 		font-weight: 600;
 		color: var(--text-strong);
 	}
@@ -286,18 +286,18 @@
 	.rc-weekdays {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
-		margin-bottom: 2px;
+		margin-bottom: var(--space-0-5);
 	}
 	.rc-weekday {
 		text-align: center;
-		font-size: 11px;
+		font-size: var(--fs-11);
 		color: var(--text-muted);
 		padding: var(--sp-sm) 0;
 	}
 	.rc-grid {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
-		gap: 2px;
+		gap: var(--space-0-5);
 		outline: none;
 	}
 	.rc-grid:focus-visible {
@@ -314,7 +314,7 @@
 		border-radius: var(--radius-md);
 		background: none;
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		font-family: var(--font-mono);
 		cursor: pointer;
 		transition: background-color 0.12s, color 0.12s;
@@ -360,7 +360,7 @@
 		border-top: 1px solid var(--border);
 	}
 	.rc-hint {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 </style>

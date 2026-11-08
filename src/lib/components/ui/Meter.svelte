@@ -64,14 +64,14 @@
 	.meter {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 		width: 100%;
 	}
 	.meter-label {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 	.meter-label-text {
@@ -83,13 +83,13 @@
 	.meter-track {
 		height: 8px;
 		width: 100%;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		background-color: var(--surface-2);
 		overflow: hidden;
 	}
 	.meter-fill {
 		height: 100%;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		/* 统一强调渐变：主色 -30° → +30°（见 theme.css） */
 		background: var(--gradient-accent);
 		transition: width 0.5s ease-out, background 0.3s ease;

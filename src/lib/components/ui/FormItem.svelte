@@ -72,7 +72,7 @@
 	}
 	.form-label {
 		display: block;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text);
 		line-height: 32px;
 		flex-shrink: 0;
@@ -82,20 +82,20 @@
 	}
 	.form-req {
 		color: var(--danger-text);
-		margin-right: 2px;
+		margin-right: var(--space-0-5);
 	}
 	.form-control {
 		flex: 1;
 		min-width: 0;
 	}
 	.form-error {
-		margin: 2px 0 0;
-		font-size: 12px;
+		margin: var(--space-0-5) 0 0;
+		font-size: var(--fs-12);
 		color: var(--danger-text);
 	}
 	.form-hint {
-		margin: 2px 0 0;
-		font-size: 12px;
+		margin: var(--space-0-5) 0 0;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 </style>

@@ -153,9 +153,9 @@
 	.cursor-label {
 		position: absolute;
 		left: 50%;
-		top: calc(100% + 4px);
+		top: calc(100% + var(--space-1));
 		transform: translateX(-50%);
-		font-size: 11px;
+		font-size: var(--fs-11);
 		color: var(--primary);
 		white-space: nowrap;
 	}

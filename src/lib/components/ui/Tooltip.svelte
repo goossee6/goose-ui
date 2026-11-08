@@ -301,13 +301,13 @@
   }
 
   .tooltip-content {
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: var(--space-1-5) var(--space-2-5);
+    font-size: var(--fs-12);
     line-height: 1.5;
     color: var(--text);
     background-color: var(--popup-surface, var(--surface));
     border: 1px solid var(--border-strong);
-    border-radius: var(--radius-md, 6px);
+    border-radius: var(--radius-md, var(--radius-md));
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
     white-space: pre-wrap;
   }
@@ -331,8 +331,8 @@
     border-top: none;
     border-left: none;
   }
-  .tooltip-top-start .tooltip-arrow { left: 14px; }
-  .tooltip-top-end .tooltip-arrow { left: auto; right: 14px; }
+  .tooltip-top-start .tooltip-arrow { left: var(--space-3-5); }
+  .tooltip-top-end .tooltip-arrow { left: auto; right: var(--space-3-5); }
 
   .tooltip-bottom .tooltip-arrow,
   .tooltip-bottom-start .tooltip-arrow,
@@ -343,8 +343,8 @@
     border-bottom: none;
     border-right: none;
   }
-  .tooltip-bottom-start .tooltip-arrow { left: 14px; }
-  .tooltip-bottom-end .tooltip-arrow { left: auto; right: 14px; }
+  .tooltip-bottom-start .tooltip-arrow { left: var(--space-3-5); }
+  .tooltip-bottom-end .tooltip-arrow { left: auto; right: var(--space-3-5); }
 
   .tooltip-left .tooltip-arrow,
   .tooltip-left-start .tooltip-arrow,
@@ -355,8 +355,8 @@
     border-bottom: none;
     border-left: none;
   }
-  .tooltip-left-start .tooltip-arrow { top: 14px; }
-  .tooltip-left-end .tooltip-arrow { top: auto; bottom: 14px; }
+  .tooltip-left-start .tooltip-arrow { top: var(--space-3-5); }
+  .tooltip-left-end .tooltip-arrow { top: auto; bottom: var(--space-3-5); }
 
   .tooltip-right .tooltip-arrow,
   .tooltip-right-start .tooltip-arrow,
@@ -367,6 +367,6 @@
     border-top: none;
     border-right: none;
   }
-  .tooltip-right-start .tooltip-arrow { top: 14px; }
-  .tooltip-right-end .tooltip-arrow { top: auto; bottom: 14px; }
+  .tooltip-right-start .tooltip-arrow { top: var(--space-3-5); }
+  .tooltip-right-end .tooltip-arrow { top: auto; bottom: var(--space-3-5); }
 </style>

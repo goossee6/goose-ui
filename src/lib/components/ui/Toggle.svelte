@@ -156,7 +156,7 @@
     box-sizing: border-box;
     width: var(--trk-w);
     height: var(--trk-h);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background-color: var(--surface-3);
     border: 1px solid var(--border-strong);
     position: relative;
@@ -194,11 +194,11 @@
        两者都是「贴着休息那一侧不动、朝轨道内侧鼓起来」，所以不会顶出边框。 */
     --breathe-shift: 0px;
     position: absolute;
-    top: 2px;
+    top: var(--space-0-5);
     left: var(--thumb-left);
     width: var(--tw);
     height: var(--tw);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background-color: var(--primary-text);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     /* 动画被摘掉时靠 transition 滑过去，不硬跳 */
@@ -296,7 +296,7 @@
   /* 2 态：左 → 右 */
   @keyframes toggle-flip-on {
     0% {
-      left: 2px;
+      left: var(--space-0-5);
       width: var(--tw);
     }
     45% {
@@ -308,22 +308,22 @@
       width: calc(100% - 2px);
     }
     70% {
-      left: calc(100% - var(--tw) - 2px);
+      left: calc(100% - var(--tw) - var(--space-0-5));
       width: var(--tw);
     }
     90% {
-      left: calc(100% - var(--tw) - 2px);
+      left: calc(100% - var(--tw) - var(--space-0-5));
       width: calc(var(--tw) + 2px);
     }
     100% {
-      left: calc(100% - var(--tw) - 2px);
+      left: calc(100% - var(--tw) - var(--space-0-5));
       width: var(--tw);
     }
   }
   /* 2 态：右 → 左 */
   @keyframes toggle-flip-off {
     0% {
-      left: calc(100% - var(--tw) - 2px);
+      left: calc(100% - var(--tw) - var(--space-0-5));
       width: var(--tw);
     }
     45% {
@@ -335,15 +335,15 @@
       width: calc(100% - 2px);
     }
     70% {
-      left: 2px;
+      left: var(--space-0-5);
       width: var(--tw);
     }
     90% {
-      left: 2px;
+      left: var(--space-0-5);
       width: calc(var(--tw) + 2px);
     }
     100% {
-      left: 2px;
+      left: var(--space-0-5);
       width: var(--tw);
     }
   }

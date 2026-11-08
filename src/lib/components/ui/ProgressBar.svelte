@@ -21,13 +21,13 @@
 		position: relative;
 		height: 10px;
 		width: 100%;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		background-color: var(--surface-2);
 		overflow: hidden;
 	}
 	.progress-bar {
 		height: 100%;
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		/* 统一强调渐变：主色 -30° → +30°（见 theme.css）。底色不再用 accent→complement */
 		background: var(--gradient-accent);
 		transition: width 0.5s ease-out;

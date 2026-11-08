@@ -116,6 +116,27 @@ DEFAULT_COLORS; // { accent: "#1850ec", ... } 六个角色的默认 hex
 - 浮层（菜单 / 气泡 / 下拉列表）底色单独由 `--popup-surface` 控制（亮色 `#ffffff`、暗色 `#000000`），改浮层底色只覆盖这一个 token
 - 暗色主题通过 `.dark` 或 `[data-theme="dark"]` 类名切换；子树内用 `.light` 类可局部恢复浅色 token
 
+## 刻度（间距 / 字号 / 圆角）
+
+组件的间距、字号、圆角全部来自一张有限的刻度表，详见 [grid.md](./grid.md)。
+
+```css
+--space-1: 4px;    /* n = px / 4，子刻度写 --space-1-5 = 6px */
+--space-2: 8px;
+--space-4: 16px;
+--fs-12: 12px;     /* 字号独立成档，不进 4pt 网格 */
+--fs-14: 14px;
+--radius-md: 6px;  /* 保留 2px 子刻度：4 / 6 / 8 / 12 */
+--radius-full: 9999px;
+```
+
+- **命名即数值**：`--space-3` 就是 12px，读到名字就知道值；`--fs-13` 就是 13px
+- 语义名 `--sp-sm` / `--sp-md` / `--sp-lg`、`--font-sm/md/lg` 仍然可用，但只作为指针（`--sp-md: var(--space-2)`），不自己存值
+- 改刻度即改全局：把 `--space-2` 从 8px 调到 9px，所有引用它的间距一起变
+- **描边、阴影、位移不用刻度**：`1px` / `2px` 描边、`box-shadow` 偏移、`transform` 位移是视觉规格，归位到网格只会让边缘发虚
+- **控件尺寸（高度）不走刻度**，走 `--height-sm/md/lg` 档位：尺寸是枚举，间距才是连续量的离散化
+- 用 `pnpm grid:audit` 检查引用完整性与命名自洽性
+
 ## 工具类（theme.css 全局提供）
 
 | 类                    | 作用                      | 动画                                                              |

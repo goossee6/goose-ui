@@ -134,7 +134,7 @@
 	.alert-dialog {
 		width: 100%;
 		max-width: 420px;
-		padding: 24px;
+		padding: var(--space-6);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
@@ -142,19 +142,19 @@
 	}
 	.alert-title {
 		margin: 0 0 var(--sp-md);
-		font-size: 16px;
+		font-size: var(--fs-16);
 		font-weight: 600;
 		color: var(--text-strong);
 	}
 	.alert-desc {
 		margin: 0 0 var(--sp-lg);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		line-height: 1.7;
 	}
 	.alert-content {
 		margin-bottom: var(--sp-lg);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 	}
 	.alert-actions {

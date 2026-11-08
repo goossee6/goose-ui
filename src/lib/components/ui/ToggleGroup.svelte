@@ -89,8 +89,8 @@
 		display: inline-flex;
 		align-items: center;
 		position: relative;
-		padding: 3px;
-		gap: 2px;
+		padding: var(--space-1);
+		gap: var(--space-0-5);
 		border-radius: var(--radius-lg);
 		background: var(--surface-2);
 		border: 1px solid transparent;
@@ -110,7 +110,7 @@
 		justify-content: center;
 		padding: var(--togglegroup-pad-md);
 		border: none;
-		border-radius: calc(var(--radius-lg) - 4px);
+		border-radius: calc(var(--radius-lg) - var(--radius-sm));
 		background: transparent;
 		color: var(--text-muted);
 		font-size: var(--togglegroup-font-md);

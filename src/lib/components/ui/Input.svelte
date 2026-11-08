@@ -170,14 +170,14 @@
 		align-items: center;
 		color: var(--text-muted);
 		flex-shrink: 0;
-		padding: 0 4px;
+		padding: 0 var(--space-1);
 	}
 	.input-clear {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
-		margin-left: 2px;
+		margin-left: var(--space-0-5);
 		background: none;
 		border: none;
 		color: var(--text-muted);

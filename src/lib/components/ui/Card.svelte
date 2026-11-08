@@ -73,7 +73,7 @@
 		background-color: var(--surface-2);
 	}
 	.card-title {
-		font-size: 14px;
+		font-size: var(--fs-14);
 		font-weight: 600;
 		color: var(--text-strong);
 	}

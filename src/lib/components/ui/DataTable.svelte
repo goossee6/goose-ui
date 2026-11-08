@@ -487,7 +487,7 @@
      自定义属性取到 'none' 时整条声明会被判为无效而整条丢弃，外层的高度约束也就
      一并失效；max() 里非长度值只会让这一项失效并回落初始值 none，高度约束照常生效。 */
   .table-container { width: 100%; height: 100%; max-height: max(var(--dt-max-h), 0px); overflow: auto; scrollbar-gutter: stable; min-width: 0; }
-  .placeholder { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
+  .placeholder { padding: var(--space-10); text-align: center; color: var(--text-muted); font-size: var(--fs-14); }
 
   /* 列宽固定：按 colgroup 指定的百分比分配，不随内容反推，
      因此各列之和恒等于表格宽度，横向永远不出现滚动条。 */
@@ -495,7 +495,7 @@
      spacing:0 保证视觉上仍然是紧贴的表格，仅失去「边框合并」这一特性。
      背景铺在 table 而不是 td 上：td 有自己的背景层就会盖住 PillTrack 的 hover pill，
      行底与 hover 色都必须落在 pill 之下。 */
-  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; background-color: var(--surface); }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-14); background-color: var(--surface); }
   table.fixed-layout { table-layout: fixed; }
 
   /* 左右内边距 16px 而不是 24px：24px 时相邻两列之间会空出 48px，
@@ -508,7 +508,7 @@
      所以直接去掉，分层感交给底色与边框。 */
   /* 表头没有拖拽手柄，所以 overflow 可以留在 hidden，
      单元格内容溢出由 .cell-inner / .sort-btn 各自的 ellipsis 处理。 */
-  th { position: sticky; top: 0; z-index: 1; background-clip: padding-box; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-lg) 16px; border-bottom: 2px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  th { position: sticky; top: 0; z-index: 1; background-clip: padding-box; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-lg) var(--space-4); border-bottom: 2px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* 吸顶时的「压住内容」暗示：表头底缘一道极淡的投影。
      不用 box-shadow —— td/th 带 overflow:hidden，会把向外的阴影裁掉一半；
@@ -543,7 +543,7 @@
   thead > tr > th:last-child { border-top-right-radius: calc(var(--radius-lg) + var(--th-bleed, 0px)); }
   th.right { text-align: right; }
   th.center { text-align: center; }
-  .sort-btn { display: inline-flex; align-items: center; gap: 4px; padding: 0; background: none; border: none; cursor: pointer; font: inherit; color: inherit; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .sort-btn { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0; background: none; border: none; cursor: pointer; font: inherit; color: inherit; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .sort-btn :global(svg) { color: var(--text-muted); opacity: 1; transition: color 0.15s; flex: none; }
   .sort-btn:hover :global(svg) { color: var(--text-strong); }
   .sort-btn.active :global(svg) { color: var(--primary); }
@@ -568,7 +568,7 @@
   /* hover 底色改由 PillTrack 的 pill 绘制（行间滑动的圆角带），
      td 不再自己变色，否则整行方角底色会把 pill 盖住、圆角也看不出来。
      z-index 只为了压住表格背景层，table 本身上下都开着。 */
-  .table-container :global(td) { position: relative; z-index: 0; padding: var(--sp-lg) 16px; border-bottom: 1px solid var(--border); color: var(--text); background-color: transparent; overflow: hidden; }
+  .table-container :global(td) { position: relative; z-index: 0; padding: var(--sp-lg) var(--space-4); border-bottom: 1px solid var(--border); color: var(--text); background-color: transparent; overflow: hidden; }
 
   /* 表体也有列分隔线，但比表头淡得多：表体行本来就是「一条条」的视觉单位，
      实线会把行分割的横线切开；淡线只在不干扰横线的前提下提示列边界。
@@ -577,8 +577,8 @@
   .table-container :global(tbody > tr > td:not(:last-child)::after) {
     content: '';
     position: absolute;
-    top: 8px;
-    bottom: 8px;
+    top: var(--space-2);
+    bottom: var(--space-2);
     right: 0;
     width: 1px;
     background-color: var(--border-strong);
@@ -589,11 +589,11 @@
   .table-container :global(td.center) { text-align: center; }
   .table-container :global(tbody tr:last-child td) { border-bottom: none; }
   .table-container :global(tr.disabled td) { opacity: 0.5; }
-  .table-container :global(td.mono) { font-family: var(--font-mono); font-size: 14px; font-variant-numeric: tabular-nums; word-break: break-all; }
+  .table-container :global(td.mono) { font-family: var(--font-mono); font-size: var(--fs-14); font-variant-numeric: tabular-nums; word-break: break-all; }
   .table-container :global(.actions-cell) { white-space: nowrap; }
   .table-container :global(.actions) { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-md); }
   /* 高亮命中 */
-  .table-container :global(mark) { background-color: rgba(255, 213, 0, 0.45); color: inherit; padding: 0 1px; border-radius: 2px; }
+  .table-container :global(mark) { background-color: rgba(255, 213, 0, 0.45); color: inherit; padding: 0 1px; border-radius: var(--radius-xs); }
 
   /* ── 单元格内容溢出策略 ──────────────────────────────────────────────── */
 

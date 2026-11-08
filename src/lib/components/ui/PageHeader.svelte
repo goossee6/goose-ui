@@ -52,7 +52,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: 4px;
+		gap: var(--space-1);
 		min-width: 0;
 		flex: 1 1 auto;
 	}
@@ -83,7 +83,7 @@
 		align-items: center;
 		flex-wrap: wrap;
 		gap: var(--sp-md);
-		margin-top: 4px;
+		margin-top: var(--space-1);
 	}
 	.page-header-right {
 		display: flex;

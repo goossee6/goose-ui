@@ -354,15 +354,15 @@
 		align-items: center;
 		height: 24px;
 		/* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */
-		padding: 0 40px;
-		font-size: 12px;
+		padding: 0 var(--space-10);
+		font-size: var(--fs-12);
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
 		/* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
 		background-color: color-mix(in srgb, var(--popup-surface) 80%, transparent);
 		backdrop-filter: blur(12px);
 	}
-	.select-empty { padding: var(--sp-lg) var(--sp-lg); font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
+	.select-empty { padding: var(--sp-lg) var(--sp-lg); font-size: var(--fs-12); color: var(--text-muted); position: relative; z-index: 1; }
 	.select-option {
 		position: relative;
 		z-index: 1;
@@ -375,7 +375,7 @@
 		border: none;
 		background: none;
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-align: left;
 		cursor: pointer;
 		transition: color 0.1s, background-color 0.1s;
@@ -398,8 +398,8 @@
 	.select-option--selected .select-option-check { color: inherit; }
 	.select-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.select-meta {
-		font-size: 12px;
-		padding: 2px 6px;
+		font-size: var(--fs-12);
+		padding: var(--space-0-5) var(--space-1-5);
 		border-radius: var(--radius-sm);
 		flex-shrink: 0;
 	}

@@ -58,7 +58,7 @@
 	}
 	.separator--label {
 		color: var(--text-muted);
-		font-size: 12px;
+		font-size: var(--fs-12);
 		line-height: 1.4;
 	}
 	.separator--horizontal.separator--label {

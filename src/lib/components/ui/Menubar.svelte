@@ -108,7 +108,7 @@
 	.menubar {
 		display: inline-flex;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-0-5);
 		padding: var(--sp-sm);
 		background: var(--surface);
 		border: 1px solid var(--border);
@@ -123,7 +123,7 @@
 	.menubar-trigger {
 		display: inline-flex;
 		align-items: center;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		white-space: nowrap;
 	}
 	.menubar-trigger.disabled {

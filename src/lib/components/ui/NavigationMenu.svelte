@@ -264,7 +264,7 @@
 	.navmenu-list {
 		display: flex;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-0-5);
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -275,13 +275,13 @@
 	.navmenu-trigger {
 		display: inline-flex;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-0-5);
 		padding: var(--sp-md) var(--sp-lg);
 		border: none;
 		border-radius: var(--radius-md);
 		background: none;
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-decoration: none;
 		cursor: pointer;
 		white-space: nowrap;
@@ -314,12 +314,12 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 	}
 	.navmenu-panel-item {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 		padding: var(--sp-md) var(--sp-lg);
 		border-radius: var(--radius-md);
 		color: var(--text);
@@ -335,10 +335,10 @@
 		outline-offset: -2px;
 	}
 	.navmenu-panel-label {
-		font-size: 13px;
+		font-size: var(--fs-13);
 	}
 	.navmenu-panel-desc {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 </style>

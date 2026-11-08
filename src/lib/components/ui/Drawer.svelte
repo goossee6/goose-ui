@@ -493,7 +493,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.2);
+    /* 不模糊时全靠这层压暗做景深，调用方可按面板大小调深浅 */
+    background-color: var(--drawer-mask, rgba(0, 0, 0, 0.2));
     pointer-events: auto;
   }
   .drawer {
@@ -542,7 +543,7 @@
     content: '';
     position: absolute;
     background: var(--text-muted);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     opacity: 0.6;
     transition: background-color 0.15s, opacity 0.15s;
   }
@@ -555,28 +556,28 @@
     outline: none;
   }
   .drawer-resize--left {
-    right: -6px;
+    right: calc(-1 * var(--space-1-5));
     top: 0;
     bottom: 0;
     width: 16px;
     cursor: ew-resize;
   }
   .drawer-resize--left::after {
-    right: 12px;
+    right: var(--space-3);
     top: 50%;
     width: 5px;
     height: 64px;
     transform: translateY(-50%);
   }
   .drawer-resize--right {
-    left: -6px;
+    left: calc(-1 * var(--space-1-5));
     top: 0;
     bottom: 0;
     width: 16px;
     cursor: ew-resize;
   }
   .drawer-resize--right::after {
-    left: 12px;
+    left: var(--space-3);
     top: 50%;
     width: 5px;
     height: 64px;
@@ -611,8 +612,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--sp-lg) 24px;
-    font-size: 16px;
+    padding: var(--sp-lg) var(--space-6);
+    font-size: var(--fs-16);
     font-weight: 600;
     color: var(--text-strong);
     border-bottom: 1px solid var(--border-strong);
@@ -629,7 +630,7 @@
     left: 50%;
     width: 72px;
     height: 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: var(--text-muted);
     opacity: 0.6;
     transform: translateX(-50%);
@@ -637,10 +638,10 @@
     transition: background-color 0.15s, opacity 0.15s;
   }
   .drawer-grip--bottom {
-    top: 6px;
+    top: var(--space-1-5);
   }
   .drawer-grip--top {
-    bottom: 6px;
+    bottom: var(--space-1-5);
   }
   .drawer-header--resizable:hover .drawer-grip,
   .drawer-header--resizable:focus-visible .drawer-grip,
@@ -666,7 +667,7 @@
     flex-shrink: 0;
   }
   .drawer-body {
-    padding: 24px;
+    padding: var(--space-6);
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -677,7 +678,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: var(--sp-lg);
-    padding: var(--sp-lg) 24px;
+    padding: var(--sp-lg) var(--space-6);
     border-top: 1px solid var(--border);
     flex-shrink: 0;
   }

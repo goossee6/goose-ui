@@ -229,15 +229,15 @@
 
 <style>
   .multi-select { position: relative; display: inline-block; min-width: 200px; }
-  .trigger { display: flex; align-items: center; gap: 8px; padding: var(--padding-md); height: var(--height-md); min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: var(--font-md); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+  .trigger { display: flex; align-items: center; gap: var(--space-2); padding: var(--padding-md); height: var(--height-md); min-width: 140px; max-width: 280px; align-self: stretch; background-color: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); color: var(--text-strong); font-size: var(--font-md); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
   .trigger:hover:not(.disabled) { background-color: var(--surface-3); }
   .trigger:focus-visible { border-color: var(--primary); outline: none; }
   .trigger.open { border-color: var(--primary); }
   .trigger.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-  .trigger-content { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+  .trigger-content { flex: 1; display: flex; flex-wrap: wrap; gap: var(--space-1); min-width: 0; }
   .placeholder { color: var(--text-muted); white-space: nowrap; }
-  .badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 4px; background: var(--primary-soft); color: var(--primary); font-size: 11px; font-weight: 500; white-space: nowrap; line-height: 18px; }
-  .badge-x { display: inline-flex; align-items: center; justify-content: center; padding: 0; margin: 0; border: none; background: none; color: inherit; cursor: pointer; font-size: 13px; line-height: 1; width: 14px; height: 14px; border-radius: 50%; transition: background-color 0.15s; }
+  .badge { display: inline-flex; align-items: center; gap: var(--space-0-5); padding: 1px var(--space-1-5); border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--primary); font-size: var(--fs-11); font-weight: 500; white-space: nowrap; line-height: 18px; }
+  .badge-x { display: inline-flex; align-items: center; justify-content: center; padding: 0; margin: 0; border: none; background: none; color: inherit; cursor: pointer; font-size: var(--fs-13); line-height: 1; width: 14px; height: 14px; border-radius: 50%; transition: background-color 0.15s; }
   .badge-x:hover { background-color: rgba(0, 0, 0, 0.15); }
   .chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
   .trigger.open .chevron { transform: rotate(180deg); }
@@ -247,8 +247,8 @@
     .menu-scroll { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
   .menu-scroll::-webkit-scrollbar { display: none; }
   /* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
-  .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */ padding: 0 40px; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(12px); }
-  .option { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; white-space: nowrap; }
+  .ms-group { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; height: 24px; /* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */ padding: 0 var(--space-10); font-size: var(--fs-12); font-weight: 600; color: color-mix(in srgb, var(--text-muted) 70%, transparent); background-color: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(12px); }
+  .option { position: relative; display: flex; align-items: center; gap: var(--space-2); width: 100%; height: var(--height-md); padding: 0 var(--sp-lg); border: none; border-radius: var(--radius-md); background: none; color: var(--text); font-size: var(--fs-13); text-align: left; cursor: pointer; white-space: nowrap; }
   /* 白字必须由「pill 真的压在这一行上」决定，不能由 :hover / .active 决定。
      两个反例都会让整行文字凭空消失（白底白字）：
      · 菜单恰好在静止的指针下展开 —— CSS 的 :hover 立刻为真，pill 却要等

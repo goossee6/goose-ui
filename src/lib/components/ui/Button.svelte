@@ -273,7 +273,7 @@
   .btn-middle { height: var(--height-md); padding: var(--padding-md); font-size: var(--font-md); }
   .btn-large { height: var(--height-lg); padding: var(--padding-lg); font-size: var(--font-lg); }
   .btn-icon { width: var(--height-md); height: var(--height-md); padding: 0; }
-  .btn-icon-sm { width: var(--height-sm); height: var(--height-sm); padding: 0; border-radius: min(var(--radius-md), 12px); }
+  .btn-icon-sm { width: var(--height-sm); height: var(--height-sm); padding: 0; border-radius: min(var(--radius-md), var(--radius-xl)); }
   .btn-icon-md { width: 24px; height: 24px; padding: 0; border-radius: min(var(--radius-md), 10px); }
   .btn-icon-lg { width: var(--height-lg); height: var(--height-lg); padding: 0; }
   /* variants */

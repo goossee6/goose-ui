@@ -227,8 +227,8 @@
 	}
 	.wheel-band {
 		position: absolute;
-		left: 2px;
-		right: 2px;
+		left: var(--space-0-5);
+		right: var(--space-0-5);
 		top: 72px;
 		height: 36px;
 		border-radius: var(--radius-sm);
@@ -271,7 +271,7 @@
 		background: none;
 		scroll-snap-align: center;
 		font-family: var(--font-mono);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		cursor: pointer;
 		position: relative;
@@ -280,6 +280,6 @@
 	.wheel-item.center {
 		color: var(--primary);
 		font-weight: 700;
-		font-size: 14px;
+		font-size: var(--fs-14);
 	}
 </style>

@@ -369,8 +369,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--sp-lg) 32px;
-    font-size: 18px;
+    padding: var(--sp-lg) var(--space-8);
+    font-size: var(--fs-18);
     font-weight: 600;
     color: var(--text-strong);
     border-bottom: 1px solid var(--border-strong);
@@ -381,7 +381,7 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
-    gap: 2px;
+    gap: var(--space-0-5);
   }
   .modal-title {
     flex: 1;
@@ -391,7 +391,7 @@
     white-space: nowrap;
   }
   .modal-subtitle {
-    font-size: 12px;
+    font-size: var(--fs-12);
     font-weight: 400;
     color: var(--text-muted);
     min-width: 0;
@@ -410,10 +410,10 @@
   .modal-actions {
     display: flex;
     align-items: center;
-    gap: var(--sp-sm, 8px);
+    gap: var(--sp-sm, var(--space-2));
     flex-shrink: 0;
     margin-left: var(--sp-lg);
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 500;
   }
   /* 传了 headerActions 但这次没有内容（调用方在里面用 if 控制显隐）时，
@@ -423,7 +423,7 @@
     display: none;
   }
   .modal-body {
-    padding: 32px 40px;
+    padding: var(--space-8) var(--space-10);
     min-width: 0;
     flex: 1;
     min-height: 0;
@@ -438,7 +438,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: var(--sp-lg);
-    padding: var(--sp-lg) 32px;
+    padding: var(--sp-lg) var(--space-8);
     flex-shrink: 0;
   }
 </style>

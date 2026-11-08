@@ -51,7 +51,7 @@
 	.tag {
 		display: inline-flex;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-0-5);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
 		background: var(--surface);
@@ -119,7 +119,7 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		margin-left: 2px;
+		margin-left: var(--space-0-5);
 		padding: 0;
 		border: none;
 		background: none;

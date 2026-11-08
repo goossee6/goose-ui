@@ -149,7 +149,7 @@
 		width: 42px;
 		height: 48px;
 		text-align: center;
-		font-size: 18px;
+		font-size: var(--fs-18);
 		font-weight: 600;
 		font-family: var(--font-mono);
 		color: var(--text-strong);
@@ -170,6 +170,6 @@
 	}
 	.pin-separator {
 		color: var(--text-muted);
-		font-size: 18px;
+		font-size: var(--fs-18);
 	}
 </style>

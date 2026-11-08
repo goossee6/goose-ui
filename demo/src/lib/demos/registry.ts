@@ -16,7 +16,11 @@
 
 type Loader = () => Promise<{ default: import('svelte').Component<any> }>;
 
-export const demoLoaders: Record<string, Loader> = {
+/**
+ * 原始 import 表。保持字面量写法的原因是 Vite 只能静态分析字面量；
+ * 重试包装统一在下面套，不动这 76 行。
+ */
+const rawLoaders: Record<string, Loader> = {
   home: () => import('./Home.svelte'),
   getstarted: () => import('./GettingStarted.svelte'),
   skill: () => import('./Skill.svelte'),
@@ -74,3 +78,34 @@ export const demoLoaders: Record<string, Loader> = {
   layout: () => import('./Layout.svelte'),
   settings: () => import('./Settings.svelte'),
 };
+
+/**
+ * 弱网下 chunk 请求会瞬断（尤其一个页面要连拉 3~5 个 chunk 的时候）。
+ * 单次失败不代表资源不存在，按 200/600ms 退避重试两次；三次都失败才抛给
+ * 调用方 —— 由 App 显示「加载失败 + 重试」而不是静默停在上一页。
+ *
+ * 注意：浏览器不会缓存失败的 module 记录，所以重复调用同一个 import()
+ * 会真的重新发起请求（已用 CDP 断网复原验证过）。
+ */
+const RETRY_DELAYS = [200, 600];
+
+function withRetry(load: Loader, tab: string): Loader {
+  return async () => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+      try {
+        return await load();
+      } catch (error) {
+        lastError = error;
+        if (attempt < RETRY_DELAYS.length) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+        }
+      }
+    }
+    throw new Error(`页签「${tab}」加载失败：${lastError instanceof Error ? lastError.message : String(lastError)}`);
+  };
+}
+
+export const demoLoaders: Record<string, Loader> = Object.fromEntries(
+  Object.entries(rawLoaders).map(([tab, load]) => [tab, withRetry(load, tab)]),
+);

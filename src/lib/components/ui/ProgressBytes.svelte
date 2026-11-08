@@ -58,14 +58,14 @@
 </div>
 
 <style>
-	.progress-bytes { margin-top: var(--sp-lg); display: flex; flex-direction: column; gap: 6px; }
+	.progress-bytes { margin-top: var(--sp-lg); display: flex; flex-direction: column; gap: var(--space-1-5); }
 	.progress-row1 { display: flex; align-items: center; justify-content: space-between; }
-	.progress-filename { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
-	.progress-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-	.progress-eta { font-size: 12px; color: var(--text-muted); }
-	.progress-row2 { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+	.progress-filename { font-size: var(--fs-12); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+	.progress-right { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+	.progress-eta { font-size: var(--fs-12); color: var(--text-muted); }
+	.progress-row2 { display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-12); color: var(--text-muted); }
 	.progress-bytes-info { font-variant-numeric: tabular-nums; }
 	.progress-stats { font-variant-numeric: tabular-nums; }
-	.progress-track { width: 100%; background-color: var(--surface-2); border-radius: 9999px; height: 12px; overflow: hidden; }
-	.progress-bar { height: 100%; border-radius: 9999px; background-color: var(--primary); transition: width 0.3s; }
+	.progress-track { width: 100%; background-color: var(--surface-2); border-radius: var(--radius-full); height: 12px; overflow: hidden; }
+	.progress-bar { height: 100%; border-radius: var(--radius-full); background-color: var(--primary); transition: width 0.3s; }
 </style>

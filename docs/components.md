@@ -108,7 +108,7 @@
 | 组件                 | 说明                                                                                        |
 | -------------------- | ------------------------------------------------------------------------------------------- |
 | Modal                | 模态弹窗（fade+scale 转场、backdrop blur、`headerActions` 标题行操作、多层按打开顺序叠放）  |
-| Drawer               | 抽屉弹窗（4 方向 + 可调景深 `pushScale`/`pushBlur` + 可拖动吸附尺寸 / 拖到底关闭 + portal） |
+| Drawer               | 抽屉弹窗（4 方向 + 可调景深 `pushScale`/`pushBlur` + 遮罩深浅 `--drawer-mask` + 可拖动吸附尺寸 / 拖到底关闭 + portal） |
 | AlertDialog          | 警惕对话框（焦点陷阱、初始聚焦、loading/danger）                                            |
 | ConfirmDialog        | 确认框容器（App 顶层挂载一次，配合 showConfirm 使用）                                       |
 | ErrorDialog          | 错误弹窗（配合 pushError 使用）                                                             |

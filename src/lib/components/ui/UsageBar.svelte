@@ -56,13 +56,13 @@
 </div>
 
 <style>
-	.usage-bar { display: flex; flex-direction: column; gap: 2px; }
-	.usage-label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+	.usage-bar { display: flex; flex-direction: column; gap: var(--space-0-5); }
+	.usage-label { display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-12); }
 	.usage-label-text { color: var(--text-muted); }
 	.usage-over { color: var(--danger-text); font-weight: 600; }
-	.usage-pct { margin-left: 6px; }
-	.usage-track { width: 100%; background-color: var(--surface-2); border-radius: 9999px; overflow: hidden; }
-	.usage-fill { height: 100%; border-radius: 9999px; background-color: var(--primary); transition: width 0.5s; }
+	.usage-pct { margin-left: var(--space-1-5); }
+	.usage-track { width: 100%; background-color: var(--surface-2); border-radius: var(--radius-full); overflow: hidden; }
+	.usage-fill { height: 100%; border-radius: var(--radius-full); background-color: var(--primary); transition: width 0.5s; }
 	.usage-fill--over { background-color: var(--danger); }
 	.usage-fill--high { background-color: #f59e0b; }
 </style>

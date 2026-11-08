@@ -126,7 +126,7 @@
 		color: var(--primary);
 	}
 	.countdown-note {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 </style>

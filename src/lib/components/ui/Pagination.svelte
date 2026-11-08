@@ -152,7 +152,7 @@
 		flex-wrap: wrap;
 	}
 	.pagination-total {
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		margin-right: var(--sp-md);
 	}
@@ -175,7 +175,7 @@
 		border-radius: var(--radius-md);
 		background: var(--surface);
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		font-family: var(--font-mono);
 		cursor: pointer;
 		transition: background-color 0.15s, border-color 0.15s, color 0.15s;
@@ -207,7 +207,7 @@
 		align-items: center;
 		gap: var(--sp-sm);
 		margin-left: var(--sp-sm);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		white-space: nowrap;
 	}
@@ -221,7 +221,7 @@
 		background: var(--surface);
 		color: var(--text);
 		font-family: var(--font-mono);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-align: center;
 		box-sizing: border-box;
 		transition: border-color 0.15s;

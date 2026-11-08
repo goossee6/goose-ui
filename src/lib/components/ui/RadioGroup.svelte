@@ -88,21 +88,21 @@
 	.radio-group {
 		position: relative;
 		display: flex;
-		gap: 2px;
-		padding: 4px;
+		gap: var(--space-0-5);
+		padding: var(--space-1);
 		border-radius: var(--radius-lg);
 		background: var(--surface-2);
 		width: fit-content;
 	}
 	.radio-group--vertical {
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 	}
 	.radio-group :global(.radio-group-item) {
 		position: relative;
 		z-index: 1;
-		padding: 6px 10px;
-		border-radius: calc(var(--radius-lg) - 4px);
+		padding: var(--space-1-5) var(--space-2-5);
+		border-radius: calc(var(--radius-lg) - var(--radius-sm));
 		line-height: 1;
 		transition: color 0.15s;
 	}

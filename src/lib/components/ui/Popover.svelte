@@ -177,7 +177,7 @@
 		border-radius: var(--radius-md);
 		background: var(--surface);
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		cursor: pointer;
 		transition: background-color 0.15s, border-color 0.15s;
 	}
@@ -220,14 +220,14 @@
 		color: var(--text-strong);
 	}
 	.popover-title {
-		font-size: 14px;
+		font-size: var(--fs-14);
 		font-weight: 600;
 		color: var(--text-strong);
 		margin-bottom: var(--sp-md);
 		padding-right: var(--sp-lg);
 	}
 	.popover-body {
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		line-height: 1.7;
 	}

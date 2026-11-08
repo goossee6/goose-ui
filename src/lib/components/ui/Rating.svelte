@@ -117,7 +117,7 @@
 	.rating {
 		display: inline-flex;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-0-5);
 		line-height: 1;
 	}
 	.rating--disabled {
@@ -125,7 +125,7 @@
 	}
 	.rating-star {
 		display: inline-flex;
-		padding: 2px;
+		padding: var(--space-0-5);
 		border: none;
 		background: none;
 		cursor: pointer;
@@ -154,8 +154,8 @@
 	}
 	.rating-star-overlay {
 		position: absolute;
-		left: 2px;
-		top: 2px;
+		left: var(--space-0-5);
+		top: var(--space-0-5);
 		color: var(--warning);
 		clip-path: inset(0 50% 0 0);
 		pointer-events: none;

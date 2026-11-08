@@ -150,7 +150,7 @@
 		box-sizing: border-box;
 	}
 	.image-fallback-text {
-		font-size: 11px;
+		font-size: var(--fs-11);
 		line-height: 1.4;
 	}
 	.image-zoom {

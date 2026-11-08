@@ -148,12 +148,12 @@
 		height: 100%;
 	}
 	.carousel-title {
-		font-size: 18px;
+		font-size: var(--fs-18);
 		font-weight: 600;
 		color: var(--text-strong);
 	}
 	.carousel-desc {
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 	}
 	.carousel-arrow {

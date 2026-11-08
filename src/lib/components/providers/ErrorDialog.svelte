@@ -44,6 +44,6 @@
   .error-list { display: flex; flex-direction: column; gap: var(--sp-lg); }
   .error-item { border: 1px solid var(--danger-border); border-radius: var(--radius-lg); background-color: var(--danger-soft); overflow: hidden; }
   .error-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-md) var(--sp-lg); background-color: rgba(220, 38, 38, 0.15); }
-  .error-kind { font-size: 12px; font-weight: 600; color: var(--danger-text); font-family: var(--font-mono); }
-  .error-text { margin: 0; padding: var(--sp-lg) var(--sp-lg); font-size: 12px; line-height: 1.5; font-family: var(--font-mono); color: var(--text); white-space: pre-wrap; word-break: break-all; user-select: text; }
+  .error-kind { font-size: var(--fs-12); font-weight: 600; color: var(--danger-text); font-family: var(--font-mono); }
+  .error-text { margin: 0; padding: var(--sp-lg) var(--sp-lg); font-size: var(--fs-12); line-height: 1.5; font-family: var(--font-mono); color: var(--text); white-space: pre-wrap; word-break: break-all; user-select: text; }
 </style>

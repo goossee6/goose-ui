@@ -207,7 +207,7 @@
 		position: relative;
 		display: inline-flex;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-0-5);
 		padding: 0 var(--sp-md);
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
@@ -226,12 +226,12 @@
 	.segment-cell {
 		position: relative;
 		width: 4ch;
-		padding: var(--sp-md) 2px;
+		padding: var(--sp-md) var(--space-0-5);
 		border: none;
 		background: none;
 		outline: none;
 		font-family: inherit;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-align: center;
 		color: var(--text-strong);
 	}
@@ -245,7 +245,7 @@
 	}
 	.segment-sep {
 		color: var(--text-muted);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		user-select: none;
 	}
 </style>

@@ -211,7 +211,7 @@
 		width: var(--notif-width);
 		max-width: calc(100vw - 48px);
 		border-radius: var(--radius-lg);
-		font-size: 14px;
+		font-size: var(--fs-14);
 		color: var(--text-strong);
 		background-color: var(--notif-bg, var(--surface));
 		border: 1px solid var(--border);
@@ -260,9 +260,9 @@
 	:global(.dark) .notification-warning { --notif-cover: var(--warning); }
 	:global(.dark) .notification-error { --notif-cover: var(--danger); }
 
-	.notification-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+	.notification-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-0-5); }
 	.notification-title { font-weight: 500; word-break: break-word; }
-	.notification-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; word-break: break-word; }
+	.notification-desc { font-size: var(--fs-13); color: var(--text-muted); line-height: 1.5; word-break: break-word; }
 
 	.notification-btn { display: flex; align-items: center; }
 
@@ -271,7 +271,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 2px;
+		padding: var(--space-0-5);
 		margin: 0;
 		border: none;
 		background: none;

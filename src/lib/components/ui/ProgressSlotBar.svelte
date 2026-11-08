@@ -36,8 +36,8 @@
 {/if}
 
 <style>
-	.slot-bar { margin-bottom: 2px; }
-	.slot-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
-	.slot-track { width: 100%; background-color: var(--surface-2); border-radius: 9999px; height: 8px; overflow: hidden; }
-	.slot-fill { height: 100%; border-radius: 9999px; background-color: #f97316; transition: width 0.3s; }
+	.slot-bar { margin-bottom: var(--space-0-5); }
+	.slot-label { display: flex; justify-content: space-between; font-size: var(--fs-10); color: var(--text-muted); margin-bottom: var(--space-0-5); }
+	.slot-track { width: 100%; background-color: var(--surface-2); border-radius: var(--radius-full); height: 8px; overflow: hidden; }
+	.slot-fill { height: 100%; border-radius: var(--radius-full); background-color: #f97316; transition: width 0.3s; }
 </style>

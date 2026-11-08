@@ -151,7 +151,7 @@
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		font-family: var(--font-mono);
 		color: var(--text-strong);
 		cursor: pointer;

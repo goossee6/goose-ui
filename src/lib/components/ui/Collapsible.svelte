@@ -135,7 +135,7 @@
 		border: none;
 		background: transparent;
 		color: var(--text);
-		font-size: 14px;
+		font-size: var(--fs-14);
 		text-align: left;
 		cursor: pointer;
 		transition: background-color 0.15s;
@@ -179,7 +179,7 @@
 	.collapsible-body {
 		padding: var(--sp-lg);
 		border-top: 1px solid var(--border);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		line-height: 1.7;
 	}

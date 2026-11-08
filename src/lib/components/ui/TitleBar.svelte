@@ -342,7 +342,7 @@
 		/* 三段之间的最小间距：搜索框自适应伸缩到极限时，
 		   也不会贴到 logo 或窗口键上（三段的「不互相影响」由 gap 兜底，
 		   而不是靠各段自己的 margin —— 中间的搜索段是唯一的弹性段）。 */
-		gap: 12px;
+		gap: var(--space-3);
 		/* 作为容器查询容器，让 .titlebar-search 的 max-width:40cqw 以
 		   「整条标题栏宽度」为参照 —— 40% 指的是标题栏的 40%。
 		   放在这里而不是 .titlebar-search-wrap：wrap 是弹性段，它自身宽度
@@ -353,7 +353,7 @@
 		container: titlebar / inline-size;
 		height: var(--titlebar-h);
 		min-height: var(--titlebar-h);
-		padding: 0 0 0 16px;
+		padding: 0 0 0 var(--space-4);
 		background: transparent;
 		user-select: none;
 	}
@@ -361,7 +361,7 @@
 	.titlebar-left {
 		display: flex;
 		align-items: baseline;
-		gap: 12px;
+		gap: var(--space-3);
 		/* 标题/副标题过长时自身省略号收缩，不挤压搜索段与窗口键 */
 		flex: 0 1 auto;
 		min-width: 0;
@@ -369,7 +369,7 @@
 	}
 
 	.titlebar-title {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -378,7 +378,7 @@
 	}
 
 	.titlebar-logo {
-		font-size: 16px;
+		font-size: var(--fs-16);
 		font-weight: 700;
 		color: var(--text-strong);
 		/*
@@ -467,7 +467,7 @@
 	}
 
 	.titlebar-subtitle {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 		white-space: nowrap;
 		overflow: hidden;
@@ -525,7 +525,7 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-1-5);
 		/* 自适应：只吸收 .titlebar-search-wrap 给的空间，没有像素级的 min/max 区间。
 		   flex-basis:auto 时基准是内容宽度，输入框自身有 size 属性会把它顶大，
 		   所以基准取 0，让 flex-grow 从零开始分配剩余空间。
@@ -542,7 +542,7 @@
 		/* 高度 36px：标题栏默认 42px，上下各留 3px 余量。
 		   超过这条线会挤没上下间隙，改大前先确认 --titlebar-h 也一起调。 */
 		height: 36px;
-		padding: 0 8px;
+		padding: 0 var(--space-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		/* 常态透明：搜索框是标题栏的浮层控件，不参与标题栏的分块排版。
@@ -639,7 +639,7 @@
 		background: transparent;
 		outline: none;
 		color: var(--text);
-		font-size: 12px;
+		font-size: var(--fs-12);
 		font-family: inherit;
 		/* 文字过长时省略号：原本靠 .titlebar-search 的 overflow:hidden 裁切，
 		   但那一层不能裁（会把下拉面板一起裁掉），所以收回输入框自己做。 */
@@ -687,7 +687,7 @@
 	   强行保底宽会让面板反过来把搜索框顶出标题栏。 */
 	.titlebar-search-list {
 		position: absolute;
-		top: calc(100% + 6px);
+		top: calc(100% + var(--space-1-5));
 		right: 0;
 		z-index: var(--z-dialog);
 		/* width:100% + right:0 对齐到搜索框边框内沿，需补回自身 1px×2 边框，
@@ -723,8 +723,8 @@
 	}
 
 	.titlebar-search-group {
-		padding: var(--sp-sm) var(--sp-lg) 2px;
-		font-size: 11px;
+		padding: var(--sp-sm) var(--sp-lg) var(--space-0-5);
+		font-size: var(--fs-11);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
@@ -743,7 +743,7 @@
 		min-width: 0;
 		padding: var(--sp-md) var(--sp-lg);
 		border-radius: var(--radius-md);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text);
 		cursor: pointer;
 	}
@@ -767,16 +767,16 @@
 
 	.titlebar-search-value {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: var(--fs-11);
 		color: var(--text-muted);
 		/* 右侧 value 不参与收缩：面板跟随搜索框变窄时，先截断左侧 label */
 		flex: none;
 	}
 
 	.titlebar-search-empty {
-		padding: 24px;
+		padding: var(--space-6);
 		text-align: center;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 	}
 

@@ -145,7 +145,7 @@
 		background-color: var(--primary-soft);
 	}
 	.drop-zone-text {
-		font-size: 14px;
+		font-size: var(--fs-14);
 		color: var(--text-muted);
 		margin: 0;
 	}
@@ -154,19 +154,19 @@
 		font-weight: 500;
 	}
 	.drop-zone-hint {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 		margin: 0;
 	}
 	.drop-zone-flash {
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--danger-text);
 		margin: 0;
 	}
 	.drop-zone-files {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--space-1);
 		width: 100%;
 		max-height: 64px;
 		overflow-y: auto;
@@ -180,7 +180,7 @@
 		align-items: baseline;
 		justify-content: space-between;
 		gap: var(--sp-md);
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text);
 		line-height: 1.5;
 	}

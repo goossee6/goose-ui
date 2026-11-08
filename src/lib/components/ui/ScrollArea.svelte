@@ -55,7 +55,7 @@
 	}
 	.scroll-area::-webkit-scrollbar-thumb {
 		background-color: var(--scrollbar);
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		border: 2px solid transparent;
 		background-clip: padding-box;
 	}

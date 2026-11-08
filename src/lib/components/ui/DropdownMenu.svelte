@@ -370,7 +370,7 @@
 		border-radius: var(--radius-md);
 		background: none;
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-align: left;
 		cursor: pointer;
 		white-space: nowrap;
@@ -443,7 +443,7 @@
 		box-sizing: border-box;
 		width: var(--toggle-w-sm);
 		height: var(--toggle-h-sm);
-		border-radius: 999px;
+		border-radius: var(--radius-full);
 		background-color: var(--surface-3);
 		border: 1px solid var(--border-strong);
 		transition:
@@ -456,17 +456,17 @@
 	}
 	.dropdown-switch-thumb {
 		position: absolute;
-		top: 2px;
-		left: 2px;
+		top: var(--space-0-5);
+		left: var(--space-0-5);
 		width: var(--toggle-thumb-sm);
 		height: var(--toggle-thumb-sm);
-		border-radius: 999px;
+		border-radius: var(--radius-full);
 		background-color: var(--primary-text);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 		transition: left 0.2s ease;
 	}
 	.dropdown-switch--on .dropdown-switch-thumb {
-		left: calc(100% - var(--toggle-thumb-sm) - 2px);
+		left: calc(100% - var(--toggle-thumb-sm) - var(--space-0-5));
 	}
 	/* 悬停时整行是品牌色实心 pill：开态轨道原本也是 --primary，会整个「融进」去。
 	   这里把轨道改成半透明白，靠明度差把自己勾出来；关态轨道也提亮一档，

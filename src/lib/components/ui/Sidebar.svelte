@@ -569,14 +569,14 @@
   .sidebar {
     --sidebar-w: 220px;
     position: fixed;
-    top: 16px;
-    left: 16px;
-    bottom: 16px;
+    top: var(--space-4);
+    left: var(--space-4);
+    bottom: var(--space-4);
     width: var(--sidebar-w);
     background: var(--surface);
     display: flex;
     flex-direction: column;
-    padding: 14px 0;
+    padding: var(--space-3-5) 0;
     gap: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
@@ -628,13 +628,13 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--sb-gap-icon);
-    padding: 0 var(--sb-rail) 12px var(--sb-edge);
+    padding: 0 var(--sb-rail) var(--space-3) var(--sb-edge);
     border-bottom: 1px solid var(--border);
     min-height: var(--sb-row-h);
   }
   .sidebar--collapsed .sidebar-header {
     justify-content: center;
-    padding: 0 0 12px;
+    padding: 0 0 var(--space-3);
   }
   .header-content { display: contents; }
   .logo {
@@ -683,7 +683,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;
-    padding: 0 var(--sb-inset) 8px var(--sb-rail);
+    padding: 0 var(--sb-inset) var(--space-2) var(--sb-rail);
     display: flex;
     flex-direction: column;
     /* 组间 16：用 gap 而不是 margin——endItems 的「贴底」靠 margin-top:auto，
@@ -699,7 +699,7 @@
   }
   /* endItems：空间有余量时贴底（auto margin），列表超高时顺次接在末尾 */
   .sidebar-nav > * { flex-shrink: 0; }
-  .sidebar-nav > :first-child { margin-top: 8px; }
+  .sidebar-nav > :first-child { margin-top: var(--space-2); }
   .nav-item--end.end-first,
   .group-icon-btn--end.end-first { margin-top: auto; }
   /* 折叠态的图标按钮外面套了 Tooltip 触发器，它取代按钮成了 .sidebar-nav 的
@@ -709,7 +709,7 @@
     flex-shrink: 0;
     width: 100%;
   }
-  .sidebar-nav > :global(.sb-tip:first-child) { margin-top: 8px; }
+  .sidebar-nav > :global(.sb-tip:first-child) { margin-top: var(--space-2); }
   .sidebar-nav > :global(.sb-tip.end-first) { margin-top: auto; }
 
   /* ── Group header (expanded)：Collapsible 触发区/根覆写（同 Accordion 先例） ── */
@@ -843,7 +843,7 @@
     width: 100%;
     height: var(--sb-row-h);
     /* 组内项是 2 级：在内边距之上再缩进 10，靠缩进表达层级、不靠字号 */
-    padding: 0 var(--sb-pad) 0 calc(var(--sb-pad) + 10px);
+    padding: 0 var(--sb-pad) 0 calc(var(--sb-pad) + var(--space-2-5));
     scroll-margin-top: calc(var(--sb-row-h) + 8px);
     border: none;
     background: none;
@@ -905,7 +905,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--sb-gap-icon);
-    padding: 12px var(--sb-rail) 0 var(--sb-edge);
+    padding: var(--space-3) var(--sb-rail) 0 var(--sb-edge);
     border-top: 1px solid var(--border);
     font-size: var(--sb-font-label);
     color: var(--text-muted);
@@ -914,7 +914,7 @@
   .sidebar-footer-theme {
     display: flex;
     align-items: center;
-    margin: -6px -8px -6px 0;
+    margin: calc(-1 * var(--space-1-5)) calc(-1 * var(--space-2)) calc(-1 * var(--space-1-5)) 0;
   }
   :global(.dark) .sidebar-footer {
     color: rgba(255, 255, 255, 0.3);
@@ -936,7 +936,7 @@
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(12px);
-    padding: 8px;
+    padding: var(--space-2);
     /* 进出场由 menuIn/menuOut 负责（与其它浮层同一曲线）。
        原来这里是一条 @keyframes，只有进入、没有离开：鼠标移开后面板是「啪」地消失的。 */
   }
@@ -944,14 +944,14 @@
     display: flex;
     align-items: center;
     gap: var(--sb-gap-icon);
-    padding: 4px 8px 6px;
+    padding: var(--space-1) var(--space-2) var(--space-1-5);
     font-size: var(--sb-font-label);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border);
-    margin-bottom: 2px;
+    margin-bottom: var(--space-0-5);
   }
   .popover-item {
     display: flex;
@@ -961,7 +961,7 @@
     /* 32 高：弹层比展开态紧凑，但仍是完整的一行（文字 + 上下留白），
        比原来的 6px 内边距（约 30 高、且上下不均）更好点 */
     min-height: var(--sb-hit);
-    padding: 6px 8px;
+    padding: var(--space-1-5) var(--space-2);
     border: none;
     border-radius: var(--sb-radius);
     background: none;

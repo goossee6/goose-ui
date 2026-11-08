@@ -58,6 +58,6 @@
 	}
 	.range-sep {
 		color: var(--text-muted);
-		font-size: 13px;
+		font-size: var(--fs-13);
 	}
 </style>

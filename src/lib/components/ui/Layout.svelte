@@ -85,8 +85,8 @@
 		position: relative;
 		flex: 1;
 		display: flex;
-		gap: 8px;
-		padding: 0 8px 8px;
+		gap: var(--space-2);
+		padding: 0 var(--space-2) var(--space-2);
 		min-height: 0;
 	}
 	.layout-aside {

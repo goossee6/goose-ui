@@ -57,7 +57,7 @@
 		padding: var(--sp-lg) var(--sp-lg);
 		background: var(--surface);
 		color: var(--text-muted);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		box-sizing: border-box;
 	}
 	.footer.border {
@@ -89,7 +89,7 @@
 		border: none;
 		background: none;
 		color: var(--text-muted);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-decoration: none;
 		cursor: pointer;
 		transition: color 0.15s;
@@ -99,7 +99,7 @@
 	}
 	.footer-copyright {
 		margin: var(--sp-md) 0 0;
-		font-size: 12px;
+		font-size: var(--fs-12);
 		text-align: center;
 		color: var(--text-muted);
 	}

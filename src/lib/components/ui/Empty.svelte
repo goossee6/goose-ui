@@ -40,8 +40,8 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
-		padding: 40px;
+		gap: var(--space-2);
+		padding: var(--space-10);
 		text-align: center;
 	}
 	.empty-icon {
@@ -51,19 +51,19 @@
 	}
 	.empty-title {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--fs-14);
 		color: var(--text-muted);
 	}
 	.empty-hint {
 		margin: 0;
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 		opacity: 0.75;
 	}
 	.empty-actions {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		margin-top: 4px;
+		gap: var(--space-2);
+		margin-top: var(--space-1);
 	}
 </style>

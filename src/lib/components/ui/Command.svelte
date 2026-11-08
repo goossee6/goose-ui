@@ -206,7 +206,7 @@
 		border-radius: var(--radius-md);
 		background: var(--surface);
 		color: var(--text-muted);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		cursor: pointer;
 		transition: border-color 0.15s, background-color 0.15s;
 	}
@@ -220,8 +220,8 @@
 	}
 	.command-kbd {
 		font-family: var(--font-mono);
-		font-size: 11px;
-		padding: 2px 6px;
+		font-size: var(--fs-11);
+		padding: var(--space-0-5) var(--space-1-5);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
 		background: var(--surface-2);
@@ -265,7 +265,7 @@
 		border: none;
 		background: none;
 		outline: none;
-		font-size: 14px;
+		font-size: var(--fs-14);
 		color: var(--text-strong);
 		font-family: inherit;
 	}
@@ -281,8 +281,8 @@
 		scrollbar-gutter: stable;
 	}
 	.command-group {
-		padding: var(--sp-sm) var(--sp-lg) 2px;
-		font-size: 11px;
+		padding: var(--sp-sm) var(--sp-lg) var(--space-0-5);
+		font-size: var(--fs-11);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
@@ -296,7 +296,7 @@
 		gap: var(--sp-md);
 		padding: var(--sp-md) var(--sp-lg);
 		border-radius: var(--radius-md);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text);
 		cursor: pointer;
 	}
@@ -310,13 +310,13 @@
 	}
 	.command-item-value {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: var(--fs-11);
 		color: var(--text-muted);
 	}
 	.command-empty {
-		padding: 24px;
+		padding: var(--space-6);
 		text-align: center;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 	}
 </style>

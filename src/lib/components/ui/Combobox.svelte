@@ -285,7 +285,7 @@
 		border: none;
 		background: none;
 		outline: none;
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-strong);
 		font-family: inherit;
 	}
@@ -333,8 +333,8 @@
 	/* 结果计数：absolute 不进 rowsHeight 高度模型；pointer-events:none 不拦顶部滚动触发区 */
 	.combobox-count {
 		position: absolute;
-		top: 4px;
-		right: 8px;
+		top: var(--space-1);
+		right: var(--space-2);
 		z-index: 4;
 		font-size: var(--font-sm);
 		color: var(--text-muted);
@@ -364,8 +364,8 @@
 		align-items: center;
 		height: 24px;
 		/* 与选项文字列对齐：选项 padding-left 16 + 勾槽 16 + gap 8 = 40 */
-		padding: 0 40px;
-		font-size: 12px;
+		padding: 0 var(--space-10);
+		font-size: var(--fs-12);
 		font-weight: 600;
 		color: color-mix(in srgb, var(--text-muted) 70%, transparent);
 		/* 吸顶时轻微磨砂：半透明底 + 弱模糊，滚动经过的选项在组头下若隐若现 */
@@ -381,7 +381,7 @@
 		height: var(--height-md);
 		padding: 0 var(--sp-lg);
 		border-radius: var(--radius-md);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text);
 		cursor: pointer;
 		transition: color 0.1s, background-color 0.1s;
@@ -407,7 +407,7 @@
 	}
 	.combobox-empty {
 		padding: var(--sp-lg);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		color: var(--text-muted);
 		text-align: center;
 		position: relative;

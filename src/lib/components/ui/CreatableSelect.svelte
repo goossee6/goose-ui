@@ -391,7 +391,7 @@
 	}
 	.cs-header {
 		padding: var(--sp-lg) var(--sp-lg);
-		font-size: 12px;
+		font-size: var(--fs-12);
 		font-weight: 600;
 		color: var(--text-muted);
 		border-bottom: 1px solid var(--border);
@@ -400,7 +400,7 @@
 	.cs-search {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-1-5);
 		padding: var(--sp-lg) var(--sp-lg);
 		border-bottom: 1px solid var(--border);
 	}
@@ -418,15 +418,15 @@
 		background: none;
 		outline: none;
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 	}
 	/* 列表区（滚动视口）：触发区的定位基准；四边 4px 内边距 → pill 不贴面板边框（与 Select/Combobox/MultiSelect 一致） */
 	.cs-listwrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: var(--sp-sm); }
 	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致；360 = 严格前 10 行 × 36px */
 	.cs-list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: 360px; scrollbar-width: none; -ms-overflow-style: none; }
 	.cs-list::-webkit-scrollbar { display: none; }
-	.cs-loading { display: flex; justify-content: center; padding: 12px 0; }
-	.cs-empty { padding: var(--sp-lg) var(--sp-lg); font-size: 12px; color: var(--text-muted); }
+	.cs-loading { display: flex; justify-content: center; padding: var(--space-3) 0; }
+	.cs-empty { padding: var(--sp-lg) var(--sp-lg); font-size: var(--fs-12); color: var(--text-muted); }
 	.cs-option {
 		position: relative;
 		display: flex;
@@ -438,7 +438,7 @@
 		border: none;
 		background: none;
 		color: var(--text);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		text-align: left;
 		cursor: pointer;
 		transition: color 0.1s, background-color 0.1s;
@@ -476,14 +476,14 @@
 	.cs-create {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-1-5);
 		width: 100%;
 		height: var(--height-md);
 		padding: 0 var(--sp-lg);
 		border: none;
 		background: none;
 		color: var(--primary);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		cursor: pointer;
 		border-radius: var(--radius-md);
 		transition: background-color 0.1s;

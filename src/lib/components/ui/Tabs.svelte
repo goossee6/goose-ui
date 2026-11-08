@@ -189,12 +189,12 @@
 	}
 	.tabs-group::-webkit-scrollbar { display: none; }
 	.tabs-group--segmented {
-		gap: 4px;
+		gap: var(--space-1);
 		/* fit-content 会被 nowrap 的 tab 撑到内容宽度而顶出父级，
 		   max-width:100% 把它压回容器内，配合上面的 overflow-x 横向滚动。 */
 		width: fit-content;
 		max-width: 100%;
-		padding: 4px;
+		padding: var(--space-1);
 		border-radius: var(--radius-lg);
 		background-color: var(--surface-2);
 		border: 1px solid var(--border);
@@ -206,7 +206,7 @@
 	}
 	.tabs-group--vertical {
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-0-5);
 		width: 100%;
 	}
 	.tab {
@@ -245,7 +245,7 @@
 		font-size: var(--tab-col-font-md);
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: var(--space-2);
 	}
 	.tabs-mode--vertical.tab-active { color: var(--primary-text); }
 	.tabs-mode--vertical:not(.tab-active) { color: var(--text-muted); }

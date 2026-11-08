@@ -71,7 +71,7 @@
 		width: 100%;
 		min-width: 0;
 		min-height: 72px;
-		padding: var(--sp-lg) 12px;
+		padding: var(--sp-lg) var(--space-3);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		background-color: transparent;

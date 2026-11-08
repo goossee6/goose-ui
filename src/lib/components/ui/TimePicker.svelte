@@ -235,7 +235,7 @@
 		background: var(--surface);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-md);
-		font-size: 13px;
+		font-size: var(--fs-13);
 		font-family: var(--font-mono);
 		color: var(--text-strong);
 		cursor: pointer;
@@ -323,7 +323,7 @@
 	}
 	.tp-sep {
 		font-family: var(--font-mono);
-		font-size: 16px;
+		font-size: var(--fs-16);
 		font-weight: 600;
 		color: var(--text-muted);
 	}
@@ -337,7 +337,7 @@
 	}
 	.tp-hint {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 </style>

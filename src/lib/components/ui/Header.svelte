@@ -86,12 +86,12 @@
   .header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     flex-shrink: 0;
   }
 
   .header-title {
-    font-size: 15px;
+    font-size: var(--fs-16);
     font-weight: 600;
     color: var(--text-strong);
     white-space: nowrap;
@@ -108,7 +108,7 @@
   .header-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     flex-shrink: 0;
   }
 </style>
