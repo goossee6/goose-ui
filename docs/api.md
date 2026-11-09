@@ -1,6 +1,7 @@
 # 工具函数与 API
 
-组件总览见[组件清单](components.md)；应用外壳用法见[应用外壳](shell.md)。
+组件总览见[组件清单](components.md)；单个组件的 props 见[组件 Props 参考](api-reference.md)；
+应用外壳用法见[应用外壳](shell.md)。
 
 ## 工具函数
 

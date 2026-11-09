@@ -10,9 +10,21 @@ under `src/lib/components/ui`. The only runtime peer dependency is `@lucide/svel
 (**required** — a dozen components import its icons at module top level).
 All components consume CSS custom properties; the theme is a single file.
 
-Detailed docs live in the repo `docs/` (installation / component list / app shell / API /
-theming); copy-paste examples for every component are in the online demo:
-<https://goossee6.github.io/goose-ui/>
+Detailed docs live in the repo `docs/` (index: `docs/README.md`). Read the one you need instead of guessing:
+
+| Need | Read |
+| --- | --- |
+| props of one component (type / default / `$bindable`) | `docs/api-reference.md` — generated from source, 83 components / 772 props |
+| what a component is, and its group | `docs/components.md` — one line each, **grouping is authoritative** |
+| app shell: `Layout` / `Page` / `Sidebar` / `TitleBar`, page TOC, page transitions | `docs/shell.md` |
+| imperative APIs: notification / confirm / error / context menu / `menuIn` / `PillTrack` | `docs/api.md` |
+| colors, CSS variables, utilities | `docs/theming.md` |
+| which spacing / font / radius value to write | `docs/grid.md` |
+| editing this library itself (repo map, hard rules, checklists) | `docs/AGENTS.md` |
+
+Copy-paste examples for every component are in the online demo:
+<https://goossee6.github.io/goose-ui/> (each page toggles "effect / source"; sources live in
+`demo/src/lib/demos/`).
 
 ## Prerequisites
 
@@ -166,6 +178,11 @@ theming); copy-paste examples for every component are in the online demo:
     `contains`** (panels portal to `body`, so `contains()` can't attribute sub-panels; the missed-hit symptom is
     "select options inside a popover don't respond to clicks"). Panels carry `data-overlay-layer`, call
     `registerLayer` before portaling, and check `isInsideLayer(e.target, layerId, [rootEl, panelEl])`.
+21. **Write style values from the scale, not as literals**: spacing `--space-{n}` (n = px / 4, sub-steps through
+    `--space-0-5` = 2px / `--space-1-5` = 6px), font size `--fs-{px}` (10–20 in 1px steps), radii
+    `--radius-xs|sm|md|lg|xl|full`, control heights `--height-sm|md|lg` (28 / 36 / 44 — sizes are an enum, not
+    a scale). Borders (1px/2px), shadows, offsets and letter-spacing stay literal on purpose. `pnpm grid:audit`
+    fails on tokens that don't exist or whose name doesn't match their value.
 
 ## Writing Custom Controls
 
@@ -217,7 +234,9 @@ After changes, run (from the repo root):
 ```bash
 pnpm check                             # svelte-check type check (with --fail-on-warnings)
 pnpm test                              # unit tests (node --test, tests/*.test.ts)
-pnpm build                             # confirm it builds
+pnpm build                             # demo build + per-file budget (any file >500KB fails)
+pnpm grid:audit                        # style tokens exist and their names match their values
+pnpm docs:api                          # after touching props: regenerate docs/api-reference.md
 ```
 
 Layout changes (width, overflow, overlap) escape type checking — verify in a real browser by dragging the window

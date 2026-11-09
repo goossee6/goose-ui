@@ -1,5 +1,11 @@
 # 组件清单
 
+86 个组件，按分组列出，每组只有一句话说明。
+
+- 要查某个组件的 props（类型 / 默认值 / 能否 `bind:`）：[组件 Props 参考](api-reference.md)
+- 要看可运行示例：[在线 demo](https://goossee6.github.io/goose-ui/)，对应源码在 `demo/src/lib/demos/`
+- 表格里这一行说明会被 `api-reference.md` 复用，**新增组件必须在这里补一行**
+
 > 与 Ark UI 等上游命名不一致时，以本表名为准：
 
 | 上游常见叫法 | goose-ui 名 | 说明                                        |

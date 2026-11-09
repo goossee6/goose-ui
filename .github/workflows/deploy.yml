@@ -30,6 +30,8 @@ jobs:
       # 类型检查与单测必须在构建之前失败，否则带类型错误的组件照样会被部署上线
       - run: pnpm check
       - run: pnpm test
+      # docs/api-reference.md 是生成物：组件 props 改了却没重新生成，会在这里挡住
+      - run: pnpm docs:api:check
       - run: pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:

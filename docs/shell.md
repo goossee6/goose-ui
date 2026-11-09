@@ -1,6 +1,7 @@
 # 应用外壳
 
-Layout / Page / Sidebar / TitleBar 的组合用法。组件总览见[组件清单](components.md)。
+Layout / Page / Sidebar / TitleBar 的组合用法。组件总览见[组件清单](components.md)，
+各组件 props 见[组件 Props 参考](api-reference.md)（例如 `TitleBar` 的 `searchable`、`Sidebar` 的 `groups`）。
 
 ## 新项目接入
 
@@ -38,6 +39,9 @@ Layout / Page / Sidebar / TitleBar 的组合用法。组件总览见[组件清�
 - `titlebar` / `aside` 都是可选插槽：不传 `aside` 时内容区占满整宽，导航可改用 `Drawer`
 - `resize`：Wails 窗口（四角手柄 + 全域拖拽调整），浏览器省略
 - `windowControls={false}`：写在 `TitleBar` 上，隐藏默认窗口三键（浏览器环境）；`controls` snippet 可在键区附加自定义按钮
+  （渲染在主题键之前）。**snippet 里的元素处于调用方作用域**，拿不到组件内的 `.win-btn` 样式，
+  需要自备：宽 `46px`、高 `var(--titlebar-h)`、颜色 `var(--text-muted)`、hover 用 `var(--hover)` /
+  `var(--text-strong)`，并加 `--wails-draggable: no-drag`（否则在 Wails 里点不动）
 - `scroll`（默认 `true`）：内容卡片整页滚；`false` = 框架不滚、页内滚动区自理
 - `framed`（默认 `true`）：内容区要不要画成卡片（边框 / 圆角 / 底色）。传 `false` 得到一块裸容器，
   用于首页这类「背景要铺满整窗」或内容自己画分区的场景 —— 以前只能靠

@@ -121,6 +121,16 @@ npx skills add goossee6/goose-ui        # Claude Code / Codex / Cursor 通用`;
       技能正文见仓库 <code>skills/goose-ui/SKILL.md</code>，也可在侧栏「Skill」页查看与复制全文。
     </p>
   </Card>
+
+  <Card anchor="docs" title="文档去哪查">
+    <p class="note">
+      组件怎么选 → <code>docs/components.md</code>；某个组件的 props（类型 / 默认值 / 能否 <code>bind:</code>）→
+      <code>docs/api-reference.md</code>（由源码生成，不会过期）；外壳与命令式 API →
+      <code>docs/shell.md</code> / <code>docs/api.md</code>；主题与刻度 →
+      <code>docs/theming.md</code> / <code>docs/grid.md</code>。全部文档的索引在 <code>docs/README.md</code>，
+      要改这个库本身先读 <code>docs/AGENTS.md</code>。
+    </p>
+  </Card>
 </Page>
 
 <style>
