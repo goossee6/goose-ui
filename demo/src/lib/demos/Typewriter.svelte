@@ -15,7 +15,7 @@
     { name: "duration", desc: "打字总时长(ms)", type: "number", default: "2000" },
     { name: "speed", desc: "单字符间隔(ms)，不传时按 duration 自动计算", type: "number" },
     { name: "trigger", desc: "触发重播的依赖值，变化时重新播放", type: "unknown" },
-    { name: "autoPlay", desc: "挂载后自动播放", type: "boolean", default: "true" },
+    { name: "autoPlay", desc: "是否播放打字机；默认关闭，不传就只静态展示文本", type: "boolean", default: "false" },
     { name: "cursor", desc: "显示光标", type: "boolean", default: "true" },
     { name: "onDone", desc: "播放完成回调", type: "() => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
@@ -28,7 +28,7 @@
   let replay = $state(0);
 <\/script>
 
-<Typewriter text="goose-ui 是一个基于 Svelte 5 的现代 UI 组件库，专注于构建桌面应用界面。" trigger={replay} />
+<Typewriter autoPlay text="goose-ui 是一个基于 Svelte 5 的现代 UI 组件库，专注于构建桌面应用界面。" trigger={replay} />
 <Button size="small" variant="primary" onclick={() => replay++}>重新播放</Button>`;
 
   const durationSource = `<script lang="ts">
@@ -37,7 +37,7 @@
   let replay = $state(0);
 <\/script>
 
-<Typewriter text="这段文字用 4 秒播放完毕，速度会自动适配内容长度。" duration={4000} trigger={replay} />`;
+<Typewriter autoPlay text="这段文字用 4 秒播放完毕，速度会自动适配内容长度。" duration={4000} trigger={replay} />`;
 
   const speedSource = `<script lang="ts">
   import { Typewriter, Button } from "goose-ui";
@@ -45,7 +45,7 @@
   let replay = $state(0);
 <\/script>
 
-<Typewriter text="speed 优先于 duration，这里每字符 80ms。" speed={80} trigger={replay} />
+<Typewriter autoPlay text="speed 优先于 duration，这里每字符 80ms。" speed={80} trigger={replay} />
 <Button size="small" variant="primary" onclick={() => replay++}>重新播放</Button>`;
 
   const noCursorSource = `<script lang="ts">
@@ -54,7 +54,7 @@
   let replay = $state(0);
 <\/script>
 
-<Typewriter text="不显示闪烁光标的打字机效果。" cursor={false} trigger={replay} />
+<Typewriter autoPlay text="不显示闪烁光标的打字机效果。" cursor={false} trigger={replay} />
 <Button size="small" variant="primary" onclick={() => replay++}>重新播放</Button>`;
 
   const manualSource = `<script lang="ts">
@@ -63,7 +63,7 @@
   let replay = $state(0);
 <\/script>
 
-<Typewriter text="点击按钮后才开始播放的打字机效果。" autoPlay={false} trigger={replay} />
+<Typewriter text="不传 autoPlay 就只静态展示，点按钮才播放。" trigger={replay} />
 <Button size="small" variant="primary" onclick={() => replay++}>开始播放</Button>`;
 
   const onDoneSource = `<script lang="ts">
@@ -74,6 +74,7 @@
 <\/script>
 
 <Typewriter
+  autoPlay
   text="播放完毕后会触发 onDone 回调，点击次数已记录。"
   duration={2000}
   trigger={replay}
@@ -85,10 +86,10 @@
 <p>播放完成次数：{doneCount}</p>`;
 </script>
 
-<Page toc title="打字机 Typewriter" description="逐字显示的打字机效果，支持总时长/每字符速度、光标、手动播放、完成回调">
+<Page toc title="打字机 Typewriter" description="逐字显示的打字机效果（默认不启用，需显式传 autoPlay），支持总时长/每字符速度、光标、手动播放、完成回调">
   <CodePreview anchor="duration-2000ms" anchorLevel={3} title="默认 duration=2000ms" code={defaultSource}>
     <div class="tw-box">
-      <Typewriter text="goose-ui 是一个基于 Svelte 5 的现代 UI 组件库，专注于构建桌面应用界面。" trigger={replayTrigger} />
+      <Typewriter autoPlay text="goose-ui 是一个基于 Svelte 5 的现代 UI 组件库，专注于构建桌面应用界面。" trigger={replayTrigger} />
     </div>
     <div class="demo-row" style="margin-top:12px">
       <Button size="small" variant="primary" onclick={() => replayTrigger++}>重新播放</Button>
@@ -97,14 +98,14 @@
 
   <CodePreview anchor="custom" anchorLevel={2} title="自定义 duration" code={durationSource}>
     <div class="tw-box">
-      <Typewriter text="这段文字用 4 秒播放完毕，速度会自动适配内容长度。" duration={4000} trigger={replayTrigger} />
+      <Typewriter autoPlay text="这段文字用 4 秒播放完毕，速度会自动适配内容长度。" duration={4000} trigger={replayTrigger} />
     </div>
     <p class="hint">duration=4000，总时长 4 秒。</p>
   </CodePreview>
 
   <CodePreview anchor="speed-duration" anchorLevel={3} title="speed 覆盖 duration" code={speedSource}>
     <div class="tw-box">
-      <Typewriter text="speed 优先于 duration，这里每字符 80ms。" speed={80} trigger={speedReplay} />
+      <Typewriter autoPlay text="speed 优先于 duration，这里每字符 80ms。" speed={80} trigger={speedReplay} />
     </div>
     <div class="demo-row" style="margin-top:12px">
       <Button size="small" variant="primary" onclick={() => speedReplay++}>重新播放</Button>
@@ -114,16 +115,16 @@
 
   <CodePreview anchor="cursor-false" anchorLevel={3} title="cursor=false 隐藏光标" code={noCursorSource}>
     <div class="tw-box">
-      <Typewriter text="不显示闪烁光标的打字机效果。" cursor={false} trigger={noCursorReplay} />
+      <Typewriter autoPlay text="不显示闪烁光标的打字机效果。" cursor={false} trigger={noCursorReplay} />
     </div>
     <div class="demo-row" style="margin-top:12px">
       <Button size="small" variant="primary" onclick={() => noCursorReplay++}>重新播放</Button>
     </div>
   </CodePreview>
 
-  <CodePreview anchor="autoplay-false" anchorLevel={3} title="autoPlay=false 手动触发" code={manualSource}>
+  <CodePreview anchor="autoplay-false" anchorLevel={3} title="不传 autoPlay：默认静态展示" code={manualSource}>
     <div class="tw-box">
-      <Typewriter text="点击按钮后才开始播放的打字机效果。" autoPlay={false} trigger={manualReplay} />
+      <Typewriter text="不传 autoPlay 就只静态展示，点按钮才播放。" trigger={manualReplay} />
     </div>
     <div class="demo-row" style="margin-top:12px">
       <Button size="small" variant="primary" onclick={() => manualReplay++}>开始播放</Button>
@@ -133,6 +134,7 @@
   <CodePreview anchor="ondone" anchorLevel={3} title="onDone 完成回调" code={onDoneSource}>
     <div class="tw-box">
       <Typewriter
+        autoPlay
         text="播放完毕后会触发 onDone 回调，点击次数已记录。"
         duration={2000}
         trigger={replayTrigger}

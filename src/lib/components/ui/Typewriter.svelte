@@ -8,7 +8,7 @@
 		duration = 2000,
 		speed,
 		trigger,
-		autoPlay = true,
+		autoPlay = false,
 		cursor = true,
 		onDone,
 		class: cls = '',
@@ -19,6 +19,7 @@
 		duration?: number;
 		speed?: number;
 		trigger?: unknown;
+		/** 默认不启用打字机：只静态展示 text / children。传 true 才逐字播放 */
 		autoPlay?: boolean;
 		cursor?: boolean;
 		onDone?: () => void;
@@ -76,7 +77,11 @@
 	});
 
 	$effect(() => {
-		if (mounted && text) startTyping();
+		if (mounted && text) {
+			// 未启用时 text 变了要退回静态展示，否则会留着上一次播放到一半的字符
+			if (autoPlay) startTyping();
+			else { totalChars = 0; chars = []; }
+		}
 	});
 </script>
 
@@ -84,8 +89,10 @@
 	<span class="tw-text {cls}" style={style} class:tw-cursor={cursor && isTyping}>
 		{#each chars as c}{#if c.visible}<span>{c.char}</span>{/if}{/each}{#if cursor && isTyping}<span class="tw-cursor-char">|</span>{/if}
 	</span>
+{:else if text}
+	<span class="tw-text {cls}" style={style}>{text}</span>
 {:else if children}
-	<div class="tw-fade {cls}" style={style} class:tw-fade--visible={mounted}>
+	<div class="tw-fade {cls}" style={style} class:tw-fade--visible={mounted || !autoPlay}>
 		{@render children()}
 	</div>
 {/if}

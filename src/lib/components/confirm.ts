@@ -11,6 +11,8 @@ interface ConfirmState {
   confirmText: string;
   cancelText: string;
   danger: boolean;
+  /** 正文打字机效果；默认关闭，调用方显式传 true 才播放 */
+  typewriter: boolean;
   resolve: ((value: boolean) => void) | null;
 }
 
@@ -24,6 +26,7 @@ const IDLE: ConfirmState = {
   confirmText: '确定',
   cancelText: '取消',
   danger: false,
+  typewriter: false,
   resolve: null,
 };
 
@@ -45,6 +48,7 @@ function createConfirmStore() {
     confirmText?: string;
     cancelText?: string;
     danger?: boolean;
+    typewriter?: boolean;
   }): Promise<boolean> {
     return new Promise((resolve) => {
       set({
@@ -56,6 +60,7 @@ function createConfirmStore() {
         confirmText: options.confirmText ?? '确定',
         cancelText: options.cancelText ?? '取消',
         danger: options.danger ?? false,
+        typewriter: options.typewriter ?? false,
         resolve,
       });
     });
@@ -99,6 +104,8 @@ export function showConfirm(
     confirmText?: string;
     cancelText?: string;
     danger?: boolean;
+    /** 打字机效果默认不启用；确实需要动画感时显式传 true（长文本、清单别开） */
+    typewriter?: boolean;
   }
 ): Promise<boolean> {
   return confirmStore.show({ message, ...options });

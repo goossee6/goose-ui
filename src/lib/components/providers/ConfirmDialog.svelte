@@ -11,14 +11,13 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- 带明细时关掉打字机：Modal 的打字机是把内容截成字符串逐字 @html 出来的，
-     几十项的清单要打两三秒（每字最低 5ms），而这份清单正是用户此刻要核对的东西，
-     让他等一段没有信息量的动画没有意义。正文短、需要一点动画感时不传 detail 即可。 -->
+<!-- 打字机默认不启用：确认框正文是要用户立刻读完做决定的内容，动画只是拖时间。
+     确实想要「正文逐字出现」的场合，在 showConfirm 里显式传 typewriter: true。 -->
 <Modal
   open={$confirmStore.open}
   title={$confirmStore.title}
   width={400}
-  typewriter={!$confirmStore.detail}
+  typewriter={$confirmStore.typewriter}
   showFooter={false}
   onClose={confirmStore.cancel}
 >

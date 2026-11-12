@@ -1029,7 +1029,7 @@ import { Meter } from 'goose-ui';
 
 ### Typewriter
 
-打字机效果，支持逐字文本或淡入 Snippet
+打字机效果，支持逐字文本或淡入 Snippet；**默认不启用**，需显式传 `autoPlay` 才播放（不传就是静态文本）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -1038,7 +1038,7 @@ import { Meter } from 'goose-ui';
 | `duration` | `number` | `2000` |  |
 | `speed` | `number` | — |  |
 | `trigger` | `unknown` | — |  |
-| `autoPlay` | `boolean` | `true` |  |
+| `autoPlay` | `boolean` | `false` | 默认不启用打字机：只静态展示 text / children。传 true 才逐字播放 |
 | `cursor` | `boolean` | `true` |  |
 | `onDone` | `() => void` | — |  |
 | `class` | `string` | `''` |  |

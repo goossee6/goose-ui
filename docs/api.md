@@ -199,8 +199,10 @@ const ok = await showConfirm("确定要删除吗？", {
 }); // Promise<boolean>：确认 true，取消/关闭 false
 ```
 
-- 选项：`title`（默认 `'确认'`）、`confirmText`（`'确定'`）、`cancelText`（`'取消'`）、`danger`（确认按钮危险色）、`detail` / `detailLabel`（明细块）
+- 选项：`title`（默认 `'确认'`）、`confirmText`（`'确定'`）、`cancelText`（`'取消'`）、`danger`（确认按钮危险色）、`detail` / `detailLabel`（明细块）、`typewriter`（正文打字机效果，**默认关闭**，需显式传 `true`）
 - 需在应用顶层挂载一次 `<ConfirmDialog />`；弹窗内按 `Enter` 等同点击确认
+
+> 打字机效果默认不启用：`Modal` 的 `typewriter` 默认 `false`，`showConfirm` 也要显式传 `typewriter: true` 才逐个字符显示。确认框正文是用户要立刻读完做决定的内容，动画只是让他等；需要「逐字出现」的仪式感时才开。
 
 **明细块 `detail`**：要用户逐项核对的清单（一批 PID、一批文件名）放进 `detail`，而不是拼进 `message`。它是等宽、可选中、限高 168px 内部滚动的块，`detailLabel` 是它上面的小标题：
 

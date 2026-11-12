@@ -22,7 +22,7 @@
   }
 </script>
 
-<Modal bind:open modeless title="程序错误" width={480} onClose={errorStore.clear} typewriter={false}>
+<Modal bind:open modeless title="程序错误" width={480} onClose={errorStore.clear}>
   <div class="error-list">
     {#each $errorStore as item (item.id)}
       <div class="error-item">
