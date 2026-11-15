@@ -11,6 +11,7 @@
   import CodePreview from "../CodePreview.svelte";
 
   let seg = $state('one');
+  let full = $state('one');
   let underline = $state('one');
   let vertical = $state('x');
   let withIcons = $state('grid');
@@ -100,6 +101,19 @@
 <\/script>
 
 <Tabs {items} bind:value={active} mode="underline" />`;
+
+  const fullWidthSource = `<script lang="ts">
+  import { Tabs } from "goose-ui";
+
+  let active = $state("one");
+  const items = [
+    { value: "one", label: "选项一" },
+    { value: "two", label: "选项二" },
+    { value: "three", label: "选项三" },
+  ];
+<\/script>
+
+<Tabs {items} bind:value={active} fullWidth />`;
 
   const verticalSource = `<script lang="ts">
   import { Tabs } from "goose-ui";
@@ -203,6 +217,7 @@
     { name: "value", desc: "当前选中值（可双向绑定）", type: "string", default: "''" },
     { name: "disabled", desc: "禁用切换", type: "boolean", default: "false" },
     { name: "mode", desc: "展示模式", type: "'segmented' | 'underline' | 'vertical'", default: "'segmented'" },
+    { name: "fullWidth", desc: "标签条占满父容器宽度；segmented 模式下各标签等分整条", type: "boolean", default: "false" },
     { name: "size", desc: "尺寸档", type: "'small' | 'middle' | 'large'", default: "'middle'" },
     { name: "onchange", desc: "切换回调", type: "(value: string) => void" },
     { name: "lead", desc: "提供后标签条并入卡片式标题栏；lead 内容在左、标签条在右，空 snippet 时标题栏只留标签条（居左）", type: "Snippet", default: "—" },
@@ -231,6 +246,13 @@
     <div style="display:flex;flex-direction:column;gap:16px">
       <Tabs items={basicItems} bind:value={underline} mode="underline" />
       <p class="demo-val">当前选中: {underline}</p>
+    </div>
+  </CodePreview>
+
+  <CodePreview anchor="full-width" anchorLevel={3} title="占满宽度 fullWidth" code={fullWidthSource}>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <Tabs items={basicItems} bind:value={full} fullWidth />
+      <p class="demo-val">标签条与父容器同宽，三个标签等分；当前选中: {full}</p>
     </div>
   </CodePreview>
 

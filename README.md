@@ -22,10 +22,11 @@
 ## 安装
 
 ```bash
-pnpm add github:goossee6/goose-ui @lucide/svelte
+# 跟 0.3.x 里最新的 tag；以后升级只要 pnpm update goose-ui
+pnpm add "github:goossee6/goose-ui#semver:^0.3.0" @lucide/svelte
 ```
 
-接入步骤与注意事项见[安装与接入](docs/installation.md)。
+接入步骤与注意事项见[安装与接入](docs/installation.md)，升级与版本管理见[同页「升级」](docs/installation.md#升级)。
 
 ## 文档
 
@@ -33,7 +34,7 @@ pnpm add github:goossee6/goose-ui @lucide/svelte
 
 | 文档 | 内容 |
 | --- | --- |
-| [安装与接入](docs/installation.md) | 安装、Vite 接入、深色首屏、快速开始、导入方式、开发命令 |
+| [安装与接入](docs/installation.md) | 安装、Vite 接入、深色首屏、快速开始、导入方式、**从旧版本升级**、开发命令 |
 | [组件清单](docs/components.md) | 全部组件一览（86 个，按分组，一句话说明） |
 | [组件 Props 参考](docs/api-reference.md) | 每个组件的 props 全表：类型 / 默认值 / 说明 / 双向绑定标记（由源码生成） |
 | [应用外壳](docs/shell.md) | Layout / Page / Sidebar / TitleBar、页内目录、页面切换过渡 |

@@ -1,6 +1,6 @@
 # 组件 Props 参考
 
-对外 86 个组件里，83 个有 props 的列在这里，共 772 条。
+对外 86 个组件里，83 个有 props 的列在这里，共 773 条。
 本文件由 `scripts/gen-api-docs.mjs` 从 `src/lib/components/ui/*.svelte` 生成，**不要手改**：
 改完组件执行 `pnpm docs:api` 重新生成，`pnpm docs:api:check`（CI 用）校验本文件有没有落后于源码。
 
@@ -1266,7 +1266,7 @@ import { TitleBar } from 'goose-ui';
 
 ### Tabs
 
-标签页（分段/下划线/垂直模式 + 键盘导航）
+标签页（分段/下划线/垂直模式 + 可占满宽度 + 键盘导航）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -1274,6 +1274,7 @@ import { TitleBar } from 'goose-ui';
 | `value` *(bind)* | `string` | `''` |  |
 | `disabled` | `boolean` | `false` |  |
 | `mode` | `'segmented' \| 'underline' \| 'vertical'` | `'segmented'` |  |
+| `fullWidth` | `boolean` | `false` | 标签条占满父容器宽度；segmented 模式下各标签等分整条。 需要与下方内容同宽时开这个，替代在调用侧写 `style="width:100%"`。 |
 | `class` | `string` | `''` |  |
 | `onchange` | `(value: string) => void` | — |  |
 | `size` | `'small' \| 'middle' \| 'large'` | `'middle'` |  |

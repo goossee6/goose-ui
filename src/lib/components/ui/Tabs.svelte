@@ -29,6 +29,7 @@
 		value = $bindable(''),
 		disabled = false,
 		mode = 'segmented',
+		fullWidth = false,
 		class: cls = '',
 		onchange,
 		size = 'middle',
@@ -40,6 +41,11 @@
 		value?: string;
 		disabled?: boolean;
 		mode?: 'segmented' | 'underline' | 'vertical';
+		/**
+		 * 标签条占满父容器宽度；segmented 模式下各标签等分整条。
+		 * 需要与下方内容同宽时开这个，替代在调用侧写 `style="width:100%"`。
+		 */
+		fullWidth?: boolean;
 		class?: string;
 		onchange?: (value: string) => void;
 		size?: 'small' | 'middle' | 'large';
@@ -124,6 +130,7 @@
 			<button
 				type="button"
 				class="tab {isActive ? 'tab-active' : ''} tabs-mode--{mode}"
+				class:tab--full={fullWidth && mode === 'segmented'}
 				role="tab"
 				id="tabs-trigger-{tabId(item.value)}"
 				aria-selected={isActive}
@@ -145,7 +152,7 @@
 	</div>
 {/snippet}
 
-<div class="tabs-root {sizeClass} {cls}" style={style}>
+<div class="tabs-root {sizeClass} {cls}" class:tabs-root--full={fullWidth} style={style}>
 	{#if lead}
 		<div class="tabs-topline">
 			{@render lead()}
@@ -161,6 +168,11 @@
 	/* inline-flex 的 min-width 默认 auto，窄容器下会被 tab 的 nowrap 文字撑开；
 	   min-width:0 + max-width:100% 让它在放不下时收缩而不是顶破父级。 */
 	.tabs-root { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 100%; }
+	.tabs-root--full { width: 100%; }
+	.tabs-root--full .tabs-group--segmented { width: 100%; }
+	/* 有 lead 时标签条只占右侧剩余宽度：width:100% 会把 lead 挤扁 */
+	.tabs-root--full .tabs-topline .tabs-group { flex: 1 1 0; width: auto; }
+	.tab--full { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; }
 	.tabs-topline {
 		display: flex;
 		align-items: center;

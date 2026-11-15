@@ -100,7 +100,7 @@
 | Header         | 固定顶部导航栏（标题 + 操作区 + 自定义插槽）                                                                                                                                       |
 | Footer         | 页脚（左右插槽 + 链接列表 + 版权行 + 吸底）                                                                                                                                        |
 | TitleBar       | 自绘标题栏（窗口控制经 `windowApi` 注入，库不依赖桌面 runtime；`searchable` 开内联搜索，见[应用外壳](shell.md#titlebar-标题栏)；Wails3 见 demo TitleBar 页）                        |
-| Tabs           | 标签页（分段/下划线/垂直模式 + 键盘导航）                                                                                                                                          |
+| Tabs           | 标签页（分段/下划线/垂直模式 + 可占满宽度 + 键盘导航）                                                                                                                                          |
 | TabsPanel      | 标签页内容面板（value 匹配选中项时渲染）                                                                                                                                           |
 | NavigationMenu | 导航菜单（面板定位/翻转，链接 + 描述）                                                                                                                                             |
 | Menubar        | 菜单栏（横向方向键 + 已展开时自动切换菜单；复用 DropdownMenu）                                                                                                                     |

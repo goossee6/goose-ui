@@ -19,8 +19,6 @@
     "grid:codemod": "node scripts/grid-codemod.mjs",
     "docs:api": "node scripts/gen-api-docs.mjs",
     "docs:api:check": "node scripts/gen-api-docs.mjs --check",
-    "docs:api": "node scripts/gen-api-docs.mjs",
-    "docs:api:check": "node scripts/gen-api-docs.mjs --check",
     "preview": "pnpm --filter demo preview"
   },
   "repository": {

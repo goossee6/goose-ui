@@ -106,6 +106,38 @@ goose-ui 是**零构建、零样式运行时**的 Svelte 5（Runes）组件库�
 - 需要组件默认态对照时开 `demo/cleanroom.html`
 - 涉及滚动/尺寸的动画，用逐帧几何采集（CDP `getBoundingClientRect`）验证，别只看截图
 
+## 发版
+
+没有 npm 发包，也没有 CHANGELOG：**tag 就是发布单元**，别的项目靠
+`github:goossee6/goose-ui#semver:^0.3.0`（或 `#v0.3.2` 锁死）这种写法消费。
+
+```bash
+# 1. 改版本号（两处必须一致，pnpm test 会校验）
+#    src/lib/version.ts 的 VERSION 与 package.json 的 version
+# 2. 验证
+pnpm check && pnpm test && pnpm build && pnpm grid:audit && pnpm docs:api:check
+# 3. 提交
+git add -A && git commit -m "…"
+# 4. 打注释 tag，说明写"用户能感知的变化"，消费者用它判断要不要升
+git tag -a v0.3.3 -m "Typewriter 默认不自动播放，需显式 autoPlay"
+# 5. 推 tag（分支和 tag 都要推）
+git push origin main && git push origin v0.3.3
+# 6. 确认远端真的有了
+git ls-remote --tags origin | grep v0.3.3
+```
+
+规则：
+
+- **tag 名必须是 semver**（`v0.3.3`，带不带 `v` 都行）。消费者用 `#semver:^0.3.0` 让 pnpm 自动挑
+  范围内最高的 tag；`release-3`、`ui-2026-11` 这种名字范围解析不到，等于这个版本没人能自动拿到
+- **推上去的 tag 不要重打**。`pnpm update goose-ui` 会重新解析 ref，重打后确实能拉到新 commit，
+  但每个下游都得自己再跑一次 update 才会变；同一个版本号对应两份不同代码是最难排查的状态。
+  要改就发新 tag，并在说明里写清改了什么
+- tag 说明写成一句话的**用户影响**（"默认关了打字机"），别写"fix bug"
+- 0.x 阶段 minor 可以带破坏性改动，但必须在 tag 说明和 [安装与接入](installation.md)
+  的「升级」小节里点出来
+- demo 部署与 tag 无关：`deploy.yml` 只在 `main` 上跑
+
 ## 验证清单
 
 ```bash
