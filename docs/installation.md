@@ -23,7 +23,7 @@ pnpm add "github:goossee6/goose-ui#semver:^0.3.0" @lucide/svelte
 锁死单个版本（tag 见 <https://github.com/goossee6/goose-ui/tags>）：
 
 ```bash
-pnpm add github:goossee6/goose-ui#v0.3.2
+pnpm add github:goossee6/goose-ui#v0.3.3
 ```
 
 跟随 `main` 最新提交（构建不可复现，见[升级](installation.md#升级)）：
@@ -42,7 +42,7 @@ pnpm add file:../goose-ui      # 复制（hardlink）一份快照，改完要重
 ```
 
 > pnpm 的 `file:` 不是软链：它把目录复制进 `node_modules/.pnpm`，之后库里的改动**不会**自动进去，
-> 表现是"库已升到 0.3.2，项目里还是 0.3.0"。要边改边看用 `link:`；npm 的 `file:` 才是软链。
+> 表现是"库已升到 0.3.3，项目里还是 0.3.0"。要边改边看用 `link:`；npm 的 `file:` 才是软链。
 
 > `@lucide/svelte` 是 **peer 依赖且必装**，缺了构建会直接报
 > `Cannot find package '@lucide/svelte'`（原因见下文 Peer Dependencies）。
@@ -89,7 +89,7 @@ grep '"version"' node_modules/goose-ui/package.json
 | 写法 | 含义 | 怎么升 |
 | --- | --- | --- |
 | `github:…#semver:^0.3.0` | 自动跟 0.3.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
-| `github:…/goose-ui#v0.3.2` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
+| `github:…/goose-ui#v0.3.3` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
 | `github:goossee6/goose-ui` | 跟随 `main` 最新提交 | `pnpm update goose-ui` |
 | `link:../goose-ui` | 软链到本地克隆 | 不用升级，`git pull` 后即时生效 |
 | `file:../goose-ui` | 指到本地克隆，但 pnpm 会**复制**一份快照 | `pnpm install` 重新复制（想实时联动换成 `link:`） |
@@ -182,8 +182,14 @@ jobs:
 
    ```bash
    git ls-remote --tags https://github.com/goossee6/goose-ui.git | tail -6
-   git tag -n9 -l v0.3.2        # 在 goose-ui 仓库里看某个 tag 的说明
+   git tag -n9 -l v0.3.3        # 在 goose-ui 仓库里看某个 tag 的说明
    ```
+
+### 0.3.3 相比 0.3.2 的行为变化
+
+- `Tabs` 新增 `fullWidth`（默认 `false`）：标签条与各标签等分占满整行。纯新增属性，
+  不传就是原来的行为，升级不需要改调用方
+- `fullWidth` 搭配 `lead`（左侧标题）时标签条只占右侧剩余宽度，不会把标题挤扁
 
 ### 0.3.2 相比 0.3.1 的行为变化
 
