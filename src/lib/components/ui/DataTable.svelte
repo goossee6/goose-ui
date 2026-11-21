@@ -2,9 +2,10 @@
   import type { Snippet } from "svelte";
   import Triangle from "@lucide/svelte/icons/triangle";
   import { cellMenuAttrString } from "../contextMenu";
-  import type { Column } from "../tableTypes";
+  import type { Column, ColumnOverflow } from "../tableTypes";
   import Icon from "./Icon.svelte";
   import PillTrack from "./PillTrack.svelte";
+  import Tooltip from "./Tooltip.svelte";
   import { sorted, toggleSort, type SortState } from "../sorting";
   import { resolvePercents, toPercents } from "../colWidths.svelte";
 
@@ -52,6 +53,24 @@
 		actionsPercent,
 		headerBleed = 0,
 		maxHeight = '70vh',
+		/**
+		 * 折行单元格的高度上限（行数），默认 3 行。
+		 *
+		 * 超过上限的内容在单元格内部垂直滚动，行高因此不会随内容无限增长 ——
+		 * 一屏能放下更多行，完整内容把指针移进格子滚一下就能看完。
+		 * 只对 `overflow: 'wrap'`（默认）的列生效；传 0 表示不设上限、行高随内容撑开。
+		 */
+		cellMaxLines = 3,
+		/**
+		 * 单元格内容被裁掉时，悬停是否弹出完整文本（默认 true）。
+		 *
+		 * 气泡是库里的 Tooltip 组件，全表共用一个实例：`tbody` 上一次事件委托
+		 * 找出被悬停的格子、量一次 scrollWidth/clientWidth，真正被裁掉才浮出。
+		 * 内容本来就完整可见时不会弹 —— 那只是重复眼睛已经看到的东西。
+		 *
+		 * 表格极多、或本来就跑在指针设备以外的场景可以传 false 关掉。
+		 */
+		cellTip = true,
 		stickyHeader = true,
 		class: cls = '',
 		style = '',
@@ -87,6 +106,13 @@
 		 * 表头更不会跟着页面滚走。传 'none' 关闭，交给父容器决定高度。
 		 */
 		maxHeight?: string;
+		/**
+		 * 折行单元格最多显示几行（默认 3），超出后在单元格内垂直滚动。
+		 * 传 0 关闭上限，行高随内容撑开。
+		 */
+		cellMaxLines?: number;
+		/** 单元格内容被裁掉时悬停弹出完整文本（库内 Tooltip，默认 true） */
+		cellTip?: boolean;
 		/**
 		 * 表头是否吸顶（`position: sticky`），默认 true。
 		 *
@@ -139,41 +165,37 @@
   const kw = $derived(highlight.trim());
 
   /**
-   * 文本超过这个长度才挂原生 title。
+   * 单元格可能的 class 只有 2×3×3 = 18 种组合，预先算好、按位取用。
    *
-   * 单元格的实际可用宽度随列宽变化，用字符数做代理是刻意为之：
-   * 精确判断要读 scrollWidth（强制布局），而那正是本组件在极力避免的开销。
-   * 阈值取 20：短于它的文本在任何常规列宽下都放得下。
-   */
-  const TITLE_MIN = 20;
-
-  /**
-   * 单元格可能的 class 只有 2×3 = 6 种组合，预先算好、按位取用。
-   *
-   * 模板里每写一个 `class:xxx={...}`，编译出来就是每行每格一次 effect；6 个 class 指令
+   * 模板里每写一个 `class:xxx={...}`，编译出来就是每行每格一次 effect；多个 class 指令
    * × 行数 × 列数，一页十几个表格就是几万个 effect 常驻。合并成一个 class 属性后
    * 每格只剩一个插值。为什么不用对象形式 `class={{...}}`：那会生成内联样式对象，
    * 每帧都是新对象引用，比手写字符串更费。
+   *
+   * 三个维度：等宽字体（2）× 水平对齐（3）× 溢出策略（3）；
+   * 不传 align 即左对齐（样式里的默认值），故对齐只出 right / center 两种。
+   * 下标 = (字体位 × 3 + 对齐位) × 3 + 溢出位，与下面的生成顺序一一对应。
    */
   const TD_CLASS = (() => {
     const out: string[] = [];
     for (const base of ['', 'mono']) {
       for (const align of ['', 'right', 'center']) {
-        const cls = [base, align, 'ov-ellipsis'].filter(Boolean).join(' ');
-        out.push(cls);
+        for (const ov of ['ov-wrap', 'ov-ellipsis', 'ov-scroll']) {
+          out.push([base, align, ov].filter(Boolean).join(' '));
+        }
       }
     }
     return out;
   })();
 
   /**
-   * 单元格 class：6 种组合之一。
+   * 单元格 class：18 种组合之一。
    *
    * 不带 Svelte 的作用域类也安全：对应规则写成 `.table-container :global(td.mono)`，
    * 编译成 `.table-container.svelte-xxxx td.mono`，命中的是任意 <td>（详见样式段注释）。
    */
   function tdClass(col: Column<T>): string {
-    return TD_CLASS[monoBit(col) | (alignBit(col) << 1)];
+    return TD_CLASS[(monoBit(col) * 3 + alignBit(col)) * 3 + overflowBit(col)];
   }
 
   function monoBit(col: Column<T>): number {
@@ -185,6 +207,22 @@
   }
 
   /**
+   * 该列实际生效的溢出策略。
+   *
+   * custom 列的内容是调用方自己的 snippet，没法安全复制第二份给跑马灯做无缝衔接，
+   * 所以 'scroll' 在 custom 列降级为 'ellipsis' —— 否则就只剩「硬切」，最糟的一种。
+   */
+  function overflowOf(col: Column<T>): ColumnOverflow {
+    const o = colOverflow(col);
+    return o === 'scroll' && col.custom ? 'ellipsis' : o;
+  }
+
+  function overflowBit(col: Column<T>): number {
+    const o = overflowOf(col);
+    return o === 'ellipsis' ? 1 : o === 'scroll' ? 2 : 0;
+  }
+
+  /**
    * 单元格属性一次性拼好。
    *
    * 不用 `{...cellAttrs(col, row)}` 展开：展开要逐个 diff 键、并在不匹配时移除旧属性，
@@ -193,16 +231,14 @@
    * `text` 由调用方传入：renderText 是用户回调，同一格在头部与正文都要用，
    * 每处各调一次就是 3 倍回调开销（20 张表 × 30 行 × 7 列能到上万次）。
    *
-   * title 只在长文本时加：原生 title 让浏览器为每个元素维护 tooltip 命中判定，
-   * 一页几张表就是上万个带 title 的 <td>，指针每次移动都要参与一遍。
-   * 短文本本来不会被截断，tooltip 也对不出新信息 —— 省掉它几乎不影响可用性。
-   *
-   * 这是全库唯一保留原生 title 的地方（气泡提示统一走 Tooltip 组件）：
-   * 纯文本格是拼 HTML 字符串渲染的，一个格一个 Tooltip 组件在上万格的量级上
-   * 不划算。需要气泡提示就在 custom 列的 cell snippet 里自己包一层 Tooltip。
+   * 完整文本一律放 `data-tip`（不设长度阈值）：它只是个普通属性，浏览器不为它
+   * 维护命中判定，不像原生 `title` 那样让指针每次移动都扫一遍上万个元素。
+   * 真正要不要弹，由 onBodyOver 里量一次「内容是否被裁掉」决定。
    */
   function tdAttrs(col: Column<T>, row: T, text: string): string {
-    let s = text.length > TITLE_MIN ? ` title="${escapeAttr(text)}"` : '';
+    // 'scroll' 列不写 data-tip：那一列的全文靠悬停滚动看，气泡本来就不会弹，
+    // 属性白占字节（一页几千格，长文本能到几十 KB）
+    let s = text && overflowOf(col) !== 'scroll' ? ` data-tip="${escapeAttr(text)}"` : '';
     const m = contextMenu ? (col.menu ?? menu) : undefined;
     if (m) {
       const data: Record<string, string> = { copy: text };
@@ -225,7 +261,7 @@
    *
    * 为什么连标签一起拼：右键菜单属性是两个动态键值对，模板里只能用 {@html} 插字符串，
    * 而 {@html} 不允许出现在属性位置（Svelte 报 tag_invalid_placement）。整格拼成
-   * HTML 是唯一能让「class + title + 任意 data-*」同时成立又不做逐键 diff 的写法。
+   * HTML 是唯一能让「class + data-*」同时成立又不做逐键 diff 的写法。
    *
    * 样式怎么接上：这些节点不经过 Svelte 的 class 注入，而编译器产出的规则默认是
    * `td.svelte-xxxx`（带作用域类），两边对不上就会出现「单元格样式全没了」。
@@ -237,12 +273,12 @@
   function tdHtml(col: Column<T>, row: T): string {
     if (col.custom && cell) return '';
     const text = renderText(col, row);
-    const body = cellHtml(text);
+    const body = cellHtml(col, text);
     return `<td class="${tdClass(col)}"${tdAttrs(col, row, text)}>${body}</td>`;
   }
 
   /** 单元格内容：有高亮词时逐段包 <mark>，否则整段转义输出 */
-  function cellHtml(text: string): string {
+  function cellHtml(col: Column<T>, text: string): string {
     const k = kw;
     let inner: string;
     if (!k) {
@@ -253,22 +289,30 @@
         inner += p.hit ? `<mark>${escapeHtml(p.text)}</mark>` : escapeHtml(p.text);
       }
     }
+    // 循环滚动列：同一段内容放两份，第二份 aria-hidden（读屏只念一遍）。
+    // track 宽度 = 2 × (内容 + 尾部间距)，动画平移 -50% 恰好是一份，
+    // 第一份滚到尽头时第二份已对齐起点，接缝看不出来 —— 这就是「无限」的来源，
+    // 不需要 JS 改 transform，也就不会每帧回主线程。
+    if (inner && overflowOf(col) === 'scroll') {
+      return `<div class="cell-inner"><span class="mq"><span class="mq-i">${inner}</span><span class="mq-i" aria-hidden="true">${inner}</span></span></div>`;
+    }
     return `<div class="cell-inner">${inner}</div>`;
   }
 
   // ── 表格 DOM ──────────────────────────────────────────────────────────────
   //
-  // 表格用 table-layout:fixed，各列宽度按占比解成百分比，
-  // 因此各列之和恒为 100%，容器怎么缩放都不会横向溢出。
-  // 详见 ../colWidths.svelte.ts 顶部的说明。
+  // 表格默认 table-layout:auto：列宽仍由内容决定，但每个单元格都允许在任意位置折行
+  // （overflow-wrap:anywhere），长内容只会让行变高、不会把表格撑出容器。
+  // 一旦有列选了 ellipsis / scroll，整表切 fixed（见 fixedLayout）—— nowrap 的 min-content
+  // 无法用 auto 布局压住，不换 fixed 的话省略号与滚动起点都不会出现。
+  // 两种布局下容器宽度都是硬约束：横向不滚，溢出都在格子里消化（换行 / 省略号 / 格内滚动）。
 
   /**
    * 各列宽度：`width` 声明占比，`minWidth` / `maxWidth` 是可选约束。
    *
-   * 三者都可以写成 `2`（份数）/ `'20%'` / `'200px'`，也可全都不写（均分）。
+   * 三者都可以写成 `2`（份数）/ `'20%'` / `'200px'`；不写就是 `auto`，由内容自适应。
    * 求解在 ../colWidths.svelte.ts 的 resolvePercents 里完成：先按占比分一遍，
-   * 再把越界的列夹到约束上、差额分摊给还有余量的列，保证总和恒为 100%。
-   * 正因为总和恒为 100%，table-layout:fixed 就不会横向溢出。
+   * 再把越界的列夹到约束上、差额分摊给还有余量的列。
    */
   const colPercents = $derived(
     toPercents(
@@ -277,6 +321,14 @@
         ...(actions ? [{ width: actionsPercent }] : []),
       ]),
     ),
+  );
+
+  /** 只有显式声明过宽度的列才落百分比，其余交给浏览器按内容自适应 */
+  const colWidths = $derived(
+    [
+      ...columns.map((c) => !!(c.width ?? c.minWidth ?? c.maxWidth)),
+      ...(actions ? [actionsPercent != null] : []),
+    ].map((declared, i) => (declared ? (colPercents[i] ?? 'auto') : 'auto')),
   );
 
   let tableEl: HTMLTableElement | undefined = $state();
@@ -295,59 +347,136 @@
   const pillContainer = $derived<HTMLElement | null>(tbodyEl ?? null);
   const pillRowSelector = $derived(pillContainer ? 'tbody > tr:not(.disabled)' : '');
 
-  /** 该列的溢出策略，默认截断省略号 */
-  function colOverflow(col: Column<T>): 'ellipsis' | 'wrap' | 'clip' {
-    return col.overflow ?? 'ellipsis';
+  /** 该列的溢出策略，默认换行（超出 cellMaxLines 后在格内垂直滚动） */
+  function colOverflow(col: Column<T>): ColumnOverflow {
+    return col.overflow ?? 'wrap';
   }
-
-  /** 只有截断策略的格子才需要 hover 滚动，换行/裁切的格子挂了也不会有动画 */
-  function overflowable(col: Column<T>): boolean {
-    return colOverflow(col) === 'ellipsis';
-  }
-
-  /** 高亮关键词，空串表示不渲染 <mark>（省掉每格的拆段与 extra 节点） */
 
   /**
-   * hover 滚动的判定与计时，全部在 tbody 上一次事件委托里完成。
+   * 是否有列选择了单行显示（ellipsis / scroll）。
    *
-   * 早先每个 .cell-inner 上都挂 onmouseenter/onmouseleave：一页十几张表意味着几千个
-   * 监听器，鼠标划过时每一次进出都在跑一次 scrollWidth 读取（强制样式重算 + 布局）。
-   * 现在改成只监听 tbody 的 mouseover/mouseout，靠 closest('.cell-inner') 找回目标格，
-   * 监听器数量与行数、表数无关；relatedTarget 检查可以避免在格子内部子节点间移动时
-   * 反复触发。
+   * 「单行」与「不撑宽容器」只有 table-layout:fixed 能同时满足：
+   * auto 布局下列的 min-content 就是 nowrap 文字的全宽，表格必然被顶开，
+   * 截断与滚动都无从发生。所以只要出现单行列，整表切 fixed ——
+   * 列宽按声明分配，未声明的列等分剩余宽度。
+   * 全 wrap（默认）的表格仍是 auto 布局，列宽继续跟着内容走。
    */
-  let currentCell: HTMLElement | null = null;
+  const fixedLayout = $derived(columns.some((c) => colOverflow(c) !== 'wrap'));
 
-  function onBodyOver(ev: MouseEvent) {
-    const t = ev.target as HTMLElement | null;
-    const inner = t?.closest<HTMLElement>('.cell-inner');
-    if (!inner || inner === currentCell) return;
-    if (currentCell) currentCell.classList.remove('marquee');
-    currentCell = inner;
-    applyMarquee(inner);
-  }
+  /**
+   * 折行单元格的最大高度 = cellMaxLines 行 × 1.5 行高。
+   *
+   * 用 em 而不是 px：mono 列与普通列字号一致，但主题若调整字号，上限会跟着走。
+   * cellMaxLines 传 0 时给 'none'，行高随内容撑开。
+   */
+  const cellMaxH = $derived(cellMaxLines > 0 ? `calc(${cellMaxLines} * 1.5em)` : 'none');
 
-  function onBodyOut(ev: MouseEvent) {
-    const inner = currentCell;
-    if (!inner) return;
-    const to = ev.relatedTarget as Node | null;
-    if (to && inner.contains(to)) return;
-    inner.classList.remove('marquee');
-    currentCell = null;
+  // ── 单元格气泡提示 / 循环滚动 ─────────────────────────────────────────────
+  //
+  // 全表共用一个 Tooltip：tdAttrs 只把完整文本写进 data-tip，指针真的停进
+  // 某个格子时，这里量一次「内容是否真被裁掉」，再把该 <td> 交给 Tooltip 当锚点。
+  // 为什么不在每格挂一个 Tooltip：一页十几张表就是上万个组件实例 + 上万个
+  // mouseenter 监听，代价与「原生 title 上万个元素」是一样的，只是从浏览器
+  // 内部挪到了我们自己的 JS 里。
+  //
+  // 判定用 scrollWidth/clientWidth：这是唯一能分清「文本刚好放得下」与
+  // 「已经被省略号吃掉一截」的办法。读它会触发一次强制布局，但只在真正
+  // 停住指针的那一小段时间发生（pointerover 一格一次），不在渲染路径上。
+  //
+  // 'scroll' 列走另一条路：不弹气泡，改成让格子里的内容自己循环滚 ——
+  // 同样的信息，用滚动表达比用一个盖住表格的气泡更直接。两者共用这次
+  // pointerover，也只在这一刻量一次尺寸。
+
+  let tipAnchor = $state<HTMLElement | null>(null);
+  let tipText = $state('');
+  let tipOpen = $state(false);
+
+  /** 指针当前所在的格子（普通变量即可：只用于去重，不参与渲染） */
+  let hoverTd: HTMLElement | null = null;
+  /** 正在跑的跑马灯 track。同一时刻最多一个 —— 指针只可能停在一个格子上 */
+  let mqEl: HTMLElement | null = null;
+
+  function closeTip() {
+    if (!tipOpen) return;
+    tipOpen = false;
+    tipAnchor = null;
   }
 
   /**
-   * 按实际溢出量设置位移与时长。
-   * 位移取负的溢出像素数，滚到底时正好露出结尾；时长按「每 60px 用 1 秒」估算。
-   * 没有溢出就不加类，动画自然不启动。
+   * 启动循环滚动。
+   *
+   * 时长按内容宽度算（60px/s），而不是写死一个秒数：短内容滚 12s 慢得像卡住，
+   * 长内容滚 12s 又快得读不了。下限 4s 是给「只溢出两三个字」的格子兜底。
+   *
+   * 单份宽度要扣掉尾部间距（`.mq-i` 的 padding-right）：不扣的话，一段刚好
+   * 放得下的文本会因为自己留的空隙被判成溢出，白白滚起来。
    */
-  function applyMarquee(inner: HTMLElement) {
-    const overflow = inner.scrollWidth - inner.clientWidth;
-    if (overflow <= 1) return;
-    const shift = -(overflow + 8); // 末尾留空隙，避免文字紧贴右边被裁
-    inner.style.setProperty('--marquee-shift', `${shift}px`);
-    inner.style.setProperty('--marquee-dur', `${Math.max(2, (overflow + 8) / 60)}s`);
-    inner.classList.add('marquee');
+  function startMarquee(inner: HTMLElement | null) {
+    const mq = inner?.querySelector<HTMLElement>('.mq');
+    const first = mq?.firstElementChild as HTMLElement | null;
+    if (!inner || !mq || !first) return;
+    const gapW = parseFloat(getComputedStyle(first).paddingRight) || 0;
+    const textW = first.getBoundingClientRect().width - gapW;
+    if (textW <= inner.clientWidth + 1) return;
+    mq.style.setProperty('--dt-mq-dur', `${Math.max(4, (textW + gapW) / 60)}s`);
+    mq.classList.add('run');
+    mqEl = mq;
+  }
+
+  /**
+   * 停下跑马灯。
+   *
+   * 移除 class 而不是 pause：每次悬停都应该从内容开头读起，
+   * 暂停会停在上一轮的中途位置。动画被移除后重新添加，浏览器会从头播。
+   */
+  function stopMarquee() {
+    if (!mqEl) return;
+    mqEl.classList.remove('run');
+    mqEl = null;
+  }
+
+  /** 指针离开单元格（换格 / 离开整张表 / 表格滚动）时的统一收尾 */
+  function resetCells() {
+    hoverTd = null;
+    closeTip();
+    stopMarquee();
+  }
+
+  function onBodyOver(ev: PointerEvent) {
+    const td = (ev.target as HTMLElement | null)?.closest?.('td') as HTMLElement | null;
+    if (!td) {
+      resetCells();
+      return;
+    }
+    // 同一格里换子节点（<mark>、图标）会再触发一次 pointerover，不必重量一遍
+    if (hoverTd === td) return;
+    hoverTd = td;
+    // 换格：上一格的滚动必须先停，否则会留下一个继续滚的格子
+    stopMarquee();
+
+    // 循环滚动列：内容自己在格子里滚，气泡只会把同一段文字再念一遍
+    if (td.classList.contains('ov-scroll')) {
+      closeTip();
+      startMarquee(td.querySelector<HTMLElement>('.cell-inner'));
+      return;
+    }
+
+    if (!cellTip) {
+      closeTip();
+      return;
+    }
+    const inner = td.querySelector<HTMLElement>('.cell-inner');
+    const text = td.dataset.tip ?? '';
+    // 只提示真被裁掉的内容：完整可见时弹气泡，等于把看到的字再念一遍
+    const clipped =
+      !!inner && (inner.scrollWidth > inner.clientWidth + 1 || inner.scrollHeight > inner.clientHeight + 1);
+    if (!inner || !text || !clipped) {
+      closeTip();
+      return;
+    }
+    tipText = text;
+    tipAnchor = td;
+    tipOpen = true;
   }
 
   /**
@@ -364,7 +493,8 @@
   <tr class:disabled={disabled?.(row)}>
     {#each columns as col (col.id)}
       {#if col.custom && cell}
-        <td class={tdClass(col)} title={renderText(col, row)}>
+        {@const text = renderText(col, row)}
+        <td class={tdClass(col)} data-tip={text || undefined}>
           <div class="cell-inner">{@render cell(col.id, row)}</div>
         </td>
       {:else}
@@ -381,7 +511,12 @@
   </tr>
 {/snippet}
 
-<div class="table-container {cls}" style="--dt-max-h:{maxHeight};{style}" bind:this={scrollEl}>
+<div
+  class="table-container {cls}"
+  style="--dt-max-h:{maxHeight};--dt-cell-max-h:{cellMaxH};{style}"
+  bind:this={scrollEl}
+  onscroll={resetCells}
+>
   {#if loading}
     <div class="placeholder">加载中…</div>
   {:else if rows.length === 0}
@@ -389,20 +524,19 @@
   {:else}
     <table
       bind:this={tableEl}
-      class:fixed-layout={columns.length > 0}
       class:bleed={headerBleed > 0}
       class:not-sticky={!stickyHeader}
+      class:fixed={fixedLayout}
       style:--th-bleed="{headerBleed}px"
     >
-      <!-- 列宽：权重换算成百分比，各列之和恒为 100%，故永不横向溢出。
-           没有这段 colgroup 时 fixed 布局会让未设宽的列均分剩余宽度，
-           而不是让指定的列吃到预期的比例。 -->
+      <!-- 列宽：只有显式声明过的列才有百分比，其余 auto —— 表格是 auto 布局，
+           列宽跟着内容走，声明值只是「建议宽度」。 -->
       <colgroup>
         {#each columns as col, ci (col.id)}
-          <col style="width:{colPercents[ci] ?? 'auto'}" />
+          <col style="width:{colWidths[ci] ?? 'auto'}" />
         {/each}
         {#if actions}
-          <col style="width:{colPercents[colPercents.length - 1] ?? 'auto'}" />
+          <col style="width:{colWidths[colWidths.length - 1] ?? 'auto'}" />
         {/if}
       </colgroup>
       <thead>
@@ -411,13 +545,11 @@
             <th
               class:right={col.align === "right"}
               class:center={col.align === "center"}
-              class:ov-ellipsis={colOverflow(col) === "ellipsis"}
-              class:ov-wrap={colOverflow(col) === "wrap"}
               aria-sort={ariaSort(col)}
             >
               {#if colSortable(col)}
                 <button type="button" class="sort-btn" class:active={sortState?.key === col.id} onclick={() => (sortState = toggleSort(sortState, col.id))}>
-                  {col.header}
+                  <span class="sort-label">{col.header}</span>
                   <Icon icon={Triangle} size={14} class={sortState?.key === col.id && sortState.dir === "desc" ? "sort-flip" : ""} />
                 </button>
               {:else}
@@ -432,10 +564,11 @@
           {/if}
         </tr>
       </thead>
-      <!-- svelte-ignore a11y_mouse_events_have_key_events -->
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <!-- 悬停滚动是纯装饰：键盘 focus 不需要触发它，格子里的文本本身始终可读 -->
-      <tbody bind:this={tbodyEl} onmouseover={onBodyOver} onmouseout={onBodyOut}>
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_mouse_events_have_key_events -->
+      <!-- 气泡提示是纯视觉补充：键盘用户拿不到的不是唯一信息，
+           完整文本已经在 data-tip 里、并且（wrap 列）滚一下就能读完。
+           委托在 tbody 上：监听器数量与行数、表数都无关。 -->
+      <tbody bind:this={tbodyEl} onpointerover={onBodyOver} onpointerleave={resetCells}>
         <PillTrack
           container={pillContainer}
           itemSelector={pillRowSelector}
@@ -466,13 +599,17 @@
       </tbody>
     </table>
   {/if}
+  <!-- 全表共用的一个气泡（详见 onBodyOver 上方的说明）。
+       放在容器里而不是 table 里：<div> 直接塞进 <tbody> 属于非法嵌套。 -->
+  {#if cellTip}
+    <Tooltip anchor={tipAnchor} open={tipOpen} title={tipText} placement="top-start" maxWidth={360} />
+  {/if}
 </div>
 
 <style>
   /* min-width:0 是关键：作为 flex/grid 子项时 min-width 默认是 auto，
-     会被 <table> 的 min-content（所有 nowrap 单元格之和）撑大，
-     导致 overflow:auto 不生效、表格直接冲出父容器。
-     设成 0 后容器可以收缩到任意宽度，横向滚动由它自己承担。
+     会被内容的 min-content 撑大，导致 overflow:auto 不生效、表格直接冲出父容器。
+     设成 0 后容器可以收缩到任意宽度，横向滚动由它自己兜底（正常情况用不到）。
 
      max-height:100% 是关键：没有它时 height:100% 在「父容器没有确定高度」的布局里
      会回落成内容高度，容器自身不产生滚动 —— 滚动被推给外层（页面 / 卡片），
@@ -489,14 +626,20 @@
   .table-container { width: 100%; height: 100%; max-height: max(var(--dt-max-h), 0px); overflow: auto; scrollbar-gutter: stable; min-width: 0; }
   .placeholder { padding: var(--space-10); text-align: center; color: var(--text-muted); font-size: var(--fs-14); }
 
-  /* 列宽固定：按 colgroup 指定的百分比分配，不随内容反推，
-     因此各列之和恒等于表格宽度，横向永远不出现滚动条。 */
+  /* 列宽由内容决定（table-layout: auto 是默认值，不写）。
+     宽度是硬约束：宽度百分比只是「建议分配」，长内容一律在格子里折行，
+     不会把表格顶宽 —— 单元格的 overflow-wrap:anywhere 把 min-content 压到一个字符，
+     所以 auto 布局也能收进 100%。 */
   /* separate 而非 collapse：collapse 模式下 td 的 border-radius 与背景会被共享边吃掉。
      spacing:0 保证视觉上仍然是紧贴的表格，仅失去「边框合并」这一特性。
      背景铺在 table 而不是 td 上：td 有自己的背景层就会盖住 PillTrack 的 hover pill，
      行底与 hover 色都必须落在 pill 之下。 */
-  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-14); background-color: var(--surface); }
-  table.fixed-layout { table-layout: fixed; }
+  table { width: 100%; max-width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-14); background-color: var(--surface); }
+
+  /* 有列选了 ellipsis / scroll 时的布局（见 fixedLayout）：
+     列宽只认声明，未声明的列等分剩余宽度。auto 布局下 nowrap 列会把表格顶宽，
+     截断与「容器宽度是硬约束」二者不可兼得，只能换 fixed。 */
+  table.fixed { table-layout: fixed; }
 
   /* 左右内边距 16px 而不是 24px：24px 时相邻两列之间会空出 48px，
      用户看到的就是「每列左右各有一大片留白、列之间却没有分界」。
@@ -506,9 +649,10 @@
      在动，等于每帧重新采样重模糊一次。而它的视觉收益本来就接近零 —— 表头背后
      就是表格行的纯色底，blur 与一层半透明色几乎看不出区别，
      所以直接去掉，分层感交给底色与边框。 */
-  /* 表头没有拖拽手柄，所以 overflow 可以留在 hidden，
-     单元格内容溢出由 .cell-inner / .sort-btn 各自的 ellipsis 处理。 */
-  th { position: sticky; top: 0; z-index: 1; background-clip: padding-box; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-lg) var(--space-4); border-bottom: 2px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 表头没有拖拽手柄，所以 overflow 可以留在 hidden，单元格内容溢出由 .cell-inner 处理。 */
+  /* 表头也允许折行：nowrap 的 header 会给列定下「不可再窄」的 min-content，
+     窄容器里没有单条长数据也会把表格顶宽。表头文案通常很短，折行几乎不出现。 */
+  th { position: sticky; top: 0; z-index: 1; background-clip: padding-box; background-color: var(--surface-2); color: var(--text-muted); font-weight: 500; text-align: left; padding: var(--sp-lg) var(--space-4); border-bottom: 2px solid var(--border-strong); white-space: normal; overflow-wrap: anywhere; overflow: hidden; }
 
   /* 吸顶时的「压住内容」暗示：表头底缘一道极淡的投影。
      不用 box-shadow —— td/th 带 overflow:hidden，会把向外的阴影裁掉一半；
@@ -543,7 +687,10 @@
   thead > tr > th:last-child { border-top-right-radius: calc(var(--radius-lg) + var(--th-bleed, 0px)); }
   th.right { text-align: right; }
   th.center { text-align: center; }
-  .sort-btn { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0; background: none; border: none; cursor: pointer; font: inherit; color: inherit; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .sort-btn { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0; background: none; border: none; cursor: pointer; font: inherit; color: inherit; white-space: normal; max-width: 100%; min-width: 0; text-align: inherit; }
+  /* 文案单独成项并允许收缩：匿名 flex 项的 min-width 是 auto，不包一层的话
+     长表头会把这个按钮撑到 th 之外，折行也就不会发生。 */
+  .sort-btn .sort-label { min-width: 0; overflow-wrap: anywhere; }
   .sort-btn :global(svg) { color: var(--text-muted); opacity: 1; transition: color 0.15s; flex: none; }
   .sort-btn:hover :global(svg) { color: var(--text-strong); }
   .sort-btn.active :global(svg) { color: var(--primary); }
@@ -597,40 +744,72 @@
 
   /* ── 单元格内容溢出策略 ──────────────────────────────────────────────── */
 
-  /* 内层容器：截断与滚动都在这一层做，避免影响 td 的 padding 与背景。 */
+  /* 默认：换行 + 格内垂直滚动。
+     max-height 由 cellMaxLines 推出（默认 3 行 × 1.5 行高），超过就在格子里滚，
+     行高因此有上限；overflow-wrap:anywhere 同时把列的 min-content 压到一个字符，
+     长内容也就不会把表格顶宽。 */
   .table-container :global(.cell-inner) {
     display: block;
     max-width: 100%;
-    white-space: nowrap;
+    max-height: var(--dt-cell-max-h, 4.5em);
+    overflow-x: hidden;
+    overflow-y: auto;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* 单行省略号：不折行、不滚动，超出即截断 */
+  .table-container :global(td.ov-ellipsis .cell-inner) {
+    max-height: none;
     overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  /* 纯裁切，无省略号（PID 这类定长数字） */
-  .table-container :global(td.ov-clip .cell-inner) { text-overflow: clip; }
+  /* ── 无限循环滚动（overflow: 'scroll'） ──────────────────────────────
+     静止时和省略号一样只露开头、并在末尾画 …（让人知道还有内容，而不是
+     像硬切那样「看起来就是这样」），指针停上来才滚。cellHtml 把同一段内容
+     放了两份（第二份 aria-hidden），每份都带同样的右内边距，于是
 
-  /* 换行：允许内容折行，行高会随内容变化 */
-  .table-container :global(td.ov-wrap .cell-inner),
-  th.ov-wrap { white-space: normal; overflow-wrap: anywhere; }
+       track 宽度 = 2 × (内容 + 间距)
 
-  /* hover 横向滚动：内容比单元格宽时才上滚。
-     --marquee-dur 由组件按溢出量动态设置，溢出越多滚得越久。
-     只在 hover 时启动动画，鼠标移开立即回位，不干扰扫读。
-
-     这条规则别写成 `:hover`：鼠标一进入单元格它就成立，一页几十个表格意味着
-     鼠标每次划过都在给多个元素挂/摘动画。改用 .marquee 类由 onCellEnter
-     在「确实溢出了」时才加上，静止时不占用任何动画管线。 */
-  .table-container :global(td.ov-ellipsis .cell-inner.marquee) {
-    text-overflow: clip;
-    animation: cell-marquee var(--marquee-dur, 4s) linear infinite;
+     动画从 0 平移到 -50%，正好是一个「内容 + 间距」的循环单元：第一份
+     滚到尽头时第二份已对齐起点，接缝看不出来。整个过程只有 transform 在变，
+     走合成层，不触发布局、不需要 JS 每帧介入 —— 所以能一直滚下去。 */
+  .table-container :global(td.ov-scroll .cell-inner) {
+    max-height: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
-  @keyframes cell-marquee {
-    0%, 8% { transform: translateX(0); }
-    92%, 100% { transform: translateX(var(--marquee-shift, 0)); }
+  /* 滚起来就把 … 收掉：它会一直钉在右边界上，压住正在滚出来的文字 */
+  .table-container :global(td.ov-scroll .cell-inner:has(.mq.run)) { text-overflow: clip; }
+  .table-container :global(td.ov-scroll .mq) {
+    display: inline-block;
+    white-space: nowrap;
   }
-  /* 尊重系统「减少动态效果」偏好：关闭滚动，改为直接展示省略号 */
+  .table-container :global(td.ov-scroll .mq-i) {
+    display: inline-block;
+    padding-right: 3em;
+  }
+  /* will-change 只挂在真正在动的那一个上：常驻会让每格都提升合成层，
+     一页几千个格子就是几千个图层，比动画本身贵得多。 */
+  .table-container :global(td.ov-scroll .mq.run) {
+    will-change: transform;
+    animation: dt-marquee var(--dt-mq-dur, 12s) linear infinite;
+  }
+  @keyframes dt-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  /* 关掉动效时退回省略号：不然就只剩「硬切」，比原来更难读。
+     第二条的选择器要带上 :has() —— 它和上面「滚动时收掉 …」那条特异性相同，
+     必须写在后面才能覆盖（只写第一条压不住）。 */
   @media (prefers-reduced-motion: reduce) {
-    .table-container :global(td.ov-ellipsis .cell-inner.marquee) { animation: none; text-overflow: ellipsis; }
+    .table-container :global(td.ov-scroll .mq.run) { animation: none; will-change: auto; }
+    .table-container :global(td.ov-scroll .cell-inner),
+    .table-container :global(td.ov-scroll .cell-inner:has(.mq.run)) { text-overflow: ellipsis; }
   }
 
   /* th 需要成为定位上下文，拖拽手柄才能贴在其边缘。

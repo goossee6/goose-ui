@@ -30,6 +30,8 @@ export const dataTableProps: PropsTableItem[] = [
   { name: "actionsPercent", desc: "操作列的宽度声明，写法同 Column.width（份数 / 百分比 / 像素）；不传占 1 份", type: "number | string" },
   { name: "headerBleed", desc: "表头底色左右外扩的像素数。表格与 Header 共用一个外层滚动容器时，传入外层左右内边距，表头吸顶才不会在边缘露出窄缝", type: "number", default: "0" },
   { name: "maxHeight", desc: "容器最大高度，超出即由表格自己滚动、表头保持吸顶；传 'none' 交给父容器决定", type: "string", default: "'70vh'" },
+  { name: "cellMaxLines", desc: "折行单元格最多显示几行，超出后在单元格内垂直滚动（默认 3 行）；传 0 不设上限", type: "number", default: "3" },
+  { name: "cellTip", desc: "单元格内容被裁掉时悬停弹出完整文本（库内 Tooltip，全表共用一个实例，内容完整可见时不弹）；表格特别多或纯触屏场景可关掉", type: "boolean", default: "true" },
   { name: "stickyHeader", desc: "表头是否吸顶。常规用法保持默认；一页塞十几张表、或表格嵌在多层滚动容器里时传 false 换性能（表头会跟着行滚走）", type: "boolean", default: "true" },
   { name: "class", desc: "附加类名", type: "string", default: "''" },
   { name: "style", desc: "内联样式", type: "string", default: "''" },
@@ -44,10 +46,10 @@ export const columnProps: PropsTableItem[] = [
   { name: "sortable", desc: "是否可排序", type: "boolean", default: "true" },
   { name: "sortAccessor", desc: "排序取值函数，默认用 render 的文本", type: "(row: T) => unknown" },
   { name: "custom", desc: "为 true 才会调用 cell snippet 渲染该列", type: "boolean", default: "false" },
-  { name: "width", desc: "列宽占比。写数字表示份数（2 = 占 2 份），写 '20%' 表示占容器 20%，写 '200px' 按像素；不写则占 1 份", type: "number | string", default: "1" },
+  { name: "width", desc: "列宽建议值。写数字表示份数（2 = 占 2 份），写 '20%' 表示占容器 20%，写 '200px' 按像素；不写则按内容自适应", type: "number | string" },
   { name: "minWidth", desc: "最小宽度（可选约束），写法同 width；纯数字按像素。越界时夹住并把差额分摊给其它列", type: "number | string" },
   { name: "maxWidth", desc: "最大宽度（可选约束），写法同 width；纯数字按像素", type: "number | string" },
-  { name: "overflow", desc: "内容溢出处理：省略号 / 换行 / 纯裁切（默认省略号，hover 时横向滚动显示全文）", type: "'ellipsis' | 'wrap' | 'clip'", default: "'ellipsis'" },
+  { name: "overflow", desc: "溢出处理：wrap 换行（默认，超过 cellMaxLines 行在格内垂直滚动）/ ellipsis 单行省略号 / scroll 单行 + 悬停无限循环滚动。只要有一列选了 ellipsis 或 scroll，整表转 fixed 布局（列宽按声明分配，未声明的等分），保证长内容不会撑宽容器", type: "'wrap' | 'ellipsis' | 'scroll'", default: "'wrap'" },
 ];
 
 export const dataListProps: PropsTableItem[] = [

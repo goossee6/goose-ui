@@ -99,7 +99,14 @@ Copy-paste examples for every component are in the online demo:
       `text-overflow: ellipsis`, compensate on the trigger with
       `:global(.xxx-tip){ flex:1 1 auto; min-width:0 }`
     - Default delay is 200ms; override with `delay`
-    - Exception: `DataTable` plain-text cells still use native `title` (too many cells to be worth it)
+    - **Manual mode**: pass `anchor={el}` + `open={bool}` to drive the bubble yourself — the built-in
+      trigger is not rendered. Use it when one bubble must serve many hosts (thousands of table cells,
+      chart nodes) instead of mounting one `Tooltip` per host. `DataTable` does exactly this: cells carry
+      `data-tip`, and a single delegated bubble shows only when the content is actually clipped.
+      `cellTip={false}` turns it off. `overflow: 'scroll'` columns skip the bubble and instead run a
+      hover-triggered marquee (content duplicated once, `translateX(-50%)` loops seamlessly).
+    - `Combobox` uses it too for truncated option labels, but drives the anchor from `activeIndex`
+      (hover and arrow keys already share that one source) instead of a second `pointerover` delegate.
 15. **Never render empty-string `title` / `aria-label` into the DOM**: write `title={title || undefined}`,
     otherwise it both participates in native-tooltip hit testing and duplicates the outer `Tooltip`.
 16. **For hand-written overlay animations use `menuIn` / `menuOut`** (two directives because in/out durations differ),

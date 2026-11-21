@@ -11,6 +11,7 @@
 <script lang="ts">
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
+	import Tooltip from './Tooltip.svelte';
 	import Check from '@lucide/svelte/icons/check';
 	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
@@ -147,6 +148,8 @@
 		const onWin = (e: Event) => {
 			if (listEl && e.target === listEl) return;
 			position();
+			// 气泡是 fixed 定位、不会跟着面板走，页面一动就得收掉
+			closeTip();
 		};
 		window.addEventListener('scroll', onWin, true);
 		window.addEventListener('resize', onWin);
@@ -168,6 +171,68 @@
 		const bottom = top + item.offsetHeight;
 		if (top < el.scrollTop) el.scrollTop = top;
 		else if (bottom > el.scrollTop + el.clientHeight) el.scrollTop = bottom - el.clientHeight;
+	});
+
+	// ── 长选项的完整值 ────────────────────────────────────────────────────
+	//
+	// 面板宽度只跟触发器（`min(视口 - 16, max(120, 控件宽))`），不按内容加宽，
+	// 所以长 label 必然被省略号截掉、而且没有任何补救。这里补一个气泡。
+	//
+	// 用「一个气泡 + 一个锚点」而不是每项包一层 Tooltip：选项是数据驱动的，
+	// 过滤后可能有上百项，每项一个组件实例就是上百个响应式节点 + 监听器
+	// （与 DataTable 单元格同一套办法）。
+	let tipAnchor = $state<HTMLElement | null>(null);
+	let tipText = $state('');
+	let tipOpen = $state(false);
+	/** 延迟计时器。必须能被 closeTip 清掉 —— 否则滚动/关闭面板后，
+	 *  一个已经排上队的 timer 还会把气泡重新弹出来。 */
+	let tipTimer: ReturnType<typeof setTimeout> | null = null;
+
+	/** 只收起当前气泡，不打断排队中的显示任务 */
+	function hideTip() {
+		tipOpen = false;
+		tipAnchor = null;
+	}
+
+	function closeTip() {
+		if (tipTimer) {
+			clearTimeout(tipTimer);
+			tipTimer = null;
+		}
+		hideTip();
+	}
+
+	/**
+	 * 气泡跟随「活动项」，而不是另挂一套 pointerover 委托。
+	 *
+	 * 选项上本来就有 `onmouseenter → activeIndex`，键盘上下键改的也是它，
+	 * 所以 activeIndex 已经是「当前项」的唯一来源，再监听一次指针只会多一条
+	 * 可能与它对不上的路径。
+	 *
+	 * 延迟 240ms（贴近 Tooltip 默认的 200ms）：指针纵向扫过整列时每项都立刻
+	 * 弹一下，比原生 title 还吵；停住才弹。
+	 */
+	$effect(() => {
+		if (!open) {
+			closeTip();
+			return;
+		}
+		const i = activeIndex;
+		void filtered; // 过滤后列表重建，索引要重新取
+		// 换项先收掉上一个（同时清掉它排队中的 timer），等停住再弹新的一
+		closeTip();
+		tipTimer = setTimeout(() => {
+			tipTimer = null;
+			const el = listEl?.querySelectorAll<HTMLElement>('.combobox-option')[i];
+			if (!el) return;
+			const label = el.querySelector<HTMLElement>('.combobox-option-label');
+			// 完整可见就不提示：把看到的字再念一遍没有意义
+			if (!label || label.scrollWidth <= label.clientWidth + 1) return;
+			tipText = label.textContent ?? '';
+			tipAnchor = el;
+			tipOpen = true;
+		}, 240);
+		return closeTip;
 	});
 </script>
 
@@ -204,7 +269,10 @@
 			{#if filtered.length > 0}
 				<span class="combobox-count">{filtered.length} 项</span>
 			{/if}
-			<div class="combobox-list" role="listbox" id={listId} bind:this={listEl}>
+			<!-- 列表滚动用 hideTip 而不是 closeTip：键盘上下键会先把活动项滚进视区，
+			     那次滚动若连排队中的 timer 一起清掉，长选项的气泡就永远弹不出来。
+			     只收起、不清 timer，滚完按 anchor 的新位置再弹。 -->
+			<div class="combobox-list" role="listbox" id={listId} bind:this={listEl} onscroll={hideTip}>
 				<!-- 选中 = 常驻主题色，指针落点 = 中性灰（见 Select 里的说明） -->
 				<PillTrack
 					container={listEl}
@@ -251,6 +319,10 @@
 			<ScrollZones target={listEl} bg="var(--popup-surface)" />
 		</div>
 	{/if}
+
+	<!-- 长选项的完整值：全表一个实例，锚点由 activeIndex 驱动（见上方 effect）。
+	     delay={0}：停顿判断已经在宿主里做了（240ms），这里再叠一层就成了双重延迟。 -->
+	<Tooltip anchor={tipAnchor} open={tipOpen} title={tipText} placement="right" maxWidth={420} delay={0} />
 </div>
 
 <style>
@@ -321,6 +393,12 @@
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
+		/* fixed 而不是等内联 style 写进来再 fixed：面板挂载的第一帧 dropdownStyle
+		   还是空串，若那时它是 in-flow 的，超长选项会把 .combobox（inline-block）
+		   一起撑宽，紧接着 position() 量 controlEl 就量到被撑宽的宽度，
+		   于是面板宽度被自己的内容反向决定、长选项永远不截断。
+		   这里先 fixed 掉，面板从一开始就脱离文档流，量到的永远是控件自己的宽度。 */
+		position: fixed;
 		/* 面板层内边距（原在列表上）：pill 不贴边、sticky 组头上方无内容透出 */
 		padding: var(--sp-sm);
 		/* 与 Select / MultiSelect 同一个弹出层底色，不用 --surface-2（那层灰是页面内嵌区块的底） */

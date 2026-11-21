@@ -41,7 +41,7 @@
 | Select          | 下拉选择，支持键盘导航、meta 标签、分组吸顶（组头），无滚动条+两侧箭头滚动区；combobox/listbox ARIA 关联（aria-controls / aria-activedescendant） |
 | MultiSelect     | 多选下拉，支持 badge 标签与分组吸顶（组头）、Escape/方向键/Enter 键盘操作                                                                         |
 | CreatableSelect | 可新建搜索选择器，支持静态/异步数据源；搜索框 role=combobox，选项列表 role=listbox                                                                |
-| Combobox        | 组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航）                                                                             |
+| Combobox        | 组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航；面板宽跟随触发器，超长选项截断后悬停/键盘选中出气泡看全文）                    |
 | Checkbox        | 复选框，尺寸档 small/middle/large + 双向绑定 + 半选态（indeterminate）                                                                            |
 | Radio           | 单个单选项（一般直接用下面的 RadioGroup，单独用时需自管选中态）                                                                                   |
 | RadioGroup      | 单选组（pill 分段轨道，context 注入）                                                                                                             |
@@ -72,7 +72,7 @@
 
 | 组件            | 说明                                                                                                                                                                                                                                         |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DataTable       | 数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill                                                                                                                                    |
+| DataTable       | 数据表格，支持排序、高亮、右键菜单、列宽自适应（长内容默认换行 + 格内滚动，可选省略号 / 悬停循环滚动，永不撑宽容器）；被裁掉的格子悬停用库内 Tooltip 显示全文；表头圆角 + 吸顶，行 hover 为滑动 pill                                                                                          |
 | DataList        | 数据列表，带空状态与可选的内置 header（`title`/`header`/`headerCenter`/`headerRight` 等原样透传）；行 hover 同样走滑动 pill                                                                                                                  |
 | Tag             | 标签（6 变体 × 3 尺寸 + 圆点 + 可关闭）                                                                                                                                                                                                      |
 | StatusBadge     | 状态徽章                                                                                                                                                                                                                                     |

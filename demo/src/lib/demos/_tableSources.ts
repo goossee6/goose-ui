@@ -145,7 +145,7 @@
     createdAt: string;
   }
 
-  // 长文本示例：名字故意写长，用来观察默认的「截断 + hover 横向滚动」
+  // 长文本示例：名字故意写长，用来观察默认的「换行 + 格内滚动」
   const users: User[] = [
     { id: 1, name: "张三丰（武当派开山祖师，长期驻留武当山紫霄宫）", email: "zhangsanfeng@wudang.example.com", role: "管理员", status: "正常", storage: 45, createdAt: "2024-01-15" },
     { id: 2, name: "李四", email: "lisi@example.com", role: "编辑", status: "正常", storage: 78, createdAt: "2024-02-20" },
@@ -159,25 +159,52 @@
     { id: 10, name: "冯十二", email: "fengshier@example.com", role: "管理员", status: "正常", storage: 53, createdAt: "2024-09-30" },
   ];
 
-  // width 写的是「占比」不是像素，三种写法可混用：
-  //   2      → 占 2 份（其它没写的列各占 1 份，按比例分摊）
+  // 不写 width 就是 auto：列宽跟着内容走（表格是 table-layout: auto）。
+  // 想卡住某列再声明，三种写法可混用：
+  //   2      → 占 2 份（相对其它声明的列）
   //   "20%"  → 占容器宽度的 20%
   //   "160px"→ 按像素写，内部换算成百分比
-  // minWidth / maxWidth 是可选约束，越界时会被夹住、差额分摊给其它列，
-  // 所以各列之和恒为 100%，窗口怎么缩放都不会横向溢出。
+  // 写了只是「建议宽度」；长内容一律在格子里折行，不会把表格撑得比容器宽。
+  // 默认 overflow: "wrap" —— 折行，超过 3 行在格内垂直滚动（cellMaxLines 可调）。
   const columns: Column<User>[] = [
-    { id: "id", header: "ID", render: (r) => String(r.id), align: "center", mono: true, width: "6%", minWidth: 56 },
-    { id: "name", header: "姓名", render: (r) => r.name, overflow: "ellipsis" },
-    { id: "email", header: "邮箱", render: (r) => r.email, width: 3 },
-    // 备注这类超长内容适合换行，而不是截断
-    { id: "role", header: "角色", render: (r) => r.role, overflow: "wrap" },
-    { id: "storage", header: "存储用量", render: (r) => \`\${r.storage}%\`, align: "right", sortable: false, maxWidth: "12%" },
-    // PID 这类定长数字用 clip：不要省略号，避免数字看着不像数字
-    { id: "createdAt", header: "创建时间", render: (r) => r.createdAt, mono: true, overflow: "clip" },
+    { id: "id", header: "ID", render: (r) => String(r.id), align: "center", mono: true },
+    { id: "name", header: "姓名", render: (r) => r.name },
+    { id: "email", header: "邮箱", render: (r) => r.email },
+    { id: "role", header: "角色", render: (r) => r.role },
+    { id: "status", header: "状态", render: (r) => r.status, custom: true },
+    { id: "storage", header: "存储用量", render: (r) => \`\${r.storage}%\`, align: "right" },
+    { id: "createdAt", header: "创建时间", render: (r) => r.createdAt, align: "right" },
   ];
 <\/script>
 
 <DataTable rows={users} {columns} />`;
+
+  export const overflowSource = `<script lang="ts">
+  import { DataTable, type Column } from "goose-ui";
+
+  // 三列渲染同一段文字，只有 overflow 不同，差别才好对照
+  interface NoteRow { id: number; note: string }
+
+  const longNote =
+    "张三丰，武当派开山祖师，长期驻留武当山紫霄宫，主持内功心法的整理与弟子名册的校订，每季还要巡视各处分坛、复核账目，并把新入门的弟子逐条录入名册。";
+
+  const rows: NoteRow[] = [
+    { id: 1, note: longNote },
+    { id: 2, note: "李四，编辑，负责日常内容校对与发布排期。" },
+    { id: 3, note: "王五，访客，只读权限，仅可查看公开页面。" },
+  ];
+
+  const columns: Column<NoteRow>[] = [
+    // 不写 overflow 即默认 wrap：折行，超过 cellMaxLines（默认 3）行后在格内垂直滚动
+    { id: "wrap", header: "① wrap · 折行", render: (r) => r.note, width: "40%" },
+    // ellipsis：单行截断 + 省略号（单行列要配 width，fixed 布局下才分得到宽度）
+    { id: "ellipsis", header: "② ellipsis · 省略号", render: (r) => r.note, overflow: "ellipsis", width: "30%" },
+    // scroll：单行 + 悬停无限循环滚动（长 ID、文件名、URL 这类不能折行又要看全的列）
+    { id: "scroll", header: "③ scroll · 悬停滚动", render: (r) => r.note, overflow: "scroll", width: "30%" },
+  ];
+<\/script>
+
+<DataTable {rows} {columns} />`;
 
   export const stateSource = `<script lang="ts">
   import { DataTable, type Column } from "goose-ui";

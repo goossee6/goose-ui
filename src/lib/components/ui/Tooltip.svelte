@@ -26,6 +26,8 @@
     children,
     class: cls = '',
     style = '',
+    anchor = null,
+    open = false,
   }: {
     title: string | Snippet;
     placement?: "top" | "top-start" | "top-end" | "bottom" | "bottom-start" | "bottom-end" | "left" | "left-start" | "left-end" | "right" | "right-start" | "right-end";
@@ -35,10 +37,26 @@
      *  就弹一大片气泡，比原生 title 还吵。 */
     delay?: number;
     maxWidth?: number | string;
-    children: Snippet;
+    /** 手动模式：气泡不包触发器，显隐与定位都交给 `anchor` + `open`。 */
+    anchor?: HTMLElement | null;
+    /** 手动模式的显隐开关；换锚点时会就地重新定位，不重播进场动画 */
+    open?: boolean;
+    /** 手动模式下不需要触发器内容，故可选 */
+    children?: Snippet;
     class?: string;
     style?: string;
   } = $props();
+
+  /**
+   * 手动模式：宿主自己决定「现在该提示谁」。
+   *
+   * 为什么需要它：表格上千个单元格、图表上千个节点，每格挂一个 Tooltip 组件
+   * 就是上千个响应式实例 + 上千个监听器。改成「一个气泡 + 一个锚点元素」，
+   * 宿主用一次事件委托找出被悬停的格子，把元素塞进 anchor 即可。
+   *
+   * 手动模式下不渲染触发器、不注册 mouseenter/leave，显隐完全由 `open` 驱动。
+   */
+  const manual = $derived(anchor != null);
 
   let triggerEl = $state<HTMLElement | null>(null);
   let tooltipEl = $state<HTMLElement | null>(null);
@@ -65,22 +83,39 @@
     if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
   }
 
+  /** 立即浮出（跳过延迟），手动模式与延迟计时器共用 */
+  function showNow() {
+    // 已经浮着（或正在进场）：只可能是手动模式下锚点换了宿主，重新定位即可。
+    // 注意不能只看 visible —— 离场动画期间 visible 仍是 true，那会儿重新悬停
+    // 必须重新进场，否则 animState 会停在 "leaving"，气泡再也回不到正常态。
+    if (animState === "visible" || animState === "entering") {
+      calculatePosition();
+      return;
+    }
+    visible = true;
+    animState = "entering";
+    requestAnimationFrame(() => {
+      // 定位不了就不进入 visible：那种情况气泡还停在初始的 (0,0)，
+      // 一旦变成 visible（opacity 1）就会直接画在视口左上角。
+      if (!calculatePosition()) {
+        visible = false;
+        animState = "hidden";
+        return;
+      }
+      animState = "visible";
+    });
+  }
+
   function show() {
     clearTimers();
-    hoverTimer = setTimeout(() => {
-      visible = true;
-      animState = "entering";
-      requestAnimationFrame(() => {
-        // 定位不了就不进入 visible：那种情况气泡还停在初始的 (0,0)，
-        // 一旦变成 visible（opacity 1）就会直接画在视口左上角。
-        if (!calculatePosition()) {
-          visible = false;
-          animState = "hidden";
-          return;
-        }
-        animState = "visible";
-      });
-    }, delay);
+    hoverTimer = setTimeout(showNow, delay);
+  }
+
+  /** 立即收掉，不走离场动画：手动模式下锚点一换就得马上消失，否则气泡会停在上一格 */
+  function hideNow() {
+    clearTimers();
+    visible = false;
+    animState = "hidden";
   }
 
   function hide() {
@@ -113,9 +148,11 @@
   /** 计算并写入气泡位置。返回是否真的算出来了：false 表示触发器或气泡元素
    *  当前不在（例如所在行刚被移出列表），调用方不能把气泡当成已定位。 */
   function calculatePosition(): boolean {
-    if (!triggerEl || !tooltipEl) return false;
+    // 手动模式没有触发器，锚点就是宿主给的那个元素
+    const el = triggerEl ?? anchor;
+    if (!el || !tooltipEl) return false;
 
-    const triggerRect = triggerEl.getBoundingClientRect();
+    const triggerRect = el.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -230,6 +267,40 @@
 
   $effect(() => () => clearTimers());
 
+  /**
+   * 手动模式：显隐完全由 `anchor` / `open` 驱动。
+   *
+   * 锚点换宿主时（鼠标从一格移到另一格）只重新定位、不重播进场动画，
+   * 否则横扫一列格子会看到气泡反复闪烁。
+   *
+   * 这里读到的东西全部 untrack：位置计算会读 tooltipEl / pos 等状态，
+   * 让它们变成依赖就会「写位置 → 触发 effect → 再写位置」地空转。
+   */
+  $effect(() => {
+    // 手动模式被关掉（anchor 收回 null）时也要收气泡：宿主把 anchor 清空，
+    // 通常就意味着「现在没有该提示的宿主了」。
+    if (!manual) {
+      untrack(hideNow);
+      return;
+    }
+    const el = anchor;
+    if (!open || !el) {
+      untrack(hideNow);
+      return;
+    }
+    if (untrack(() => animState) !== "hidden") {
+      untrack(calculatePosition);
+      return;
+    }
+    hoverTimer = setTimeout(showNow, delay);
+    return () => {
+      if (hoverTimer) {
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+      }
+    };
+  });
+
   function prefersReducedMotion(): boolean {
     return typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
   }
@@ -253,20 +324,23 @@
 </script>
 
 <!-- 触发器只能包一层元素，不能强行改成 button（会多出一个按钮、也会抢走
-     子元素自己的点击语义）；click 模式下的键盘可达性由子元素自身承担。 -->
-<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
-<span
-  class="tooltip-trigger {cls}"
-  style={style}
-  bind:this={triggerEl}
-  onmouseenter={onTriggerMouseEnter}
-  onmouseleave={onTriggerMouseLeave}
-  onfocusin={onTriggerFocusIn}
-  onfocusout={onTriggerFocusOut}
-  onclick={onTriggerClick}
->
-  {@render children()}
-</span>
+     子元素自己的点击语义）；click 模式下的键盘可达性由子元素自身承担。
+     手动模式没有触发器：气泡的宿主是外部传进来的锚点。 -->
+{#if !manual}
+  <!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
+  <span
+    class="tooltip-trigger {cls}"
+    style={style}
+    bind:this={triggerEl}
+    onmouseenter={onTriggerMouseEnter}
+    onmouseleave={onTriggerMouseLeave}
+    onfocusin={onTriggerFocusIn}
+    onfocusout={onTriggerFocusOut}
+    onclick={onTriggerClick}
+  >
+    {@render children?.()}
+  </span>
+{/if}
 
 {#if animState !== "hidden"}
   <div

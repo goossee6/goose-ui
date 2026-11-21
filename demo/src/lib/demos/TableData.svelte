@@ -10,9 +10,31 @@
   import PropsTable from "../PropsTable.svelte";
   import { users, manyUsers, columns, simpleColumns, type User } from "./_shared";
   import { compareRows, dataTableProps, columnProps, dataListProps } from "./_tableShared";
-  import { compareSource, dataTableSource, cellSource, actionsSource, resizableSource, stateSource, stickySource, noStickySource } from "./_tableSources";
+  import { compareSource, dataTableSource, cellSource, actionsSource, resizableSource, stateSource, stickySource, noStickySource, overflowSource } from "./_tableSources";
 
   let highlight = $state("");
+
+  // 溢出策略演示：三列渲染的是同一段文字，差别才看得清。
+  // 第一行故意写超长：wrap 列折到 3 行封顶并出现格内滚动条，
+  // ellipsis 列单行加省略号，scroll 列静止时只露开头、鼠标停上去开始循环滚动。
+  const longNote =
+    "张三丰，武当派开山祖师，长期驻留武当山紫霄宫，主持内功心法的整理与弟子名册的校订，每季还要巡视各处分坛、复核账目，并把新入门的弟子逐条录入名册。";
+  const overflowNotes = [
+    longNote,
+    "李四，编辑，负责日常内容校对与发布排期。",
+    "王五，访客，只读权限，仅可查看公开页面。",
+    "赵六，编辑，兼管素材库的标签体系。",
+  ];
+  const overflowRows = overflowNotes.map((note, i) => ({ id: i + 1, note }));
+
+  const overflowColumns: Column<{ id: number; note: string }>[] = [
+    // 不写 overflow 即默认 wrap：折行，超过 cellMaxLines（默认 3）行后在格内垂直滚动
+    { id: "wrap", header: "① wrap · 折行", render: (r) => r.note, width: "40%" },
+    // ellipsis：单行截断 + 省略号（单行列必须配 width，fixed 布局下才分得到宽度）
+    { id: "ellipsis", header: "② ellipsis · 省略号", render: (r) => r.note, overflow: "ellipsis", width: "30%" },
+    // scroll：单行 + 悬停无限循环滚动（长 ID、文件名、URL 这类「不能折行又要看全」的列）
+    { id: "scroll", header: "③ scroll · 悬停滚动", render: (r) => r.note, overflow: "scroll", width: "30%" },
+  ];
 
   let menuOffs: (() => void)[] = [];
   onMount(() => {
@@ -35,7 +57,7 @@
   });
 </script>
 
-<Page toc title="DataTable 数据表格" description="配置驱动、按列对齐的表格：排序、高亮、右键菜单、按比例分配列宽、表头吸顶、loading / 空态">
+<Page toc title="DataTable 数据表格" description="配置驱动、按列对齐的表格：排序、高亮、右键菜单、列宽随内容自适应、长内容换行并在格内滚动（或悬停循环滚动）、表头吸顶、loading / 空态">
   <Card anchor="choosing" title="怎么选">
     <div class="pick">
       <div class="pick-item">
@@ -124,11 +146,27 @@
       <DataTable rows={users} columns={simpleColumns} actions={rowActions} />
     </CodePreview>
 
-  <CodePreview anchor="widths-states" anchorLevel={2} title="DataTable · 按比例分配列宽 + hover 滚动" code={resizableSource} flush>
+  <CodePreview anchor="widths-states" anchorLevel={2} title="DataTable · 列宽随内容自适应（长内容换行，width 可覆盖）" code={resizableSource} flush>
       <div style="max-height:320px">
         <DataTable rows={users} {columns} />
       </div>
-    </CodePreview>
+  </CodePreview>
+  <p class="note">
+    容器宽度是硬约束：任何列都不会把表格撑得比容器宽，溢出都在单元格里消化。
+    下面三列渲染的是<b>同一段文字</b>，只有 <code>overflow</code> 不同：
+  </p>
+  <ul class="points">
+    <li><b>① wrap（默认）</b>：折行，行高最高 <code>cellMaxLines</code>（默认 3）行，再多就在格子里竖向滚动。</li>
+    <li><b>② ellipsis</b>：单行截断并画出 <code>…</code>，行高恒定。</li>
+    <li><b>③ scroll</b>：单行，静止时只露开头；<b>鼠标停到格子上</b>就从内容开头匀速循环滚动，滚完接回开头，一直看得到全文。适合长 ID、文件名、URL 这种不能折行又必须读全的列。</li>
+    <li><b>另外</b>：②③ 的格子悬停时也会由库里的 <code>Tooltip</code> 浮出完整文本（不再是浏览器原生 title）；③ 因为已经能滚着看全，就不再弹气泡。</li>
+  </ul>
+
+  <CodePreview anchor="overflow-strategies" anchorLevel={3} title="DataTable · 三种溢出策略同屏对照（同一段文字）" code={overflowSource} flush>
+    <div style="max-height:260px">
+      <DataTable rows={overflowRows} columns={overflowColumns} />
+    </div>
+  </CodePreview>
 
   <CodePreview anchor="datatable-2" anchorLevel={3} title="DataTable · 加载中 / 空状态" code={stateSource} flush>
       <DataTable rows={[]} columns={simpleColumns} loading={true} />

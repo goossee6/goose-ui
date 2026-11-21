@@ -1,6 +1,6 @@
 # 组件 Props 参考
 
-对外 86 个组件里，83 个有 props 的列在这里，共 773 条。
+对外 86 个组件里，83 个有 props 的列在这里，共 777 条。
 本文件由 `scripts/gen-api-docs.mjs` 从 `src/lib/components/ui/*.svelte` 生成，**不要手改**：
 改完组件执行 `pnpm docs:api` 重新生成，`pnpm docs:api:check`（CI 用）校验本文件有没有落后于源码。
 
@@ -390,7 +390,7 @@ import { CreatableSelect } from 'goose-ui';
 
 ### Combobox
 
-组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航）
+组合框（输入过滤 + 分组吸顶 + role=combobox/listbox/option 键盘导航；面板宽跟随触发器，超长选项截断后悬停/键盘选中出气泡看全文）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -777,7 +777,7 @@ import { TimePicker } from 'goose-ui';
 
 ### DataTable
 
-数据表格，支持排序、高亮、右键菜单、按占比 + 最小/最大约束分配列宽；表头圆角 + 吸顶，行 hover 为滑动 pill
+数据表格，支持排序、高亮、右键菜单、列宽自适应（长内容默认换行 + 格内滚动，可选省略号 / 悬停循环滚动，永不撑宽容器）；被裁掉的格子悬停用库内 Tooltip 显示全文；表头圆角 + 吸顶，行 hover 为滑动 pill
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -795,6 +795,8 @@ import { TimePicker } from 'goose-ui';
 | `actionsPercent` | `number \| string` | — | 操作列的宽度声明，与 `Column.width` 同一种写法。 不传时占 1 份（等同 `Column` 不写 width 的列）。 |
 | `headerBleed` | `number` | `0` | 表头磨砂层左右外扩的像素数（默认 0 不扩）。 表格自己滚时表头贴着自己的边，磨砂只需要盖住它本身； 但当表格和上方的列表 header 一起放在「外层滚动容器」里、 由外层滚时，表头会平移到容器边缘 —— 这时容器两侧的内边距 会露出一条没有磨砂的窄缝。传入该内边距的数值，磨砂层就能铺到边。 |
 | `maxHeight` | `string` | `'70vh'` | 容器最大高度，超出即由表格自己滚动（表头是 sticky，滚动时保持吸顶）。 默认 '70vh'：即便外面没给高度，行数一多也不会把整页撑长、 表头更不会跟着页面滚走。传 'none' 关闭，交给父容器决定高度。 |
+| `cellMaxLines` | `number` | `3` | 折行单元格最多显示几行（默认 3），超出后在单元格内垂直滚动。 传 0 关闭上限，行高随内容撑开。 |
+| `cellTip` | `boolean` | `true` | 单元格内容被裁掉时悬停弹出完整文本（库内 Tooltip，默认 true） |
 | `stickyHeader` | `boolean` | `true` | 表头是否吸顶（`position: sticky`），默认 true。 常规用法（一页一两张表）保持吸顶，滚动时能一直看到列名。 但 sticky 表头处在可滚动容器里时，每一帧都要重新计算吸顶位置 —— 一页塞十几张表、且表格又嵌在别的滚动容器里时，这笔开销会明显拖慢帧率 （实测 demo 表格页：13.0ms/帧、满帧率 54% → 关掉后 9.8ms、满帧 95%）。 这种极端场景可以传 false 换性能，代价是表头会跟着行一起滚走。 注意：关掉吸顶后仍保留纯色底色与下边框，表头与数据行在视觉上依然分得开。 |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
@@ -1514,9 +1516,11 @@ import { Popover } from 'goose-ui';
 | `trigger` | `"hover" \| "focus" \| "click"` | `"hover"` |  |
 | `delay` | `number` | `200` | hover/focus 的悬停延迟（ms），默认 200。 别调得太小：列表里每行可能挂好几个提示，鼠标纵向扫过时 50ms 就弹一大片气泡，比原生 title 还吵。 |
 | `maxWidth` | `number \| string` | — |  |
-| `children` | `Snippet` | — |  |
+| `children` | `Snippet` | — | 手动模式下不需要触发器内容，故可选 |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
+| `anchor` | `HTMLElement \| null` | `null` | 手动模式：气泡不包触发器，显隐与定位都交给 `anchor` + `open`。 |
+| `open` | `boolean` | `false` | 手动模式的显隐开关；换锚点时会就地重新定位，不重播进场动画 |
 
 ```ts
 import { Tooltip } from 'goose-ui';

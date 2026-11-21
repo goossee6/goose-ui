@@ -71,6 +71,8 @@
     { value: 'solid', label: 'SolidJS' },
     { value: 'qwik', label: 'Qwik' },
     { value: 'astro', label: 'Astro', disabled: true },
+    // 长选项：面板宽度只跟触发器，这一条必然被省略号截掉，悬停/键盘选中时出气泡看全
+    { value: 'analog', label: 'AnalogJS — Angular 的全栈元框架，支持文件路由、服务端渲染与岛屿式水合' },
   ];
 
   const cities: ComboboxOption[] = [
@@ -278,6 +280,8 @@
     { value: "solid", label: "SolidJS" },
     { value: "qwik", label: "Qwik" },
     { value: "astro", label: "Astro", disabled: true },
+    // 面板宽只跟触发器，这一条必然被省略号截断；悬停 / 键盘选中时右侧出气泡看全文
+    { value: "analog", label: "AnalogJS — Angular 的全栈元框架，支持文件路由、服务端渲染与岛屿式水合" },
   ];
 
   const cities: ComboboxOption[] = [
@@ -290,7 +294,7 @@
   let city = $state("sh");
 <\/script>
 
-<Combobox options={frameworks} bind:value={fw} placeholder="搜索框架…" />
+<Combobox options={frameworks} bind:value={fw} placeholder="搜索框架…" style="max-width:360px" />
 <Combobox options={cities} bind:value={city} placeholder="选择城市…" />`;
 
   const comboboxGroupSource = `<script lang="ts">
@@ -427,8 +431,10 @@
 
   <CodePreview anchor="combobox" anchorLevel={3} title="Combobox 基础过滤" code={comboboxBasicSource}>
     <div style="display:flex;flex-direction:column;gap:16px">
-      <Combobox options={frameworks} bind:value={cbFw} placeholder="搜索框架…" onchange={(v) => Notification.info(`value = ${v || '（空）'}`)} />
-      <p class="note">value = {cbFw || '（空）'}　可输入过滤、clearable 清除；Astro 为 disabled 项</p>
+      <!-- max-width 用来还原真实用法：组合框是 inline-block，放进 flex 列里会被拉满整行，
+           那样长选项反而放得下、看不到截断。 -->
+      <Combobox options={frameworks} bind:value={cbFw} placeholder="搜索框架…" style="max-width:360px" onchange={(v) => Notification.info(`value = ${v || '（空）'}`)} />
+      <p class="note">value = {cbFw || '（空）'}　可输入过滤、clearable 清除；Astro 为 disabled 项。最后一项是长文本，面板宽只跟触发器，所以它会被省略号截断 —— 悬停或键盘选中时右侧弹出完整值</p>
       <Combobox options={cities} bind:value={cbCity} placeholder="选择城市…" />
       <p class="note">value = {cbCity}</p>
     </div>
