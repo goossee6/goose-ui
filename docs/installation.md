@@ -16,14 +16,14 @@ pnpm dev
 ## 安装
 
 ```bash
-# 推荐：跟 0.3.x 里最新的 tag，之后升级只用 pnpm update goose-ui
-pnpm add "github:goossee6/goose-ui#semver:^0.3.0" @lucide/svelte
+# 推荐：跟 0.4.x 里最新的 tag，之后升级只用 pnpm update goose-ui
+pnpm add "github:goossee6/goose-ui#semver:^0.4.0" @lucide/svelte
 ```
 
 锁死单个版本（tag 见 <https://github.com/goossee6/goose-ui/tags>）：
 
 ```bash
-pnpm add github:goossee6/goose-ui#v0.3.3
+pnpm add github:goossee6/goose-ui#v0.4.0
 ```
 
 跟随 `main` 最新提交（构建不可复现，见[升级](installation.md#升级)）：
@@ -42,7 +42,7 @@ pnpm add file:../goose-ui      # 复制（hardlink）一份快照，改完要重
 ```
 
 > pnpm 的 `file:` 不是软链：它把目录复制进 `node_modules/.pnpm`，之后库里的改动**不会**自动进去，
-> 表现是"库已升到 0.3.3，项目里还是 0.3.0"。要边改边看用 `link:`；npm 的 `file:` 才是软链。
+> 表现是"库已升到 0.4.0，项目里还是 0.3.0"。要边改边看用 `link:`；npm 的 `file:` 才是软链。
 
 > `@lucide/svelte` 是 **peer 依赖且必装**，缺了构建会直接报
 > `Cannot find package '@lucide/svelte'`（原因见下文 Peer Dependencies）。
@@ -88,8 +88,8 @@ grep '"version"' node_modules/goose-ui/package.json
 
 | 写法 | 含义 | 怎么升 |
 | --- | --- | --- |
-| `github:…#semver:^0.3.0` | 自动跟 0.3.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
-| `github:…/goose-ui#v0.3.3` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
+| `github:…#semver:^0.4.0` | 自动跟 0.4.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
+| `github:…/goose-ui#v0.4.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
 | `github:goossee6/goose-ui` | 跟随 `main` 最新提交 | `pnpm update goose-ui` |
 | `link:../goose-ui` | 软链到本地克隆 | 不用升级，`git pull` 后即时生效 |
 | `file:../goose-ui` | 指到本地克隆，但 pnpm 会**复制**一份快照 | `pnpm install` 重新复制（想实时联动换成 `link:`） |
@@ -103,7 +103,7 @@ grep '"version"' node_modules/goose-ui/package.json
 ### 不想手改 tag：用 semver 范围
 
 ```bash
-pnpm add "github:goossee6/goose-ui#semver:^0.3.0" @lucide/svelte
+pnpm add "github:goossee6/goose-ui#semver:^0.4.0" @lucide/svelte
 pnpm update goose-ui          # 之后升级就这一条
 ```
 
@@ -182,12 +182,12 @@ jobs:
 
    ```bash
    git ls-remote --tags https://github.com/goossee6/goose-ui.git | tail -6
-   git tag -n9 -l v0.3.3        # 在 goose-ui 仓库里看某个 tag 的说明
+   git tag -n9 -l v0.4.0        # 在 goose-ui 仓库里看某个 tag 的说明
    ```
 
-### 未发布（下一版）
+### 0.4.0 相比 0.3.3 的行为变化
 
-- `DataTable` 默认溢出策略从「单行省略号 + hover 横向滚动」改为「折行 + 格内垂直滚动」：
+- **破坏性**：`DataTable` 默认溢出策略从「单行省略号 + hover 横向滚动」改为「折行 + 格内垂直滚动」：
   - 默认 `overflow: 'wrap'`，超过新 prop `cellMaxLines`（默认 3 行）后在单元格内竖向滚动
   - 只要有一列显式选了 `'ellipsis'` / `'scroll'`，整表切成 `table-layout: fixed`（列宽只认声明、
     未声明的等分），否则单行内容会把表格顶宽、截断与滚动永远不触发
