@@ -16,14 +16,14 @@ pnpm dev
 ## 安装
 
 ```bash
-# 推荐：跟 0.5.x 里最新的 tag，之后升级只用 pnpm update goose-ui
-pnpm add "github:goossee6/goose-ui#semver:^0.5.0" @lucide/svelte
+# 推荐：跟 0.6.x 里最新的 tag，之后升级只用 pnpm update goose-ui
+pnpm add "github:goossee6/goose-ui#semver:^0.6.0" @lucide/svelte
 ```
 
 锁死单个版本（tag 见 <https://github.com/goossee6/goose-ui/tags>）：
 
 ```bash
-pnpm add github:goossee6/goose-ui#v0.5.0
+pnpm add github:goossee6/goose-ui#v0.6.0
 ```
 
 跟随 `main` 最新提交（构建不可复现，见[升级](installation.md#升级)）：
@@ -88,8 +88,8 @@ grep '"version"' node_modules/goose-ui/package.json
 
 | 写法 | 含义 | 怎么升 |
 | --- | --- | --- |
-| `github:…#semver:^0.5.0` | 自动跟 0.5.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
-| `github:…/goose-ui#v0.5.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
+| `github:…#semver:^0.6.0` | 自动跟 0.6.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
+| `github:…/goose-ui#v0.6.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
 | `github:goossee6/goose-ui` | 跟随 `main` 最新提交 | `pnpm update goose-ui` |
 | `link:../goose-ui` | 软链到本地克隆 | 不用升级，`git pull` 后即时生效 |
 | `file:../goose-ui` | 指到本地克隆，但 pnpm 会**复制**一份快照 | `pnpm install` 重新复制（想实时联动换成 `link:`） |
@@ -103,7 +103,7 @@ grep '"version"' node_modules/goose-ui/package.json
 ### 不想手改 tag：用 semver 范围
 
 ```bash
-pnpm add "github:goossee6/goose-ui#semver:^0.5.0" @lucide/svelte
+pnpm add "github:goossee6/goose-ui#semver:^0.6.0" @lucide/svelte
 pnpm update goose-ui          # 之后升级就这一条
 ```
 
@@ -182,8 +182,27 @@ jobs:
 
    ```bash
    git ls-remote --tags https://github.com/goossee6/goose-ui.git | tail -6
-   git tag -n9 -l v0.5.0        # 在 goose-ui 仓库里看某个 tag 的说明
+   git tag -n9 -l v0.6.0        # 在 goose-ui 仓库里看某个 tag 的说明
    ```
+
+### 0.6.0 相比 0.5.0 的行为变化
+
+- 以内部重构为主，对外导出与已有 props 不变：日期运算、日历网格、滚轮位移、分段输入、下拉面板分别抽到
+  `dateParts` / `calendarGrid` / `wheelMath` / `segmentCells` / `dropdown.svelte.ts` 等纯函数模块，
+  组件只留渲染与委托。导入路径、props、事件签名都不变，升级后无需改调用方
+
+- `MultiSelect` 新增可选 `ariaLabel`：触发器从 `role="button"` 改为 `role="combobox"`，读屏念的是
+  「当前选中值」而不是一串徽标；徽标上的 × 从无障碍树里移除、也不再能被 Tab 聚焦，删除改由
+  `Backspace` / `Delete` 完成，结果用 `aria-live` 播报
+
+- **行为变化**：四个下拉（`Select` / `Combobox` / `MultiSelect` / `CreatableSelect`）的选项不再进 Tab
+  序列，键盘导航统一走触发器上的 `aria-activedescendant`（方向键 + 回车）。以前靠 Tab 逐个进选项的
+  用法需要改为方向键；行高、可见行数封顶与圆角三者也统一了
+
+- `DateField` / `TimeField` 的中间态改为「保位」：月为空、日已填时得到 `2026--01`，不再把刚敲的日段
+  丢掉；被拒绝的键入（13 月、2 月 30 日）立即撤回，框里不会留下非法数字而值还是旧的
+
+- 浮层嵌套修复：`NavigationMenu` 里弹出的右键菜单不再误关导航菜单，面板内部滚动也不再收起菜单
 
 ### 0.5.0 相比 0.4.0 的行为变化
 
