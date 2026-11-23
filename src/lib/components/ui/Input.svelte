@@ -6,6 +6,7 @@
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import Icon from './Icon.svelte';
 	import { FORM_ITEM_KEY, type FormItemContext } from './form.context';
+	import { checkField, type FieldValidator } from './fieldValidation';
 
 	let {
 		id = '',
@@ -26,6 +27,8 @@
 		digitsOnly = false,
 		onClear,
 		onclick,
+		validate,
+		oninvalid,
 	}: {
 		id?: string;
 		name?: string;
@@ -47,11 +50,16 @@
 		digitsOnly?: boolean;
 		onClear?: () => void;
 		onclick?: (e: MouseEvent) => void;
+		/** 失焦校验：返回错误文案即不接受，值回滚到本次编辑前 */
+		validate?: FieldValidator;
+		oninvalid?: (msg: string) => void;
 	} = $props();
 
 	// FormItem 内且该项有 error 时自动进入 error 态（FormItem 之外为 null，行为不变）
 	const itemCtx = getContext<FormItemContext | null>(FORM_ITEM_KEY);
-	const effStatus = $derived(status ?? (itemCtx?.error ? 'error' : undefined));
+	let errMsg = $state('');
+	let lastGood = '';
+	const effStatus = $derived(status ?? (errMsg || itemCtx?.error ? 'error' : undefined));
 
 	const statusIcon = $derived(effStatus === 'error' ? AlertCircle : effStatus === 'warning' ? AlertTriangle : null);
 	const statusColor = $derived(effStatus === 'error' ? 'var(--danger-text)' : effStatus === 'warning' ? 'var(--warning-text)' : '');
@@ -78,6 +86,21 @@
 			value = cleaned;
 		}
 	}
+
+	function handleFocus() {
+		lastGood = value;
+	}
+
+	function handleBlur() {
+		const msg = checkField(validate, value);
+		if (!msg) {
+			errMsg = '';
+			return;
+		}
+		value = lastGood;
+		errMsg = msg;
+		oninvalid?.(msg);
+	}
 </script>
 
 <div
@@ -101,6 +124,10 @@
 		class="input"
 		onkeydown={handleKeydown}
 		oninput={handleInput}
+		onfocus={handleFocus}
+		onblur={handleBlur}
+		aria-invalid={errMsg ? 'true' : undefined}
+		title={errMsg || undefined}
 		onclick={(e) => onclick?.(e)}
 		bind:value
 	/>
@@ -115,7 +142,7 @@
 		</span>
 	{/if}
 	{#if clearable && !readonly}
-		<button type="button" class="input-clear" class:input-clear--hidden={!value} onclick={() => { if (value) { value = ''; onClear?.(); } }} aria-label="清除">
+		<button type="button" class="input-clear" class:input-clear--hidden={!value} onclick={() => { if (value) { value = ''; errMsg = ''; onClear?.(); } }} aria-label="清除">
 			<Icon icon={X} size={14} />
 		</button>
 	{/if}

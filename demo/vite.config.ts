@@ -7,7 +7,8 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
  *
  *   vendor  —— Svelte 运行时 + 图标
  *   ui      —— goose-ui 的 86 个组件
- *   demos   —— 76 个示例页 + 它们共用的外壳与示例数据
+ *   shell   —— 示例页共用的外壳（代码预览、属性表）
+ *   demos   —— 76 个示例页 + 示例数据
  *   index   —— 应用外壳 + 加载表
  *   style   —— 全部样式（CSS 不分片）
  *
@@ -40,11 +41,18 @@ export default defineConfig({
           // 顺序即优先级：先被匹配到的组先吃模块。
           // vendor / ui 必须排在 demos 之前 —— 反之 demos 会把它们的依赖
           // 一起递归吞进去（实测 demos 涨到 758KB，vendor 只剩 2KB）。
-          // demos 只认 demo/src/lib 下剩下的内容（示例页、PropsTable、加载表），
+          // shell 是几十个示例页共用的代码预览 / 属性表，跟着 demos 走会把它顶到
+          // 500KB 红线（每加一个示例页就再涨一点），单独成块后 demos 只剩示例页本身。
+          // demos 只认 demo/src/lib 下剩下的内容（示例页、加载表），
           // App.svelte / main.ts 这些入口侧文件留在 index。
           groups: [
             { name: 'vendor', test: /node_modules[\\/]/, priority: 40 },
             { name: 'ui', test: /goose-ui[\\/]src[\\/]lib[\\/]/, priority: 30 },
+            {
+              name: 'shell',
+              test: /[\\/]demo[\\/]src[\\/]lib[\\/](?:CodePreview|PropsTable)\.svelte/,
+              priority: 20,
+            },
             { name: 'demos', test: /[\\/]demo[\\/]src[\\/]lib[\\/]/, priority: 10 },
           ],
         },

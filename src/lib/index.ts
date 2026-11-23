@@ -105,6 +105,7 @@ import DateField from './components/ui/DateField.svelte';
 import DateRangeField from './components/ui/DateRangeField.svelte';
 import DatePicker from './components/ui/DatePicker.svelte';
 import DateRangePicker from './components/ui/DateRangePicker.svelte';
+import DateTimeRangePicker from './components/ui/DateTimeRangePicker.svelte';
 import DropZone from './components/ui/DropZone.svelte';
 import Footer from './components/ui/Footer.svelte';
 import Image from './components/ui/Image.svelte';
@@ -164,7 +165,7 @@ import Drawer from './components/ui/Drawer.svelte';
 import Header from './components/ui/Header.svelte';
 import ThemeToggle from './components/ui/ThemeToggle.svelte';
 export {
-  Accordion, AlertDialog, AspectRatio, Avatar, Button, Calendar, Card, Checkbox, Collapsible, Combobox, Command, CreatableSelect, DataList, DataTable, DateField, DateRangeField, DatePicker, DateRangePicker, DropZone, DropdownMenu,
+  Accordion, AlertDialog, AspectRatio, Avatar, Button, Calendar, Card, Checkbox, Collapsible, Combobox, Command, CreatableSelect, DataList, DataTable, DateField, DateRangeField, DatePicker, DateRangePicker, DateTimeRangePicker, DropZone, DropdownMenu,
   MultiSelect, Input, Textarea, Label, LinkPreview, Loading, Meter, Modal, PageHeader, Page, Empty, PINInput, Radio, RadioGroup, RangeCalendar, Rating, Row, ScrollArea, Separator, Slider, Menubar, NavigationMenu, Pagination, Popover, ToggleGroup, TimeField, TimeRangeField, Toolbar, Tag, Skeleton, Image, Footer, BackTop, Time, Countdown, Carousel, Form, FormItem, TimePicker, CodeBlock, Cursor, Background,
   ProgressBar, ProgressBytes, ProgressSlotBar, Tabs, TabsPanel, PillTrack, Select,
   StatusBadge, NotificationProvider, NotificationItem, TitleBar, Layout, Toggle, Tooltip, Typewriter, UsageBar, Sidebar, Drawer, Header, ThemeToggle,

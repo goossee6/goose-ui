@@ -54,7 +54,7 @@
 </Row>`;
 </script>
 
-<Page toc title="TimePicker 时间选择" description="触发器 + 惯性滚轮（拖拽/滚轮/点击均可），停稳自动提交完整值；showSeconds=false 隐藏秒列，xxStep 控制步长；自动翻转，支持「现在」快捷键">
+<Page toc title="TimePicker 时间选择" description="触发器 + 惯性滚轮（拖拽/滚轮/点击均可），面板顶部还有一行分段输入：点哪一段就能直接键入，同时高亮对应那一列，两种方式并行；滚轮停稳只更新草稿，点「确认」才提交；showSeconds=false 隐藏秒列，xxStep 控制步长；自动翻转，支持「现在」快捷键">
   <CodePreview anchor="24-60-60" anchorLevel={2} title="基础用法（默认 24/60/60）" code={basicSource}>
     <Row>
       <TimePicker bind:value={t1} />

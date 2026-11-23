@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Button from './Button.svelte';
+	import PickerFooter from './PickerFooter.svelte';
 	import { WEEKDAYS, toISO, fromISO, isSameDay, type CalendarCell } from './Calendar.svelte';
 
 	let {
@@ -10,7 +10,10 @@
 		disabled = false,
 		disabledDate,
 		weekStart = 1,
+		view = '',
 		onchange,
+		oncancel,
+		onconfirm,
 		class: cls = '',
 		style = '',
 	}: {
@@ -21,7 +24,12 @@
 		disabled?: boolean;
 		disabledDate?: (iso: string) => boolean;
 		weekStart?: 0 | 1;
+		/** 外部把视图切到某个 'YYYY-MM'（预设/手动输入后跟随）；用户翻月不受影响 */
+		view?: string;
 		onchange?: (range: { start: string; end: string }) => void;
+		/** 传了才渲染底部「取消 / 确认」；被外层选择器内嵌（如 DateTimeRangePicker）时不传 */
+		oncancel?: () => void;
+		onconfirm?: () => void;
 		class?: string;
 		style?: string;
 	} = $props();
@@ -33,6 +41,14 @@
 
 	let viewYear = $state(new Date().getFullYear());
 	let viewMonth = $state(new Date().getMonth());
+
+	$effect(() => {
+		if (!view) return;
+		const [y, m] = view.split('-').map(Number);
+		if (!y || !m) return;
+		viewYear = y;
+		viewMonth = m - 1;
+	});
 
 	const weekdays = $derived.by(() => {
 		if (weekStart === 1) return WEEKDAYS;
@@ -225,22 +241,9 @@
 		{/each}
 	</div>
 
-	<div class="rc-footer">
-		<span class="rc-hint">{picking === 'start' ? '选择开始日期' : '选择结束日期'}</span>
-		<Button
-			variant="text-primary"
-			size="xs"
-			class="rc-clear"
-			disabled={disabled || (!start && !end)}
-			onclick={() => {
-				start = '';
-				end = '';
-				picking = 'start';
-				hoverIso = '';
-				onchange?.({ start: '', end: '' });
-			}}>清除</Button
-		>
-	</div>
+	{#if onconfirm}
+		<PickerFooter {disabled} oncancel={oncancel ?? (() => {})} {onconfirm} />
+	{/if}
 </div>
 
 <style>
@@ -334,10 +337,12 @@
 		font-weight: 700;
 		color: var(--primary);
 	}
+	/* 区间内的日与首尾同档圆角：格子间距 2px 本来就把带子分成一格一格，
+	   唯独首尾圆、中间方，看着像「两头被削了角」，这里补齐 */
 	.rc-day.in-range,
 	.rc-day.preview-mid {
 		background: var(--primary-soft);
-		border-radius: 0;
+		border-radius: var(--radius-md);
 	}
 	.rc-day.preview {
 		background: var(--accent-strong);
@@ -350,17 +355,5 @@
 	}
 	.rc-day.selected:hover:not(:disabled) {
 		background: var(--primary-hover);
-	}
-	.rc-footer {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: var(--sp-md);
-		padding-top: var(--sp-md);
-		border-top: 1px solid var(--border);
-	}
-	.rc-hint {
-		font-size: var(--fs-12);
-		color: var(--text-muted);
 	}
 </style>

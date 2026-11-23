@@ -8,6 +8,8 @@
 	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
 	import Button from './Button.svelte';
+	import PickerFooter from './PickerFooter.svelte';
+	import TimeField from './TimeField.svelte';
 	import Wheel from './Wheel.svelte';
 
 	let {
@@ -73,10 +75,32 @@
 		return Array.from({ length: Math.min(60, Math.floor(60 / sv)) }, (_, i) => pad(i * sv));
 	});
 
-	// 轮盘当前停靠档位（空值时停在 0 档但不提交）
-	const hIdx = $derived(Math.max(0, hours.indexOf(parts.h)));
-	const mIdx = $derived(Math.max(0, minutes.indexOf(parts.m)));
-	const sIdx = $derived(Math.max(0, secs.indexOf(parts.s)));
+	// 轮盘当前停靠档位跟随草稿而不是已提交值：点「现在」这类整组赋值要能把三列一起滚过去。
+	// 键入的中间态可能只有一位（`12:3`），所以按数值匹配而不是字符串相等，否则 `3` 会落到 00
+	function idxByNum(list: string[], v: string): number {
+		if (!v) return 0;
+		const i = list.findIndex((x) => Number(x) === Number(v));
+		return i < 0 ? 0 : i;
+	}
+	const hIdx = $derived(idxByNum(hours, draft.h));
+	const mIdx = $derived(idxByNum(minutes, draft.m));
+	const sIdx = $derived(idxByNum(secs, draft.s));
+
+	/** 面板顶部那行分段输入显示什么：padding 会打断逐位键入，所以只拼已填的段，不补零 */
+	const draftText = $derived.by(() => {
+		const arr = showSeconds ? [draft.h, draft.m, draft.s] : [draft.h, draft.m];
+		let last = arr.length - 1;
+		while (last > 0 && !arr[last]) last--;
+		return arr.slice(0, last + 1).join(':');
+	});
+
+	/** 哪一列正在编辑：点顶部的时 / 分 / 秒，或滚轮停稳后跟着走 */
+	let focusCol = $state(0);
+
+	function onFieldChange(v: string) {
+		const [h = '', m = '', s = ''] = v.split(':');
+		draft = { h, m, s: showSeconds ? s : '' };
+	}
 
 	function valid(): boolean {
 		if (draft.h === '' || draft.m === '') return false;
@@ -84,37 +108,52 @@
 		return true;
 	}
 
+	const pad2 = (v: string) => (v ? v.padStart(2, '0') : '');
+
+	/** 提交用：手敲的 `3` 在这里补成 `03`，输出恒为 HH:mm(:ss) */
 	function compose(h: string, m: string, s: string): string {
 		if (!h || !m) return '';
-		if (showSeconds) return s ? `${h}:${m}:${s}` : '';
-		return `${h}:${m}`;
+		const hh = pad2(h);
+		const mm = pad2(m);
+		if (showSeconds) {
+			const ss = pad2(s);
+			return ss ? `${hh}:${mm}:${ss}` : '';
+		}
+		return `${hh}:${mm}`;
 	}
 
-	// 轮盘停稳：从当前所有列档位合成完整值提交（滚轮无「半选中」，任一列停稳即提交全值）
+	// 轮盘停稳：只更新草稿，等「确认」才写回 value（「取消」直接丢弃）
 	function onSettle(col: 'h' | 'm' | 's', v: string) {
+		focusCol = col === 'h' ? 0 : col === 'm' ? 1 : 2;
 		const next = { ...draft, [col]: v };
 		// 空档从当前轮盘位置补齐（打开空值时其他列停在 00）
 		if (next.h === '') next.h = hours[hIdx];
 		if (next.m === '') next.m = minutes[mIdx];
 		if (showSeconds && next.s === '') next.s = secs[sIdx];
 		draft = next;
-		const out = compose(draft.h, draft.m, draft.s);
-		value = out;
-		if (valid()) onchange?.(out);
 	}
 
-	// 原子写入：各列一次填齐 → 只写一次 value、只发一次 onchange（避免 showSeconds 模式发出中间态 HH:mm）
+	// 原子写入：各列一次填齐，确认时只写一次 value、只发一次 onchange（避免 showSeconds 模式发出中间态 HH:mm）
 	function now() {
 		const d = new Date();
 		draft = { h: pad(d.getHours()), m: pad(d.getMinutes()), s: showSeconds ? pad(d.getSeconds()) : '' };
-		const out = compose(draft.h, draft.m, draft.s);
-		value = out;
-		if (valid()) onchange?.(out);
+	}
+
+	function confirm() {
+		// 半成品（缺分/秒）不提交，避免把已有值清成空串
+		if (valid()) {
+			const out = compose(draft.h, draft.m, draft.s);
+			if (out !== value) {
+				value = out;
+				onchange?.(out);
+			}
+		}
 		hide();
 	}
 
 	function show() {
 		if (disabled) return;
+		draft = { h: parts.h, m: parts.m, s: parts.s };
 		open = true;
 		requestAnimationFrame(() => {
 			if (!rootEl || !panelEl) return;
@@ -199,19 +238,36 @@
 			in:menuIn={{ up: flipUp }}
 			out:menuOut={{ up: flipUp }}
 		>
+			<div class="tp-field">
+				<TimeField
+					value={draftText}
+					seconds={showSeconds}
+					{disabled}
+					ariaLabel="时间"
+					onsegmentfocus={(i) => (focusCol = i)}
+					onchange={onFieldChange}
+				/>
+			</div>
 			<div class="tp-columns">
-				<Wheel items={hours} index={hIdx} ariaLabel="小时" onSettle={(i) => onSettle('h', hours[i])} />
+				<div class="tp-col" class:active={focusCol === 0}>
+					<Wheel items={hours} index={hIdx} ariaLabel="小时" onSettle={(i) => onSettle('h', hours[i])} />
+				</div>
 				<span class="tp-sep" aria-hidden="true">:</span>
-				<Wheel items={minutes} index={mIdx} ariaLabel="分钟" onSettle={(i) => onSettle('m', minutes[i])} />
+				<div class="tp-col" class:active={focusCol === 1}>
+					<Wheel items={minutes} index={mIdx} ariaLabel="分钟" onSettle={(i) => onSettle('m', minutes[i])} />
+				</div>
 				{#if showSeconds}
 					<span class="tp-sep" aria-hidden="true">:</span>
-					<Wheel items={secs} index={sIdx} ariaLabel="秒" onSettle={(i) => onSettle('s', secs[i])} />
+					<div class="tp-col" class:active={focusCol === 2}>
+						<Wheel items={secs} index={sIdx} ariaLabel="秒" onSettle={(i) => onSettle('s', secs[i])} />
+					</div>
 				{/if}
 			</div>
-			<div class="tp-footer">
-				<span class="tp-hint">{value || '未选择'}</span>
-				<Button variant="text-primary" size="xs" class="tp-now" onclick={now}>现在</Button>
-			</div>
+			<PickerFooter {disabled} oncancel={hide} onconfirm={confirm}>
+				{#snippet leading()}
+					<Button variant="text-primary" size="xs" {disabled} onclick={now}>现在</Button>
+				{/snippet}
+			</PickerFooter>
 		</div>
 	{/if}
 </div>
@@ -316,28 +372,35 @@
 		border-radius: var(--radius-lg);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 	}
+	.tp-field {
+		margin-bottom: var(--sp-sm);
+	}
+	.tp-field :global(.time-field) {
+		display: block;
+	}
+	.tp-field :global(.segment-field) {
+		width: 100%;
+		box-sizing: border-box;
+		justify-content: center;
+	}
 	.tp-columns {
 		display: flex;
 		align-items: center;
 		gap: var(--sp-sm);
 	}
+	/* 一列一个宿主：正在编辑的那一段垫一层底，和顶部输入框里的光标对应起来 */
+	.tp-col {
+		display: flex;
+		border-radius: var(--radius-md);
+		transition: background 0.15s;
+	}
+	.tp-col.active {
+		background: var(--accent-sub);
+	}
 	.tp-sep {
 		font-family: var(--font-mono);
 		font-size: var(--fs-16);
 		font-weight: 600;
-		color: var(--text-muted);
-	}
-	.tp-footer {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: var(--sp-md);
-		padding-top: var(--sp-md);
-		border-top: 1px solid var(--border);
-	}
-	.tp-hint {
-		font-family: var(--font-mono);
-		font-size: var(--fs-12);
 		color: var(--text-muted);
 	}
 </style>

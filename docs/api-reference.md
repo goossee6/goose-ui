@@ -1,6 +1,6 @@
 # 组件 Props 参考
 
-对外 86 个组件里，83 个有 props 的列在这里，共 777 条。
+对外 87 个组件里，84 个有 props 的列在这里，共 807 条。
 本文件由 `scripts/gen-api-docs.mjs` 从 `src/lib/components/ui/*.svelte` 生成，**不要手改**：
 改完组件执行 `pnpm docs:api` 重新生成，`pnpm docs:api:check`（CI 用）校验本文件有没有落后于源码。
 
@@ -21,7 +21,7 @@
 
 **表单输入** [Form](#form) · [FormItem](#formitem) · [Label](#label) · [Input](#input) · [Textarea](#textarea) · [Select](#select) · [MultiSelect](#multiselect) · [CreatableSelect](#creatableselect) · [Combobox](#combobox) · [Checkbox](#checkbox) · [Radio](#radio) · [RadioGroup](#radiogroup) · [Toggle](#toggle) · [ToggleGroup](#togglegroup) · [Slider](#slider) · [Rating](#rating) · [PINInput](#pininput) · [DropZone](#dropzone)
 
-**日期与时间** [DateField](#datefield) · [TimeField](#timefield) · [DateRangeField](#daterangefield) · [TimeRangeField](#timerangefield) · [Calendar](#calendar) · [RangeCalendar](#rangecalendar) · [DatePicker](#datepicker) · [DateRangePicker](#daterangepicker) · [TimePicker](#timepicker)
+**日期与时间** [DateField](#datefield) · [TimeField](#timefield) · [DateRangeField](#daterangefield) · [TimeRangeField](#timerangefield) · [Calendar](#calendar) · [RangeCalendar](#rangecalendar) · [DatePicker](#datepicker) · [DateRangePicker](#daterangepicker) · [DateTimeRangePicker](#datetimerangepicker) · [TimePicker](#timepicker)
 
 **数据展示** [DataTable](#datatable) · [DataList](#datalist) · [Tag](#tag) · [StatusBadge](#statusbadge) · [Pagination](#pagination) · [Collapsible](#collapsible) · [Accordion](#accordion) · [ProgressBar](#progressbar) · [ProgressBytes](#progressbytes) · [ProgressSlotBar](#progressslotbar) · [UsageBar](#usagebar) · [Meter](#meter) · [Typewriter](#typewriter) · [Carousel](#carousel) · [Time](#time) · [Countdown](#countdown)
 
@@ -297,6 +297,8 @@ import { Label } from 'goose-ui';
 | `digitsOnly` | `boolean` | `false` |  |
 | `onClear` | `() => void` | — |  |
 | `onclick` | `(e: MouseEvent) => void` | — |  |
+| `validate` | `FieldValidator` | — | 失焦校验：返回错误文案即不接受，值回滚到本次编辑前 |
+| `oninvalid` | `(msg: string) => void` | — |  |
 
 ```ts
 import { Input } from 'goose-ui';
@@ -320,6 +322,8 @@ import { Input } from 'goose-ui';
 | `ariaLabel` | `string` | `''` |  |
 | `oninput` | `(e: Event) => void` | — |  |
 | `onkeydown` | `(e: KeyboardEvent) => void` | — |  |
+| `validate` | `FieldValidator` | — | 失焦校验：返回错误文案即不接受，值回滚到本次编辑前 |
+| `oninvalid` | `(msg: string) => void` | — |  |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
 
@@ -596,7 +600,7 @@ import { DropZone } from 'goose-ui';
 
 ### DateField
 
-日期分段字段（`YYYY-MM-DD`，分段自动跳格/粘贴跨段/聚焦全选/失焦校验：月份 ≤12、日 ≤当月天数、闰年）
+日期分段字段（`YYYY-MM-DD`，分段自动跳格/粘贴跨段/聚焦全选/失焦校验：月份 ≤12、日 ≤当月天数、闰年；越界不接受，回到编辑前的值）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -604,6 +608,10 @@ import { DropZone } from 'goose-ui';
 | `disabled` | `boolean` | `false` |  |
 | `ariaLabel` | `string` | `'日期'` |  |
 | `onchange` | `(value: string) => void` | — |  |
+| `onsegmentfocus` | `(index: number) => void` | — | 某一格拿到焦点（年 / 月 / 日）；父级用它把日历联动到这一段 |
+| `validate` | `FieldValidator` | — | 离开输入框时校验整串，不合法回滚到本次编辑前 |
+| `oninvalid` | `(msg: string) => void` | — |  |
+| `leading` | `Snippet` | — | 年月日左侧的前置图标 |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
 
@@ -613,7 +621,7 @@ import { DateField } from 'goose-ui';
 
 ### TimeField
 
-时间分段字段（`HH:mm[:ss]`，`seconds` 可选段；时分秒上限 23/59/59，失焦纠正并补零）
+时间分段字段（`HH:mm[:ss]`，`seconds` 可选段；时分秒上限 23/59/59，越界回到编辑前的值、位数不足补零）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -622,6 +630,10 @@ import { DateField } from 'goose-ui';
 | `disabled` | `boolean` | `false` |  |
 | `ariaLabel` | `string` | `'时间'` |  |
 | `onchange` | `(value: string) => void` | — |  |
+| `onsegmentfocus` | `(index: number) => void` | — | 某一格拿到焦点（时 / 分 / 秒）；父级用它把滚轮联动到这一列 |
+| `validate` | `FieldValidator` | — | 离开输入框时校验整串，不合法回滚到本次编辑前 |
+| `oninvalid` | `(msg: string) => void` | — |  |
+| `leading` | `Snippet` | — | 时分秒左侧的前置图标（秒表） |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
 
@@ -680,6 +692,8 @@ import { TimeRangeField } from 'goose-ui';
 | `weekStart` | `0 \| 1` | `1` |  |
 | `showToday` | `boolean` | `true` |  |
 | `onchange` | `(value: string) => void` | — |  |
+| `oncancel` | `() => void` | — | 传了才渲染底部「取消 / 确认」；纯展示用（静态卡片）不要传 |
+| `onconfirm` | `() => void` | — |  |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
 
@@ -689,7 +703,7 @@ import { Calendar } from 'goose-ui';
 
 ### RangeCalendar
 
-范围日历（先起点后终点，悬停预览，清除；方向键移动光标、Enter 提交、PgUp/PgDn 翻月）
+范围日历（先起点后终点，悬停预览；方向键移动光标、Enter 提交、PgUp/PgDn 翻月）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -700,7 +714,10 @@ import { Calendar } from 'goose-ui';
 | `disabled` | `boolean` | `false` |  |
 | `disabledDate` | `(iso: string) => boolean` | — |  |
 | `weekStart` | `0 \| 1` | `1` |  |
+| `view` | `string` | `''` | 外部把视图切到某个 'YYYY-MM'（预设/手动输入后跟随）；用户翻月不受影响 |
 | `onchange` | `(range: { start: string; end: string }) => void` | — |  |
+| `oncancel` | `() => void` | — | 传了才渲染底部「取消 / 确认」；被外层选择器内嵌（如 DateTimeRangePicker）时不传 |
+| `onconfirm` | `() => void` | — |  |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
 
@@ -710,7 +727,7 @@ import { RangeCalendar } from 'goose-ui';
 
 ### DatePicker
 
-日期选择器（触发器 + 浮层 Calendar，自动翻转、清除）
+日期选择器（触发器 + 浮层 Calendar，自动翻转、清除；改动先存草稿，确认才提交）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -731,7 +748,7 @@ import { DatePicker } from 'goose-ui';
 
 ### DateRangePicker
 
-范围选择器（触发器 + 浮层 RangeCalendar）
+范围选择器（触发器 + 浮层 RangeCalendar；改动先存草稿，确认才提交）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -751,9 +768,33 @@ import { DatePicker } from 'goose-ui';
 import { DateRangePicker } from 'goose-ui';
 ```
 
+### DateTimeRangePicker
+
+时间范围选择器（左栏 7 个快捷区间，右侧起止「日历图标 + 日期」「秒表图标 + 时间」两框等宽居中；日期与时分秒都是分段输入，点段即键入并弹滚轮高亮该列，时间改动先落浮层草稿、浮层「取消/确认」才生效；日历常显；值到秒，区间校验不通过整体回滚）
+
+| 属性 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `start` *(bind)* | `string` | `''` |  |
+| `end` *(bind)* | `string` | `''` |  |
+| `min` | `string` | `''` |  |
+| `max` | `string` | `''` |  |
+| `disabled` | `boolean` | `false` |  |
+| `disabledDate` | `(iso: string) => boolean` | — |  |
+| `weekStart` | `0 \| 1` | `1` |  |
+| `placeholder` | `string` | `'选择时间范围…'` |  |
+| `validate` | `RangeValidator` | — | 区间校验：返回错误文案即不接受，两端回到改动前的值 |
+| `oninvalid` | `(msg: string) => void` | — |  |
+| `onchange` | `(range: { start: string; end: string }) => void` | — |  |
+| `class` | `string` | `''` |  |
+| `style` | `string` | `''` |  |
+
+```ts
+import { DateTimeRangePicker } from 'goose-ui';
+```
+
 ### TimePicker
 
-时间选择器（时/分(/秒) 惯性滚轮 Wheel，拖拽+吸附+停稳提交，「现在」快捷）
+时间选择器（时/分(/秒) 惯性滚轮 Wheel，拖拽+吸附+无限循环，滚轮慢滚一格/快滚提速；改动先存草稿，确认才提交）
 
 | 属性 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |

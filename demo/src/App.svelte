@@ -44,6 +44,7 @@
         { value: "select", label: "Select/Combobox 选择器" },
         { value: "datepicker", label: "DatePicker 日期选择" },
         { value: "timepicker", label: "TimePicker 时间选择" },
+        { value: "datetimerangepicker", label: "DateTimeRangePicker 时间范围" },
         { value: "choice", label: "选择控件 单选/多选" },
         { value: "dropzone", label: "DropZone 拖拽上传" },
         { value: "rating", label: "Rating 评分" },

@@ -51,6 +51,7 @@ const rawLoaders: Record<string, Loader> = {
   select: () => import('./Select.svelte'),
   datepicker: () => import('./DatePicker.svelte'),
   timepicker: () => import('./TimePicker.svelte'),
+  datetimerangepicker: () => import('./DateTimeRangePicker.svelte'),
   choice: () => import('./Choice.svelte'),
   form: () => import('./Form.svelte'),
   notification: () => import('./Notification.svelte'),

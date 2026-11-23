@@ -1,11 +1,17 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import SegmentField from './SegmentField.svelte';
+	import type { FieldValidator } from './fieldValidation';
 
 	let {
 		value = $bindable(''),
 		disabled = false,
 		ariaLabel = '日期',
 		onchange,
+		onsegmentfocus,
+		validate,
+		oninvalid,
+		leading,
 		class: cls = '',
 		style = '',
 	}: {
@@ -13,6 +19,13 @@
 		disabled?: boolean;
 		ariaLabel?: string;
 		onchange?: (value: string) => void;
+		/** 某一格拿到焦点（年 / 月 / 日）；父级用它把日历联动到这一段 */
+		onsegmentfocus?: (index: number) => void;
+		/** 离开输入框时校验整串，不合法回滚到本次编辑前 */
+		validate?: FieldValidator;
+		oninvalid?: (msg: string) => void;
+		/** 年月日左侧的前置图标 */
+		leading?: Snippet;
 		class?: string;
 		style?: string;
 	} = $props();
@@ -63,6 +76,10 @@
 		separator="-"
 		placeholders={['年', '月', '日']}
 		onchange={handle}
+		{onsegmentfocus}
+		{validate}
+		{oninvalid}
+		{leading}
 	/>
 </div>
 

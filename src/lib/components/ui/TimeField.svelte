@@ -1,5 +1,7 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import SegmentField from './SegmentField.svelte';
+	import type { FieldValidator } from './fieldValidation';
 
 	let {
 		value = $bindable(''),
@@ -7,6 +9,10 @@
 		disabled = false,
 		ariaLabel = '时间',
 		onchange,
+		onsegmentfocus,
+		validate,
+		oninvalid,
+		leading,
 		class: cls = '',
 		style = '',
 	}: {
@@ -15,6 +21,13 @@
 		disabled?: boolean;
 		ariaLabel?: string;
 		onchange?: (value: string) => void;
+		/** 某一格拿到焦点（时 / 分 / 秒）；父级用它把滚轮联动到这一列 */
+		onsegmentfocus?: (index: number) => void;
+		/** 离开输入框时校验整串，不合法回滚到本次编辑前 */
+		validate?: FieldValidator;
+		oninvalid?: (msg: string) => void;
+		/** 时分秒左侧的前置图标（秒表） */
+		leading?: Snippet;
 		class?: string;
 		style?: string;
 	} = $props();
@@ -43,12 +56,11 @@
 	});
 
 	function join(arr: string[]): string {
-		const parts: string[] = [];
-		for (const s of arr) {
-			if (!s) break;
-			parts.push(s);
-		}
-		return parts.join(':');
+		// 空段必须占位：时分秒靠位置对齐，`['', '07', '00']` 若丢成 `07:00`，
+		// 分钟就会被读成小时。只有尾部连续空段可以省（`12:30` 不必写成 `12:30:`）。
+		let last = arr.length - 1;
+		while (last > 0 && !arr[last]) last--;
+		return arr.slice(0, last + 1).join(':');
 	}
 
 	function handle(segments: string[]) {
@@ -67,6 +79,10 @@
 		separator=":"
 		placeholders={['时', '分', ...(seconds ? ['秒'] : [])]}
 		onchange={handle}
+		{onsegmentfocus}
+		{validate}
+		{oninvalid}
+		{leading}
 	/>
 </div>
 

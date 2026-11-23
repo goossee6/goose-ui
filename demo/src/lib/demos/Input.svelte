@@ -10,6 +10,8 @@
   let search = $state('');
   let multiText = $state('');
   let limited = $state('');
+  let email = $state('');
+  let emailErr = $state('');
 
   import PropsTable, { type PropsTableItem } from "../PropsTable.svelte";
   import CodePreview from "../CodePreview.svelte";
@@ -31,6 +33,8 @@
     { name: "onenter", desc: "回车键回调", type: "() => void" },
     { name: "onClear", desc: "清空回调", type: "() => void" },
     { name: "onclick", desc: "点击回调", type: "(e: MouseEvent) => void" },
+    { name: "validate", desc: "失焦校验：返回错误文案即不接受，值回滚到本次编辑前", type: "(v: string) => string | boolean | null" },
+    { name: "oninvalid", desc: "校验未通过时回调错误文案", type: "(msg: string) => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
@@ -48,6 +52,8 @@
     { name: "onkeydown", desc: "按键回调", type: "(e: KeyboardEvent) => void" },
     { name: "id", desc: "原生 id", type: "string", default: "''" },
     { name: "name", desc: "原生 name", type: "string", default: "''" },
+    { name: "validate", desc: "失焦校验：返回错误文案即不接受，值回滚到本次编辑前", type: "(v: string) => string | boolean | null" },
+    { name: "oninvalid", desc: "校验未通过时回调错误文案", type: "(msg: string) => void" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
@@ -126,6 +132,25 @@
   onenter={() => Notification.success("回车提交: " + text)}
   bind:value={text}
 />`;
+
+  const validateSource = `<script lang="ts">
+  import { Input } from "goose-ui";
+
+  let email = $state("");
+  let emailErr = $state("");
+
+  // 返回错误文案即不接受：失焦时回滚到本次编辑前的值
+  const isEmail = (v: string) => (/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(v) ? null : "邮箱格式不正确");
+<\/script>
+
+<Input
+  name="email"
+  placeholder="失焦校验邮箱"
+  bind:value={email}
+  validate={isEmail}
+  oninvalid={(msg) => (emailErr = msg)}
+/>
+<p>{emailErr}</p>`;
 
   const textareaSource = `<script lang="ts">
   import { Textarea, Row } from "goose-ui";
@@ -230,6 +255,21 @@
     <Row>
       <div class="demo-col">
         <Input name="enter-submit" placeholder="输入后按回车" onenter={() => Notification.success(`回车提交: ${text}`)} bind:value={text} />
+      </div>
+    </Row>
+  </CodePreview>
+
+  <CodePreview anchor="validate" anchorLevel={3} title="失焦校验 validate" code={validateSource}>
+    <Row>
+      <div class="demo-col">
+        <Input
+          name="email"
+          placeholder="失焦校验邮箱"
+          bind:value={email}
+          validate={(v) => (!v || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) ? null : '邮箱格式不正确')}
+          oninvalid={(msg) => (emailErr = msg)}
+        />
+        <span class="demo-val">值: "{email}"{emailErr ? ` · ${emailErr}` : ''}</span>
       </div>
     </Row>
   </CodePreview>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import { FORM_ITEM_KEY, type FormItemContext } from './form.context';
+	import { checkField, type FieldValidator } from './fieldValidation';
 
 	let {
 		id = '',
@@ -15,6 +16,8 @@
 		ariaLabel = '',
 		oninput,
 		onkeydown,
+		validate,
+		oninvalid,
 		class: cls = '',
 		style = '',
 	}: {
@@ -30,13 +33,18 @@
 		ariaLabel?: string;
 		oninput?: (e: Event) => void;
 		onkeydown?: (e: KeyboardEvent) => void;
+		/** 失焦校验：返回错误文案即不接受，值回滚到本次编辑前 */
+		validate?: FieldValidator;
+		oninvalid?: (msg: string) => void;
 		class?: string;
 		style?: string;
 	} = $props();
 
 	// FormItem 内且该项有 error 时自动进入 error 态（FormItem 之外为 null，行为不变）
 	const itemCtx = getContext<FormItemContext | null>(FORM_ITEM_KEY);
-	const effStatus = $derived(status ?? (itemCtx?.error ? 'error' : undefined));
+	let errMsg = $state('');
+	let lastGood = '';
+	const effStatus = $derived(status ?? (errMsg || itemCtx?.error ? 'error' : undefined));
 
 	const statusStyle = $derived(
 		effStatus === 'error'
@@ -46,6 +54,21 @@
 				: ''
 	);
 	const mergedStyle = $derived(statusStyle ? `${statusStyle}${style}` : style);
+
+	function handleFocus() {
+		lastGood = value;
+	}
+
+	function handleBlur() {
+		const msg = checkField(validate, value);
+		if (!msg) {
+			errMsg = '';
+			return;
+		}
+		value = lastGood;
+		errMsg = msg;
+		oninvalid?.(msg);
+	}
 </script>
 
 <textarea
@@ -60,7 +83,10 @@
 	bind:value
 	aria-label={ariaLabel || undefined}
 	aria-invalid={effStatus === 'error' ? 'true' : undefined}
+	title={errMsg || undefined}
 	style={mergedStyle || undefined}
+	onfocus={handleFocus}
+	onblur={handleBlur}
 	{oninput}
 	{onkeydown}
 ></textarea>

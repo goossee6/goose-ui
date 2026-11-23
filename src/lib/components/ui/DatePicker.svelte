@@ -33,8 +33,13 @@
 	let open = $state(false);
 	let flipUp = $state(false);
 
+	// 草稿态：面板里的选择先落在 draft，点「确认」才写回 value。
+	// 「取消」直接丢草稿，所以打开时必须以当前 value 重置，而不是沿用上次的草稿。
+	let draft = $state('');
+
 	function show() {
 		if (disabled) return;
+		draft = value;
 		open = true;
 		requestAnimationFrame(() => {
 			if (!rootEl || !panelEl) return;
@@ -56,10 +61,12 @@
 		open ? hide() : show();
 	}
 
-	function handle(v: string) {
-		value = v;
-		onchange?.(v);
-		if (v) hide();
+	function confirm() {
+		if (draft !== value) {
+			value = draft;
+			onchange?.(draft);
+		}
+		hide();
 	}
 
 	function clear(e: MouseEvent) {
@@ -127,7 +134,7 @@
 			in:menuIn={{ up: flipUp }}
 			out:menuOut={{ up: flipUp }}
 		>
-			<Calendar bind:value {min} {max} {disabledDate} onchange={handle} />
+			<Calendar bind:value={draft} {min} {max} {disabledDate} oncancel={hide} onconfirm={confirm} />
 		</div>
 	{/if}
 </div>

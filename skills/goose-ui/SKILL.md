@@ -49,8 +49,8 @@ Copy-paste examples for every component are in the online demo:
 | Toggle / radio group / toggle group | `Toggle` (`loading` shows a spinner; `onStyle`/`offStyle`/`thumbStyle` for custom track colors) / `RadioGroup` / `ToggleGroup` |
 | Checkbox / radio | `Checkbox` (small/middle/large + `indeterminate`) / `Radio` / `RadioGroup` |
 | Collapse | `Collapsible` (single block expand/collapse, `variant`: card/plain) / `Accordion` (multiple panels, `value` array + `multiple`) |
-| Date / time | `DatePicker` / `DateRangePicker` / `TimePicker` (inertia wheels) / `Calendar` / `RangeCalendar` |
-| Segmented fields | `DateField` / `TimeField` / `DateRangeField` / `TimeRangeField` (focus selects the whole segment, type digits to overwrite; out-of-range input turns red, blur clamps to the valid range and zero-pads) |
+| Date / time | `DatePicker` / `DateRangePicker` / `DateTimeRangePicker` (presets + date+time to the second) / `TimePicker` (inertia wheels, loops forever) / `Calendar` / `RangeCalendar` |
+| Segmented fields | `DateField` / `TimeField` / `DateRangeField` / `TimeRangeField` (focus selects the whole segment, type digits to overwrite; an out-of-range segment is **rejected on input** and reverts to its value before the edit; blur only zero-pads) |
 | Overlays | `Modal` / `Drawer` (4 directions) / `Popover` / `Tooltip` / `AlertDialog` / `Command` (Ctrl+K); `Drawer` also supports `resizable`+`snapPoints` drag snapping, `container` to mount into a specific element, `backgroundSelector` for the depth-of-field host, `pushScale`/`pushBlur` for depth intensity |
 | Notifications | `Notification.success/info/warning/error(...)` (requires Provider) |
 | Table / list | `DataTable` (sort + highlight + context menu) / `DataList` |
@@ -190,6 +190,78 @@ Copy-paste examples for every component are in the online demo:
     `--radius-xs|sm|md|lg|xl|full`, control heights `--height-sm|md|lg` (28 / 36 / 44 — sizes are an enum, not
     a scale). Borders (1px/2px), shadows, offsets and letter-spacing stay literal on purpose. `pnpm grid:audit`
     fails on tokens that don't exist or whose name doesn't match their value.
+
+22. **Free-text inputs validate and reject, never sanitize**: `Input` / `Textarea` / `DateField` / `TimeField` accept
+    `validate?: (value: string) => string | boolean | null` + `oninvalid(msg)`. A non-empty string (or `false`) means
+    invalid — the control restores the value from before the edit, paints the error border and sets `aria-invalid`;
+    the message goes to `oninvalid` (and `title`), it is not rendered inline. Omit `validate` and nothing changes.
+    Segmented fields reject an out-of-range segment **as it is typed** (not on blur), so a bad value never reaches
+    the bound model; blur only zero-pads.
+
+23. **Date/time overlays commit on「确认」, not on pick**: `DatePicker` / `DateRangePicker` / `TimePicker` /
+    `DateTimeRangePicker` keep a local draft while the panel is open — clicking a day or settling a wheel only
+    mutates the draft, `value` / `start` / `end` and `onchange` fire once on confirm; `取消` (or Esc / outside click)
+    drops the draft and leaves the bound value untouched. The footer is the shared `PickerFooter` component:
+    `取消` + `确认` on the right, one optional secondary shortcut (`今天` / `现在` / `清除`) on the left — never
+    hand-write those two buttons, and never put a hint string (`选择开始日期` etc.) in that row.
+    `Calendar` / `RangeCalendar` render the footer only when `oncancel` / `onconfirm` are passed, so they stay
+    usable as plain static cards.
+
+24. **`Wheel` is transform-driven, not scroll-driven**: three identical copies of `items` sit in one strip, and a
+    single `translate3d(0, -(pos + 0.5) * 36px, 0)` moves it. `pos` is a float in *grid* units, and every write goes
+    through `norm()`, which folds it back into the middle copy (`[N, 2N)`) — one period of content, so the fold is
+    pixel-identical and invisible. There is therefore **no wall to hit and nothing to "refill"**: fast flings just
+    keep going. Do not reintroduce native scrolling / `scroll-snap` / a `reseat-on-settle`; those are what produced
+    the end-of-strip stop and the settle jitter. Two invariants: `onSettle` / `index` speak **real** indices
+    (`pos % N`), and only the middle copy's buttons carry `aria-selected` (the other two copies are `aria-hidden`,
+    purely visual). Never key the `{#each}` by item value — repeated items collide; key by index.
+    Pointer capture is deliberately **not** used: the drag listens on `window` and ends the moment the pointer
+    leaves the wheel (24px slack), so moving onto another wheel never keeps dragging the first one.
+
+25. **Wheel *wheel-input* is speed-adaptive, and applied by exponential approach**: one discrete tick
+    (`deltaY ≈ 100`) moves exactly **one** cell while the user scrolls slowly; ticks arriving faster than ~150ms
+    scale the step up (cap 3 cells/tick), so 0-59 doesn't take forever. Do not go back to `deltaY / 36` — that made
+    a single tick jump ~3 cells (13 → 15) and was the "not smooth" complaint. The input goes through `glide()`,
+    which writes `pos += d * (1 - exp(-dt / tau))` every frame instead of starting a fixed-duration tween: discrete
+    ticks would otherwise restart the easing each time and visibly hitch, whereas the exponential velocity is
+    continuous and `wGoal` can advance mid-flight so consecutive ticks merge into one motion. `tau` shrinks when the
+    remaining distance is large, so fast scrolling still keeps up. Touchpads (small `deltaY`, ticks < 24ms apart)
+    take a pixel-proportional branch and stay fully continuous. `wGoal` is a float — the nearest cell is reached by
+    a short `animateTo` snap at rest, never a hard jump; and the wheel handler must `stopAnim()` first so a residual
+    fling doesn't fight `glide()` for `pos`.
+
+26. **Typing and the wheel are one control, not two**: `SegmentField` exposes `onsegmentfocus(index)`, and
+    `DateField` / `TimeField` pass it straight through. That single callback is how a picker wires "click the 分
+    segment" to "open the wheel and highlight that column" — the segment is already focused and editable by the time
+    the popup appears, and `onSettle` writes back into the same draft, so both inputs stay in sync. `TimePicker` puts
+    a `TimeField` above its wheels for exactly this; `DateTimeRangePicker` does it per row and marks the live column
+    with `.active`. Four invariants, each learned the hard way:
+    - `TimeField`'s join must keep empty segments **in place** (`['', '07', '00']` → `:07:00`). Dropping the leading
+      empty shunts minute into hour the moment someone clears the hour box.
+    - Mid-typing values (`12:3`) must be written **raw**: `padStart` fights the caret and `orderRange` will swap the
+      two ends mid-keystroke. Pad + `orderRange` once, on confirm.
+    - Wheel indices must match by **number** (`Number(x) === Number(v)`), never `indexOf` — `3` never equals `03`,
+      and a miss silently throws the column to `00`.
+    - A controlled field must show the draft, not the committed value; otherwise a wheel click and the digits above it
+      disagree. `DateTimeRangePicker` derives the field text from the draft for this reason.
+
+27. **An externally changed `index` must glide, not teleport — and always by the shortest way round.** "Now",
+    presets and typed values all land as a new `index`; assigning `pos` directly makes three columns snap at once and
+    reads as a glitch. The sync effect calls `glideTo()`, which resolves the target through `wrapDelta()`, so `23 → 00`
+    turns one cell (not 23) and `59 → 02` turns four (not −57). External jumps use `easeInOutCubic` and a
+    distance-scaled duration (150ms + 16ms/cell, capped 480ms) because an `easeOut` start has non-zero velocity and
+    visibly "pops" out of rest; click-to-select and settle keep the snappier `easeOutCubic`. Two traps: the effect must
+    wrap the glide in `untrack()`, otherwise it reads `pos` while animating and re-runs every frame; and the
+    first-mount branch (`seenIndex < 0`) must still jump instantly — a panel opening should not roll from `00` to the
+    current value.
+
+28. **A nested popup keeps its own draft.** `DateTimeRangePicker`'s time popup edits `tmpT`, never `dStart`/`dEnd`:
+    wheels and typing both write that one string, and only its own footer commits (through `setSide` → `orderRange`)
+    or drops it. Switching to the other side, `Esc`, and an outside click are all "cancel" — none of them may leak a
+    half-edited time into the range. The two `TimeField`s must render `tmpT` while that side is open
+    (`startShown` / `endShown`), otherwise the digits above the wheel and the wheel itself disagree. The popup is a
+    fixed 240px so the footer buttons don't drift with font metrics, and its `timeUp` threshold has to track the
+    popup's real height (235 + 4) rather than the old wheel-only height.
 
 ## Writing Custom Controls
 

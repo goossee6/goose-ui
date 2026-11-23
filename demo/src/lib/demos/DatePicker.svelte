@@ -12,6 +12,7 @@
     { name: "weekStart", desc: "周起始（0=日 1=一）", type: "0 | 1", default: "1" },
     { name: "showToday", desc: "显示「今天」按钮", type: "boolean", default: "true" },
     { name: "onchange", desc: "选中回调", type: "(value: string) => void", default: "—" },
+    { name: "oncancel / onconfirm", desc: "传入后底部出现「取消 / 确认」，不传则无底部区（静态卡片）", type: "() => void", default: "—" },
   ];
 
   const rangeProps: PropsTableItem[] = [
@@ -20,10 +21,11 @@
     { name: "min", desc: "最小可选日期", type: "string", default: "''" },
     { name: "max", desc: "最大可选日期", type: "string", default: "''" },
     { name: "onchange", desc: "变更回调", type: "(range: { start, end }) => void", default: "—" },
+    { name: "oncancel / onconfirm", desc: "传入后底部出现「取消 / 确认」", type: "() => void", default: "—" },
   ];
 
   const pickerProps: PropsTableItem[] = [
-    { name: "value / start+end", desc: "选中值（双向绑定）", type: "string / string", default: "''" },
+    { name: "value / start+end", desc: "选中值（双向绑定）；面板内改动点「确认」才写回", type: "string / string", default: "''" },
     { name: "placeholder", desc: "空占位文案", type: "string", default: "'选择日期…'" },
     { name: "clearable", desc: "显示清除按钮", type: "boolean", default: "true" },
     { name: "min / max", desc: "可选边界", type: "string", default: "''" },

@@ -30,6 +30,7 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import PillTrack from './PillTrack.svelte';
+	import PickerFooter from './PickerFooter.svelte';
 
 	let {
 		value = $bindable(''),
@@ -40,6 +41,8 @@
 		weekStart = 1,
 		showToday = true,
 		onchange,
+		oncancel,
+		onconfirm,
 		class: cls = '',
 		style = '',
 	}: {
@@ -51,6 +54,9 @@
 		weekStart?: 0 | 1;
 		showToday?: boolean;
 		onchange?: (value: string) => void;
+		/** 传了才渲染底部「取消 / 确认」；纯展示用（静态卡片）不要传 */
+		oncancel?: () => void;
+		onconfirm?: () => void;
 		class?: string;
 		style?: string;
 	} = $props();
@@ -181,16 +187,24 @@
 		{/each}
 	</div>
 
-	{#if showToday}
-		<div class="calendar-footer" bind:this={footerEl}>
-			<PillTrack
-				container={footerEl}
-				itemSelector=".calendar-today-btn"
-				showSelected={false}
-				hoverBackground="var(--hover)"
-				radius="var(--radius-sm)"
-			/>
-			<Button variant="text-primary" size="xs" class="calendar-today-btn" {disabled} onclick={goToday}>今天</Button>
+	{#if showToday || onconfirm}
+		<div class="calendar-footer" class:with-actions={!!onconfirm} bind:this={footerEl}>
+			{#if showToday}
+				<PillTrack
+					container={footerEl}
+					itemSelector=".calendar-today-btn"
+					showSelected={false}
+					hoverBackground="var(--hover)"
+					radius="var(--radius-sm)"
+				/>
+				<Button variant="text-primary" size="xs" class="calendar-today-btn" {disabled} onclick={goToday}>今天</Button>
+			{/if}
+			{#if onconfirm}
+				<div class="calendar-actions">
+					<Button variant="ghost" size="small" {disabled} onclick={() => oncancel?.()}>取消</Button>
+					<Button variant="primary" size="small" {disabled} onclick={onconfirm}>确认</Button>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -303,6 +317,17 @@
 		margin-top: var(--sp-md);
 		padding-top: var(--sp-md);
 		border-top: 1px solid var(--border);
+	}
+	/* 有「取消 / 确认」时「今天」贴左、按钮贴右 */
+	.calendar-footer.with-actions {
+		justify-content: flex-start;
+		gap: var(--sp-sm);
+	}
+	.calendar-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-sm);
+		margin-left: auto;
 	}
 	/* 样式全在 Button 的 text-primary + xs 档，这里只剩 PillTrack 需要的一件事：
 	   悬停 pill 沉在条目下面（z-index:-1），条目必须自身定位才盖得住它。 */

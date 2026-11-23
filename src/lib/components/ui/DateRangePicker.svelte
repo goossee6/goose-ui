@@ -34,11 +34,16 @@
 	let panelStyle = $state('');
 	let open = $state(false);
 	let flipUp = $state(false);
+	/** 草稿区间：面板内点选只改这里，点「确认」才写回 start/end */
+	let dStart = $state('');
+	let dEnd = $state('');
 
 	const label = $derived(start && end ? `${start} → ${end}` : '');
 
 	function show() {
 		if (disabled) return;
+		dStart = start;
+		dEnd = end;
 		open = true;
 		requestAnimationFrame(() => {
 			if (!rootEl || !panelEl) return;
@@ -60,11 +65,13 @@
 		open ? hide() : show();
 	}
 
-	function handle(range: { start: string; end: string }) {
-		start = range.start;
-		end = range.end;
-		onchange?.(range);
-		if (range.end) hide();
+	function confirm() {
+		if (dStart !== start || dEnd !== end) {
+			start = dStart;
+			end = dEnd;
+			onchange?.({ start, end });
+		}
+		hide();
 	}
 
 	function clear(e: MouseEvent) {
@@ -132,7 +139,7 @@
 			in:menuIn={{ up: flipUp }}
 			out:menuOut={{ up: flipUp }}
 		>
-			<RangeCalendar bind:start bind:end {min} {max} {disabledDate} onchange={handle} />
+			<RangeCalendar bind:start={dStart} bind:end={dEnd} {min} {max} {disabledDate} oncancel={hide} onconfirm={confirm} />
 		</div>
 	{/if}
 </div>
