@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { onMount, tick, untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
-	import { floatingPosition } from './floatingPosition';
-	import { menuIn, menuOut } from './menuTransition';
 	import PillTrack from './PillTrack.svelte';
 	import ScrollZones from './ScrollZones.svelte';
+	import Tooltip from './Tooltip.svelte';
+	import DropdownPanel from './DropdownPanel.svelte';
+	import DropdownOption from './DropdownOption.svelte';
+	import { createDropdownPanel, createEllipsisTip, revealOption, OPTION_SEL } from './dropdown.svelte';
+	import { MAX_ROWS, ROW_H, rowsHeight } from './rowHeight';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
-	import Check from '@lucide/svelte/icons/check';
-	import Tooltip from './Tooltip.svelte';
 
 	interface Props {
 		value?: string;
@@ -38,10 +39,10 @@
 		loadingIndicator,
 	}: Props = $props();
 
-	let open = $state(false);
-	let mounted = $state(false);
 	// combobox/listbox 的 ARIA 关联 id（与 Combobox 同一写法）
 	const listId = `cs-${Math.random().toString(36).slice(2, 8)}`;
+	const optionId = (i: number) => `${listId}-${i}`;
+
 	let query = $state('');
 	// items 只作首次数据源快照；之后 data 由 loadItems 结果与「新建」项独占维护
 	let data = $state<string[]>(untrack(() => items));
@@ -49,12 +50,14 @@
 	let loaded = $state(false);
 	let creating = $state(false);
 	let activeIdx = $state(-1);
-	let dropdownStyle = $state('');
-	let flipUp = $state(false);
-	let wrapperEl: HTMLElement;
-	let ddEl = $state<HTMLElement | null>(null);
+
+	let wrapperEl: HTMLElement | undefined = $state();
 	let listEl = $state<HTMLElement | null>(null);
-	let searchEl = $state<HTMLInputElement>();
+	let searchEl = $state<HTMLInputElement | undefined>();
+	// 三块「面板装饰」的高度要参与面板定高，绑住它们比 querySelector 省一层查找
+	let headerEl = $state<HTMLElement | undefined>();
+	let searchBoxEl = $state<HTMLElement | undefined>();
+	let footerEl = $state<HTMLElement | undefined>();
 
 	const filtered = $derived(
 		query.trim() === ''
@@ -62,37 +65,59 @@
 			: data.filter((t) => t.toLowerCase().includes(query.trim().toLowerCase()))
 	);
 
-	const canCreate = $derived(
-		query.trim() !== '' && !data.some((t) => t === query.trim())
-	);
+	const canCreate = $derived(query.trim() !== '' && !data.some((t) => t === query.trim()));
 
-	function toggle() {
-		if (disabled) return;
-		if (open) {
-			close();
-		} else {
-			open = true;
+	/** 标题栏 + 搜索栏 + 页脚。首帧面板还没挂载，只能估算；挂载后一律用实测值。 */
+	function chromeHeight(): number {
+		if (headerEl && searchBoxEl) {
+			return headerEl.offsetHeight + searchBoxEl.offsetHeight + (footerEl?.offsetHeight ?? 0);
+		}
+		return 43 + 42 + (onCreateItem ? 45 : 0);
+	}
+
+	/**
+	 * 面板高度 = 装饰块 + 列表内容高 + listwrap 内边距 + 面板边框。
+	 *
+	 * 列表高不量 `panel.scrollHeight`：列表自身 `min-height: 0` + `overflow: auto`
+	 * 会被面板 max-height 夹扁而不溢出，看不穿这层收缩 → 少量结果时被误判可滚、
+	 * 点亮下触发区遮住最后一项。挂载后量列表自己的 `scrollHeight` 才是真内容高。
+	 */
+	function panelHeight(): number {
+		const rows = listEl ? Math.min(listEl.scrollHeight, ROW_H * MAX_ROWS) : rowsHeight(filtered).height;
+		return chromeHeight() + rows + 8 + 2; // 8 = .cs-listwrap 上下内边距，2 = 面板边框
+	}
+
+	const panel = createDropdownPanel({
+		anchor: () => wrapperEl ?? null,
+		size: (rect) => ({ w: Math.max(240, rect.width), h: panelHeight() }),
+		scroller: () => listEl,
+		onOpen: () => {
 			query = '';
 			activeIdx = -1;
 			if (!loaded) loadData();
-			tick().then(positionDropdown);
-		}
-	}
+		},
+		onClose: () => {
+			query = '';
+		},
+	});
 
-	function close() {
-		open = false;
-		mounted = false;
-		query = '';
-	}
+	// 首帧用的是估算高度，面板挂载后按实测重排一次；顺便把焦点放进搜索框
+	let calibrated = false;
+	$effect(() => {
+		if (!panel.open) {
+			calibrated = false;
+			return;
+		}
+		if (!panel.mounted || calibrated) return;
+		calibrated = true;
+		panel.place();
+		searchEl?.focus();
+	});
 
 	async function loadData() {
 		loading = true;
 		try {
-			if (loadItems) {
-				data = await loadItems();
-			} else {
-				data = items;
-			}
+			data = loadItems ? await loadItems() : items;
 			loaded = true;
 		} catch {
 			data = [];
@@ -103,7 +128,7 @@
 
 	function choose(name: string) {
 		value = name;
-		close();
+		panel.hide();
 	}
 
 	async function handleCreate() {
@@ -114,7 +139,7 @@
 			await onCreateItem(name);
 			data = [name, ...data];
 			value = name;
-			close();
+			panel.hide();
 		} catch {
 			// 创建失败由父组件提示，保持打开供重试
 		} finally {
@@ -147,127 +172,70 @@
 		} else if (e.key === 'Escape') {
 			e.preventDefault();
 			e.stopPropagation();
-			close();
+			panel.hide();
 		}
 	}
 
 	function onTriggerKeydown(e: KeyboardEvent) {
 		if (disabled) return;
-		if (!open && ['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+		if (!panel.open && ['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
 			e.preventDefault();
-			toggle();
+			panel.toggle();
 		}
 	}
 
-	async function positionDropdown() {
-		if (!wrapperEl) return;
-		const rect = wrapperEl.getBoundingClientRect();
-		// 头部/搜索/页脚高度随 title、onCreateItem 变化 → 先写估算值，渲染后按实测 scrollHeight 校准
-		const write = (h: number) => {
-			const r = floatingPosition(rect, { panelW: Math.max(240, rect.width), panelH: h, gap: 4 });
-			dropdownStyle = `position: fixed; z-index: var(--z-max); ${r.style}`;
-			flipUp = r.flipUp;
-		};
-		write(estimateHeight());
-		mounted = true;
-		await tick();
-		// 校准不能用 ddEl.scrollHeight：列表自身 min-height:0 + overflow:auto 会被面板 max-height
-		// 夹扁而不溢出，面板 scrollHeight 看不穿这层收缩 → 少量结果时列表被压到小于内容高，
-		// 被误判可滚、点亮下触发区遮挡项。用实测 chrome + 列表真实内容高。
-		if (ddEl) {
-			const panel = ddEl;
-			const q = (s: string) => (panel.querySelector(s) as HTMLElement | null)?.offsetHeight ?? 0;
-			const chrome = q('.cs-header') + q('.cs-search') + q('.cs-footer');
-			// listwrap 上下内边距 4×2；列表内容高按 360 上限（与 max-height 一致）
-			const listH = listEl ? Math.min(listEl.scrollHeight, 360) : 0;
-			const real = chrome + listH + 8 + 2; // 8 = listwrap 内边距，2 = 面板边框
-			if (Math.abs(real - estimateHeight()) > 1) write(real);
-		}
-		searchEl?.focus();
-	}
-
-	/** 面板高度估算：chrome + 前 10 行 × 36px（无分组行）+ listwrap 内边距 + 面板边框 */
-	function estimateHeight(): number {
-		let chrome = 43 + 42; // .cs-header + .cs-search 恒在
-		if (onCreateItem) chrome += 45; // .cs-footer（边框 1 + padding 4×2 + 按钮 36）
-		const rows = filtered.length ? filtered.length * 36 : 44; // 空态文案行下限
-		return chrome + Math.min(rows, 360) + 8 + 2; // 8 = .cs-listwrap 上下内边距 4×2
-	}
-
-	// 打开期间跟随页面滚动/缩放（面板为 fixed，否则会脱离触发器）；输入过滤/异步加载后面板高度也会变
+	// 键盘导航须把活动项滚进可视区（原先缺这一步，方向键移出列表就看不见落点）
 	$effect(() => {
-		if (!open) return;
-		void query;
-		void filtered;
-		tick().then(() => { if (open) positionDropdown(); });
-		const onWin = (e: Event) => {
-			if (listEl && e.target === listEl) return;
-			positionDropdown();
-		};
-		window.addEventListener('scroll', onWin, true);
-		window.addEventListener('resize', onWin);
-		return () => {
-			window.removeEventListener('scroll', onWin, true);
-			window.removeEventListener('resize', onWin);
-		};
+		if (panel.open) revealOption(listEl, activeIdx);
 	});
 
-	function handleOutsideClick(e: MouseEvent) {
-		if (wrapperEl && !wrapperEl.contains(e.target as Node)) close();
-	}
-
-	onMount(() => {
-		document.addEventListener('mousedown', handleOutsideClick);
-		return () => document.removeEventListener('mousedown', handleOutsideClick);
+	// 选项文字会按列宽省略，完整值走一个共享气泡
+	const tip = createEllipsisTip({
+		isOpen: () => panel.open,
+		container: () => listEl,
+		index: () => activeIdx,
+		deps: () => filtered,
 	});
 </script>
 
 <div bind:this={wrapperEl} class="cs-wrapper {cls}" style={style}>
-	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 	<button
 		type="button"
 		{disabled}
-		onclick={toggle}
+		onclick={() => panel.toggle()}
 		onkeydown={onTriggerKeydown}
 		role="combobox"
 		aria-haspopup="listbox"
-		aria-expanded={open}
-		aria-controls={open ? listId : undefined}
+		aria-expanded={panel.open}
+		aria-controls={panel.open ? listId : undefined}
 		class="cs-trigger"
-		class:cs-trigger--open={open}
+		class:cs-trigger--open={panel.open}
 		class:cs-trigger--placeholder={!value}
 	>
 		<span class="cs-value">{value || placeholder}</span>
-		<svg class="cs-chevron" class:cs-chevron--open={open} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+		<svg class="cs-chevron" class:cs-chevron--open={panel.open} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
 	</button>
 
-	{#if open && mounted}
-		<!-- 面板本身不再是 listbox：它含 header/搜索框/footer，listbox 的子孙里不允许出现 input/button。
-		     role=listbox 下移到真正承载选项的 .cs-list，组合框语义放在搜索框上（它才是键盘焦点所在）。
-		     本 div 只是键盘代理（Esc/上下/回车），因此显式忽略「无 role 的静态元素带 keydown」。 -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="cs-dropdown"
-			bind:this={ddEl}
-			style={dropdownStyle}
-			tabindex="-1"
-			onkeydown={onDropdownKeydown}
-			in:menuIn={{ up: flipUp }}
-			out:menuOut={{ up: flipUp }}
-		>
-			<div class="cs-header">{title}</div>
-			<div class="cs-search">
+	{#if panel.open && panel.mounted}
+		<!-- 面板本身不是 listbox：它含 header / 搜索框 / footer，listbox 的子孙里
+		     不允许出现 input / button。role=listbox 在 .cs-list 上，组合框语义放在
+		     搜索框上（它才是键盘焦点所在）；面板只当键盘代理（Esc / 上下 / 回车）。 -->
+		<DropdownPanel style={panel.panelStyle} flipUp={panel.flipUp} tabindex={-1} onkeydown={onDropdownKeydown}>
+			<div class="cs-header" bind:this={headerEl}>{title}</div>
+			<div class="cs-search" bind:this={searchBoxEl}>
 				<Search size={14} class="cs-search-icon" />
 				<input
 					bind:this={searchEl}
 					bind:value={query}
-					oninput={() => { activeIdx = filtered.length ? 0 : -1; }}
+					oninput={() => {
+						activeIdx = filtered.length ? 0 : -1;
+					}}
 					placeholder="搜索或新建…"
 					class="cs-search-input"
 					role="combobox"
-					aria-expanded={open}
+					aria-expanded={panel.open}
 					aria-controls={listId}
-					aria-activedescendant={activeIdx >= 0 ? `${listId}-${activeIdx}` : undefined}
+					aria-activedescendant={activeIdx >= 0 ? optionId(activeIdx) : undefined}
 				/>
 				{#if filtered.length > 0}
 					<span class="cs-count">{filtered.length} 项</span>
@@ -275,15 +243,14 @@
 			</div>
 			<div class="cs-listwrap">
 				<div class="cs-list" bind:this={listEl} role="listbox" id={listId}>
-					<!-- 选中 = 常驻主题色，指针落点 = 中性灰（见 Select 里的说明） -->
+					<!-- 选中 = 常驻主题色，指针落点 = 中性灰（见 DropdownOption 里的说明） -->
 					<PillTrack
 						container={listEl}
-						itemSelector=".cs-option"
-						activeSelector=".cs-option--selected"
+						itemSelector={OPTION_SEL}
+						activeSelector=".dd-option--selected"
 						background="var(--primary)"
 						hoverBackground="var(--hover)"
 						activeHoverBackground="var(--primary-hover)"
-						radius="var(--radius-md)"
 					/>
 					{#if loading}
 						<div class="cs-loading">
@@ -305,35 +272,21 @@
 						</div>
 					{:else}
 						{#each filtered as item, i (item)}
-							<!-- 选项文字会按列宽省略，完整值走 Tooltip。触发器是 span，
-							     必须显式撑满整行（否则 inline-flex 会在块容器里排成一行）。 -->
-							<Tooltip title={item} class="cs-opt-tip" maxWidth={420}>
-								<button
-									type="button"
-									class="cs-option"
-									class:cs-option--active={i === activeIdx}
-									class:cs-option--selected={item === value}
-									onclick={() => choose(item)}
-									onmouseenter={() => activeIdx = i}
-									role="option"
-									id={`${listId}-${i}`}
-									aria-selected={item === value}
-								>
-									<span class="cs-option-check" aria-hidden="true">
-										{#if item === value}
-											<Check size={14} />
-										{/if}
-									</span>
-									<span class="cs-option-label">{item}</span>
-								</button>
-							</Tooltip>
+							<DropdownOption
+								label={item}
+								id={optionId(i)}
+								selected={item === value}
+								active={i === activeIdx}
+								onpick={() => choose(item)}
+								onhover={() => (activeIdx = i)}
+							/>
 						{/each}
 					{/if}
 				</div>
 				<ScrollZones target={listEl} />
 			</div>
 			{#if onCreateItem}
-				<div class="cs-footer">
+				<div class="cs-footer" bind:this={footerEl}>
 					<Tooltip title={canCreate ? `新建「${query.trim()}」` : '输入新名称后可新建'} class="cs-create-tip" maxWidth={320}>
 						<button
 							type="button"
@@ -347,8 +300,11 @@
 					</Tooltip>
 				</div>
 			{/if}
-		</div>
+		</DropdownPanel>
 	{/if}
+
+	<!-- 长选项的完整值：一个实例，锚点由 activeIndex 驱动（见 createEllipsisTip） -->
+	<Tooltip anchor={tip.anchor} open={tip.visible} title={tip.text} placement="right" maxWidth={420} delay={0} />
 </div>
 
 <style>
@@ -378,19 +334,8 @@
 	.cs-chevron { color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s; }
 	.cs-chevron--open { transform: rotate(180deg); }
 
-	.cs-dropdown {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		border-radius: var(--radius-lg);
-		border: 1px solid var(--border);
-		background-color: var(--popup-surface);
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-		color: var(--text);
-	}
 	.cs-header {
-		padding: var(--sp-lg) var(--sp-lg);
+		padding: var(--sp-lg);
 		font-size: var(--fs-12);
 		font-weight: 600;
 		color: var(--text-muted);
@@ -401,7 +346,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-1-5);
-		padding: var(--sp-lg) var(--sp-lg);
+		padding: var(--sp-lg);
 		border-bottom: 1px solid var(--border);
 	}
 	:global(.cs-search-icon) { color: var(--text-muted); flex-shrink: 0; }
@@ -420,48 +365,15 @@
 		color: var(--text);
 		font-size: var(--fs-13);
 	}
-	/* 列表区（滚动视口）：触发区的定位基准；四边 4px 内边距 → pill 不贴面板边框（与 Select/Combobox/MultiSelect 一致） */
+	/* 列表区（滚动视口）：触发区的定位基准；四边 4px 内边距 → pill 不贴面板边框 */
 	.cs-listwrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: var(--sp-sm); }
-	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致；360 = 严格前 10 行 × 36px */
-	.cs-list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: 360px; scrollbar-width: none; -ms-overflow-style: none; }
+	/* 唯一滚动体：隐藏滚动条 → 左右内边距一致。
+	   上限 = 行高 × 最多行数，两个数都由 DropdownPanel 按 rowHeight.ts 写进 CSS 变量，
+	   面板高度估算读的是同一组常量 —— 写死 360 时只要行高改一档就会对不上。 */
+	.cs-list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: calc(var(--dd-row-h) * var(--dd-max-rows)); scrollbar-width: none; -ms-overflow-style: none; }
 	.cs-list::-webkit-scrollbar { display: none; }
 	.cs-loading { display: flex; justify-content: center; padding: var(--space-3) 0; }
-	.cs-empty { padding: var(--sp-lg) var(--sp-lg); font-size: var(--fs-12); color: var(--text-muted); }
-	.cs-option {
-		position: relative;
-		display: flex;
-		align-items: center;
-		gap: var(--sp-md);
-		width: 100%;
-		height: var(--height-md);
-		padding: 0 var(--sp-lg);
-		border: none;
-		background: none;
-		color: var(--text);
-		font-size: var(--fs-13);
-		text-align: left;
-		cursor: pointer;
-		transition: color 0.1s, background-color 0.1s;
-	}
-	/* 落点行 pill 是实心主题色 → 文字转白（--accent-text）；选中行不在此列 */
-	.cs-option:hover:not(.cs-option--selected) { color: var(--text-strong); }
-	/* 方向键落点：中性灰兜底，:not(:hover) 防止鼠标划过时与 pill 叠成两层 */
-	.cs-option--active:not(.cs-option--selected):not(:hover) {
-		background-color: var(--hover);
-		color: var(--text-strong);
-	}
-	/* 选项的 Tooltip 触发器：显式撑满整行，避免 inline-flex 在块级滚动容器里
-	   把选项排成一行（.cs-list 不是 flex 布局，靠的是每个选项自己 100% 宽）。 */
-	.cs-list :global(.cs-opt-tip) {
-		display: flex;
-		width: 100%;
-	}
-	.cs-option--selected { color: var(--accent-text); font-weight: 500; }
-	/* 勾槽常驻 16px：选中渲染勾，未选中留空 → 文字列恒定不跳动 */
-	.cs-option-check { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--primary); }
-	/* 勾跟着行文字翻白，否则深蓝勾压在主题色底上等于消失 */
-	.cs-option--selected .cs-option-check { color: inherit; }
-	.cs-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.cs-empty { padding: var(--sp-lg); font-size: var(--fs-12); color: var(--text-muted); }
 	.cs-footer {
 		padding: var(--sp-sm) var(--sp-lg);
 		border-top: 1px solid var(--border);

@@ -8,6 +8,7 @@
 		type NotificationStore,
 	} from '../notification';
 	import NotificationItem from './NotificationItem.svelte';
+	import { prefersReducedMotion } from './motion';
 
 	let {
 		class: cls = '',
@@ -48,8 +49,9 @@
 	let userExpanded = $state(false);
 	let interacting = $state(false);
 	let rootEl = $state<HTMLElement | null>(null);
-	// prefers-reduced-motion：sonner 用 CSS 关闭全部过渡/动画；我们的入/退场/flip 是 JS 动画，需同步门控
-	let reducedMotion = $state(false);
+	// prefers-reduced-motion：sonner 用 CSS 关闭全部过渡/动画；我们的入/退场/flip 是 JS 动画，需同步门控。
+	// 初值走公共判断，之后才需要监听变化（用户随时可能改系统设置）
+	let reducedMotion = $state(prefersReducedMotion());
 	$effect(() => {
 		if (typeof window === 'undefined') return;
 		const mq = window.matchMedia('(prefers-reduced-motion: reduce)');

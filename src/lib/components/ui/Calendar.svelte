@@ -1,33 +1,5 @@
-<script lang="ts" module>
-	export const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
-
-	export function toISO(d: Date): string {
-		const y = d.getFullYear();
-		const m = String(d.getMonth() + 1).padStart(2, '0');
-		const day = String(d.getDate()).padStart(2, '0');
-		return `${y}-${m}-${day}`;
-	}
-
-	export function fromISO(iso: string): Date | null {
-		if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
-		const [y, m, d] = iso.split('-').map(Number);
-		const date = new Date(y, m - 1, d);
-		return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d ? date : null;
-	}
-
-	export function isSameDay(a: Date, b: Date): boolean {
-		return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-	}
-
-	export interface CalendarCell {
-		date: Date;
-		iso: string;
-		inMonth: boolean;
-		today: boolean;
-	}
-</script>
-
 <script lang="ts">
+	import { weekdayLabels, toISO, fromISO, buildCells, shiftByArrow, shiftMonth, blocked } from './calendarGrid';
 	import Button from './Button.svelte';
 	import PillTrack from './PillTrack.svelte';
 	import PickerFooter from './PickerFooter.svelte';
@@ -72,34 +44,17 @@
 	let viewYear = $state(new Date().getFullYear());
 	let viewMonth = $state(new Date().getMonth());
 
-	const weekdays = $derived.by(() => {
-		if (weekStart === 1) return WEEKDAYS;
-		return [...WEEKDAYS.slice(6), ...WEEKDAYS.slice(0, 6)];
-	});
-
-	const cells = $derived.by(() => {
-		const first = new Date(viewYear, viewMonth, 1);
-		const offset = (first.getDay() - weekStart + 7) % 7;
-		const start = new Date(viewYear, viewMonth, 1 - offset);
-		const list: CalendarCell[] = [];
-		for (let i = 0; i < 42; i++) {
-			const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-			list.push({ date: d, iso: toISO(d), inMonth: d.getMonth() === viewMonth, today: isSameDay(d, today) });
-		}
-		return list;
-	});
+	const weekdays = $derived(weekdayLabels(weekStart));
+	const cells = $derived(buildCells(viewYear, viewMonth, weekStart, today));
 
 	function isDisabled(iso: string): boolean {
-		if (disabled) return true;
-		if (min && iso < min) return true;
-		if (max && iso > max) return true;
-		return disabledDate?.(iso) ?? false;
+		return blocked(iso, { disabled, min, max, disabledDate });
 	}
 
-	function shiftMonth(delta: number) {
-		const d = new Date(viewYear, viewMonth + delta, 1);
-		viewYear = d.getFullYear();
-		viewMonth = d.getMonth();
+	function moveMonth(delta: number) {
+		const next = shiftMonth(viewYear, viewMonth, delta);
+		viewYear = next.year;
+		viewMonth = next.month;
 	}
 
 	function pick(iso: string) {
@@ -116,21 +71,17 @@
 
 	function onKeydown(e: KeyboardEvent) {
 		if (disabled) return;
-		const cur = selected ?? today;
-		let next: Date | null = null;
-		if (e.key === 'ArrowLeft') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 1);
-		else if (e.key === 'ArrowRight') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
-		else if (e.key === 'ArrowUp') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 7);
-		else if (e.key === 'ArrowDown') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7);
-		else if (e.key === 'PageUp') shiftMonth(-1);
-		else if (e.key === 'PageDown') shiftMonth(1);
+		const next = shiftByArrow(selected ?? today, e.key);
 		if (next) {
 			e.preventDefault();
 			viewYear = next.getFullYear();
 			viewMonth = next.getMonth();
 			pick(toISO(next));
-		} else if (e.key === 'PageUp' || e.key === 'PageDown') {
+			return;
+		}
+		if (e.key === 'PageUp' || e.key === 'PageDown') {
 			e.preventDefault();
+			moveMonth(e.key === 'PageUp' ? -1 : 1);
 		}
 	}
 </script>
@@ -144,11 +95,11 @@
 			hoverBackground="var(--hover)"
 			radius="var(--radius-md)"
 		/>
-		<button type="button" class="calendar-nav" aria-label="上个月" disabled={disabled} onclick={() => shiftMonth(-1)}>
+		<button type="button" class="calendar-nav" aria-label="上个月" disabled={disabled} onclick={() => moveMonth(-1)}>
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
 		</button>
 		<span class="calendar-title" aria-live="polite">{viewYear} 年 {viewMonth + 1} 月</span>
-		<button type="button" class="calendar-nav" aria-label="下个月" disabled={disabled} onclick={() => shiftMonth(1)}>
+		<button type="button" class="calendar-nav" aria-label="下个月" disabled={disabled} onclick={() => moveMonth(1)}>
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
 		</button>
 	</div>

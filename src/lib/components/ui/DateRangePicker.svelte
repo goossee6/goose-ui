@@ -1,7 +1,7 @@
 <script lang="ts">
 	import RangeCalendar from './RangeCalendar.svelte';
-	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
+	import { createPickerPanel } from './pickerPanel.svelte';
 
 	let {
 		start = $bindable(''),
@@ -29,40 +29,22 @@
 		style?: string;
 	} = $props();
 
-	let rootEl = $state<HTMLElement | null>(null);
-	let panelEl = $state<HTMLElement | null>(null);
-	let panelStyle = $state('');
-	let open = $state(false);
-	let flipUp = $state(false);
 	/** 草稿区间：面板内点选只改这里，点「确认」才写回 start/end */
 	let dStart = $state('');
 	let dEnd = $state('');
 
 	const label = $derived(start && end ? `${start} → ${end}` : '');
 
-	function show() {
+	const panel = createPickerPanel({
+		onOpen: () => {
+			dStart = start;
+			dEnd = end;
+		},
+	});
+
+	function onTrigger() {
 		if (disabled) return;
-		dStart = start;
-		dEnd = end;
-		open = true;
-		requestAnimationFrame(() => {
-			if (!rootEl || !panelEl) return;
-			const r = floatingPosition(rootEl.getBoundingClientRect(), {
-				panelW: panelEl.offsetWidth,
-				panelH: panelEl.offsetHeight,
-				gap: 6,
-			});
-			flipUp = r.flipUp;
-			panelStyle = r.style;
-		});
-	}
-
-	function hide() {
-		open = false;
-	}
-
-	function toggle() {
-		open ? hide() : show();
+		panel.toggle();
 	}
 
 	function confirm() {
@@ -71,7 +53,7 @@
 			end = dEnd;
 			onchange?.({ start, end });
 		}
-		hide();
+		panel.hide();
 	}
 
 	function clear(e: MouseEvent) {
@@ -81,36 +63,17 @@
 		onchange?.({ start: '', end: '' });
 	}
 
-	$effect(() => {
-		if (!open) return;
-		const onDocDown = (e: MouseEvent) => {
-			if (rootEl && !rootEl.contains(e.target as Node)) hide();
-		};
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				e.stopPropagation();
-				hide();
-			}
-		};
-		document.addEventListener('mousedown', onDocDown);
-		document.addEventListener('keydown', onKey, true);
-		return () => {
-			document.removeEventListener('mousedown', onDocDown);
-			document.removeEventListener('keydown', onKey, true);
-		};
-	});
-
 </script>
 
-<div class="drp {cls}" bind:this={rootEl} style={style}>
+<div class="drp {cls}" bind:this={panel.rootEl} style={style}>
 	<button
 		type="button"
 		class="drp-trigger"
-		class:open
-		disabled={disabled}
+		class:open={panel.open}
+		{disabled}
 		aria-haspopup="dialog"
-		aria-expanded={open}
-		onclick={toggle}
+		aria-expanded={panel.open}
+		onclick={onTrigger}
 	>
 		{#if label}
 			<span class="drp-value">{label}</span>
@@ -130,16 +93,16 @@
 		</button>
 	{/if}
 
-	{#if open}
+	{#if panel.open}
 		<div
 			class="drp-panel"
-			bind:this={panelEl}
-			style={panelStyle}
-			class:flip-up={flipUp}
-			in:menuIn={{ up: flipUp }}
-			out:menuOut={{ up: flipUp }}
+			bind:this={panel.panelEl}
+			style={panel.panelStyle}
+			class:flip-up={panel.flipUp}
+			in:menuIn={{ up: panel.flipUp }}
+			out:menuOut={{ up: panel.flipUp }}
 		>
-			<RangeCalendar bind:start={dStart} bind:end={dEnd} {min} {max} {disabledDate} oncancel={hide} onconfirm={confirm} />
+			<RangeCalendar bind:start={dStart} bind:end={dEnd} {min} {max} {disabledDate} oncancel={panel.hide} onconfirm={confirm} />
 		</div>
 	{/if}
 </div>

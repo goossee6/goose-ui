@@ -1,10 +1,6 @@
-<script lang="ts" module>
-	function pad(n: number): string {
-		return String(n).padStart(2, '0');
-	}
-</script>
-
 <script lang="ts">
+	import { pad2 } from './dateParts';
+
 	let {
 		mode = 'time',
 		showSeconds = true,
@@ -43,13 +39,13 @@
 			h = h % 12 || 12;
 		}
 		const base = showSeconds
-			? `${pad(h)}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-			: `${pad(h)}:${pad(now.getMinutes())}`;
+			? `${pad2(h)}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`
+			: `${pad2(h)}:${pad2(now.getMinutes())}`;
 		return base + suffix;
 	});
 
 	const dateStr = $derived(
-		`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+		`${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`
 	);
 
 	const weekdayStr = $derived(

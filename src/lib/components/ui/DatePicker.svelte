@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Calendar from './Calendar.svelte';
-	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
+	import { createPickerPanel } from './pickerPanel.svelte';
 
 	let {
 		value = $bindable(''),
@@ -27,38 +27,15 @@
 		style?: string;
 	} = $props();
 
-	let rootEl = $state<HTMLElement | null>(null);
-	let panelEl = $state<HTMLElement | null>(null);
-	let panelStyle = $state('');
-	let open = $state(false);
-	let flipUp = $state(false);
-
 	// 草稿态：面板里的选择先落在 draft，点「确认」才写回 value。
 	// 「取消」直接丢草稿，所以打开时必须以当前 value 重置，而不是沿用上次的草稿。
 	let draft = $state('');
 
-	function show() {
+	const panel = createPickerPanel({ onOpen: () => (draft = value) });
+
+	function onTrigger() {
 		if (disabled) return;
-		draft = value;
-		open = true;
-		requestAnimationFrame(() => {
-			if (!rootEl || !panelEl) return;
-			const r = floatingPosition(rootEl.getBoundingClientRect(), {
-				panelW: panelEl.offsetWidth,
-				panelH: panelEl.offsetHeight,
-				gap: 6,
-			});
-			flipUp = r.flipUp;
-			panelStyle = r.style;
-		});
-	}
-
-	function hide() {
-		open = false;
-	}
-
-	function toggle() {
-		open ? hide() : show();
+		panel.toggle();
 	}
 
 	function confirm() {
@@ -66,7 +43,7 @@
 			value = draft;
 			onchange?.(draft);
 		}
-		hide();
+		panel.hide();
 	}
 
 	function clear(e: MouseEvent) {
@@ -75,37 +52,17 @@
 		onchange?.('');
 	}
 
-	$effect(() => {
-		if (!open) return;
-		const onDocDown = (e: MouseEvent) => {
-			if (rootEl && !rootEl.contains(e.target as Node)) hide();
-		};
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				// capture 拦截，阻止冒泡到外层 Modal 的 Esc 监听（只关本层）
-				e.stopPropagation();
-				hide();
-			}
-		};
-		document.addEventListener('mousedown', onDocDown);
-		document.addEventListener('keydown', onKey, true);
-		return () => {
-			document.removeEventListener('mousedown', onDocDown);
-			document.removeEventListener('keydown', onKey, true);
-		};
-	});
-
 </script>
 
-<div class="date-picker {cls}" bind:this={rootEl} style={style}>
+<div class="date-picker {cls}" bind:this={panel.rootEl} style={style}>
 	<button
 		type="button"
 		class="dp-trigger"
-		class:open
-		disabled={disabled}
+		class:open={panel.open}
+		{disabled}
 		aria-haspopup="dialog"
-		aria-expanded={open}
-		onclick={toggle}
+		aria-expanded={panel.open}
+		onclick={onTrigger}
 	>
 		{#if value}
 			<span class="dp-value">{value}</span>
@@ -125,16 +82,16 @@
 		</button>
 	{/if}
 
-	{#if open}
+	{#if panel.open}
 		<div
 			class="dp-panel"
-			bind:this={panelEl}
-			style={panelStyle}
-			class:flip-up={flipUp}
-			in:menuIn={{ up: flipUp }}
-			out:menuOut={{ up: flipUp }}
+			bind:this={panel.panelEl}
+			style={panel.panelStyle}
+			class:flip-up={panel.flipUp}
+			in:menuIn={{ up: panel.flipUp }}
+			out:menuOut={{ up: panel.flipUp }}
 		>
-			<Calendar bind:value={draft} {min} {max} {disabledDate} oncancel={hide} onconfirm={confirm} />
+			<Calendar bind:value={draft} {min} {max} {disabledDate} oncancel={panel.hide} onconfirm={confirm} />
 		</div>
 	{/if}
 </div>

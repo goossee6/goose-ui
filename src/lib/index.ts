@@ -178,7 +178,7 @@ export type { RadioGroupOption } from './components/ui/RadioGroup.svelte';
 export type { ToggleGroupItem } from './components/ui/ToggleGroup.svelte';
 export type { ComboboxOption } from './components/ui/Combobox.svelte';
 export type { CommandItem } from './components/ui/Command.svelte';
-export type { CalendarCell } from './components/ui/Calendar.svelte';
+export type { CalendarCell } from './components/ui/calendarGrid.ts';
 export type { CarouselItem } from './components/ui/Carousel.svelte';
 export type { FormContext, FormItemContext } from './components/ui/form.context';
 

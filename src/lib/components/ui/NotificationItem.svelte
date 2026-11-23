@@ -4,6 +4,7 @@
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import CircleX from '@lucide/svelte/icons/circle-x';
 	import X from '@lucide/svelte/icons/x';
+	import { prefersReducedMotion } from './motion';
 	import Icon from './Icon.svelte';
 	import type { NotificationItem as NotificationItemType, NotificationStore } from '../notification';
 
@@ -72,7 +73,7 @@
 	function playUncover() {
 		const el = coverEl;
 		if (!el) return;
-		if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+		if (prefersReducedMotion()) {
 			el.remove();
 			return;
 		}

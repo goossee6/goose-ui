@@ -7,7 +7,7 @@ goose-ui 的文档按**用途**分四类：上手（怎么装）、查（有哪�
 
 1. [安装与接入](installation.md) —— 装包、Vite 配置、深色首屏、最小可运行示例；
    换新版本看[升级](installation.md#升级)
-2. [组件清单](components.md) —— 86 个组件按分组的一句话说明，先在这里选型
+2. [组件清单](components.md) —— 全部组件按分组的一句话说明，先在这里选型
 3. [组件 Props 参考](api-reference.md) —— 选完直接查 props：类型、默认值、能不能 `bind:`
 4. [在线 demo](https://goossee6.github.io/goose-ui/) —— 每页都有「效果 / 源码」切换，复制即用
 

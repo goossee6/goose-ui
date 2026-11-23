@@ -1,6 +1,6 @@
 <script lang="ts">
 	import PickerFooter from './PickerFooter.svelte';
-	import { WEEKDAYS, toISO, fromISO, isSameDay, type CalendarCell } from './Calendar.svelte';
+	import { toISO, fromISO, weekdayLabels, buildCells, shiftByArrow, shiftMonth, blocked } from './calendarGrid';
 
 	let {
 		start = $bindable(''),
@@ -50,32 +50,14 @@
 		viewMonth = m - 1;
 	});
 
-	const weekdays = $derived.by(() => {
-		if (weekStart === 1) return WEEKDAYS;
-		return [...WEEKDAYS.slice(6), ...WEEKDAYS.slice(0, 6)];
-	});
-
-	const cells = $derived.by(() => {
-		const first = new Date(viewYear, viewMonth, 1);
-		const offset = (first.getDay() - weekStart + 7) % 7;
-		const s = new Date(viewYear, viewMonth, 1 - offset);
-		const list: CalendarCell[] = [];
-		for (let i = 0; i < 42; i++) {
-			const d = new Date(s.getFullYear(), s.getMonth(), s.getDate() + i);
-			list.push({ date: d, iso: toISO(d), inMonth: d.getMonth() === viewMonth, today: isSameDay(d, today) });
-		}
-		return list;
-	});
+	const weekdays = $derived(weekdayLabels(weekStart));
+	const cells = $derived(buildCells(viewYear, viewMonth, weekStart, today));
 
 	function isDisabled(iso: string): boolean {
-		if (disabled) return true;
-		if (min && iso < min) return true;
-		if (max && iso > max) return true;
-		if (disabledDate?.(iso)) return true;
 		// 注意：这里刻意不按 picking 约束（不禁止 iso > end / iso < start）。
-		// 那是「点击提交」的语义，若并入 isDisabled 会连带禁掉区间之外的日期，
+		// 那是「点击提交」的语义，若并入禁用判定会连带禁掉区间之外的日期，
 		// 使键盘光标无法跨出已选区间（ArrowDown 永远无反应），也无法开启新的选择。
-		return false;
+		return blocked(iso, { disabled, min, max, disabledDate });
 	}
 
 	/** 仅点击提交时使用的额外约束：选定起点期间不可选早于起点的日期 */
@@ -88,10 +70,10 @@
 		return iso > start && iso < end;
 	}
 
-	function shiftMonth(delta: number) {
-		const d = new Date(viewYear, viewMonth + delta, 1);
-		viewYear = d.getFullYear();
-		viewMonth = d.getMonth();
+	function moveMonth(delta: number) {
+		const next = shiftMonth(viewYear, viewMonth, delta);
+		viewYear = next.year;
+		viewMonth = next.month;
 		// 翻月后旧光标已不在视图内，丢弃避免下次方向键从陈旧位置起算
 		cursorIso = '';
 	}
@@ -161,16 +143,12 @@
 		}
 		if (e.key === 'PageUp' || e.key === 'PageDown') {
 			e.preventDefault();
-			shiftMonth(e.key === 'PageUp' ? -1 : 1);
+			moveMonth(e.key === 'PageUp' ? -1 : 1);
 			return;
 		}
 		// 光标起点：持久光标 → 已选起点 → 今天（绝不直接改区间）
 		const cur = fromISO(cursorIso || start || '') ?? today;
-		let next: Date | null = null;
-		if (e.key === 'ArrowLeft') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 1);
-		else if (e.key === 'ArrowRight') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
-		else if (e.key === 'ArrowUp') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 7);
-		else if (e.key === 'ArrowDown') next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7);
+		const next = shiftByArrow(cur, e.key);
 		if (!next) return;
 		const iso = toISO(next);
 		if (isDisabled(iso)) return;
@@ -192,11 +170,11 @@
 
 <div class="range-calendar {cls}" class:disabled style={style}>
 	<div class="rc-header">
-		<button type="button" class="rc-nav" aria-label="上个月" disabled={disabled} onclick={() => shiftMonth(-1)}>
+		<button type="button" class="rc-nav" aria-label="上个月" disabled={disabled} onclick={() => moveMonth(-1)}>
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
 		</button>
 		<span class="rc-title" aria-live="polite">{viewYear} 年 {viewMonth + 1} 月</span>
-		<button type="button" class="rc-nav" aria-label="下个月" disabled={disabled} onclick={() => shiftMonth(1)}>
+		<button type="button" class="rc-nav" aria-label="下个月" disabled={disabled} onclick={() => moveMonth(1)}>
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
 		</button>
 	</div>

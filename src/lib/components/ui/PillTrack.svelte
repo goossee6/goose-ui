@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { prefersReducedMotion } from './motion';
+
 	let {
 		container = null,
 		itemSelector = '',
@@ -409,8 +411,7 @@
 	const slideGoal = new WeakMap<HTMLElement, string>();
 
 	/** 减少动效：位移照样跟随，但不过冲。 */
-	const reduceMotion = () =>
-		typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const reduceMotion = () => prefersReducedMotion();
 
 	/**
 	 * 落点是否落在容器的**可视区**里（内容坐标）。

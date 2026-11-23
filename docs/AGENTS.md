@@ -7,7 +7,7 @@
 
 ## 一句话认识
 
-goose-ui 是**零构建、零样式运行时**的 Svelte 5（Runes）组件库：86 个单文件组件就是源码，
+goose-ui 是**零构建、零样式运行时**的 Svelte 5（Runes）组件库：一个组件就是一个 `.svelte` 文件，它本身就是源码，
 `package.json` 的 `svelte` 字段直接指向 `src/lib/index.ts`，没有编译产物，改了组件立刻生效。
 
 - 运行期依赖：`dependencies: {}`。peer 只有 `svelte@5` 与 `@lucide/svelte`（后者**必装**：
@@ -21,10 +21,24 @@ goose-ui 是**零构建、零样式运行时**的 Svelte 5（Runes）组件库�
 | 路径 | 是什么 |
 | --- | --- |
 | `src/lib/index.ts` | 唯一对外入口（barrel）。新组件必须在这里导出 |
-| `src/lib/components/ui/*.svelte` | 组件本体（83 个对外 + 3 个内部件），一文件一组件，scoped style 写在文件末尾 |
-| `src/lib/components/ui/overlayLayer.ts` | 浮层层级 / 外部点击判定（`registerLayer`、`isInsideLayer`） |
+| `src/lib/components/ui/*.svelte` | 组件本体（93 个：84 个对外导出 + 9 个内部件），一文件一组件，scoped style 写在文件末尾 |
+| `src/lib/components/ui/overlayLayer.ts` | 浮层层级 / 外部点击判定（`registerLayer`、`isInsideLayer`）：Popover、DropdownMenu、四个下拉、四个日期时间选择器、NavigationMenu、ContextMenu 都登记，**不要再手写 `contains` 判外部点击** |
+| `src/lib/components/ui/floatingPosition.ts` | 浮层定位：翻转、视口钳位、`max-height`（13 个浮层共用，别在组件里自己算 rect） |
 | `src/lib/components/ui/menuTransition.ts` | `menuIn` / `menuOut` 两个动画指令 |
-| `src/lib/components/ui/{ScrollZones,SegmentField,Wheel}.svelte` | **内部件**，供 Select / 日期字段复用，不对外导出 |
+| `src/lib/components/ui/pickerPanel.svelte.ts` | 选择器浮层的开关/定位/点外部/Esc（`createPickerPanel`），四个日期时间选择器共用 |
+| `src/lib/components/ui/dropdown.svelte.ts` | 下拉浮层的同一套行为（`createDropdownPanel`）、活动行滚入视区（`revealOption`）、省略号气泡（`createEllipsisTip`），四个下拉共用 |
+| `src/lib/components/ui/dateParts.ts` | 补零、按位置拆拼段值（`pad2`、`joinTrimmed` ⇄ `splitFixed`）、档位索引、滚轮列生成（`normalizeTime`、`indexNearest`、`timeColumns`） |
+| `src/lib/components/ui/calendarGrid.ts` | 日历网格与键盘换算（`buildCells`、`shiftByArrow`、`shiftMonth`、`blocked`），Calendar / RangeCalendar 共用 |
+| `src/lib/components/ui/datetimeRange.ts` | 区间预设与 `YYYY-MM-DD HH:mm:ss` 运算（`presetDates`、`orderRange`） |
+| `src/lib/components/ui/wheelMath.ts` | 滚轮的纯数学：`foldPos` / `shortestDelta`（59 → 00 只走一格）、`wheelStep`（滚轮 vs 触控板、连滚加速）、`keyTarget`（Home/End 落在中段）。**手感类 bug 不会报错，只能靠这里的单测** |
+| `src/lib/components/ui/segmentCells.ts` | 段式取值：区间判定、失焦规整、粘贴拆分（`isLegal`、`normalizeCells`、`pasteCells`），`SegmentField` 只留 DOM 与焦点 |
+| `src/lib/components/ui/fieldValidation.ts` | 输入校验协议（`checkField`，控件失焦时调用） |
+| `src/lib/components/ui/motion.ts` | `prefersReducedMotion()` 的唯一判断点 |
+| `src/lib/components/ui/rowHeight.ts` | 下拉行高常量与「前 N 行」高度计算 |
+| `src/lib/components/ui/focusTrap.ts` | 弹层焦点陷阱（Modal / Drawer / AlertDialog） |
+| `src/lib/components/ui/{DropdownPanel,DropdownOption,DropdownGroup}.svelte` | **内部件**：下拉面板外壳（底色/描边/投影/`menuIn`/`menuOut`/portal）、选项行（单选/多选两种变体）、吸顶分组头。Select / Combobox / MultiSelect / CreatableSelect 共用 |
+| `src/lib/components/ui/{SegmentedTextField,SegmentField,Wheel}.svelte` | **内部件**：段式字段的两层 —— `SegmentField` 只管一格一格的键入/跳格/校验，`SegmentedTextField` 负责「整串 ⇄ 定长段」并把值抛回去，`DateField` / `TimeField` 只留配置 |
+| `src/lib/components/ui/{ScrollZones,PickerFooter,TimeWheelPanel}.svelte` | **内部件**：滚动渐变遮罩、选择器页脚（取消/确认）、时/分/秒三列滚轮，供日期时间控件与 Select 复用，不对外导出 |
 | `src/lib/components/menus/ContextMenu.svelte` | 全局右键菜单宿主（无 props，用法是 `registerMenu`） |
 | `src/lib/components/providers/` | `ConfirmDialog` / `ErrorDialog`，App 顶层挂载一次，无 props |
 | `src/lib/components/{notification,errors,confirm,contextMenu}.ts` | 命令式 API 与 store（`Notification.success()` 等） |
@@ -157,7 +171,7 @@ pnpm docs:api:check   # 生成文档是否落后
 | [README](../README.md) | 手写 | 定位、安装、文档索引 |
 | [docs/README](README.md) | 手写 | 文档地图与三条阅读路径 |
 | [installation](installation.md) | 手写 | 安装、Vite 接入、深色首屏、快速开始、导入方式 |
-| [components](components.md) | 手写 | 86 个组件的一句话说明（**分组与命名以它为准**） |
+| [components](components.md) | 手写 | 全部组件的一句话说明（**分组与命名以它为准**） |
 | [api-reference](api-reference.md) | **生成** | 每组件 props 表：类型 / 默认值 / 说明 / bind 标记 |
 | [shell](shell.md) | 手写 | Layout / Page / Sidebar / TitleBar、页内目录、切换过渡 |
 | [api](api.md) | 手写 | 通知、确认框、错误弹窗、右键菜单、Tooltip、动效原语、PillTrack |

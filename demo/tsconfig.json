@@ -12,7 +12,13 @@
      * of JS in `.svelte` files.
      */
     "allowJs": true,
-    "checkJs": true
+    "checkJs": true,
+    /**
+     * .ts 之间互相引用要带 .ts 后缀：tests/ 直接用 node --test 跑源码，
+     * 无后缀的 "./dateParts" 在 Node ESM 下解析不到。Vite 与 svelte-check 都认显式后缀。
+     */
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "bindings", "../src/**/*.ts", "../src/**/*.svelte"],
 }

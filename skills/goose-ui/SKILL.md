@@ -185,6 +185,12 @@ Copy-paste examples for every component are in the online demo:
     `contains`** (panels portal to `body`, so `contains()` can't attribute sub-panels; the missed-hit symptom is
     "select options inside a popover don't respond to clicks"). Panels carry `data-overlay-layer`, call
     `registerLayer` before portaling, and check `isInsideLayer(e.target, layerId, [rootEl, panelEl])`.
+    The current set of layer hosts is **Popover, DropdownMenu, the four dropdowns (via `createDropdownPanel`), the four
+    date/time pickers (via `createPickerPanel`), NavigationMenu and ContextMenu**. The two that are easy to forget are
+    the ones that don't portal: `ContextMenu` renders at the app root, so its parent layer can only be captured **at
+    contextmenu time** (`layerOwnerOf(the right-clicked element)`) — the ancestor chain is gone once the menu opens;
+    `NavigationMenu` keeps its panel inline but a `Select` inside it still portals away. Same trap on `scroll`: the
+    capture listener sees the sub-panel's own scrolling, so guard it with `isInsideLayer(e.target, ...)` too.
 21. **Write style values from the scale, not as literals**: spacing `--space-{n}` (n = px / 4, sub-steps through
     `--space-0-5` = 2px / `--space-1-5` = 6px), font size `--fs-{px}` (10–20 in 1px steps), radii
     `--radius-xs|sm|md|lg|xl|full`, control heights `--height-sm|md|lg` (28 / 36 / 44 — sizes are an enum, not
@@ -208,7 +214,10 @@ Copy-paste examples for every component are in the online demo:
     usable as plain static cards.
 
 24. **`Wheel` is transform-driven, not scroll-driven**: three identical copies of `items` sit in one strip, and a
-    single `translate3d(0, -(pos + 0.5) * 36px, 0)` moves it. `pos` is a float in *grid* units, and every write goes
+    single `translate3d(0, -(pos + 0.5) * var(--wheel-item-h), 0)` moves it. The cell height lives in **one** place:
+    `ITEM_H` in the script is pushed down as `--wheel-item-h`, and the band / item / container heights all read that
+    variable. Never write `36px` into the stylesheet again — a second copy silently desyncs the transform from the
+    rows. `pos` is a float in *grid* units, and every write goes
     through `norm()`, which folds it back into the middle copy (`[N, 2N)`) — one period of content, so the fold is
     pixel-identical and invisible. There is therefore **no wall to hit and nothing to "refill"**: fast flings just
     keep going. Do not reintroduce native scrolling / `scroll-snap` / a `reseat-on-settle`; those are what produced
@@ -244,6 +253,17 @@ Copy-paste examples for every component are in the online demo:
       and a miss silently throws the column to `00`.
     - A controlled field must show the draft, not the committed value; otherwise a wheel click and the digits above it
       disagree. `DateTimeRangePicker` derives the field text from the draft for this reason.
+    - **A rejected keystroke must be pulled back out of the input by hand.** When `setCell` refuses a value (月 `13`),
+      the state keeps the old text — so if it was already `09`, `value` does not change and Svelte skips the DOM write
+      entirely. The box then displays `13` (red) while the model still says `09`, and blur "normalizes" the clean state,
+      so nothing ever repairs it. `handleInput` / `handlePaste` therefore write the accepted text straight back into
+      `el.value` (`syncDom()`) instead of trusting the re-render.
+
+    Layering, so a new field is config only: `SegmentField` owns one cell's typing/jump/validation, `SegmentedTextField`
+    owns "whole string ⇄ fixed segments" (`splitFixed` in, `joinTrimmed` out, then `onchange` upward), and `DateField` /
+    `TimeField` supply nothing but `widths` / `ranges` / `separator` / `placeholders`. Segment **count** comes from the
+    config, never from how many separators happen to appear — `2026-11` must still produce three slots, or the day cell
+    loses its value and the calendar jumps to the wrong month.
 
 27. **An externally changed `index` must glide, not teleport — and always by the shortest way round.** "Now",
     presets and typed values all land as a new `index`; assigning `pos` directly makes three columns snap at once and
@@ -260,8 +280,65 @@ Copy-paste examples for every component are in the online demo:
     or drops it. Switching to the other side, `Esc`, and an outside click are all "cancel" — none of them may leak a
     half-edited time into the range. The two `TimeField`s must render `tmpT` while that side is open
     (`startShown` / `endShown`), otherwise the digits above the wheel and the wheel itself disagree. The popup is a
-    fixed 240px so the footer buttons don't drift with font metrics, and its `timeUp` threshold has to track the
-    popup's real height (235 + 4) rather than the old wheel-only height.
+    fixed 240px so the footer buttons don't drift with font metrics, and its flip direction is decided by the popup's
+    **measured** `offsetHeight` (in an `$effect` keyed off `timeSide`), not by an estimated constant — the estimate
+    went stale the first time a footer was added.
+
+29. **Shared logic lives in `ui/*.ts`, never inside a `.svelte` file.** `RangeCalendar` used to do
+    `import { WEEKDAYS, toISO } from './Calendar.svelte'` — pulling a whole component (and its styles, its
+    `PillTrack`) into the dependency graph to get four pure functions. The current module map:
+    - `dateParts.ts` — `pad2` / `padTo`, `indexFloor` / `indexNearest` (match by **number**, never `indexOf`),
+      `joinTrimmed` (mid-typing: keeps empty segment slots) vs `normalizeParts` / `normalizeTime` (commit: pads and
+      fills `00`), `splitFixed` (the inverse of `joinTrimmed`: fixed segment **count** from config, missing slots become
+      `''`, extras dropped), and `timeColumns(steps, seconds)` for the wheel lists. If you find yourself writing
+      `padStart(2)` or a "join/split the time segments" helper in a component, it belongs here.
+    - `calendarGrid.ts` — `buildCells` / `shiftByArrow` / `shiftMonth` / `blocked` for Calendar and RangeCalendar.
+    - `datetimeRange.ts` — presets and `YYYY-MM-DD HH:mm:ss` ordering/validation.
+    - `pickerPanel.svelte.ts` — `createPickerPanel()` owns open/close, `floatingPosition`, outside-click and `Esc`
+      for all four date/time pickers. It is a **behavior** helper, not a markup wrapper: each picker keeps its own
+      trigger/clear styles. `onEscape` lets an inner popup consume `Esc` first (the range picker's time popup).
+    - `dropdown.svelte.ts` — `createDropdownPanel()` (the same four concerns for the four dropdowns),
+      `revealOption()` (keep the keyboard row in view), `createEllipsisTip()` (one tooltip + one anchor instead of a
+      `Tooltip` per row — see item 30).
+    - `motion.ts` — `prefersReducedMotion()`. Never `matchMedia('(prefers-reduced-motion: reduce)')` again; Button
+      once shipped a version that dropped `.matches` and silently never animated.
+    - `wheelMath.ts` — `foldPos` / `shortestDelta` / `activeIndexAt` / `selectedAt` / `stripOffsetY`, plus
+      `deltaToPx` / `wheelStep` / `keyTarget` for input handling. This is where "one wheel tick = one cell", "59 → 00
+      turns one cell", "trackpad is not a discrete wheel" and "Home/End land mid-strip" are pinned down; every function
+      takes `n` explicitly so all three columns share it. Bugs here never throw — they only feel wrong — so `tests/`
+      is the only place they get caught.
+    - `segmentCells.ts` — `cellValues` / `rangeOf` / `isLegal` / `isOutOfRange` / `normalizeCells` / `pasteCells`:
+      which value counts as a legal segment, what happens on blur, how a pasted `20261123` is split. `SegmentField`
+      keeps only DOM events and focus jumps.
+    Cross-imports between these `.ts` files must carry the **`.ts` extension** (`from './dateParts.ts'`): `tests/`
+    runs them through plain `node --test`, whose ESM resolver rejects extensionless specifiers. `demo/tsconfig.json`
+    therefore sets `allowImportingTsExtensions`; `.svelte` files may keep extensionless imports.
+
+30. **The four dropdowns are one control with four triggers.** `Select`, `Combobox`, `MultiSelect` and
+    `CreatableSelect` share `createDropdownPanel()` plus three internal components (`DropdownPanel` — shell, `menuIn`/
+    `menuOut`, optional portal; `DropdownOption` — row, `variant: 'single' | 'multi'`; `DropdownGroup` — sticky header).
+    Four copies had already drifted: only `Select` portaled its panel, only three kept the keyboard row in view, only
+    two had a `mounted` gate (the rest pinned `position: fixed` in CSS to survive the first frame). When adding a fifth
+    dropdown, reuse these — do not copy a trigger and re-derive the plumbing.
+    - **`anchor` ≠ `root`**: the anchor is what the panel is positioned against (Combobox: the input's control box, so
+      width and flip are right), the root is what counts as "inside" for the outside-click test (Combobox: the whole
+      `.combobox`, because the panel is its **sibling**). Reusing the anchor for both closes the panel on `mousedown` of
+      an option — the option then never receives `click`, which reads as "clicking an item does nothing".
+    - **Row height has one source**: `ROW_H` / `MAX_ROWS` from `rowHeight.ts` feed both `rowsHeight()` (panel height)
+      and, as `--dd-row-h` / `--dd-max-rows`, the list's `max-height`. `CreatableSelect` used to hardcode `360`/`36`/`44`,
+      so changing the row token silently desynced the panel height from the visible rows.
+    - **Option clicks are handled on `mousedown` with `preventDefault()`** for all four: without it focus leaves the
+      input (Combobox) or the trigger, and closing on blur fights the selection.
+    - Options carry `tabindex="-1"`; the keyboard row is tracked by `aria-activedescendant` (Select, Combobox,
+      MultiSelect) and by `.active` styling (CreatableSelect — its focus is in the search box). `Tab` never enters
+      the list.
+    - **MultiSelect's trigger is a `combobox`, never a `button`.** `role="button"` makes its whole subtree
+      *presentational*, so every badge's remove button disappeared from the accessibility tree while staying
+      focusable — the worst of both. As a `combobox` the tag labels become the control's value, and `aria-controls` /
+      `aria-activedescendant` become legal. Two consequences: the `×` buttons are `aria-hidden` + `tabindex="-1"`
+      (otherwise screen readers read "×" as part of the value), so keyboard removal goes through `Backspace` /
+      `Delete`, announced by a one-line `.sr-only` `aria-live="polite"` region; and a disabled trigger gets
+      `tabindex="-1"`, since a div has no native `disabled`.
 
 ## Writing Custom Controls
 

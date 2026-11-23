@@ -115,6 +115,7 @@
     { name: "items", desc: "选项数组，元素 { value, label, group? }（group 连续同名归组，组头吸顶）", type: "Option[]", default: "[]" },
     { name: "placeholder", desc: "占位文案", type: "string", default: "'请选择'" },
     { name: "disabled", desc: "禁用", type: "boolean", default: "false" },
+    { name: "ariaLabel", desc: "无障碍名称（触发器是 combobox，没有可见 label 时必须给）", type: "string", default: "''" },
     { name: "class", desc: "附加类名", type: "string", default: "''" },
     { name: "style", desc: "内联样式", type: "string", default: "''" },
   ];
@@ -234,7 +235,7 @@
   let values = $state<string[]>([]);
 <\/script>
 
-<MultiSelect {items} bind:values placeholder="选择多种水果" />`;
+<MultiSelect {items} bind:values placeholder="选择多种水果" ariaLabel="选择多种水果" />`;
 
   const creatableSource = `<script lang="ts">
   import { CreatableSelect } from "goose-ui";
@@ -391,7 +392,7 @@
   <CodePreview anchor="multi-search" anchorLevel={2} title="多选 MultiSelect" code={multiSource}>
     <Row>
       <div class="demo-col">
-        <MultiSelect items={options} bind:values={multi} placeholder="选择多种水果" />
+        <MultiSelect items={options} bind:values={multi} placeholder="选择多种水果" ariaLabel="选择多种水果" />
       </div>
       <span class="demo-val">已选 {multi.length} 项: {multi.join(', ') || '无'}</span>
     </Row>

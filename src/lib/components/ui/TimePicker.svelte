@@ -1,16 +1,11 @@
-<script lang="ts" module>
-	function pad(n: number): string {
-		return String(n).padStart(2, '0');
-	}
-</script>
-
 <script lang="ts">
-	import { floatingPosition } from './floatingPosition';
+	import { pad2, indexFloor, indexNearest, joinTrimmed, timeColumns } from './dateParts';
 	import { menuIn, menuOut } from './menuTransition';
+	import { createPickerPanel } from './pickerPanel.svelte';
 	import Button from './Button.svelte';
 	import PickerFooter from './PickerFooter.svelte';
 	import TimeField from './TimeField.svelte';
-	import Wheel from './Wheel.svelte';
+	import TimeWheelPanel from './TimeWheelPanel.svelte';
 
 	let {
 		value = $bindable(''),
@@ -30,19 +25,26 @@
 		disabled?: boolean;
 		clearable?: boolean;
 		placeholder?: string;
+		/** 小时列步长；可选值只有网格上的档位，「现在」会向下对齐到最近档 */
 		hourStep?: number;
+		/** 分钟列步长；网格外的外部值滚轮就近停靠，提交仍以输入框为准 */
 		minuteStep?: number;
+		/** 秒列步长 */
 		secondStep?: number;
 		onchange?: (value: string) => void;
 		class?: string;
 		style?: string;
 	} = $props();
 
-	let rootEl = $state<HTMLElement | null>(null);
-	let panelEl = $state<HTMLElement | null>(null);
-	let panelStyle = $state('');
-	let open = $state(false);
-	let flipUp = $state(false);
+	/** 打开时重置草稿：取消过的半成品不该在下次打开时还留着 */
+	const panel = createPickerPanel({
+		onOpen: () => (draft = { h: parts.h, m: parts.m, s: parts.s }),
+	});
+
+	function onTrigger() {
+		if (disabled) return;
+		panel.toggle();
+	}
 
 	const parts = $derived.by(() => {
 		const segs = (value || '').split(':');
@@ -61,38 +63,17 @@
 		draft = { h: parts.h, m: parts.m, s: parts.s };
 	});
 
-	const hours = $derived.by(() => {
-		// xxStep<=0 会让 length 变 Infinity，Array.from 直接 RangeError
-		const hs = Number.isFinite(hourStep) && hourStep >= 1 ? Math.floor(hourStep) : 1;
-		return Array.from({ length: Math.ceil(24 / hs) }, (_, i) => pad((i * hs) % 24));
-	});
-	const minutes = $derived.by(() => {
-		const iv = Number.isFinite(minuteStep) && minuteStep >= 1 ? Math.floor(minuteStep) : 1;
-		return Array.from({ length: Math.min(60, Math.floor(60 / iv)) }, (_, i) => pad(i * iv));
-	});
-	const secs = $derived.by(() => {
-		const sv = Number.isFinite(secondStep) && secondStep >= 1 ? Math.floor(secondStep) : 1;
-		return Array.from({ length: Math.min(60, Math.floor(60 / sv)) }, (_, i) => pad(i * sv));
-	});
+	/** 步长兜底：<=0 会让 length 变 Infinity，Array.from 直接 RangeError */
+	const stepOf = (v: number) => (Number.isFinite(v) && v >= 1 ? Math.floor(v) : 1);
+	const hStep = $derived(stepOf(hourStep));
+	const mStep = $derived(stepOf(minuteStep));
+	const sStep = $derived(stepOf(secondStep));
 
-	// 轮盘当前停靠档位跟随草稿而不是已提交值：点「现在」这类整组赋值要能把三列一起滚过去。
-	// 键入的中间态可能只有一位（`12:3`），所以按数值匹配而不是字符串相等，否则 `3` 会落到 00
-	function idxByNum(list: string[], v: string): number {
-		if (!v) return 0;
-		const i = list.findIndex((x) => Number(x) === Number(v));
-		return i < 0 ? 0 : i;
-	}
-	const hIdx = $derived(idxByNum(hours, draft.h));
-	const mIdx = $derived(idxByNum(minutes, draft.m));
-	const sIdx = $derived(idxByNum(secs, draft.s));
+	/** 三列档位；「现在」对齐步长也用这份，避免列里有什么和 now() 算的对不上 */
+	const columns = $derived(timeColumns([hStep, mStep, sStep], showSeconds));
 
-	/** 面板顶部那行分段输入显示什么：padding 会打断逐位键入，所以只拼已填的段，不补零 */
-	const draftText = $derived.by(() => {
-		const arr = showSeconds ? [draft.h, draft.m, draft.s] : [draft.h, draft.m];
-		let last = arr.length - 1;
-		while (last > 0 && !arr[last]) last--;
-		return arr.slice(0, last + 1).join(':');
-	});
+	/** 面板顶部那行分段输入显示什么：padding 会打断逐位键入，所以只拼已填的段，不补零（见 joinTrimmed） */
+	const draftText = $derived(joinTrimmed(showSeconds ? [draft.h, draft.m, draft.s] : [draft.h, draft.m]));
 
 	/** 哪一列正在编辑：点顶部的时 / 分 / 秒，或滚轮停稳后跟着走 */
 	let focusCol = $state(0);
@@ -107,8 +88,6 @@
 		if (showSeconds && draft.s === '') return false;
 		return true;
 	}
-
-	const pad2 = (v: string) => (v ? v.padStart(2, '0') : '');
 
 	/** 提交用：手敲的 `3` 在这里补成 `03`，输出恒为 HH:mm(:ss) */
 	function compose(h: string, m: string, s: string): string {
@@ -126,17 +105,22 @@
 	function onSettle(col: 'h' | 'm' | 's', v: string) {
 		focusCol = col === 'h' ? 0 : col === 'm' ? 1 : 2;
 		const next = { ...draft, [col]: v };
-		// 空档从当前轮盘位置补齐（打开空值时其他列停在 00）
-		if (next.h === '') next.h = hours[hIdx];
-		if (next.m === '') next.m = minutes[mIdx];
-		if (showSeconds && next.s === '') next.s = secs[sIdx];
+		// 空档从当前列的实际停靠档补齐（打开空值时其他列停在首档）
+		if (next.h === '') next.h = columns[0][indexNearest(columns[0], draft.h)];
+		if (next.m === '') next.m = columns[1][indexNearest(columns[1], draft.m)];
+		if (showSeconds && next.s === '') next.s = columns[2][indexNearest(columns[2], draft.s)];
 		draft = next;
 	}
 
 	// 原子写入：各列一次填齐，确认时只写一次 value、只发一次 onchange（避免 showSeconds 模式发出中间态 HH:mm）
 	function now() {
 		const d = new Date();
-		draft = { h: pad(d.getHours()), m: pad(d.getMinutes()), s: showSeconds ? pad(d.getSeconds()) : '' };
+		// 按各列的步长向下对齐：直接塞 18 进 5 步长的列会落空，滚轮只能停在最近格上
+		draft = {
+			h: columns[0][indexFloor(columns[0], String(d.getHours()))],
+			m: columns[1][indexFloor(columns[1], String(d.getMinutes()))],
+			s: showSeconds ? columns[2][indexFloor(columns[2], String(d.getSeconds()))] : '',
+		};
 	}
 
 	function confirm() {
@@ -148,29 +132,7 @@
 				onchange?.(out);
 			}
 		}
-		hide();
-	}
-
-	function show() {
-		if (disabled) return;
-		draft = { h: parts.h, m: parts.m, s: parts.s };
-		open = true;
-		requestAnimationFrame(() => {
-			if (!rootEl || !panelEl) return;
-			const r = floatingPosition(rootEl.getBoundingClientRect(), {
-				panelW: panelEl.offsetWidth,
-				panelH: panelEl.offsetHeight,
-				gap: 6,
-			});
-			flipUp = r.flipUp;
-			panelStyle = r.style;
-		});
-	}
-	function hide() {
-		open = false;
-	}
-	function toggle() {
-		open ? hide() : show();
+		panel.hide();
 	}
 
 	function clear(e: MouseEvent) {
@@ -178,36 +140,17 @@
 		value = '';
 		onchange?.('');
 	}
-
-	$effect(() => {
-		if (!open) return;
-		const onDocDown = (e: MouseEvent) => {
-			if (rootEl && !rootEl.contains(e.target as Node)) hide();
-		};
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				e.stopPropagation();
-				hide();
-			}
-		};
-		document.addEventListener('mousedown', onDocDown);
-		document.addEventListener('keydown', onKey, true);
-		return () => {
-			document.removeEventListener('mousedown', onDocDown);
-			document.removeEventListener('keydown', onKey, true);
-		};
-	});
 </script>
 
-<div class="time-picker {cls}" bind:this={rootEl} style={style}>
+<div class="time-picker {cls}" bind:this={panel.rootEl} style={style}>
 	<button
 		type="button"
 		class="tp-trigger"
-		class:open
-		disabled={disabled}
+		class:open={panel.open}
+		{disabled}
 		aria-haspopup="dialog"
-		aria-expanded={open}
-		onclick={toggle}
+		aria-expanded={panel.open}
+		onclick={onTrigger}
 	>
 		{#if value}
 			<span class="tp-value">{value}</span>
@@ -227,16 +170,16 @@
 		</button>
 	{/if}
 
-	{#if open}
+	{#if panel.open}
 		<div
 			class="tp-panel"
-			bind:this={panelEl}
-			style={panelStyle}
-			class:flip-up={flipUp}
+			bind:this={panel.panelEl}
+			style={panel.panelStyle}
+			class:flip-up={panel.flipUp}
 			role="dialog"
 			aria-label="选择时间"
-			in:menuIn={{ up: flipUp }}
-			out:menuOut={{ up: flipUp }}
+			in:menuIn={{ up: panel.flipUp }}
+			out:menuOut={{ up: panel.flipUp }}
 		>
 			<div class="tp-field">
 				<TimeField
@@ -248,22 +191,14 @@
 					onchange={onFieldChange}
 				/>
 			</div>
-			<div class="tp-columns">
-				<div class="tp-col" class:active={focusCol === 0}>
-					<Wheel items={hours} index={hIdx} ariaLabel="小时" onSettle={(i) => onSettle('h', hours[i])} />
-				</div>
-				<span class="tp-sep" aria-hidden="true">:</span>
-				<div class="tp-col" class:active={focusCol === 1}>
-					<Wheel items={minutes} index={mIdx} ariaLabel="分钟" onSettle={(i) => onSettle('m', minutes[i])} />
-				</div>
-				{#if showSeconds}
-					<span class="tp-sep" aria-hidden="true">:</span>
-					<div class="tp-col" class:active={focusCol === 2}>
-						<Wheel items={secs} index={sIdx} ariaLabel="秒" onSettle={(i) => onSettle('s', secs[i])} />
-					</div>
-				{/if}
-			</div>
-			<PickerFooter {disabled} oncancel={hide} onconfirm={confirm}>
+			<TimeWheelPanel
+				time={draftText}
+				seconds={showSeconds}
+				steps={[hStep, mStep, sStep]}
+				{focusCol}
+				onselect={(i, v) => onSettle((['h', 'm', 's'] as const)[i], v)}
+			/>
+			<PickerFooter {disabled} oncancel={panel.hide} onconfirm={confirm}>
 				{#snippet leading()}
 					<Button variant="text-primary" size="xs" {disabled} onclick={now}>现在</Button>
 				{/snippet}
@@ -382,25 +317,5 @@
 		width: 100%;
 		box-sizing: border-box;
 		justify-content: center;
-	}
-	.tp-columns {
-		display: flex;
-		align-items: center;
-		gap: var(--sp-sm);
-	}
-	/* 一列一个宿主：正在编辑的那一段垫一层底，和顶部输入框里的光标对应起来 */
-	.tp-col {
-		display: flex;
-		border-radius: var(--radius-md);
-		transition: background 0.15s;
-	}
-	.tp-col.active {
-		background: var(--accent-sub);
-	}
-	.tp-sep {
-		font-family: var(--font-mono);
-		font-size: var(--fs-16);
-		font-weight: 600;
-		color: var(--text-muted);
 	}
 </style>

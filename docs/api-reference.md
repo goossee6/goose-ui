@@ -1,6 +1,6 @@
 # 组件 Props 参考
 
-对外 87 个组件里，84 个有 props 的列在这里，共 807 条。
+对外 87 个组件里，84 个有 props 的列在这里，共 808 条。
 本文件由 `scripts/gen-api-docs.mjs` 从 `src/lib/components/ui/*.svelte` 生成，**不要手改**：
 改完组件执行 `pnpm docs:api` 重新生成，`pnpm docs:api:check`（CI 用）校验本文件有没有落后于源码。
 
@@ -361,10 +361,11 @@ import { Select } from 'goose-ui';
 | --- | --- | --- | --- |
 | `items` | `Option[]` | `[]` |  |
 | `values` *(bind)* | `string[]` | `[]` |  |
-| `placeholder` | `string` | `"请选择"` |  |
+| `placeholder` | `string` | `'请选择'` |  |
 | `disabled` | `boolean` | `false` |  |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |
+| `ariaLabel` | `string` | `''` |  |
 
 ```ts
 import { MultiSelect } from 'goose-ui';
@@ -803,9 +804,9 @@ import { DateTimeRangePicker } from 'goose-ui';
 | `disabled` | `boolean` | `false` |  |
 | `clearable` | `boolean` | `true` |  |
 | `placeholder` | `string` | `'选择时间…'` |  |
-| `hourStep` | `number` | `1` |  |
-| `minuteStep` | `number` | `1` |  |
-| `secondStep` | `number` | `1` |  |
+| `hourStep` | `number` | `1` | 小时列步长；可选值只有网格上的档位，「现在」会向下对齐到最近档 |
+| `minuteStep` | `number` | `1` | 分钟列步长；网格外的外部值滚轮就近停靠，提交仍以输入框为准 |
+| `secondStep` | `number` | `1` | 秒列步长 |
 | `onchange` | `(value: string) => void` | — |  |
 | `class` | `string` | `''` |  |
 | `style` | `string` | `''` |  |

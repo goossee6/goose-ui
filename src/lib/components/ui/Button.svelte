@@ -3,6 +3,7 @@
   import type { Component } from "svelte";
   import Loader2 from "@lucide/svelte/icons/loader-2";
   import { onDestroy } from "svelte";
+  import { prefersReducedMotion } from "./motion";
 
   const MIN_LOADING_MS = 1000;
 
@@ -118,10 +119,7 @@
    * matchMedia 返回的是对象、永远真值，取反后恒为 false，于是这段动画
    * 在任何环境都不触发。这类「永远不成立的条件」静态检查抓不到，别再犯。
    */
-  const reducedMotion = $derived(
-    typeof window !== 'undefined' &&
-      (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
-  );
+  const reducedMotion = $derived(prefersReducedMotion());
 
   function onPointerDown(e: PointerEvent & { currentTarget: HTMLButtonElement }) {
     if (e.button !== 0 || disabled || loading) return;

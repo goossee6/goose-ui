@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import SegmentField from './SegmentField.svelte';
+	import SegmentedTextField from './SegmentedTextField.svelte';
 	import type { FieldValidator } from './fieldValidation';
 
 	let {
@@ -47,42 +47,22 @@
 				]
 	);
 
-	const segs = $derived.by(() => {
-		const parts = value.split(':');
-		const n = seconds ? 3 : 2;
-		const arr: string[] = [];
-		for (let i = 0; i < n; i++) arr.push(parts[i] ?? '');
-		return arr;
-	});
-
-	function join(arr: string[]): string {
-		// 空段必须占位：时分秒靠位置对齐，`['', '07', '00']` 若丢成 `07:00`，
-		// 分钟就会被读成小时。只有尾部连续空段可以省（`12:30` 不必写成 `12:30:`）。
-		let last = arr.length - 1;
-		while (last > 0 && !arr[last]) last--;
-		return arr.slice(0, last + 1).join(':');
-	}
-
-	function handle(segments: string[]) {
-		const v = join(segments);
-		value = v;
-		onchange?.(v);
-	}
+	const placeholders = $derived(['时', '分', ...(seconds ? ['秒'] : [])]);
 </script>
 
 <div class="time-field {cls}" style={style} aria-label={ariaLabel} role="group">
-	<SegmentField
+	<SegmentedTextField
+		bind:value
 		{widths}
 		{ranges}
-		value={segs}
-		{disabled}
 		separator=":"
-		placeholders={['时', '分', ...(seconds ? ['秒'] : [])]}
-		onchange={handle}
+		{placeholders}
+		{disabled}
+		{leading}
+		{onchange}
 		{onsegmentfocus}
 		{validate}
 		{oninvalid}
-		{leading}
 	/>
 </div>
 

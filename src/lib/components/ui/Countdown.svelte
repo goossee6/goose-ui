@@ -1,10 +1,6 @@
-<script lang="ts" module>
-	function pad(n: number): string {
-		return String(n).padStart(2, '0');
-	}
-</script>
-
 <script lang="ts">
+	import { pad2 } from './dateParts';
+
 	let {
 		duration = 0,
 		target = 0,
@@ -96,8 +92,8 @@
 
 	const display = $derived.by(() => {
 		const segs: string[] = [];
-		if (showDays && parts.d > 0) segs.push(String(parts.d).padStart(2, '0'));
-		segs.push(pad(parts.h), pad(parts.m), pad(parts.s));
+		if (showDays && parts.d > 0) segs.push(pad2(parts.d));
+		segs.push(pad2(parts.h), pad2(parts.m), pad2(parts.s));
 		return segs.join(separator);
 	});
 </script>

@@ -4,10 +4,19 @@
   import { menuStore } from "../contextMenuStore.svelte.js";
   import { getMenu, openMenuAt, closeMenu, dispatchMenuAction, decodeBase64, type MenuItemDef } from "../contextMenu";
   import PillTrack from "../ui/PillTrack.svelte";
+  import { createLayerId, isInsideLayer, layerOwnerOf, registerLayer, unregisterLayer } from "../ui/overlayLayer";
 
   let menuEl = $state<HTMLElement | null>(null);
   let pos = $state({ left: 0, top: 0 });
   let activeIdx = $state(-1);
+
+  /**
+   * 浮层身份。菜单本身挂在根节点（不在任何触发器的 DOM 子树里），
+   * 所以「谁弹出的我」只能在右键那一刻记下来 —— 之后再问就追不到祖先链了。
+   * 见 overlayLayer.ts：Popover / DropdownMenu 里右键时，父层要能认出这是它的子面板。
+   */
+  const layerId = createLayerId('ctxmenu');
+  let ownerLayer = $state<string | null>(null);
 
   const items = $derived(getMenu(menuStore.name) ?? []);
 
@@ -27,6 +36,8 @@
     const data = decodeData(el.getAttribute("data-menu-data"));
     if (menuStore.visible && menuStore.name === name && pos.left === e.clientX && pos.top === e.clientY) return;
     activeIdx = -1;
+    // 落点还在原处，祖先链没断：此时记下「我在哪一层里弹出来的」
+    ownerLayer = layerOwnerOf(el);
     openMenuAt(e.clientX, e.clientY, name, data);
   }
 
@@ -85,7 +96,10 @@
 
   $effect(() => {
     if (!menuStore.visible) return;
-    function onDocDown(e: MouseEvent) { if (menuEl && !menuEl.contains(e.target as Node)) closeMenu(); }
+    function onDocDown(e: MouseEvent) {
+      if (isInsideLayer(e.target, layerId, [menuEl])) return;
+      closeMenu();
+    }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") { e.stopPropagation(); closeMenu(); }
     }
@@ -93,6 +107,20 @@
     // capture 拦截 Esc，避免冒泡触发外层 Modal 关闭
     document.addEventListener("keydown", onKey, true);
     return () => { document.removeEventListener("mousedown", onDocDown); document.removeEventListener("keydown", onKey, true); };
+  });
+
+  /** 面板挂载即登记浮层；卸载（换菜单 / 关闭）时摘掉，免得层链里留下死节点。 */
+  $effect(() => {
+    const el = menuEl;
+    // 依赖 ownerLayer：同一个面板元素连续服务两次右键时，父层可能不同（换了个宿主）
+    const owner = ownerLayer;
+    if (!el) return;
+    el.dataset.overlayLayer = layerId;
+    registerLayer(layerId, owner);
+    return () => {
+      unregisterLayer(layerId);
+      delete el.dataset.overlayLayer;
+    };
   });
 
   // 打开后聚焦首项（键盘可立即用方向键）

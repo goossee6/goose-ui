@@ -2,18 +2,19 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 /**
- * demo 是纯静态站（GitHub Pages），页面之间没有访问先后规律，
- * 所以不做「首屏命中率」优化、也不按页拆：只按依赖性质成块，约束是单文件 ≤500KB。
+ * demo 是纯静态站（GitHub Pages），约束是**单文件 ≤500KB**（超过就构建失败）。
  *
- *   vendor  —— Svelte 运行时 + 图标
- *   ui      —— goose-ui 的 86 个组件
- *   shell   —— 示例页共用的外壳（代码预览、属性表）
- *   demos   —— 76 个示例页 + 示例数据
- *   index   —— 应用外壳 + 加载表
- *   style   —— 全部样式（CSS 不分片）
+ *   vendor   —— Svelte 运行时 + 图标
+ *   ui       —— goose-ui 的全部组件
+ *   shell    —— 示例页共用的外壳（代码预览、属性表）
+ *   demo-lib —— 示例数据与工具（`_shared.ts` / `_tableShared.ts` / `_tableSources.ts`）
+ *   index    —— 应用外壳 + 页签加载表
+ *   style    —— 全部样式（CSS 不分片）
  *
- * 不按页拆是因为 76 个示例页会变成 76 个文件，而页面访问是随机的：
- * 拆碎的收益只有「少下几十 KB」，代价是全站请求数翻一个量级。
+ * 示例页本身**不再合并成一块**：`registry.ts` 用的是逐页 `import()`，本来就会让
+ * Vite 按页切块（那也是它存在的理由）。早先为了「少几个请求」把 76 页强行塞进一个
+ * `demos` 组，结果是每加一个示例页就把这块往 512000 字节的线上顶 —— 2026-11 时只剩
+ * 157 字节余量，加一个组件就红。现在交还给动态 import：只有真正切过去的页才下载。
  */
 
 export default defineConfig({
@@ -30,7 +31,7 @@ export default defineConfig({
     exclude: ['goose-ui'],
   },
   build: {
-    // 每个组件的 scoped 样式默认各成一个 CSS 文件：86 个组件 → 74 个文件，
+    // 每个组件的 scoped 样式默认各成一个 CSS 文件（实测 80 多个组件 → 74 个文件），
     // 中位数 1.3KB、最小 65 字节。合并后 74 → 1，gzip 从 53KB 降到 31KB。
     cssCodeSplit: false,
     // 注意：Vite 8 起 rollupOptions 换成 rolldownOptions，旧键会被静默忽略
@@ -39,12 +40,9 @@ export default defineConfig({
       output: {
         codeSplitting: {
           // 顺序即优先级：先被匹配到的组先吃模块。
-          // vendor / ui 必须排在 demos 之前 —— 反之 demos 会把它们的依赖
-          // 一起递归吞进去（实测 demos 涨到 758KB，vendor 只剩 2KB）。
-          // shell 是几十个示例页共用的代码预览 / 属性表，跟着 demos 走会把它顶到
-          // 500KB 红线（每加一个示例页就再涨一点），单独成块后 demos 只剩示例页本身。
-          // demos 只认 demo/src/lib 下剩下的内容（示例页、加载表），
-          // App.svelte / main.ts 这些入口侧文件留在 index。
+          // vendor / ui 必须排在最前 —— 反之示例页会把它们的依赖一起递归吞进去
+          // （实测那一版 demos 涨到 758KB，vendor 只剩 2KB）。
+          // 这里只登记「几十个页面共用」的东西；示例页交给动态 import 自行切块。
           groups: [
             { name: 'vendor', test: /node_modules[\\/]/, priority: 40 },
             { name: 'ui', test: /goose-ui[\\/]src[\\/]lib[\\/]/, priority: 30 },
@@ -53,7 +51,11 @@ export default defineConfig({
               test: /[\\/]demo[\\/]src[\\/]lib[\\/](?:CodePreview|PropsTable)\.svelte/,
               priority: 20,
             },
-            { name: 'demos', test: /[\\/]demo[\\/]src[\\/]lib[\\/]/, priority: 10 },
+            {
+              name: 'demo-lib',
+              test: /[\\/]demo[\\/]src[\\/]lib[\\/]demos[\\/]_(?:shared|tableShared|tableSources)\.ts/,
+              priority: 10,
+            },
           ],
         },
       },

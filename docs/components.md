@@ -1,6 +1,6 @@
 # 组件清单
 
-86 个组件，按分组列出，每组只有一句话说明。
+按分组列出，每组只有一句话说明（**分组与命名以本表为准**；数量不写死，见 README 的「规模」）。
 
 - 要查某个组件的 props（类型 / 默认值 / 能否 `bind:`）：[组件 Props 参考](api-reference.md)
 - 要看可运行示例：[在线 demo](https://goossee6.github.io/goose-ui/)，对应源码在 `demo/src/lib/demos/`

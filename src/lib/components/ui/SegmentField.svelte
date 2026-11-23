@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import PillTrack from './PillTrack.svelte';
 	import { checkField, type FieldValidator } from './fieldValidation';
+	import { cellValues, isLegal, isOutOfRange, normalizeCells, pasteCells } from './segmentCells';
 
 	let {
 		widths = [],
@@ -72,43 +73,39 @@
 		e.preventDefault();
 	}
 
-	const cells = $derived.by(() => {
-		const arr: string[] = [];
-		for (let i = 0; i < widths.length; i++) arr.push(value[i] ?? '');
-		return arr;
-	});
+	/** 段配置：取值运算全在 segmentCells.ts，组件只管 DOM 与焦点 */
+	const spec = $derived({ widths, ranges, numeric });
 
-	/** 段值是否落在合法区间；空串留给「还没填」 */
-	function legal(i: number, ch: string): boolean {
-		if (!ch || !numeric) return true;
-		const [lo, hi] = rangeOf(i);
-		const n = Number(ch);
-		return n >= lo && n <= hi;
-	}
+	const cells = $derived(cellValues(widths, value));
 
-	/** 写入一段；越界当场拒绝，该段回到进入字段时的值 */
-	function setCell(i: number, ch: string) {
+	/** 写入一段；越界当场拒绝，该段回到进入字段时的值，返回最终落到状态里的文本 */
+	function setCell(i: number, ch: string): string {
 		const arr = cells.slice();
-		arr[i] = legal(i, ch) ? ch : (goodCells[i] ?? '');
+		arr[i] = isLegal(spec, i, ch) ? ch : (goodCells[i] ?? '');
 		value = arr;
 		onchange?.(arr);
+		return arr[i];
 	}
 
-	/** 段的合法区间；没指定就按位数取满，等于不加额外约束 */
-	function rangeOf(i: number): [number, number] {
-		const r = ranges[i];
-		if (r) return r;
-		return [0, 10 ** widths[i] - 1];
+	/**
+	 * 把 DOM 拉回状态。
+	 *
+	 * 被拒绝的键入（月填 13）在状态里是**旧值**，`value` 压根没变 —— Svelte 于是
+	 * 不会重写 `value` 属性，框里就留着那个没被接受的数字。看起来像「收下了但标红」，
+	 * 实际提交的是另一个值；下次失焦规整也发现不了（状态是干净的）。
+	 * 所以每次写完状态都显式对齐一次，只动真的不一致的格子。
+	 */
+	function syncDom(from = 0, to = widths.length) {
+		for (let k = from; k < to; k++) {
+			const el = inputs[k];
+			const want = value[k] ?? '';
+			if (el && el.value !== want) el.value = want;
+		}
 	}
 
 	/** 段已填但越界：输入过程中只标红，不打断（否则「1」想打「12」会被立刻改掉） */
 	function isInvalid(i: number): boolean {
-		if (!numeric) return false;
-		const raw = cells[i];
-		if (!raw) return false;
-		const n = Number(raw);
-		const [lo, hi] = rangeOf(i);
-		return n < lo || n > hi;
+		return isOutOfRange(spec, i, cells[i]);
 	}
 
 	/**
@@ -116,24 +113,12 @@
 	 * 字段内部跳格（年 → 月）不触发，否则打「13」月会立刻被改掉，红字提示还没看清就没了。
 	 */
 	function normalize(): string[] {
-		if (!numeric) return cells;
-		const arr = cells.slice();
-		let changed = false;
-		for (let i = 0; i < arr.length; i++) {
-			if (!arr[i]) continue;
-			const [lo, hi] = rangeOf(i);
-			const n = Number(arr[i]);
-			const next = n < lo || n > hi ? (goodCells[i] ?? '') : String(n).padStart(widths[i], '0');
-			if (next !== arr[i]) {
-				arr[i] = next;
-				changed = true;
-			}
+		const r = normalizeCells(spec, cells, goodCells);
+		if (r.changed) {
+			value = r.cells;
+			onchange?.(r.cells);
 		}
-		if (changed) {
-			value = arr;
-			onchange?.(arr);
-		}
-		return arr;
+		return r.cells;
 	}
 
 	function handleBlur(e: FocusEvent) {
@@ -161,8 +146,8 @@
 		let text = el.value;
 		if (numeric) text = text.replace(/\D/g, '');
 		text = text.slice(0, widths[i]);
-		el.value = text;
-		setCell(i, text);
+		el.value = setCell(i, text);
+		syncDom(i, i + 1);
 		if (text.length >= widths[i] && i < widths.length - 1) focusCell(i + 1);
 	}
 
@@ -188,20 +173,12 @@
 
 	function handlePaste(i: number, e: ClipboardEvent) {
 		e.preventDefault();
-		let text = e.clipboardData?.getData('text') ?? '';
-		if (numeric) text = text.replace(/\D/g, '');
-		if (!text) return;
-		const arr = cells.slice();
-		let pos = 0;
-		for (let k = i; k < widths.length && pos < text.length; k++) {
-			const take = text.slice(pos, pos + widths[k]);
-			arr[k] = legal(k, take) ? take : (goodCells[k] ?? '');
-			pos += widths[k];
-		}
-		if (pos < text.length && i === 0 && legal(0, text.slice(0, widths[0]))) arr[0] = text.slice(0, widths[0]);
-		value = arr;
-		onchange?.(arr);
-		focusCell(Math.min(widths.length - 1, i + Math.ceil(pos / Math.max(...widths))));
+		const r = pasteCells(spec, cells, e.clipboardData?.getData('text') ?? '', i, goodCells);
+		if (r.cells === cells) return;
+		value = r.cells;
+		onchange?.(r.cells);
+		syncDom(i, widths.length);
+		focusCell(r.next);
 	}
 </script>
 

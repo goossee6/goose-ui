@@ -26,6 +26,8 @@
  * 否则「减少动效」的用户会走进一条没人测过的分支。
  */
 
+import { prefersReducedMotion } from './motion';
+
 export interface MenuPopParams {
 	/** 面板在触发器上方（向上翻转）。位移方向与缩放锚边都随之反向。 */
 	up?: boolean;
@@ -41,10 +43,6 @@ export interface MenuPopParams {
 const ENTER_MS = 120;
 /** 离开时长（ms）。比进入短，避免挡住下一次点击。 */
 const EXIT_MS = 80;
-
-function prefersReducedMotion(): boolean {
-	return typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
-}
 
 /** 缩放原点：垂直贴触发器一侧，水平按对齐方式。 */
 function originOf(p: MenuPopParams): string {

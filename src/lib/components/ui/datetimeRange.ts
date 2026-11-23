@@ -15,10 +15,10 @@ export const RANGE_PRESETS: { id: RangePresetId; label: string }[] = [
 	{ id: 'm6', label: '最近半年' },
 ];
 
-const pad = (n: number) => String(n).padStart(2, '0');
+import { pad2 } from './dateParts.ts';
 
 export function isoDate(d: Date): string {
-	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
 export function splitDateTime(v: string): { date: string; time: string } {
@@ -48,7 +48,7 @@ export function presetDates(id: RangePresetId, now = new Date()): { start: strin
 		case 'today':
 			return { start: today, end: today };
 		case 'yesterday': {
-			// 「昨天」是昨天 00:00 到今天 00:00 这一段，右端不能跟着落到今天
+			// 「昨天」只含昨天一整天：起点和终点都落在昨天，右端不能跟着落到今天
 			const d = daysAgo(1);
 			return { start: d, end: d };
 		}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte";
+  import { prefersReducedMotion } from "./motion";
   import type { Snippet } from "svelte";
 
   /**
@@ -258,7 +259,7 @@
     document.addEventListener("click", onDocClick);
     document.addEventListener("keydown", onKeydown, true);
     return () => {
-      window.removeEventListener("scroll", onScroll, { capture: true } as any);
+      window.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("resize", onResize);
       document.removeEventListener("click", onDocClick);
       document.removeEventListener("keydown", onKeydown, true);
@@ -300,10 +301,6 @@
       }
     };
   });
-
-  function prefersReducedMotion(): boolean {
-    return typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
-  }
 
   function getTooltipStyle(): string {
     if (animState === "hidden") return "display:none";

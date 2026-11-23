@@ -2,12 +2,13 @@
 	import RangeCalendar from './RangeCalendar.svelte';
 	import DateField from './DateField.svelte';
 	import TimeField from './TimeField.svelte';
-	import Wheel from './Wheel.svelte';
+	import TimeWheelPanel from './TimeWheelPanel.svelte';
 	import Button from './Button.svelte';
 	import PickerFooter from './PickerFooter.svelte';
 	import PillTrack from './PillTrack.svelte';
-	import { floatingPosition } from './floatingPosition';
+	import { normalizeTime } from './dateParts';
 	import { menuIn, menuOut } from './menuTransition';
+	import { createPickerPanel } from './pickerPanel.svelte';
 	import {
 		RANGE_PRESETS,
 		joinDateTime,
@@ -50,17 +51,11 @@
 		style?: string;
 	} = $props();
 
-	const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-	const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
-	let rootEl = $state<HTMLElement | null>(null);
-	let panelEl = $state<HTMLElement | null>(null);
 	let presetsEl = $state<HTMLElement | null>(null);
-	let panelStyle = $state('');
-	let open = $state(false);
-	let flipUp = $state(false);
 	let timeSide = $state<'start' | 'end' | null>(null);
 	let timeUp = $state(false);
+	let timeEl = $state<HTMLElement | null>(null);
 	/** 时间正在编辑哪一段（0 时 / 1 分 / 2 秒）：点输入框就定位，滚轮停稳也跟着走 */
 	let focusSeg = $state(0);
 	/** 两行时间字段的宿主，用来判断滚轮浮层朝上还是朝下 */
@@ -103,14 +98,9 @@
 	}
 
 	/** 键入中的时间可能是 `12:3`，比较前补零，否则字典序会把 `12:3` 排在 `12:05` 之后 */
-	function padTime(t: string): string {
-		const [h = '', m = '', s = ''] = t.split(':');
-		return [h, m, s].map((x) => (x ? x.padStart(2, '0') : '00')).join(':');
-	}
-
 	function padRange(v: string): string {
 		const { date, time } = splitDateTime(v);
-		return date ? joinDateTime(date, padTime(time)) : '';
+		return date ? joinDateTime(date, normalizeTime(time)) : '';
 	}
 
 	/**
@@ -150,7 +140,7 @@
 			end = r.end;
 			onchange?.({ start, end });
 		}
-		hide();
+		panel.hide();
 	}
 
 	function clear() {
@@ -173,19 +163,20 @@
 		write(joinDateTime(r.start, '00:00:00'), joinDateTime(r.end, '23:59:59'));
 	}
 
-	/** 键入中间态可能是 `3`，按数值找列位置，否则 indexOf 落空会把滚轮甩到 00 */
-	function idxOf(list: string[], time: string, i: number): number {
-		const v = time.split(':')[i] ?? '';
-		if (!v) return 0;
-		const k = list.findIndex((x) => Number(x) === Number(v));
-		return k < 0 ? 0 : k;
-	}
-
 	/** 滚轮改一列：只动浮层草稿，其余两列保持，等浮层的「确认」才写回区间 */
+	// 浮层高度随内容变（有无秒列、footer 一行），用实测高度决定向下还是向上展开。
+	// 别改回「估算 244px」：之前就是估的值，footer 一加高就不再准。
+	$effect(() => {
+		if (!timeSide) return;
+		const field = timeSide === 'start' ? startFieldEl : endFieldEl;
+		if (!field || !timeEl) return;
+		timeUp = field.getBoundingClientRect().bottom + 4 + timeEl.offsetHeight > window.innerHeight;
+	});
+
 	function setTimePart(i: number, value: string) {
 		if (!timeSide) return;
 		focusSeg = i;
-		const parts = padTime(tmpT || (timeSide === 'start' ? startT : endT)).split(':');
+		const parts = normalizeTime(tmpT || (timeSide === 'start' ? startT : endT)).split(':');
 		parts[i] = value;
 		tmpT = parts.join(':');
 	}
@@ -202,7 +193,7 @@
 		const side = timeSide;
 		const date = splitDateTime(side === 'start' ? dStart : dEnd).date;
 		if (date && tmpT) {
-			setSide(side, joinDateTime(date, padTime(tmpT)));
+			setSide(side, joinDateTime(date, normalizeTime(tmpT)));
 			if (errMsg) return;
 		}
 		timeSide = null;
@@ -213,37 +204,30 @@
 		timeSide = null;
 	}
 
-	function place() {
-		if (!rootEl || !panelEl) return;
-		const r = floatingPosition(rootEl.getBoundingClientRect(), {
-			panelW: panelEl.offsetWidth,
-			// 日历排版后高度会超过首次量到的值，用 scrollHeight 取内容真实高度
-			panelH: Math.max(panelEl.offsetHeight, panelEl.scrollHeight),
-			gap: 6,
-			flip: 'space',
-		});
-		flipUp = r.flipUp;
-		panelStyle = r.style;
-	}
+	const panel = createPickerPanel({
+		// 面板两侧都放不下时，选空间更大的一侧（日历比视口还高的极端情况）
+		flip: 'space',
+		onOpen: () => {
+			today = new Date();
+			dStart = start;
+			dEnd = end;
+			errMsg = '';
+		},
+		onClose: () => {
+			timeSide = null;
+			errMsg = '';
+		},
+		// Esc 只收一层：时间浮层开着就收它，否则交给面板
+		onEscape: () => {
+			if (!timeSide) return false;
+			timeSide = null;
+			return true;
+		},
+	});
 
-	function show() {
+	function onTrigger() {
 		if (disabled) return;
-		today = new Date();
-		dStart = start;
-		dEnd = end;
-		errMsg = '';
-		open = true;
-		// 首帧只有自然宽度，设完 width 内容会重排，第二帧再定位一次
-		requestAnimationFrame(() => {
-			place();
-			requestAnimationFrame(place);
-		});
-	}
-
-	function hide() {
-		open = false;
-		timeSide = null;
-		errMsg = '';
+		panel.toggle();
 	}
 
 	/**
@@ -259,52 +243,23 @@
 		if (timeSide === side) return;
 		// 换到另一侧：上一侧没确认的改动一并丢弃（与「取消」同义）
 		tmpT = side === 'start' ? startT : endT;
-		const el = side === 'start' ? startFieldEl : endFieldEl;
-		// 浮层比原来多一行 footer，估算高度跟着涨
-		timeUp = el ? el.getBoundingClientRect().bottom + 244 > window.innerHeight : false;
 		timeSide = side;
 	}
 
+	// 面板级的关闭交给 createPickerPanel；这里只管「点面板内其它地方时收掉时间浮层」
 	$effect(() => {
-		if (!open) return;
+		if (!panel.open) return;
 		const onDown = (e: MouseEvent) => {
 			const target = e.target as Element;
-			if (rootEl && !rootEl.contains(target)) {
-				hide();
-				return;
-			}
-			// 点时间滚轮与时间字段以外的地方，只收时间浮层
 			if (timeSide && !target.closest('.dtr-time, .dtr-time-field')) timeSide = null;
 		};
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key !== 'Escape') return;
-			e.stopPropagation();
-			if (timeSide) timeSide = null;
-			else hide();
-		};
 		document.addEventListener('mousedown', onDown);
-		document.addEventListener('keydown', onKey, true);
-		return () => {
-			document.removeEventListener('mousedown', onDown);
-			document.removeEventListener('keydown', onKey, true);
-		};
+		return () => document.removeEventListener('mousedown', onDown);
 	});
 </script>
 
 {#snippet wheelCols(time: string)}
-	<div class="dtr-wheels">
-		<div class="dtr-col" class:active={focusSeg === 0}>
-			<Wheel items={HOURS} index={idxOf(HOURS, time, 0)} ariaLabel="小时" onSettle={(i) => setTimePart(0, HOURS[i])} />
-		</div>
-		<span class="dtr-sep" aria-hidden="true">:</span>
-		<div class="dtr-col" class:active={focusSeg === 1}>
-			<Wheel items={MINUTES} index={idxOf(MINUTES, time, 1)} ariaLabel="分钟" onSettle={(i) => setTimePart(1, MINUTES[i])} />
-		</div>
-		<span class="dtr-sep" aria-hidden="true">:</span>
-		<div class="dtr-col" class:active={focusSeg === 2}>
-			<Wheel items={MINUTES} index={idxOf(MINUTES, time, 2)} ariaLabel="秒" onSettle={(i) => setTimePart(2, MINUTES[i])} />
-		</div>
-	</div>
+	<TimeWheelPanel time={time} focusCol={focusSeg} align="center" onselect={setTimePart} />
 {/snippet}
 
 {#snippet calIcon()}
@@ -315,17 +270,17 @@
 	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="8" /><path d="M12 14l3-3" /><path d="M9 2h6M12 2v3" /></svg>
 {/snippet}
 
-<div class="dtr {cls}" bind:this={rootEl} style={style}>
+<div class="dtr {cls}" bind:this={panel.rootEl} style={style}>
 	<button
 		type="button"
 		class="dtr-trigger"
-		class:open
+		class:open={panel.open}
 		class:invalid={!!errMsg}
-		disabled={disabled}
+		{disabled}
 		aria-haspopup="dialog"
-		aria-expanded={open}
+		aria-expanded={panel.open}
 		title={errMsg || undefined}
-		onclick={() => (open ? hide() : show())}
+		onclick={onTrigger}
 	>
 		{#if label}
 			<span class="dtr-value">{label}</span>
@@ -335,16 +290,16 @@
 		<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
 	</button>
 
-	{#if open}
+	{#if panel.open}
 		<div
 			class="dtr-panel"
-			bind:this={panelEl}
-			style={panelStyle}
-			class:flip-up={flipUp}
+			bind:this={panel.panelEl}
+			style={panel.panelStyle}
+			class:flip-up={panel.flipUp}
 			role="dialog"
 			aria-label="选择时间范围"
-			in:menuIn={{ up: flipUp }}
-			out:menuOut={{ up: flipUp }}
+			in:menuIn={{ up: panel.flipUp }}
+			out:menuOut={{ up: panel.flipUp }}
 		>
 			<div class="dtr-body">
 				<div class="dtr-presets" role="group" aria-label="快捷选择" bind:this={presetsEl}>
@@ -395,6 +350,7 @@
 							<div
 								class="dtr-time"
 								class:up={timeUp}
+								bind:this={timeEl}
 								role="dialog"
 								aria-label="选择开始时间"
 								in:menuIn={{ distance: 4, scale: 1 }}
@@ -433,6 +389,7 @@
 							<div
 								class="dtr-time"
 								class:up={timeUp}
+								bind:this={timeEl}
 								role="dialog"
 								aria-label="选择结束时间"
 								in:menuIn={{ distance: 4, scale: 1 }}
@@ -458,7 +415,7 @@
 				</div>
 			</div>
 
-			<PickerFooter {disabled} oncancel={hide} onconfirm={confirm}>
+			<PickerFooter {disabled} oncancel={panel.hide} onconfirm={confirm}>
 				{#snippet leading()}
 					<Button variant="text-primary" size="xs" {disabled} onclick={clear}>清除</Button>
 				{/snippet}
@@ -685,28 +642,9 @@
 		top: auto;
 		bottom: calc(100% + var(--space-1));
 	}
-	.dtr-wheels {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--sp-sm);
-	}
 	/* 浮层比面板矮一档，footer 的上下留白跟着收一点，别让按钮离滚轮太远 */
 	.dtr-time :global(.picker-footer) {
 		margin-top: var(--sp-sm);
 		padding-top: var(--sp-sm);
-	}
-	/* 一列一个宿主：正在编辑的那一段（点输入框或滚轮停稳）垫一层底，指明「改的是这列」 */
-	.dtr-col {
-		display: flex;
-		border-radius: var(--radius-md);
-		transition: background 0.15s;
-	}
-	.dtr-col.active {
-		background: var(--accent-sub);
-	}
-	.dtr-sep {
-		color: var(--text-muted);
-		font-family: var(--font-mono);
 	}
 </style>

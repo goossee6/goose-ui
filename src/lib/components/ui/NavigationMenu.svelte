@@ -11,6 +11,7 @@
 <script lang="ts">
 	import { floatingPosition } from './floatingPosition';
 	import { menuIn, menuOut } from './menuTransition';
+	import { createLayerId, isInsideLayer, layerOwnerOf, registerLayer, unregisterLayer } from './overlayLayer';
 
 	let {
 		items = [],
@@ -38,6 +39,13 @@
 	 */
 	const openItem = $derived(items.find((i) => i.value === openValue && i.children?.length));
 	let navEl = $state<HTMLElement | null>(null);
+
+	/**
+	 * 浮层身份：面板虽然留在 `navEl` 里，但里面的下拉（Select 等）会 portal 到 body，
+	 * 那些点击已经不在 `navEl` 的 DOM 子树里了 —— 只靠 contains 会把「点自己弹出的
+	 * 子面板」判成外部点击，菜单连带子面板一起消失。见 overlayLayer.ts。
+	 */
+	const layerId = createLayerId('navmenu');
 	let panelEl = $state<HTMLElement | null>(null);
 	let panelStyle = $state('');
 	let flipUp = $state(false);
@@ -161,14 +169,32 @@
 	$effect(() => {
 		if (!openValue) return;
 		const onDocDown = (e: MouseEvent) => {
-			if (navEl && !navEl.contains(e.target as Node)) closeMenu();
+			if (isInsideLayer(e.target, layerId, [navEl])) return;
+			closeMenu();
 		};
-		const onScroll = () => closeMenu();
+		// capture 的 scroll 会收到子面板内部列表的滚动：只有面板外部的滚动才该收起菜单
+		const onScroll = (e: Event) => {
+			if (isInsideLayer(e.target, layerId, [navEl])) return;
+			closeMenu();
+		};
 		document.addEventListener('mousedown', onDocDown);
 		window.addEventListener('scroll', onScroll, true);
 		return () => {
 			document.removeEventListener('mousedown', onDocDown);
 			window.removeEventListener('scroll', onScroll, true);
+		};
+	});
+
+	/** 面板挂载即登记浮层，卸载时摘掉（层链里不留死节点） */
+	$effect(() => {
+		const el = panelEl;
+		if (!el) return;
+		const owner = layerOwnerOf(el);
+		el.dataset.overlayLayer = layerId;
+		registerLayer(layerId, owner);
+		return () => {
+			unregisterLayer(layerId);
+			delete el.dataset.overlayLayer;
 		};
 	});
 

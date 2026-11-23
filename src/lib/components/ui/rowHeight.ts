@@ -20,8 +20,10 @@ export interface RowsHeight {
 /**
  * 逐行累加：与 DOM 一致 —— 组头是独立元素，其后的选项另算一行。
  * height = min(content, 前 MAX_ROWS 行的实际高度之和) —— 组头也算一行。
+ *
+ * 也接受纯字符串数组（CreatableSelect 的选项没有分组），等价于「每项都没有 group」。
  */
-export function rowsHeight<T extends RowItem>(items: T[], pad = 0): RowsHeight {
+export function rowsHeight<T extends RowItem | string>(items: readonly T[], pad = 0): RowsHeight {
 	// 空列表（空态文案行）给最小高度，避免面板被压成几像素
 	if (!items.length) return { content: pad, height: pad + 44 };
 	let content = pad;
@@ -36,9 +38,10 @@ export function rowsHeight<T extends RowItem>(items: T[], pad = 0): RowsHeight {
 		}
 	};
 	for (const item of items) {
-		const isHead = !!item.group && item.group !== prev;
+		const group = typeof item === 'string' ? undefined : item.group;
+		const isHead = !!group && group !== prev;
 		if (isHead) {
-			prev = item.group;
+			prev = group;
 			add(HEAD_H);
 		}
 		add(ROW_H);

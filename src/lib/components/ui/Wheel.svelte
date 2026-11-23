@@ -1,13 +1,19 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import {
+		COPIES,
+		activeIndexAt,
+		clampIndex,
+		deltaToPx,
+		foldPos,
+		keyTarget,
+		selectedAt,
+		shortestDelta,
+		stripOffsetY,
+		wheelStep,
+	} from './wheelMath';
 
 	const ITEM_H = 36;
-	/** 3 份内容：可见窗口始终落在中段，归一化时整份平移，像素完全一致 */
-	const COPIES = 3;
-	/** 一次标准滚轮 tick 的 deltaY：Chrome/Windows 是 100，Firefox 行模式换算后也≈100 */
-	const TICK_PX = 100;
-	/** 触控板按像素连续推进，多少 px 折一格（比 36 稍钝，配合下面的平滑不至于滑过头） */
-	const PAD_PX_PER_CELL = 40;
 
 	let {
 		items = [],
@@ -34,9 +40,9 @@
 	/** 归一化后的位置：初值 pos=0 也落在中段，首帧不会闪一屏空白 */
 	const cur = $derived(norm(pos));
 	/** 条带整体位移：让 cur 那一格的中心对准容器中心 */
-	const offsetY = $derived(-((cur + 0.5) * ITEM_H));
-	const activeIdx = $derived(N ? Math.round(cur) : 0);
-	const sel = $derived(N ? ((activeIdx % N) + N) % N : 0);
+	const offsetY = $derived(stripOffsetY(cur, ITEM_H));
+	const activeIdx = $derived(activeIndexAt(pos, N));
+	const sel = $derived(selectedAt(pos, N));
 
 	let raf = 0;
 	let wheelTimer: ReturnType<typeof setTimeout> | null = null;
@@ -51,22 +57,18 @@
 	/** 上一次处理过的外部 index：区分「父级回灌我刚发出的值」和「真的改了值」 */
 	let seenIndex = -1;
 
-	/** 把位置折叠回中段：±N 是整份平移，内容重复，视觉等价 */
-	function norm(p: number): number {
-		if (!N) return 0;
-		return (((p % N) + N) % N) + N;
+	/** 把位置折叠回中段：±N 是整份平移，内容重复，视觉等价（数学见 wheelMath.ts） */
+	function norm(p: number) {
+		return foldPos(p, N);
 	}
 
-	function clampReal(i: number): number {
-		return Math.max(0, Math.min(Math.max(0, N - 1), i));
+	function clampReal(i: number) {
+		return clampIndex(i, N);
 	}
 
 	/** 到某个条带位置的最短位移：同一个值可能出现在三份里，别为了它绕一整圈 */
-	function wrapDelta(d: number): number {
-		if (!N) return 0;
-		let x = ((d % N) + N) % N;
-		if (x > N / 2) x -= N;
-		return x;
+	function wrapDelta(d: number) {
+		return shortestDelta(d, N);
 	}
 
 	function stopAnim() {
@@ -289,72 +291,31 @@
 	function onWheel(e: WheelEvent) {
 		if (!N) return;
 		e.preventDefault();
-		const px = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 180 : 1);
+		const px = deltaToPx(e.deltaY, e.deltaMode);
 		if (!px) return;
 
 		const now = performance.now();
 		const gap = lastTick ? now - lastTick : 200;
-		// 停手之后又滚，或上一轮已落定：目标从当前位置重新起步，不留残量
-		const fresh = gap > 320 || !inGlide;
 		lastTick = now;
-		if (fresh) {
-			wGoal = cur;
-			// 上一轮停手的间隔（可能几百毫秒）不代表滚动速度，重置成「慢」而不是沿用
-			tickGap = 150;
-		} else {
-			tickGap = tickGap * 0.4 + gap * 0.6;
-		}
-		// 拖拽松手的惯性可能还在跑：先把它停掉，否则它和 glide 会同时改 pos
+
+		const step = wheelStep({ px, deltaMode: e.deltaMode, gap, tickGap, inGlide });
+		// 拖拽松手的惯性可能还在跑：先把它停掉，否则它和 glide 会同时改 pos。
+		// 必须在 wheelStep 之后 —— 它会清掉 inGlide，先清就永远判成「重新起步」
 		stopAnim();
+		// 停手之后又滚，或上一轮已落定：目标从当前位置重新起步，不留残量。
+		// 上一轮停手的间隔（可能几百毫秒）也不代表滚动速度，重置成「慢」而不是沿用
+		if (step.fresh) wGoal = cur;
+		tickGap = step.tickGap;
 
-		const mag = Math.abs(px);
-		const dir = Math.sign(px);
-		// 传统滚轮：单次幅度大、间隔几十毫秒；触控板：单次幅度小、十几毫秒一次
-		const discrete = mag >= 40 && (e.deltaMode !== 0 || gap > 24);
-
-		let cells: number;
-		if (discrete) {
-			// 慢滚一格走一格；连滚越快步长越大（上限 3 格/tick），0-59 才不至于划半天。
-			// 步长保留小数：吸附在停稳时统一做，这样加速是连续的，不会 1 / 2 / 3 地来回跳档
-			const mul = 1 + (Math.max(0, 150 - Math.min(tickGap, 150)) / 150) * 2;
-			const ticks = Math.max(1, Math.round(mag / TICK_PX));
-			cells = dir * Math.max(1, ticks * mul);
-		} else {
-			// 触控板：按像素连续推进，半格留给停稳时吸附
-			cells = px / PAD_PX_PER_CELL;
-		}
-
-		wGoal = norm(wGoal + cells);
+		wGoal = norm(wGoal + step.cells);
 		glide();
 		restartWheelTimer();
 	}
 
 	function onKeydown(e: KeyboardEvent) {
 		if (!N) return;
-		const base = activeIdx;
-		let target: number;
-		switch (e.key) {
-			case 'ArrowUp':
-				target = base - 1;
-				break;
-			case 'ArrowDown':
-				target = base + 1;
-				break;
-			case 'PageUp':
-				target = base - 5;
-				break;
-			case 'PageDown':
-				target = base + 5;
-				break;
-			case 'Home':
-				target = N;
-				break;
-			case 'End':
-				target = N * 2 - 1;
-				break;
-			default:
-				return;
-		}
+		const target = keyTarget(e.key, activeIdx, N);
+		if (target === null) return;
 		e.preventDefault();
 		stopAnim();
 		animateTo(target);
@@ -402,6 +363,7 @@
 
 <div
 	class="wheel"
+	style="--wheel-item-h: {ITEM_H}px"
 	bind:this={boxEl}
 	role="listbox"
 	tabindex="0"
@@ -435,7 +397,8 @@
 	.wheel {
 		position: relative;
 		width: 56px;
-		height: 180px;
+		/* 可见窗口 5 格；格高由 JS 的 ITEM_H 通过内联变量下发，避免位移与 CSS 各写一个 36 后走偏 */
+		height: calc(var(--wheel-item-h) * 5);
 		flex-shrink: 0;
 		border-radius: var(--radius-md);
 		/* 轮廓用 inset 阴影画：mask 会连边框一起渐隐，边框套在里面上下两截会被吃掉 */
@@ -456,8 +419,8 @@
 		position: absolute;
 		left: var(--space-0-5);
 		right: var(--space-0-5);
-		top: 72px;
-		height: 36px;
+		top: calc(50% - var(--wheel-item-h) / 2);
+		height: var(--wheel-item-h);
 		border-radius: var(--radius-sm);
 		background: var(--accent-sub);
 		border: 1px solid var(--accent-ring);
@@ -484,7 +447,7 @@
 		align-items: center;
 		justify-content: center;
 		width: 100%;
-		height: 36px;
+		height: var(--wheel-item-h);
 		border: none;
 		background: none;
 		font-family: var(--font-mono);
