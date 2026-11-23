@@ -1,6 +1,6 @@
 {
   "name": "goose-ui",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "零 CSS 框架依赖的 Svelte 5 纯 CSS 组件库（仅需 @lucide/svelte 图标），支持 Wails3 桌面应用开发",
   "license": "MIT",
@@ -103,6 +103,7 @@
     "./date-range-field": "./src/lib/components/ui/DateRangeField.svelte",
     "./date-picker": "./src/lib/components/ui/DatePicker.svelte",
     "./date-range-picker": "./src/lib/components/ui/DateRangePicker.svelte",
+    "./date-time-range-picker": "./src/lib/components/ui/DateTimeRangePicker.svelte",
     "./dropdown-menu": "./src/lib/components/ui/DropdownMenu.svelte",
     "./link-preview": "./src/lib/components/ui/LinkPreview.svelte",
     "./menubar": "./src/lib/components/ui/Menubar.svelte",

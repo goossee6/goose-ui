@@ -20,8 +20,8 @@
 ## 安装
 
 ```bash
-# 跟 0.4.x 里最新的 tag；以后升级只要 pnpm update goose-ui
-pnpm add "github:goossee6/goose-ui#semver:^0.4.0" @lucide/svelte
+# 跟 0.5.x 里最新的 tag；以后升级只要 pnpm update goose-ui
+pnpm add "github:goossee6/goose-ui#semver:^0.5.0" @lucide/svelte
 ```
 
 接入步骤与注意事项见[安装与接入](docs/installation.md)，升级与版本管理见[同页「升级」](docs/installation.md#升级)。

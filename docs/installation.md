@@ -16,14 +16,14 @@ pnpm dev
 ## 安装
 
 ```bash
-# 推荐：跟 0.4.x 里最新的 tag，之后升级只用 pnpm update goose-ui
-pnpm add "github:goossee6/goose-ui#semver:^0.4.0" @lucide/svelte
+# 推荐：跟 0.5.x 里最新的 tag，之后升级只用 pnpm update goose-ui
+pnpm add "github:goossee6/goose-ui#semver:^0.5.0" @lucide/svelte
 ```
 
 锁死单个版本（tag 见 <https://github.com/goossee6/goose-ui/tags>）：
 
 ```bash
-pnpm add github:goossee6/goose-ui#v0.4.0
+pnpm add github:goossee6/goose-ui#v0.5.0
 ```
 
 跟随 `main` 最新提交（构建不可复现，见[升级](installation.md#升级)）：
@@ -88,8 +88,8 @@ grep '"version"' node_modules/goose-ui/package.json
 
 | 写法 | 含义 | 怎么升 |
 | --- | --- | --- |
-| `github:…#semver:^0.4.0` | 自动跟 0.4.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
-| `github:…/goose-ui#v0.4.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
+| `github:…#semver:^0.5.0` | 自动跟 0.5.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
+| `github:…/goose-ui#v0.5.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
 | `github:goossee6/goose-ui` | 跟随 `main` 最新提交 | `pnpm update goose-ui` |
 | `link:../goose-ui` | 软链到本地克隆 | 不用升级，`git pull` 后即时生效 |
 | `file:../goose-ui` | 指到本地克隆，但 pnpm 会**复制**一份快照 | `pnpm install` 重新复制（想实时联动换成 `link:`） |
@@ -103,7 +103,7 @@ grep '"version"' node_modules/goose-ui/package.json
 ### 不想手改 tag：用 semver 范围
 
 ```bash
-pnpm add "github:goossee6/goose-ui#semver:^0.4.0" @lucide/svelte
+pnpm add "github:goossee6/goose-ui#semver:^0.5.0" @lucide/svelte
 pnpm update goose-ui          # 之后升级就这一条
 ```
 
@@ -182,8 +182,40 @@ jobs:
 
    ```bash
    git ls-remote --tags https://github.com/goossee6/goose-ui.git | tail -6
-   git tag -n9 -l v0.4.0        # 在 goose-ui 仓库里看某个 tag 的说明
+   git tag -n9 -l v0.5.0        # 在 goose-ui 仓库里看某个 tag 的说明
    ```
+
+### 0.5.0 相比 0.4.0 的行为变化
+
+- 新增 `DateTimeRangePicker`：时间范围选择到秒。左栏 7 个快捷区间（今天 / 昨天 / 最近 3、7、30 天 /
+  最近 3 个月 / 半年），右侧两行「日期 + 时间」，下方日历常显。日期是纯输入框（可直接键入，也能接受
+  日历的值），时间点开滚轮面板；快捷区间一律填整天（`00:00:00 → 23:59:59`）
+
+- `Wheel`（滚轮）重做：每列渲染多份、滑动到尽头静默回中，显得无限；指针位移直接驱动、不再用原生滚动，
+  慢滚一格、快滚按节奏提速；外部改值（点「现在」、预设、键入回填）按最短路径滑过去而不是瞬移
+
+- 新增 `PickerFooter`：面板底部统一的「取消 + 确认」操作条，左侧可带一个次级快捷；`Calendar` /
+  `RangeCalendar` / `TimePicker` / `DateTimeRangePicker` 都换用它
+
+- `TimePicker` 顶部新增「时 : 分 : 秒」分段输入：点段即键入，同时高亮对应滚轮列，两种输入方式并行
+
+- 输入控件统一支持 `validate` / `oninvalid`：`Input`、`Textarea`、`DateField`、`TimeField` 在失焦时
+  调用校验函数，返回错误文案即视为不合法，值回滚到本次编辑前并把输入框标红。不传 `validate` 行为不变
+
+- **行为变化**：`DateField` / `TimeField` 的越界段不再「夹到区间端点」（输入 13 月被改成 12 月），
+  改为回到编辑前的值；位数不足仍然补零。依赖原「自动夹取」的调用方需要在业务侧自行钳制
+
+- **行为变化**：`DatePicker` / `DateRangePicker` / `TimePicker` / `DateTimeRangePicker` 从「点选即提交」
+  改为「草稿 + 确认」：面板内的选择只改内部草稿，点「确认」才写回 `value` / `start` / `end` 并触发
+  `onchange`；点「取消」或按 Esc 丢弃本次改动。以前依赖「选完自动关闭」的调用方，现在需要用户点确认
+
+- **行为变化**：`RangeCalendar` 底部不再有「选择开始日期 / 选择结束日期」提示和「清除」按钮，
+  改为可选的「取消 + 确认」（传 `oncancel` / `onconfirm` 时渲染，纯展示用法不传则无底部区）
+
+- `DateTimeRangePicker` 面板底部也是「清除 + 取消 + 确认」，左栏快捷按钮改为紧凑排列、不再拉伸铺满；
+  快捷项的 hover / 选中底色交给 `PillTrack`（与 Tabs 同一套滑动 pill），右侧两行的「日期 + 时间」等宽
+
+- `RangeCalendar` 区间内的日期与首尾同档圆角（原先中间格是 0 圆角，只有首尾是圆角）
 
 ### 0.4.0 相比 0.3.3 的行为变化
 
