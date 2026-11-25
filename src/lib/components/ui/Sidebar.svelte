@@ -19,6 +19,8 @@
   }
 
   export interface SidebarTabGroup {
+    /** 稳定标识：展开态与折叠浮层按它记录；缺省用标题，标题重复或运行期增删组时须显式给 key */
+    key?: string;
     title: string;
     icon?: Component<{ size?: number; class?: string }>;
     items: SidebarTabItem[];
@@ -79,16 +81,33 @@
     width !== undefined ? `--sidebar-w:${typeof width === 'number' ? `${width}px` : width};` : ''
   );
 
-  // 初始展开态按「首次拿到的 groups」建一次快照；此后由 toggleGroup / toggleCollapse 独占维护
-  let expandedGroups = $state<Set<number>>(untrack(() => new Set(groups.map((_, i) => i))));
-  let prevExpanded = $state<Set<number>>(untrack(() => new Set(groups.map((_, i) => i))));
+  const groupKey = (g: SidebarTabGroup): string => g.key || groupTitle(g);
+  const groupKeys = (list: SidebarEntry[]) =>
+    list.flatMap((e) => (isGroup(e) ? [groupKey(e)] : []));
 
-  let popoverGroup = $state<number>(-1);
+  // 展开态按组的稳定键记录，运行期增删组不会串位；knownGroups 只增不减，用「没出现过」判定新增组
+  let knownGroups = $state<Set<string>>(untrack(() => new Set(groupKeys(groups))));
+  let expandedGroups = $state<Set<string>>(untrack(() => new Set(groupKeys(groups))));
+  let prevExpanded = $state<Set<string>>(untrack(() => new Set(groupKeys(groups))));
+
+  // 新增组默认展开；折叠态下写 prevExpanded，保持「collapsed 时 expandedGroups 是空集」
+  $effect(() => {
+    const keys = groupKeys(groups);
+    untrack(() => {
+      const added = keys.filter((k) => !knownGroups.has(k));
+      if (!added.length) return;
+      knownGroups = new Set([...knownGroups, ...added]);
+      if (collapsed) prevExpanded = new Set([...prevExpanded, ...added]);
+      else expandedGroups = new Set([...expandedGroups, ...added]);
+    });
+  });
+
+  let popoverGroup = $state<string | null>(null);
   let popoverStyle = $state('');
   let hoverTimer = $state<ReturnType<typeof setTimeout> | null>(null);
   const popoverEntry = $derived.by(() => {
-    const g = groups[popoverGroup];
-    return popoverGroup >= 0 && isGroup(g) ? g : undefined;
+    if (popoverGroup === null) return undefined;
+    return groups.find((e): e is SidebarTabGroup => isGroup(e) && groupKey(e) === popoverGroup);
   });
 
   function toggleCollapse() {
@@ -101,10 +120,10 @@
     collapsed = !collapsed;
   }
 
-  function toggleGroup(index: number) {
+  function toggleGroup(key: string) {
     const next = new Set(expandedGroups);
-    if (next.has(index)) next.delete(index);
-    else next.add(index);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
     expandedGroups = next;
   }
 
@@ -112,22 +131,25 @@
       折叠态下 expandedGroups 恒为空集，故改写 prevExpanded —— 侧栏再展开时据此还原，
       否则「折叠时用链接跳转」这一步的展开意图会在还原时丢失。 */
   function revealGroup(value: string): boolean {
-    const idx = groups.findIndex(g => isGroup(g) && g.items.some(i => i.value === value));
-    if (idx < 0) return false;
+    const group = groups.find(
+      (g): g is SidebarTabGroup => isGroup(g) && g.items.some((i) => i.value === value)
+    );
+    if (!group) return false;
+    const key = groupKey(group);
     if (collapsed) {
-      if (prevExpanded.has(idx)) return false;
-      prevExpanded = new Set(prevExpanded).add(idx);
+      if (prevExpanded.has(key)) return false;
+      prevExpanded = new Set(prevExpanded).add(key);
       return true;
     }
-    if (expandedGroups.has(idx)) return false;
-    expandedGroups = new Set(expandedGroups).add(idx);
+    if (expandedGroups.has(key)) return false;
+    expandedGroups = new Set(expandedGroups).add(key);
     return true;
   }
 
   function selectTab(value: string) {
     activeTab = value;
     onchange?.(value);
-    popoverGroup = -1;
+    popoverGroup = null;
     revealGroup(value);
   }
 
@@ -139,19 +161,20 @@
     return group.title || group.items[0]?.label || '';
   }
 
-  function hoverShow(gi: number, e: MouseEvent) {
+  function hoverShow(entry: SidebarEntry, e: MouseEvent) {
+    if (!isGroup(entry)) return;
+    const group = entry;
     const sidebarEl = (e.currentTarget as HTMLElement).closest('.sidebar') as HTMLElement;
     const btnEl = (e.currentTarget as HTMLElement) as HTMLElement;
     if (hoverTimer) clearTimeout(hoverTimer);
     hoverTimer = setTimeout(() => {
-      popoverGroup = gi;
+      popoverGroup = groupKey(group);
       if (!sidebarEl || !btnEl) return;
       const sbRect = sidebarEl.getBoundingClientRect();
       const btnRect = btnEl.getBoundingClientRect();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const popTarget = groups[gi];
-      const popH = Math.min((isGroup(popTarget) ? popTarget.items.length : 0) * 32 + 40, 280);
+      const popH = Math.min(group.items.length * 32 + 40, 280);
       const popW = 170;
       const gap = 6;
 
@@ -168,7 +191,7 @@
 
   function hoverHide() {
     if (hoverTimer) clearTimeout(hoverTimer);
-    hoverTimer = setTimeout(() => { popoverGroup = -1; }, 300);
+    hoverTimer = setTimeout(() => { popoverGroup = null; }, 300);
   }
 
   function hoverCancelHide() {
@@ -180,8 +203,8 @@
   }
 
   const activeSel = $derived.by(() => {
-    const idx = groups.findIndex((e) => isGroup(e) && hasActiveItem(e));
-    return idx >= 0 && !expandedGroups.has(idx) ? '' : '.nav-item--active';
+    const g = groups.find((e): e is SidebarTabGroup => isGroup(e) && hasActiveItem(e));
+    return g && !expandedGroups.has(groupKey(g)) ? '' : '.nav-item--active';
   });
 
   let navEl = $state<HTMLElement | null>(null);
@@ -337,7 +360,7 @@
   </div>
 
   <nav class="sidebar-nav" bind:this={navEl}>
-    {#each groups as entry, gi}
+    {#each groups as entry (isGroup(entry) ? groupKey(entry) : `item:${itemValue(entry)}`)}
       {#if isItem(entry)}
         {#if collapsed}
           <!-- 折叠态只剩图标，标签走 Tooltip（原来靠原生 title，样式与主题无关）。 -->
@@ -368,6 +391,7 @@
         {/if}
       {/if}
       {#if isGroup(entry)}
+        {@const gk = groupKey(entry)}
         {#if collapsed}
           <!-- 分组按钮不套 Tooltip、也不再挂原生 title：悬停本来就会弹出分组浮层
                （hoverShow），标题已经在浮层里显示；再叠一层系统 tooltip 既是
@@ -376,7 +400,7 @@
             type="button"
             class="group-icon-btn"
             class:group-icon-btn--active={hasActiveItem(entry)}
-            onmouseenter={(e) => hoverShow(gi, e)}
+            onmouseenter={(e) => hoverShow(entry, e)}
             onmouseleave={hoverHide}
             aria-label={groupTitle(entry)}
           >
@@ -389,8 +413,8 @@
             {#if entry.title}
               {@const title = entry.title}
               <Collapsible
-                open={expandedGroups.has(gi)}
-                onchange={() => toggleGroup(gi)}
+                open={expandedGroups.has(gk)}
+                onchange={() => toggleGroup(gk)}
               >
                 {#snippet trigger()}
                   {#if entry.icon}
@@ -399,7 +423,7 @@
                   <span class="group-title">{title}</span>
                   <span
                     class="group-chevron"
-                    class:group-chevron--up={!expandedGroups.has(gi)}
+                    class:group-chevron--up={!expandedGroups.has(gk)}
                   >
                     <Icon icon={ChevronDown} size={14} />
                   </span>
@@ -418,7 +442,7 @@
                   </button>
                 {/each}
               </Collapsible>
-            {:else if expandedGroups.has(gi)}
+            {:else if expandedGroups.has(gk)}
               <div class="group-items">
                 {#each entry.items as item}
                   <button
@@ -494,7 +518,7 @@
   {/if}
 </aside>
 
-{#if collapsed && popoverGroup >= 0}
+{#if collapsed && popoverGroup !== null}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="sidebar-popover"
