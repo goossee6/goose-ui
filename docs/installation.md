@@ -16,14 +16,14 @@ pnpm dev
 ## 安装
 
 ```bash
-# 推荐：跟 0.6.x 里最新的 tag，之后升级只用 pnpm update goose-ui
-pnpm add "github:goossee6/goose-ui#semver:^0.6.0" @lucide/svelte
+# 推荐：跟 0.7.x 里最新的 tag，之后升级只用 pnpm update goose-ui
+pnpm add "github:goossee6/goose-ui#semver:^0.7.0" @lucide/svelte
 ```
 
 锁死单个版本（tag 见 <https://github.com/goossee6/goose-ui/tags>）：
 
 ```bash
-pnpm add github:goossee6/goose-ui#v0.6.0
+pnpm add github:goossee6/goose-ui#v0.7.0
 ```
 
 跟随 `main` 最新提交（构建不可复现，见[升级](installation.md#升级)）：
@@ -88,8 +88,8 @@ grep '"version"' node_modules/goose-ui/package.json
 
 | 写法 | 含义 | 怎么升 |
 | --- | --- | --- |
-| `github:…#semver:^0.6.0` | 自动跟 0.6.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
-| `github:…/goose-ui#v0.6.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
+| `github:…#semver:^0.7.0` | 自动跟 0.7.x 里最高的 tag（**推荐**） | `pnpm update goose-ui` |
+| `github:…/goose-ui#v0.7.0` | 锁死在某个 tag | 改 tag 再 `pnpm install` |
 | `github:goossee6/goose-ui` | 跟随 `main` 最新提交 | `pnpm update goose-ui` |
 | `link:../goose-ui` | 软链到本地克隆 | 不用升级，`git pull` 后即时生效 |
 | `file:../goose-ui` | 指到本地克隆，但 pnpm 会**复制**一份快照 | `pnpm install` 重新复制（想实时联动换成 `link:`） |
@@ -103,7 +103,7 @@ grep '"version"' node_modules/goose-ui/package.json
 ### 不想手改 tag：用 semver 范围
 
 ```bash
-pnpm add "github:goossee6/goose-ui#semver:^0.6.0" @lucide/svelte
+pnpm add "github:goossee6/goose-ui#semver:^0.7.0" @lucide/svelte
 pnpm update goose-ui          # 之后升级就这一条
 ```
 
@@ -182,8 +182,16 @@ jobs:
 
    ```bash
    git ls-remote --tags https://github.com/goossee6/goose-ui.git | tail -6
-   git tag -n9 -l v0.6.0        # 在 goose-ui 仓库里看某个 tag 的说明
+   git tag -n9 -l v0.7.0        # 在 goose-ui 仓库里看某个 tag 的说明
    ```
+
+### 0.7.0 相比 0.6.0 的行为变化
+
+- `Sidebar` 的分组可给可选 `key`：展开态与折叠浮层按它记录（缺省用标题），运行期增删分组不再串位；
+  新出现的分组默认展开，已有分组保持用户手动收起的状态
+
+- **行为变化**：两个分组标题相同且都没给 `key` 时，会撞 keyed each 的重复键报错——在 `groups` 里补上
+  `key` 即可
 
 ### 0.6.0 相比 0.5.0 的行为变化
 
